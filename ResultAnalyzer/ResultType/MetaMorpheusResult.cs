@@ -459,9 +459,6 @@ namespace ResultAnalyzer.ResultType
             return file;
         }
 
-
-
-
         #region Retention Time Predictions
 
         private string _retentionTimePredictionPath => Path.Combine(DirectoryPath, $"{DatasetName}_MM_{FileIdentifiers.RetentionTimePredictionReady}");

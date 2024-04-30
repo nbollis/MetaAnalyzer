@@ -3,6 +3,7 @@ using Plotly.NET.ImageExport;
 using System.IO;
 using Plotly.NET.LayoutObjects;
 using Plotly.NET.TraceObjects;
+using Proteomics.PSM;
 using ResultAnalyzer.FileTypes.Internal;
 using ResultAnalyzer.ResultType;
 using ResultAnalyzer.Util;
@@ -1030,6 +1031,45 @@ namespace ResultAnalyzer.Plotting
                 .WithYAxis(LinearAxis.init<int, int, int, int, int, int>(AxisType: StyleParam.AxisType.Linear))
                 .WithYAxisStyle(Title.init("Percent"))
                 .WithSize(width, DefaultHeight);
+            return chart;
+        }
+
+        public static GenericChart.GenericChart ChimeraTargetDecoyChart(this List<PsmFromTsv> psms, bool isTopDown, ChimeraBreakdownType type, string filterType,
+            out int width)
+        {
+            var data = psms.GroupBy(p => p, CustomComparer<PsmFromTsv>.ChimeraComparer)
+                .GroupBy(p => p.Count(), p => p)
+                .ToDictionary(p => p.Key, p => p.SelectMany(m => m).ToList())
+                .Select(p => (
+                    p.Key,
+                    //(double)p.Value.Count(m => m.IsDecoy()),
+                    //(double)p.Value.Count(m => !m.IsDecoy()))
+                    Math.Round(p.Value.Count(m => m.IsDecoy()) / (double)p.Value.Count * 100, 2),
+                    Math.Round(p.Value.Count(m => !m.IsDecoy()) / (double)p.Value.Count * 100, 2))
+                )
+                .ToArray();
+
+            var keys = data.Select(p => p.Key).ToArray();
+            width = Math.Max(600, 50 * data.Length);
+            var form = isTopDown ? "Proteoform" : "Peptidoform";
+            string title = isTopDown ? type == ChimeraBreakdownType.Psm ? "PrSM" : "Proteoform" :
+                type == ChimeraBreakdownType.Psm ? "PSM" : "Peptide";
+
+            width = Math.Max(600, 50 * data.Length);
+            var chart = Chart.Combine(new[]
+            {
+
+                Chart.StackedColumn<double, int, string>(data.Select(p => p.Item3), keys, "Targets",
+                    MarkerColor: ConditionToColorDictionary["Targets"], MultiText: data.Select(p => p.Item3.ToString()).ToArray()),
+                Chart.StackedColumn<double, int, string>(data.Select(p => p.Item2), keys, "Decoys",
+                                           MarkerColor: ConditionToColorDictionary["Decoys"], MultiText: data.Select(p => p.Item2.ToString()).ToArray())
+            })
+            .WithLayout(DefaultLayoutWithLegend)
+            .WithTitle($"{psms.Count} {filterType} Filtered {title} Chimera Target Decoy Distribution")
+            .WithXAxisStyle(Title.init($"1% {title}s Per Spectrum"))
+            .WithYAxis(LinearAxis.init<int, int, int, int, int, int>(AxisType: StyleParam.AxisType.Linear))
+            .WithYAxisStyle(Title.init("Count"))
+            .WithSize(width, DefaultHeight);
             return chart;
         }
 
