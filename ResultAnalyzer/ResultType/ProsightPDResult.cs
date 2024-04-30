@@ -4,7 +4,7 @@ using ResultAnalyzer.Util;
 
 namespace ResultAnalyzer.ResultType
 {
-    internal class ProsightPDResult : BulkResult
+    public class ProsightPDResult : BulkResult
     {
         private PSPSPrSMFile _psmFile;
         private PSPSProteoformFile _peptideFile;

@@ -17,51 +17,51 @@ namespace ResultAnalyzer.Plotting
         #region Filters
 
         public static string[] AcceptableConditionsToPlotIndividualFileComparisonBottomUp =
-        {
+        [
             "MetaMorpheusWithLibrary", "MetaMorpheusNoChimerasWithLibrary",
-            "ReviewdDatabaseNoPhospho_MsFraggerDDA", "ReviewdDatabaseNoPhospho_MsFraggerDDA+", "ReviewdDatabaseNoPhospho_MsFragger",
-        };
+            "ReviewdDatabaseNoPhospho_MsFraggerDDA", "ReviewdDatabaseNoPhospho_MsFraggerDDA+", "ReviewdDatabaseNoPhospho_MsFragger"
+        ];
 
         public static string[] AcceptableConditionsToPlotIndividualFileComparisonTopDown =
-        {
+        [
             "MetaMorpheus", "MetaMorpheusNoChimeras", 
             "MsPathFinderT", "MsPathFinderTWithMods", "MsPathFinderTWithModsNoChimeras", "MsPathFinderTWithMods_7",
-            "ProsightPD"
-        };
+            "ProsightPDChimeras", "ProsightPDNoChimeras"
+        ];
 
         public static string[] AcceptableConditionsToPlotInternalMMComparisonBottomUp =
-        {
-            "MetaMorpheusWithLibrary", "MetaMorpheusNoChimerasWithLibrary",
-        };
+        [
+            "MetaMorpheusWithLibrary", "MetaMorpheusNoChimerasWithLibrary"
+        ];
 
         public static string[] AcceptableConditonsToPlotInternalMMComparisonTopDown =
-        {
+        [
             "MetaMorpheus", "MetaMorpheusNoChimeras"
-        };
+        ];
 
         public static string[] AcceptableConditionsToPlotBulkResultComparisonBottomUp =
-        {
+        [
             "MetaMorpheusWithLibrary", "MetaMorpheusNoChimerasWithLibrary", 
             "ReviewdDatabaseNoPhospho_MsFraggerDDA+", "ReviewdDatabaseNoPhospho_MsFragger",
-        };
+        ];
 
         public static string[] AcceptableConditionsToPlotBulkResultsComparisonTopDown =
-        {
+        [
             "MetaMorpheus", "MetaMorpheusNoChimeras", 
             "MsPathFinderT", "MsPathFinderTWithMods", "MsPathFinderTWithModsNoChimeras", "MsPathFinderTWithMods_7",
-            "ProsightPD"
-        };
+            "ProsightPDChimeras", "ProsightPDNoChimeras"
+        ];
 
         public static string[] AcceptableConditionsToPlotFDRComparisonResults =
-        {
+        [
             // Bottom Up
             "MetaMorpheusWithLibrary"
-        };
+        ];
 
         public static string[] AcceptableConditionsToPlotChimeraBreakdownTopDown =
-        {
+        [
             "MetaMorpheus"
-        };
+        ];
 
 
         /// <summary>
@@ -94,7 +94,8 @@ namespace ResultAnalyzer.Plotting
             {"MsPathFinderT", Color.fromKeyword(ColorKeyword.Khaki)},
             {"MsPathFinderTWithMods", Color.fromKeyword(ColorKeyword.Gold)},
             {"MsPathFinderTWithMods_7", Color.fromKeyword(ColorKeyword.GoldenRod)},
-            {"ProsightPD", Color.fromKeyword(ColorKeyword.Red)},
+            {"ProsightPDNoChimeras", Color.fromKeyword(ColorKeyword.PaleVioletRed)},
+            {"ProsightPDChimeras", Color.fromKeyword(ColorKeyword.Red)},
 
 
             // Chimera Breakdown plot
@@ -406,6 +407,8 @@ namespace ResultAnalyzer.Plotting
             // Top Down
             { "MetaMorpheus", "MetaMorpheus\u2800" },
             { "MetaMorpheusNoChimeras", "MetaMorpheus No Chimeras" },
+            {"ProsightPDNoChimeras", "ProsightPD\u2800No Chimeras"},
+            {"ProsightPDChimeras", "ProsightPD Chimeras"},
         };
 
         public static IEnumerable<string> ConvertConditionNames(this IEnumerable<string> conditions)
@@ -536,7 +539,6 @@ namespace ResultAnalyzer.Plotting
                 $"{FileIdentifiers.ChimeraBreakdownTargetDecoy}_{pepLabel}_{cellLine.CellLine}");
             peptideChart.SavePNG(peptideOutPath, null, width, DefaultHeight);
         }
-
 
         public static void PlotCellLineRetentionTimePredictions(this CellLineResults cellLine)
         {

@@ -5,6 +5,7 @@ using ResultAnalyzer.FileTypes.External;
 using ResultAnalyzer.FileTypes.Internal;
 using ResultAnalyzer.Util;
 using Readers;
+using System.Windows;
 
 namespace ResultAnalyzer.ResultType;
 
@@ -37,8 +38,7 @@ public class CellLineResults : IEnumerable<BulkResult>
             }
             else
             {
-                var shellObject = ShellObject.FromParsingName(dataFileShortcutPath);
-                var dataFilePath = shellObject.Properties.System.Link.TargetParsingPath.Value;
+                var dataFilePath = ShellObject.FromParsingName(dataFileShortcutPath).Properties.System.Link.TargetParsingPath.Value;
                 if (dataFilePath.StartsWith("Z:"))
                     dataFilePath = dataFilePath.Replace("Z:", @"B:");
                 var caliAvgDirectory = Directory.GetDirectories(dataFilePath).First(p =>
