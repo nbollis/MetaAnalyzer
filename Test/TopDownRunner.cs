@@ -14,6 +14,17 @@ namespace Test
             .Select(datasetDirectory => new CellLineResults(datasetDirectory)).ToList());
 
         [Test]
+        public static void RunSpecific()
+        {
+            var results = AllResults.First(p => p.DatasetName == "Jurkat");
+
+
+        }
+
+
+
+
+        [Test]
         public static void RunAllParsing()
         {
             foreach (var cellLine in AllResults)
@@ -44,7 +55,7 @@ namespace Test
             AllResults.CountChimericPsms();
             AllResults.CountChimericPeptides();
         }
-    
+
         [Test]
         public static void PlotAllFigures()
         {
@@ -60,6 +71,16 @@ namespace Test
             AllResults.PlotInternalMMComparison();
             AllResults.PlotBulkResultComparison();
             AllResults.PlotStackedIndividualFileComparison();
+        }
+
+        [Test]
+        public static void MsPathTDatasetInfoGenerator()
+        {
+            foreach (MsPathFinderTResults mspt in AllResults.SelectMany(p => p.Results)
+                .Where(p => p is MsPathFinderTResults mspt && mspt.IndividualFileResults.Count is 20 or 43))
+            {
+                mspt.CreateDatasetInfoFile();
+            }
         }
     }
 }

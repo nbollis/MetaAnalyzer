@@ -1,5 +1,6 @@
 ﻿using System.Collections;
 using System.Diagnostics;
+using System.Linq.Expressions;
 using Easy.Common.Extensions;
 using ResultAnalyzer.FileTypes.External;
 using ResultAnalyzer.FileTypes.Internal;
@@ -10,6 +11,12 @@ namespace ResultAnalyzer.ResultType
     public class MsPathFinderTResults : BulkResult, IEnumerable<MsPathFinderTIndividualFileResult>
     {
         private string _combinedResultFilePath;
+
+        private bool _runBulk =>
+            Override ||
+            !File.Exists(_bulkResultCountComparisonPath) ||
+            (BulkResultCountComparisonFile.First().ProteinGroupCount == 0 && !_combinedResultFilePath.IsNullOrEmpty());
+
 
         public List<MsPathFinderTIndividualFileResult> IndividualFileResults { get; set; }
         public MsPathFinderTResults(string directoryPath) : base(directoryPath)
@@ -102,7 +109,7 @@ namespace ResultAnalyzer.ResultType
 
         public override BulkResultCountComparisonFile GetBulkResultCountComparisonFile(string path = null)
         {
-            if (!Override && File.Exists(_bulkResultCountComparisonPath))
+            if (_runBulk)
                 return new BulkResultCountComparisonFile(_bulkResultCountComparisonPath);
             
 
