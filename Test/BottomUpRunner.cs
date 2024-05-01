@@ -1,5 +1,5 @@
-﻿using ResultAnalyzer.Plotting;
-using ResultAnalyzer.ResultType;
+﻿using Analyzer.Plotting;
+using Analyzer.ResultType;
 
 namespace Test
 {
@@ -87,26 +87,26 @@ namespace Test
             {
                 foreach (var result in cellLine)
                 {
-                    //if (result is MetaMorpheusResult { Condition: "MetaMorpheus" } mm)
-                    //{
-                    //    mm.Override = true;
-                    //    mm.GetChimeraBreakdownFile();
-                    //}
-                    //else if (result is MsPathFinderTResults mspt)
-                    //{
-                    //    mspt.CountChimericPsms();
-                    //    mspt.IndividualFileComparison();
-                    //    mspt.GetBulkResultCountComparisonFile();
-                    //}
-                    //else if (result is ProsightPDResult pspd)
-                    //{
-                    //    pspd.CountChimericPsms();
-                    //    pspd.IndividualFileComparison();
-                    //    pspd.Override = true;
-                    //    pspd.GetBulkResultCountComparisonFile();
-                    //}
+                    if (result is MetaMorpheusResult { Condition: "MetaMorpheus" } mm)
+                    {
+                        //mm.Override = true;
+                        //mm.GetChimeraBreakdownFile();
+                    }
+                    else if (result is MsPathFinderTResults mspt)
+                    {
+                        //mspt.CountChimericPsms();
+                        //mspt.IndividualFileComparison();
+                        //mspt.GetBulkResultCountComparisonFile();
+                    }
+                    else if (result is ProsightPDResult pspd)
+                    {
+                        pspd.CountChimericPsms();
+                        pspd.IndividualFileComparison();
+                        pspd.Override = true;
+                        pspd.GetBulkResultCountComparisonFile();
+                    }
 
-                    //result.Override = false;
+                    result.Override = false;
                 }
 
                 cellLine.PlotIndividualFileResults();
@@ -119,10 +119,6 @@ namespace Test
             {
                 foreach (var result in cellLine)
                 {
-                    if (cellLine.CellLine is not "LanCap" or "MCF7" or "RKO" or "U2OS")
-                    {
-                        continue;
-                    }
                     result.Override = true;
                     if (result is MetaMorpheusResult { Condition: "MetaMorpheusWithLibrary" } mm)
                     {

@@ -17,51 +17,51 @@ namespace ResultAnalyzer.Plotting
         #region Filters
 
         public static string[] AcceptableConditionsToPlotIndividualFileComparisonBottomUp =
-        [
+        {
             "MetaMorpheusWithLibrary", "MetaMorpheusNoChimerasWithLibrary",
             "ReviewdDatabaseNoPhospho_MsFraggerDDA", "ReviewdDatabaseNoPhospho_MsFraggerDDA+", "ReviewdDatabaseNoPhospho_MsFragger"
-        ];
+        };
 
         public static string[] AcceptableConditionsToPlotIndividualFileComparisonTopDown =
-        [
+        {
             "MetaMorpheus", "MetaMorpheusNoChimeras", 
             "MsPathFinderT", "MsPathFinderTWithMods", "MsPathFinderTWithModsNoChimeras", "MsPathFinderTWithMods_7",
             "ProsightPDChimeras", "ProsightPDNoChimeras"
-        ];
+        };
 
         public static string[] AcceptableConditionsToPlotInternalMMComparisonBottomUp =
-        [
+        {
             "MetaMorpheusWithLibrary", "MetaMorpheusNoChimerasWithLibrary"
-        ];
+        };
 
         public static string[] AcceptableConditonsToPlotInternalMMComparisonTopDown =
-        [
+        {
             "MetaMorpheus", "MetaMorpheusNoChimeras"
-        ];
+        };
 
         public static string[] AcceptableConditionsToPlotBulkResultComparisonBottomUp =
-        [
+        {
             "MetaMorpheusWithLibrary", "MetaMorpheusNoChimerasWithLibrary", 
             "ReviewdDatabaseNoPhospho_MsFraggerDDA+", "ReviewdDatabaseNoPhospho_MsFragger",
-        ];
+        };
 
         public static string[] AcceptableConditionsToPlotBulkResultsComparisonTopDown =
-        [
+        {
             "MetaMorpheus", "MetaMorpheusNoChimeras", 
             "MsPathFinderT", "MsPathFinderTWithMods", "MsPathFinderTWithModsNoChimeras", "MsPathFinderTWithMods_7",
             "ProsightPDChimeras", "ProsightPDNoChimeras"
-        ];
+        };
 
         public static string[] AcceptableConditionsToPlotFDRComparisonResults =
-        [
+        {
             // Bottom Up
             "MetaMorpheusWithLibrary"
-        ];
+        };
 
         public static string[] AcceptableConditionsToPlotChimeraBreakdownTopDown =
-        [
+        {
             "MetaMorpheus"
-        ];
+        };
 
 
         /// <summary>

@@ -1,8 +1,9 @@
-﻿using Plotly.NET.CSharp;
+﻿using Analyzer.FileTypes.Internal;
+using Plotly.NET.CSharp;
 using Plotly.NET.ImageExport;
 using Readers;
-using ResultAnalyzer.Plotting;
-using ResultAnalyzer.ResultType;
+using Analyzer.Plotting;
+using Analyzer.ResultType;
 
 namespace Test
 {
@@ -91,25 +92,25 @@ namespace Test
             var pepQValueFiltered = psms.Where(p => p.PEP_QValue <= 0.01).ToList();
 
             // Absolute
-            //qValueFilteredProteoforms.ChimeraTargetDecoyChart(true, ResultAnalyzer.FileTypes.Internal.ChimeraBreakdownType.Peptide, "QValue", out int width)
+            //qValueFilteredProteoforms.ChimeraTargetDecoyChart(true, ChimeraBreakdownType.Peptide, "QValue", out int width)
             //    .SavePNG(Path.Combine(results.DirectoryPath, "Figures", "ChimeraTargetDecoy_Proteoforms_QValue_Absolute"), null, width, 600);
-            //pepQValueFilteredProteoforms.ChimeraTargetDecoyChart(true, ResultAnalyzer.FileTypes.Internal.ChimeraBreakdownType.Peptide, "PEP QValue", out width)
+            //pepQValueFilteredProteoforms.ChimeraTargetDecoyChart(true, ChimeraBreakdownType.Peptide, "PEP QValue", out width)
             //    .SavePNG(Path.Combine(results.DirectoryPath, "Figures", "ChimeraTargetDecoy_Proteoforms_PEPQValue_Absolute"), null, width, 600);
 
-            //qValueFiltered.ChimeraTargetDecoyChart(true, ResultAnalyzer.FileTypes.Internal.ChimeraBreakdownType.Psm, "QValue", out width)
+            //qValueFiltered.ChimeraTargetDecoyChart(true, ChimeraBreakdownType.Psm, "QValue", out width)
             //    .SavePNG(Path.Combine(results.DirectoryPath, "Figures", "ChimeraTargetDecoy_PrSMs_QValue_Absolute"), null, width, 600);
-            //pepQValueFiltered.ChimeraTargetDecoyChart(true, ResultAnalyzer.FileTypes.Internal.ChimeraBreakdownType.Psm, "PEP QValue", out width)
+            //pepQValueFiltered.ChimeraTargetDecoyChart(true, ChimeraBreakdownType.Psm, "PEP QValue", out width)
             //    .SavePNG(Path.Combine(results.DirectoryPath, "Figures", "ChimeraTargetDecoy_PrSMs_PEPQValue_Absolute"), null, width, 600);
 
             // Percent
-            qValueFilteredProteoforms.ChimeraTargetDecoyChart(true, ResultAnalyzer.FileTypes.Internal.ChimeraBreakdownType.Peptide, "QValue", out int width)
+            qValueFilteredProteoforms.ChimeraTargetDecoyChart(true, ChimeraBreakdownType.Peptide, "QValue", out int width)
                 .SavePNG(Path.Combine(results.DirectoryPath, "Figures", "ChimeraTargetDecoy_Proteoforms_QValue_Percent"), null, width, 600);
-            pepQValueFilteredProteoforms.ChimeraTargetDecoyChart(true, ResultAnalyzer.FileTypes.Internal.ChimeraBreakdownType.Peptide, "PEP QValue", out width)
+            pepQValueFilteredProteoforms.ChimeraTargetDecoyChart(true, ChimeraBreakdownType.Peptide, "PEP QValue", out width)
                 .SavePNG(Path.Combine(results.DirectoryPath, "Figures", "ChimeraTargetDecoy_Proteoforms_PEPQValue_Percent"), null, width, 600);
 
-            qValueFiltered.ChimeraTargetDecoyChart(true, ResultAnalyzer.FileTypes.Internal.ChimeraBreakdownType.Psm, "QValue", out width)
+            qValueFiltered.ChimeraTargetDecoyChart(true, ChimeraBreakdownType.Psm, "QValue", out width)
                 .SavePNG(Path.Combine(results.DirectoryPath, "Figures", "ChimeraTargetDecoy_PrSMs_QValue_Percent"), null, width, 600);
-            pepQValueFiltered.ChimeraTargetDecoyChart(true, ResultAnalyzer.FileTypes.Internal.ChimeraBreakdownType.Psm, "PEP QValue", out width)
+            pepQValueFiltered.ChimeraTargetDecoyChart(true, ChimeraBreakdownType.Psm, "PEP QValue", out width)
                 .SavePNG(Path.Combine(results.DirectoryPath, "Figures", "ChimeraTargetDecoy_PrSMs_PEPQValue_Percent"), null, width, 600);
 
 
