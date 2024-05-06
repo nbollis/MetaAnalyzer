@@ -29,7 +29,6 @@ namespace Analyzer.FileTypes.External
             catch (Exception e)
             {
                 Console.WriteLine(e);
-                Debugger.Break();
             }
         }
 
@@ -58,6 +57,7 @@ namespace Analyzer.FileTypes.External
                     csv.WriteRecord(result);
                 }
             }
+            Thread.Sleep(1000);
         }
     }
 

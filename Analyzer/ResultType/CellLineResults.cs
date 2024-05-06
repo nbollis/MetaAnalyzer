@@ -47,12 +47,17 @@ public class CellLineResults : IEnumerable<BulkResult>
                 continue; // fragger currently running
             if (Directory.GetFiles(directory, "*.psmtsv", SearchOption.AllDirectories).Any())
             {
+                var files = Directory.GetFiles(directory, "*.psmtsv", SearchOption.AllDirectories);
                 if (directory.Contains("Fragger") && Directory.GetDirectories(directory).Length > 2)
                 {
                     var directories = Directory.GetDirectories(directory);
                     Results.Add(new MetaMorpheusResult(directories.First(p => p.Contains("NoChimera"))) { DataFilePaths = _dataFilePaths });
                     Results.Add(new MetaMorpheusResult(directories.First(p => p.Contains("WithChimera"))) { DataFilePaths = _dataFilePaths });
                 }
+                //else if (directory.Contains("PEP"))
+                //    continue;
+                else if (!files.Any(p => p.Contains("AllProteoforms")) && !files.Any(p => p.Contains("AllProteinGroups")))
+                    continue;
                 else
                     Results.Add(new MetaMorpheusResult(directory) { DataFilePaths = _dataFilePaths });
             }
@@ -67,11 +72,7 @@ public class CellLineResults : IEnumerable<BulkResult>
             else if (Directory.GetFiles(directory, "*.tdReport").Any())
                 if (Directory.GetFiles(directory, "*.txt").Length == 4)
                     Results.Add(new ProsightPDResult(directory));
-            //else
-            //    Debugger.Break();
         }
-
-        
     }
 
     public CellLineResults(string directorypath, List<BulkResult> results)

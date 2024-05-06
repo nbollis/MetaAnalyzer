@@ -12,7 +12,7 @@ namespace Analyzer.ResultType
 
         public string _psmPath;
         public string _peptidePath;
-        protected string _proteinPath;
+        public string _proteinPath;
 
         public bool IsTopDown = false;
         public string ResultType => IsTopDown ? "Proteoform" : "Peptide";

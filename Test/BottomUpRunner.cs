@@ -1,5 +1,9 @@
-﻿using Analyzer.Plotting;
+﻿using System.Text;
+using Analyzer.Plotting;
 using Analyzer.ResultType;
+using Proteomics;
+using Readers;
+using UsefulProteomicsDatabases;
 
 namespace Test
 {
@@ -13,6 +17,9 @@ namespace Test
         internal static AllResults AllResults => _allResults ??= new AllResults(DirectoryPath, Directory.GetDirectories(DirectoryPath)
                    .Where(p => !p.Contains("Figures") && RunOnAll || p.Contains("Hela"))
                    .Select(datasetDirectory => new CellLineResults(datasetDirectory)).ToList());
+
+        [OneTimeSetUp]
+        public static void OneTimeSetup() { Loaders.LoadElements(); }
 
         [Test]
         public static void RunAllParsing()
@@ -77,71 +84,143 @@ namespace Test
             AllResults.PlotBulkResultChimeraBreakDown_TargetDecoy();
         }
 
+
+        [Test]
+        public static void GeneParserForBurke()
+        {
+            string geneOfInterest = "C11orf68";
+            int psmCount = 0;
+            int onePercentPsmCount = 0;
+            int peptideCount = 0;
+            int onePercentPeptideCount = 0;
+            int onePercentProteinCount = 0;
+            int proteinCount = 0;
+            List<string> filesFoundIn = new List<string>();
+            foreach (var cellLine in AllResults)
+            {
+                var mmResults = cellLine.First(p => p.Condition == "MetaMorpheusWithLibrary") as MetaMorpheusResult;
+
+                foreach (var psm in SpectrumMatchTsvReader.ReadPsmTsv(mmResults._psmPath, out _))
+                    if (psm.GeneName.Contains(geneOfInterest) || psm.Description.Contains(geneOfInterest, StringComparison.InvariantCultureIgnoreCase))
+                    {
+                        psmCount++;
+                        filesFoundIn.Add(psm.FileNameWithoutExtension);
+                        if (psm.QValue <= 0.01)
+                            onePercentPsmCount++;
+                    }
+
+                foreach (var peptide in SpectrumMatchTsvReader.ReadPsmTsv(mmResults._peptidePath, out _))
+                    if (peptide.GeneName.Contains(geneOfInterest) || peptide.Description.Contains(geneOfInterest, StringComparison.InvariantCultureIgnoreCase))
+                    {
+                        peptideCount++;
+                        filesFoundIn.Add(peptide.FileNameWithoutExtension);
+                        if (peptide.QValue <= 0.01)
+                            onePercentPeptideCount++;
+                    }
+                using (var sw = new StreamReader(File.OpenRead(mmResults._proteinPath)))
+                {
+                    var header = sw.ReadLine();
+                    var headerSplit = header.Split('\t');
+                    var qValueIndex = Array.IndexOf(headerSplit, "Protein QValue");
+                    var geneIndex = Array.IndexOf(headerSplit, "Gene");
+
+
+                    while (!sw.EndOfStream)
+                    {
+                        var line = sw.ReadLine();
+                        var values = line.Split('\t');
+                        if (values[geneIndex].Contains(geneOfInterest, StringComparison.InvariantCultureIgnoreCase))
+                        {
+                            proteinCount++;
+                            if (double.Parse(values[qValueIndex]) <= 0.01)
+                                onePercentProteinCount++;
+                        }
+                    }
+                }
+
+
+            }   
+            filesFoundIn = filesFoundIn.Distinct().ToList();
+            var sb = new StringBuilder();
+            sb.AppendLine($"Gene {geneOfInterest} was found in:");
+            sb.AppendLine($"{psmCount} Psms");
+            sb.AppendLine($"{onePercentPsmCount} Psms with qValue <= 0.01");
+            sb.AppendLine($"{peptideCount} Peptides");
+            sb.AppendLine($"{onePercentPeptideCount} Peptides with qValue <= 0.01");
+            sb.AppendLine($"{proteinCount} Proteins");
+            sb.AppendLine($"{onePercentProteinCount} Proteins with qValue <= 0.01");
+            sb.AppendLine($"In the following files:");
+            sb.AppendLine(string.Join('\n', filesFoundIn));
+            var result = sb.ToString();
+        }
+
         [Test]
         public static void RunBulkParsing()
         {
             var bottomUpResults = AllResults;
             var topDownResults = TopDownRunner.AllResults;
+            
+            //string[] bottomUpCellLineToRerun = { "MCF7", "RKO", "U2OS"  };
+            //foreach (var cellLine in bottomUpResults)
+            //{
+            //    foreach (var result in cellLine)
+            //    {
+            //        if (!bottomUpCellLineToRerun.Contains(cellLine.CellLine))
+            //            continue;
 
-            foreach (var cellLine in topDownResults)
-            {
-                foreach (var result in cellLine)
-                {
-                    if (result is MetaMorpheusResult { Condition: "MetaMorpheus" } mm)
-                    {
-                        //mm.Override = true;
-                        //mm.GetChimeraBreakdownFile();
-                    }
-                    else if (result is MsPathFinderTResults mspt)
-                    {
-                        //mspt.CountChimericPsms();
-                        //mspt.IndividualFileComparison();
-                        //mspt.GetBulkResultCountComparisonFile();
-                    }
-                    else if (result is ProsightPDResult pspd)
-                    {
-                        pspd.CountChimericPsms();
-                        pspd.IndividualFileComparison();
-                        pspd.Override = true;
-                        pspd.GetBulkResultCountComparisonFile();
-                    }
+            //        result.Override = true;
+            //        if (result is MetaMorpheusResult { Condition: "MetaMorpheusWithLibrary" } mm)
+            //        {
+            //            mm.GetChimeraBreakdownFile();
+            //        }
+            //        result.Override = false;
+            //    }
 
-                    result.Override = false;
-                }
+            //    cellLine.Override = true;
+            //    cellLine.GetChimeraBreakdownFile();
+            //    cellLine.Override = false;
 
-                cellLine.PlotIndividualFileResults();
-            }
+            //    cellLine.PlotCellLineChimeraBreakdown();
+            //    cellLine.PlotCellLineChimeraBreakdown_TargetDecoy();
+            //}
+
+            //bottomUpResults.Override = true;
+            //bottomUpResults.GetChimeraBreakdownFile();
+            //bottomUpResults.Override = false;
+            //bottomUpResults.PlotBulkResultChimeraBreakDown();
+            //bottomUpResults.PlotBulkResultChimeraBreakDown_TargetDecoy();
+
+            //foreach (var cellLine in topDownResults)
+            //{
+            //    foreach (var result in cellLine)
+            //    {
+            //        if (result is MetaMorpheusResult { Condition: "MetaMorpheus" } mm)
+            //        {
+            //            //mm.Override = true;
+            //            //mm.GetChimeraBreakdownFile();
+            //        }
+            //        else if (result is MsPathFinderTResults mspt)
+            //        {
+            //            //mspt.CountChimericPsms();
+            //            //mspt.IndividualFileComparison();
+            //            //mspt.GetBulkResultCountComparisonFile();
+            //        }
+            //        else if (result is ProsightPDResult pspd)
+            //        {
+            //            pspd.CountChimericPsms();
+            //            pspd.IndividualFileComparison();
+            //            pspd.Override = true;
+            //            pspd.GetBulkResultCountComparisonFile();
+            //        }
+
+            //        result.Override = false;
+            //    }
+
+            //    cellLine.PlotIndividualFileResults();
+            //}
 
             topDownResults.PlotStackedIndividualFileComparison();
             topDownResults.PlotBulkResultComparison();
-
-            foreach (var cellLine in bottomUpResults)
-            {
-                foreach (var result in cellLine)
-                {
-                    result.Override = true;
-                    if (result is MetaMorpheusResult { Condition: "MetaMorpheusWithLibrary" } mm)
-                    {
-                        mm.GetChimeraBreakdownFile();
-                    }
-                    result.Override = false;
-
-                }
-
-                cellLine.Override = true;
-                cellLine.GetChimeraBreakdownFile();
-                cellLine.Override = false;
-
-                cellLine.PlotCellLineChimeraBreakdown();
-                cellLine.PlotCellLineChimeraBreakdown_TargetDecoy();
-            }
-
-            bottomUpResults.Override = true;
-            bottomUpResults.GetChimeraBreakdownFile();
-            bottomUpResults.Override = false;
-            bottomUpResults.PlotBulkResultChimeraBreakDown();
-            bottomUpResults.PlotBulkResultChimeraBreakDown_TargetDecoy();
-
         }
 
     }

@@ -71,5 +71,11 @@ namespace Analyzer.FileTypes.Internal
 
         public override SupportedFileType FileType { get; }
         public override Software Software { get; set; }
+
+        public override string ToString()
+        {
+            var result = Results.First();
+            return $"{result.Dataset}_{result.Software}";
+        }
     }
 }

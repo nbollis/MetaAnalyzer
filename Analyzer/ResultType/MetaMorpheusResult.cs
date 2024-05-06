@@ -21,6 +21,7 @@ namespace Analyzer.ResultType
             {
                 IsTopDown = true;
                 _peptidePath = Directory.GetFiles(directoryPath, "*Proteoforms.psmtsv", SearchOption.AllDirectories).First();
+                _peptidePath = Directory.GetFiles(directoryPath, "*Proteoforms.psmtsv", SearchOption.AllDirectories).First();
             }
             _proteinPath = Directory.GetFiles(directoryPath, "*ProteinGroups.tsv", SearchOption.AllDirectories).First();
 
@@ -299,7 +300,7 @@ namespace Analyzer.ResultType
             {
                 useIsolation = true;
                 MsDataFile dataFile = null;
-                var dataFilePath = DataFilePaths.FirstOrDefault(p => p.Contains(fileGroup.Key));
+                var dataFilePath = DataFilePaths.FirstOrDefault(p => p.Contains(fileGroup.Key, StringComparison.InvariantCultureIgnoreCase));
                 if (dataFilePath == null)
                     useIsolation = false;
                 else
@@ -335,7 +336,7 @@ namespace Analyzer.ResultType
                         PsmFromTsv[] orderedChimeras;
                         if (useIsolation) // use the precursor with the closest mz to the isolation mz
                         {
-                            var ms2Scan = dataFile.GetOneBasedScan(chimeraGroup.First().Ms2ScanNumber);
+                            var ms2Scan = dataFile.GetOneBasedScanFromDynamicConnection(chimeraGroup.First().Ms2ScanNumber);
                             var isolationMz = ms2Scan.IsolationMz;
                             if (isolationMz is null) // if this fails, order by score
                                 orderedChimeras = chimeraGroup
@@ -418,7 +419,7 @@ namespace Analyzer.ResultType
                         PsmFromTsv[] orderedChimeras;
                         if (useIsolation) // use the precursor with the closest mz to the isolation mz
                         {
-                            var ms2Scan = dataFile.GetOneBasedScan(chimeraGroup.First().Ms2ScanNumber);
+                            var ms2Scan = dataFile.GetOneBasedScanFromDynamicConnection(chimeraGroup.First().Ms2ScanNumber);
                             var isolationMz = ms2Scan.IsolationMz;
                             if (isolationMz is null) // if this fails, order by score
                                 orderedChimeras = chimeraGroup

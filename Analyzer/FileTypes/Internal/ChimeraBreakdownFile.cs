@@ -72,6 +72,12 @@ namespace Analyzer.FileTypes.Internal
             Thread.Sleep(1000);
         }
 
+        public override string ToString()
+        {
+            var result = Results.First();
+            return $"{result.Dataset}_{result.Condition}";
+        }
+
         public override SupportedFileType FileType { get; }
         public override Software Software { get; set; }
     }

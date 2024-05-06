@@ -21,6 +21,7 @@ namespace Analyzer.ResultType
 
         public ProsightPDResult(string directoryPath) : base(directoryPath)
         {
+            IsTopDown = true;
             _psmPath = Directory.GetFiles(directoryPath, "*PrSMs.txt").First();
             _peptidePath = Directory.GetFiles(directoryPath, "*Proteoforms.txt").First();
             _proteinPath = Directory.GetFiles(directoryPath, "*Proteins.txt").First();

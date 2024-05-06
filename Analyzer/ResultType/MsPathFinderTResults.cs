@@ -14,7 +14,7 @@ namespace Analyzer.ResultType
         private bool _runBulk =>
             Override ||
             !File.Exists(_bulkResultCountComparisonPath) ||
-            (BulkResultCountComparisonFile.First().ProteinGroupCount == 0 && !_combinedResultFilePath.IsNullOrEmpty());
+            (new BulkResultCountComparisonFile(_bulkResultCountComparisonPath).First().ProteinGroupCount == 0 && !_combinedResultFilePath.IsNullOrEmpty());
 
 
         public List<MsPathFinderTIndividualFileResult> IndividualFileResults { get; set; }
@@ -108,7 +108,7 @@ namespace Analyzer.ResultType
 
         public override BulkResultCountComparisonFile GetBulkResultCountComparisonFile(string path = null)
         {
-            if (_runBulk)
+            if (!_runBulk)
                 return new BulkResultCountComparisonFile(_bulkResultCountComparisonPath);
             
 

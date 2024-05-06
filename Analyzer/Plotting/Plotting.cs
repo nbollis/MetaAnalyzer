@@ -6,6 +6,7 @@ using Plotly.NET.ImageExport;
 using Plotly.NET.LayoutObjects;
 using Plotly.NET.TraceObjects;
 using Proteomics.PSM;
+using Readers;
 using Chart = Plotly.NET.CSharp.Chart;
 
 
@@ -13,19 +14,13 @@ namespace Analyzer.Plotting
 {
     public static class Plotting
     {
-        #region Filters
+        #region Filters and Translators
 
+        // Bottom Up
         public static string[] AcceptableConditionsToPlotIndividualFileComparisonBottomUp =
         {
             "MetaMorpheusWithLibrary", "MetaMorpheusNoChimerasWithLibrary",
             "ReviewdDatabaseNoPhospho_MsFraggerDDA", "ReviewdDatabaseNoPhospho_MsFraggerDDA+", "ReviewdDatabaseNoPhospho_MsFragger"
-        };
-
-        public static string[] AcceptableConditionsToPlotIndividualFileComparisonTopDown =
-        {
-            "MetaMorpheus", "MetaMorpheusNoChimeras", 
-            "MsPathFinderT", "MsPathFinderTWithMods", "MsPathFinderTWithModsNoChimeras", "MsPathFinderTWithMods_7",
-            "ProsightPDChimeras", "ProsightPDNoChimeras"
         };
 
         public static string[] AcceptableConditionsToPlotInternalMMComparisonBottomUp =
@@ -33,28 +28,37 @@ namespace Analyzer.Plotting
             "MetaMorpheusWithLibrary", "MetaMorpheusNoChimerasWithLibrary"
         };
 
-        public static string[] AcceptableConditonsToPlotInternalMMComparisonTopDown =
-        {
-            "MetaMorpheus", "MetaMorpheusNoChimeras"
-        };
-
         public static string[] AcceptableConditionsToPlotBulkResultComparisonBottomUp =
         {
-            "MetaMorpheusWithLibrary", "MetaMorpheusNoChimerasWithLibrary", 
+            "MetaMorpheusWithLibrary", "MetaMorpheusNoChimerasWithLibrary",
             "ReviewdDatabaseNoPhospho_MsFraggerDDA+", "ReviewdDatabaseNoPhospho_MsFragger",
+        };
+
+        public static string[] AcceptableConditionsToPlotFDRComparisonResults =
+        {
+            "MetaMorpheusWithLibrary"
+        };
+
+
+
+        // Top Down
+        public static string[] AcceptableConditionsToPlotIndividualFileComparisonTopDown =
+        {
+            "MetaMorpheus", "MetaMorpheusNoChimeras", 
+            /*"MsPathFinderT", "MsPathFinderTWithMods",*/ "MsPathFinderTWithModsNoChimeras", "MsPathFinderTWithMods_7",
+            "ProsightPDChimeras", "ProsightPDNoChimeras", "ProsightPD_SubsequenceSearch"
+        };
+
+        public static string[] AcceptableConditonsToPlotInternalMMComparisonTopDown =
+        {
+            "MetaMorpheus", "MetaMorpheusNoChimeras", 
         };
 
         public static string[] AcceptableConditionsToPlotBulkResultsComparisonTopDown =
         {
             "MetaMorpheus", "MetaMorpheusNoChimeras", 
-            "MsPathFinderT", "MsPathFinderTWithMods", "MsPathFinderTWithModsNoChimeras", "MsPathFinderTWithMods_7",
-            "ProsightPDChimeras", "ProsightPDNoChimeras"
-        };
-
-        public static string[] AcceptableConditionsToPlotFDRComparisonResults =
-        {
-            // Bottom Up
-            "MetaMorpheusWithLibrary"
+            /*"MsPathFinderT", "MsPathFinderTWithMods",*/ "MsPathFinderTWithModsNoChimeras", "MsPathFinderTWithMods_7",
+            "ProsightPDChimeras", "ProsightPDNoChimeras", "ProsightPD_SubsequenceSearch",
         };
 
         public static string[] AcceptableConditionsToPlotChimeraBreakdownTopDown =
@@ -95,6 +99,11 @@ namespace Analyzer.Plotting
             {"MsPathFinderTWithMods_7", Color.fromKeyword(ColorKeyword.GoldenRod)},
             {"ProsightPDNoChimeras", Color.fromKeyword(ColorKeyword.PaleVioletRed)},
             {"ProsightPDChimeras", Color.fromKeyword(ColorKeyword.Red)},
+            {"ProsightPD_SubsequenceSearch", Color.fromKeyword(ColorKeyword.OrangeRed)},
+
+
+            { "MetaMorpheus_ChimeraInPEP_Negative", Color.fromKeyword(ColorKeyword.Black) },
+            { "MetaMorpheus_ChimeraInPEP_Positive", Color.fromKeyword(ColorKeyword.Brown) },
 
 
             // Chimera Breakdown plot
@@ -406,6 +415,8 @@ namespace Analyzer.Plotting
             // Top Down
             { "MetaMorpheus", "MetaMorpheus\u2800" },
             { "MetaMorpheusNoChimeras", "MetaMorpheus No Chimeras" },
+            { "MsPathFinderTWithMods_7", "MsPathFinderT⠀" },
+            { "MsPathFinderTWithModsNoChimeras", "MsPathFinderT No Chimeras" },
             {"ProsightPDNoChimeras", "ProsightPD No Chimeras"},
             {"ProsightPDChimeras", "ProsightPD⠀Chimeras"},
         };
@@ -428,6 +439,8 @@ namespace Analyzer.Plotting
         public static Layout DefaultLayout => Layout.init<string>(PaperBGColor: Color.fromKeyword(ColorKeyword.White), PlotBGColor: Color.fromKeyword(ColorKeyword.White));
 
         private static Layout DefaultLayoutWithLegend => Layout.init<string>(
+            //PaperBGColor: Color.fromARGB(0, 0,0,0),
+            //PlotBGColor: Color.fromARGB(0, 0, 0, 0),
             PaperBGColor: Color.fromKeyword(ColorKeyword.White),
             PlotBGColor: Color.fromKeyword(ColorKeyword.White),
             ShowLegend: true,
@@ -440,6 +453,107 @@ namespace Analyzer.Plotting
         #endregion
 
         #region Cell Line
+
+        /// <summary>
+        /// TODO: Finish this
+        /// </summary>
+        /// <param name="cellLine"></param>
+        public static void PlotCellLineSummary(this CellLineResults cellLine)
+        {
+            bool isTopDown = cellLine.First().IsTopDown;
+            var smLabel = isTopDown ? "PrSM" : "PSM";
+            var pepLabel = isTopDown ? "Proteoform" : "Peptide";
+
+            // chimera breakdown
+            var selector = isTopDown
+                ? AcceptableConditionsToPlotChimeraBreakdownTopDown
+                : AcceptableConditionsToPlotFDRComparisonResults;
+            var results = cellLine.Results
+                .Where(p => p is MetaMorpheusResult && selector.Contains(p.Condition))
+                .SelectMany(p => ((MetaMorpheusResult)p).ChimeraBreakdownFile)
+                .ToList();
+
+            var psmChart = results.GetChimeraBreakDownStackedColumn(ChimeraBreakdownType.Psm, isTopDown, out int width);
+            var peptideChart = results.GetChimeraBreakDownStackedColumn(ChimeraBreakdownType.Peptide, isTopDown, out width);
+            var absolutePsmChart = results.GetChimeraBreakDownStackedColumn_TargetDecoy(ChimeraBreakdownType.Psm, isTopDown, true, out width);
+            var relativePsmChart = results.GetChimeraBreakDownStackedColumn_TargetDecoy(ChimeraBreakdownType.Psm, isTopDown, false, out width);
+            var absolutePeptideChart = results.GetChimeraBreakDownStackedColumn_TargetDecoy(ChimeraBreakdownType.Peptide, isTopDown, true, out width);
+            var relativePeptideChart = results.GetChimeraBreakDownStackedColumn_TargetDecoy(ChimeraBreakdownType.Peptide, isTopDown, false, out width);
+
+            GenericChart.GenericChart grid;
+            if (isTopDown)
+            {
+                var allPlots = new List<GenericChart.GenericChart>()
+                {
+                    cellLine.GetIndividualFileResults(out int widthIndividual, out int heightIndividual)
+                        .WithXAxis(LinearAxis.init<int, int, int, int ,int, int>(Domain: StyleParam.Range.NewMinMax(0.00, 1.00)), StyleParam.SubPlotId.NewXAxis(1))
+                        .WithYAxis(LinearAxis.init<int, int, int, int ,int, int>(Domain: StyleParam.Range.NewMinMax(0.77, 1.00)), StyleParam.SubPlotId.NewYAxis(1)),
+                    psmChart
+                        .WithXAxis(LinearAxis.init<int, int, int, int, int, int>(Domain: StyleParam.Range.NewMinMax(0.00, 0.5)), StyleParam.SubPlotId.NewXAxis(2))
+                        .WithYAxis(LinearAxis.init<int, int, int, int, int, int>(Domain: StyleParam.Range.NewMinMax(0.55, 0.70)), StyleParam.SubPlotId.NewYAxis(2)),
+                    peptideChart
+                        .WithXAxis(LinearAxis.init<int, int, int, int, int, int>(Domain: StyleParam.Range.NewMinMax(0.5, 1.0)), StyleParam.SubPlotId.NewXAxis(3))
+                        .WithYAxis(LinearAxis.init<int, int, int, int, int, int>(Domain: StyleParam.Range.NewMinMax(0.4, 0.5)), StyleParam.SubPlotId.NewYAxis(3)),
+                    absolutePsmChart
+                        .WithXAxis(LinearAxis.init<int, int, int, int, int, int>(Domain: StyleParam.Range.NewMinMax(0.00, 0.5)), StyleParam.SubPlotId.NewXAxis(4))
+                        .WithYAxis(LinearAxis.init<int, int, int, int, int, int>(Domain: StyleParam.Range.NewMinMax(0.2, 0.30)), StyleParam.SubPlotId.NewYAxis(4)),
+                    absolutePeptideChart
+                        .WithXAxis(LinearAxis.init<int, int, int, int, int, int>(Domain: StyleParam.Range.NewMinMax(0.5, 1.0)), StyleParam.SubPlotId.NewXAxis(5))
+                        .WithYAxis(LinearAxis.init<int, int, int, int, int, int>(Domain: StyleParam.Range.NewMinMax(0.2, 0.3)), StyleParam.SubPlotId.NewYAxis(5)),
+                    relativePsmChart
+                        .WithXAxis(LinearAxis.init<int, int, int, int, int, int>(Domain: StyleParam.Range.NewMinMax(0.00, 0.5)), StyleParam.SubPlotId.NewXAxis(6))
+                        .WithYAxis(LinearAxis.init<int, int, int, int, int, int>(Domain: StyleParam.Range.NewMinMax(0.00, 0.10)), StyleParam.SubPlotId.NewYAxis(6)),
+                    relativePeptideChart
+                        .WithXAxis(LinearAxis.init<int, int, int, int, int, int>(Domain: StyleParam.Range.NewMinMax(0.5, 1.0)), StyleParam.SubPlotId.NewXAxis(7))
+                        .WithYAxis(LinearAxis.init<int, int, int, int, int, int>(Domain: StyleParam.Range.NewMinMax(0.00, 0.10)), StyleParam.SubPlotId.NewYAxis(7)),
+                };
+                grid = Chart.Grid(allPlots, 2, 4);
+            }
+            else
+            {
+                var retentionTimePredictionPlot = cellLine.GetCellLineRetentionTimePredictions().Chronologer;
+                var similarityPlot = cellLine.GetCellLineSpectralSimilarity();
+                var allPlots = new List<GenericChart.GenericChart>()
+                {
+                    cellLine.GetIndividualFileResults(out int widthIndividual, out int heightIndividual)
+                        .WithXAxis(LinearAxis.init<int, int, int, int ,int, int>(Domain: StyleParam.Range.NewMinMax(0.00, 1.00)), StyleParam.SubPlotId.NewXAxis(1))
+                        .WithYAxis(LinearAxis.init<int, int, int, int ,int, int>(Domain: StyleParam.Range.NewMinMax(0.75, 1.00)), StyleParam.SubPlotId.NewYAxis(1)),
+                    retentionTimePredictionPlot
+                        .WithXAxis(LinearAxis.init<int, int, int, int ,int, int>(Domain: StyleParam.Range.NewMinMax(0.00, 0.7)), StyleParam.SubPlotId.NewXAxis(2))
+                        .WithYAxis(LinearAxis.init<int, int, int, int ,int, int>(Domain: StyleParam.Range.NewMinMax(0.55, 0.70)), StyleParam.SubPlotId.NewYAxis(2)),
+                    similarityPlot
+                        .WithXAxis(LinearAxis.init<int, int, int, int ,int, int>(Domain: StyleParam.Range.NewMinMax(0.8, 1.00)), StyleParam.SubPlotId.NewXAxis(3))
+                        .WithYAxis(LinearAxis.init<int, int, int, int ,int, int>(Domain: StyleParam.Range.NewMinMax(0.55, 0.70)), StyleParam.SubPlotId.NewYAxis(3)),
+                    psmChart
+                        .WithXAxis(LinearAxis.init<int, int, int, int, int, int>(Domain: StyleParam.Range.NewMinMax(0.00, 0.45)), StyleParam.SubPlotId.NewXAxis(4))
+                        .WithYAxis(LinearAxis.init<int, int, int, int, int, int>(Domain: StyleParam.Range.NewMinMax(0.35, 0.5)), StyleParam.SubPlotId.NewYAxis(4))
+                        .WithXAxisStyle(Title.init("")),
+                    peptideChart
+                        .WithXAxis(LinearAxis.init<int, int, int, int, int, int>(Domain: StyleParam.Range.NewMinMax(0.55, 1.0)), StyleParam.SubPlotId.NewXAxis(5))
+                        .WithYAxis(LinearAxis.init<int, int, int, int, int, int>(Domain: StyleParam.Range.NewMinMax(0.35, 0.5)), StyleParam.SubPlotId.NewYAxis(5))
+                        .WithXAxisStyle(Title.init("")),
+                    absolutePsmChart
+                        .WithXAxis(LinearAxis.init<int, int, int, int, int, int>(Domain: StyleParam.Range.NewMinMax(0.00, 0.45)), StyleParam.SubPlotId.NewXAxis(6))
+                        .WithYAxis(LinearAxis.init<int, int, int, int, int, int>(Domain: StyleParam.Range.NewMinMax(0.17, 0.30)), StyleParam.SubPlotId.NewYAxis(6))
+                        .WithXAxisStyle(Title.init("")),
+                    absolutePeptideChart
+                        .WithXAxis(LinearAxis.init<int, int, int, int, int, int>(Domain: StyleParam.Range.NewMinMax(0.55, 1.0)), StyleParam.SubPlotId.NewXAxis(7))
+                        .WithYAxis(LinearAxis.init<int, int, int, int, int, int>(Domain: StyleParam.Range.NewMinMax(0.17, 0.30)), StyleParam.SubPlotId.NewYAxis(7))
+                        .WithXAxisStyle(Title.init("")),
+                    relativePsmChart
+                        .WithXAxis(LinearAxis.init<int, int, int, int, int, int>(Domain: StyleParam.Range.NewMinMax(0.00, 0.45)), StyleParam.SubPlotId.NewXAxis(8))
+                        .WithYAxis(LinearAxis.init<int, int, int, int, int, int>(Domain: StyleParam.Range.NewMinMax(0.00, 0.13)), StyleParam.SubPlotId.NewYAxis(8)),
+                    relativePeptideChart
+                        .WithXAxis(LinearAxis.init<int, int, int, int, int, int>(Domain: StyleParam.Range.NewMinMax(0.55, 1.0)), StyleParam.SubPlotId.NewXAxis(9))
+                        .WithYAxis(LinearAxis.init<int, int, int, int, int, int>(Domain: StyleParam.Range.NewMinMax(0.00, 0.10)), StyleParam.SubPlotId.NewYAxis(9)),
+                };
+                grid = Chart.Grid(allPlots, 5, 2, YGap: 10);
+            }
+
+            grid.WithSize(1000, isTopDown ? 1400 : 2400)
+                .WithTitle($"{cellLine.CellLine} Result Summary");
+            grid.Show();
+        }
 
         public static void PlotIndividualFileResults(this CellLineResults cellLine)
         {
@@ -514,7 +628,7 @@ namespace Analyzer.Plotting
             peptideChart.SavePNG(peptideOutPath, null, width, DefaultHeight);
         }
 
-        public static void PlotCellLineChimeraBreakdown_TargetDecoy(this CellLineResults cellLine)
+        public static void PlotCellLineChimeraBreakdown_TargetDecoy(this CellLineResults cellLine, bool absolute = false)
         {
             var selector = cellLine.First().IsTopDown
                 ? AcceptableConditionsToPlotChimeraBreakdownTopDown
@@ -527,13 +641,13 @@ namespace Analyzer.Plotting
                 .SelectMany(p => ((MetaMorpheusResult)p).ChimeraBreakdownFile)
                 .ToList();
             var psmChart =
-                results.GetChimeraBreakDownStackedColumn_TargetDecoy(ChimeraBreakdownType.Psm, cellLine.First().IsTopDown, out int width);
+                results.GetChimeraBreakDownStackedColumn_TargetDecoy(ChimeraBreakdownType.Psm, cellLine.First().IsTopDown, absolute, out int width);
             string psmOutPath = Path.Combine(cellLine.GetFigureDirectory(),
                 $"{FileIdentifiers.ChimeraBreakdownTargetDecoy}_{smLabel}_{cellLine.CellLine}");
             psmChart.SavePNG(psmOutPath, null, width, DefaultHeight);
 
             var peptideChart =
-                results.GetChimeraBreakDownStackedColumn_TargetDecoy(ChimeraBreakdownType.Peptide, cellLine.First().IsTopDown, out width);
+                results.GetChimeraBreakDownStackedColumn_TargetDecoy(ChimeraBreakdownType.Peptide, cellLine.First().IsTopDown, absolute, out width);
             string peptideOutPath = Path.Combine(cellLine.GetFigureDirectory(),
                 $"{FileIdentifiers.ChimeraBreakdownTargetDecoy}_{pepLabel}_{cellLine.CellLine}");
             peptideChart.SavePNG(peptideOutPath, null, width, DefaultHeight);
@@ -715,6 +829,26 @@ namespace Analyzer.Plotting
             {
                 var conditionSpecificResults = results.Where(p => p.Condition == condition).ToList();
 
+                // if results exist for one dataset but not the other, ensure they are plotted in the correct order
+                if (conditionSpecificResults.Count != labels.Count) 
+                {
+                    var newResults = new List<BulkResultCountComparison>();
+                    foreach (var dataset in labels)
+                    {
+                        if (conditionSpecificResults.Any(p => p.DatasetName == dataset))
+                            newResults.Add(conditionSpecificResults.First(p => p.DatasetName == dataset));
+                        else
+                            newResults.Add(new BulkResultCountComparison()
+                            {
+                                DatasetName = dataset,
+                                OnePercentPsmCount = 0,
+                                OnePercentPeptideCount = 0,
+                                OnePercentProteinGroupCount = 0
+                            });
+                    }
+                    conditionSpecificResults = newResults;
+                }
+
                 var conditionToWrite = condition.ConvertConditionName();
                 psmCharts.Add(Chart2D.Chart.Column<int, string, string, int, int>(
                     conditionSpecificResults.Select(p => p.OnePercentPsmCount), labels, null, conditionToWrite,
@@ -786,13 +920,13 @@ namespace Analyzer.Plotting
                            .SelectMany(p => ((MetaMorpheusResult)p).ChimeraBreakdownFile.Results))
                 .ToList();
             var psmChart =
-                results.GetChimeraBreakDownStackedColumn_TargetDecoy(ChimeraBreakdownType.Psm, isTopDown, out int width);
+                results.GetChimeraBreakDownStackedColumn_TargetDecoy(ChimeraBreakdownType.Psm, isTopDown, false, out int width);
             var psmOutPath = Path.Combine(allResults.GetFigureDirectory(),
                                               $"AllResults_{FileIdentifiers.ChimeraBreakdownTargetDecoy}_{smLabel}");
             psmChart.SavePNG(psmOutPath, null, width, DefaultHeight);
 
             var peptideChart =
-                results.GetChimeraBreakDownStackedColumn_TargetDecoy(ChimeraBreakdownType.Peptide, isTopDown, out width);
+                results.GetChimeraBreakDownStackedColumn_TargetDecoy(ChimeraBreakdownType.Peptide, isTopDown, false, out width);
             var peptideOutPath = Path.Combine(allResults.GetFigureDirectory(),
                                               $"AllResults_{FileIdentifiers.ChimeraBreakdownTargetDecoy}_{pepLabel}");
             peptideChart.SavePNG(peptideOutPath, null, width, DefaultHeight);
@@ -1000,19 +1134,31 @@ namespace Analyzer.Plotting
         }
 
         internal static GenericChart.GenericChart GetChimeraBreakDownStackedColumn_TargetDecoy(
-            this List<ChimeraBreakdownRecord> results, ChimeraBreakdownType type, bool isTopDown, out int width)
+            this List<ChimeraBreakdownRecord> results, ChimeraBreakdownType type, bool isTopDown, bool absolute, out int width)
         {
-            (int IdPerSpec, int Parent, double Targets, double Decoys)[] data = results.Where(p => p.Type == type)
-                .GroupBy(p => p.IdsPerSpectra)
-                .OrderBy(p => p.Key)
-                .Select(p =>
+            (int IdPerSpec, int Parent, double Targets, double Decoys)[] data = absolute
+                ? results.Where(p => p.Type == type)
+                    .GroupBy(p => p.IdsPerSpectra)
+                    .OrderBy(p => p.Key)
+                    .Select(p => (
+                        p.Key,
+                        0,
+                        (double)p.Sum(m => m.TargetCount),
+                        (double)p.Sum(m => m.DecoyCount)
+                    ))
+                    .ToArray()
+                : results.Where(p => p.Type == type)
+                    .GroupBy(p => p.IdsPerSpectra)
+                    .OrderBy(p => p.Key)
+                    .Select(p =>
                     (
                         p.Key,
                         p.Sum(m => m.Parent),
-                        p.Average(m => m.TargetCount / (double)(m.TargetCount + m.DecoyCount) * 100),
-                        p.Average(m => m.DecoyCount / (double)(m.TargetCount + m.DecoyCount) * 100))
-                )
-                .ToArray();
+                        p.Sum(m => m.TargetCount) / (double)(p.Sum(m => m.TargetCount) + p.Sum(m => m.DecoyCount)) *
+                        100,
+                        p.Sum(m => m.DecoyCount) / (double)(p.Sum(m => m.TargetCount) + p.Sum(m => m.DecoyCount)) * 100
+                    ))
+                    .ToArray();
             var keys = data.Select(p => p.IdPerSpec).ToArray();
             width = Math.Max(600, 50 * data.Length);
             var form = isTopDown ? "Proteoform" : "Peptidoform";
@@ -1022,33 +1168,107 @@ namespace Analyzer.Plotting
             var chart = Chart.Combine(new[]
                 {
                     Chart.StackedColumn<double, int, string>(data.Select(p => p.Targets), keys, "Targets",
-                        MarkerColor: ConditionToColorDictionary["Targets"], MultiText: data.Select(p => Math.Round(p.Targets, 1).ToString()).ToArray()),
+                        MarkerColor: ConditionToColorDictionary["Targets"], MultiText: data.Select(p => Math.Round(p.Targets, 2).ToString()).ToArray()),
                     Chart.StackedColumn<double, int, string>(data.Select(p => p.Decoys), keys, $"Decoys",
-                        MarkerColor: ConditionToColorDictionary["Decoys"], MultiText: data.Select(p => Math.Round(p.Decoys, 1).ToString()).ToArray()),
+                        MarkerColor: ConditionToColorDictionary["Decoys"], MultiText: data.Select(p => Math.Round(p.Decoys, 2).ToString()).ToArray()),
                 })
                 .WithLayout(DefaultLayoutWithLegend)
                 .WithTitle($"{title2} {title} Identifications per Spectra")
                 .WithXAxisStyle(Title.init("IDs per Spectrum"))
-                .WithYAxis(LinearAxis.init<int, int, int, int, int, int>(AxisType: StyleParam.AxisType.Linear))
                 .WithYAxisStyle(Title.init("Percent"))
                 .WithSize(width, DefaultHeight);
             return chart;
         }
 
-        public static GenericChart.GenericChart ChimeraTargetDecoyChart(this List<PsmFromTsv> psms, bool isTopDown, ChimeraBreakdownType type, string filterType,
-            out int width)
+
+
+
+        #endregion
+
+        #region TargetDecoy Investigation
+
+        public static void ExportCombinedChimeraTargetDecoyExploration(this MetaMorpheusResult results, string outputDir, KeyValuePair<string, string> selectedCondition)
         {
-            var data = psms.GroupBy(p => p, CustomComparer<PsmFromTsv>.ChimeraComparer)
-                .GroupBy(p => p.Count(), p => p)
-                .ToDictionary(p => p.Key, p => p.SelectMany(m => m).ToList())
-                .Select(p => (
-                    p.Key,
-                    //(double)p.Value.Count(m => m.IsDecoy()),
-                    //(double)p.Value.Count(m => !m.IsDecoy()))
-                    Math.Round(p.Value.Count(m => m.IsDecoy()) / (double)p.Value.Count * 100, 2),
-                    Math.Round(p.Value.Count(m => !m.IsDecoy()) / (double)p.Value.Count * 100, 2))
-                )
-                .ToArray();
+            var proteoforms = SpectrumMatchTsvReader.ReadPsmTsv(results._peptidePath, out _);
+            var qValueFilteredProteoforms = proteoforms.Where(p => p.QValue <= 0.01).ToList();
+            var pepQValueFilteredProteoforms = proteoforms.Where(p => p.PEP_QValue <= 0.01).ToList();
+            var psms = SpectrumMatchTsvReader.ReadPsmTsv(results._psmPath, out _);
+            var qValueFiltered = psms.Where(p => p.QValue <= 0.01).ToList();
+            var pepQValueFiltered = psms.Where(p => p.PEP_QValue <= 0.01).ToList();
+
+            int width;
+            var psmChart = Chart.Grid(new List<GenericChart.GenericChart>()
+                {
+                    qValueFiltered.ChimeraTargetDecoyChart(true, ChimeraBreakdownType.Psm, "QValue", false, out width)
+                        .WithXAxisStyle(Title.init(""))
+                        .WithXAxis(LinearAxis.init<int, int, int, int, int, int>(Domain: StyleParam.Range.NewMinMax(0.00, 0.45)), StyleParam.SubPlotId.NewXAxis(1))
+                        .WithYAxis(LinearAxis.init<int, int, int, int, int, int>(Domain: StyleParam.Range.NewMinMax(0.55, 0.90)), StyleParam.SubPlotId.NewYAxis(1)),
+                    pepQValueFiltered
+                        .ChimeraTargetDecoyChart(true, ChimeraBreakdownType.Psm, "PEP QValue", false, out width)
+                        .WithXAxisStyle(Title.init(""))
+                        .WithXAxis(LinearAxis.init<int, int, int, int, int, int>(Domain: StyleParam.Range.NewMinMax(0.55, 1.00)), StyleParam.SubPlotId.NewXAxis(2))
+                        .WithYAxis(LinearAxis.init<int, int, int, int, int, int>(Domain: StyleParam.Range.NewMinMax(0.55, 0.90)), StyleParam.SubPlotId.NewYAxis(2)),
+                    qValueFiltered.ChimeraTargetDecoyChart(true, ChimeraBreakdownType.Psm, "QValue", true, out width)
+                        .WithXAxis(LinearAxis.init<int, int, int, int, int, int>(Domain: StyleParam.Range.NewMinMax(0.00, 0.45)), StyleParam.SubPlotId.NewXAxis(3))
+                        .WithYAxis(LinearAxis.init<int, int, int, int, int, int>(Domain: StyleParam.Range.NewMinMax(0.00, 0.45)), StyleParam.SubPlotId.NewYAxis(3)),
+                    pepQValueFiltered
+                        .ChimeraTargetDecoyChart(true, ChimeraBreakdownType.Psm, "PEP QValue", true, out width)
+                        .WithXAxis(LinearAxis.init<int, int, int, int, int, int>(Domain: StyleParam.Range.NewMinMax(0.55, 1.00)), StyleParam.SubPlotId.NewXAxis(4))
+                        .WithYAxis(LinearAxis.init<int, int, int, int, int, int>(Domain: StyleParam.Range.NewMinMax(0.00, 0.45)), StyleParam.SubPlotId.NewYAxis(4)),
+                }, 2, 2, YGap: 50)
+                .WithSize(1000, 1000)
+                .WithTitle($"{selectedCondition.Value} PSMs Target Decoy: QValue Filtered {qValueFiltered.Count} | PEP QValue Filtered {pepQValueFiltered.Count}");
+            string psmChartOutPath = Path.Combine(outputDir, $"{selectedCondition.Value}_PSMs_Target_Decoy");
+            psmChart.SavePNG(psmChartOutPath, null, 1000, 1000);
+
+
+            var proteoformChart = Chart.Grid(new List<GenericChart.GenericChart>()
+            {
+                qValueFilteredProteoforms.ChimeraTargetDecoyChart(true, ChimeraBreakdownType.Peptide, "QValue", false, out width)
+                    .WithXAxisStyle(Title.init(""))
+                    .WithXAxis(LinearAxis.init<int, int, int, int, int, int>(Domain: StyleParam.Range.NewMinMax(0.00, 0.45)), StyleParam.SubPlotId.NewXAxis(1))
+                    .WithYAxis(LinearAxis.init<int, int, int, int, int, int>(Domain: StyleParam.Range.NewMinMax(0.55, 0.90)), StyleParam.SubPlotId.NewYAxis(1)),
+                pepQValueFilteredProteoforms.ChimeraTargetDecoyChart(true, ChimeraBreakdownType.Peptide, "PEP QValue", false, out width)
+                    .WithXAxisStyle(Title.init(""))
+                    .WithXAxis(LinearAxis.init<int, int, int, int, int, int>(Domain: StyleParam.Range.NewMinMax(0.55, 1.00)), StyleParam.SubPlotId.NewXAxis(2))
+                    .WithYAxis(LinearAxis.init<int, int, int, int, int, int>(Domain: StyleParam.Range.NewMinMax(0.55, 0.90)), StyleParam.SubPlotId.NewYAxis(2)),
+                qValueFilteredProteoforms.ChimeraTargetDecoyChart(true, ChimeraBreakdownType.Peptide, "QValue", true, out width)
+                    .WithXAxis(LinearAxis.init<int, int, int, int, int, int>(Domain: StyleParam.Range.NewMinMax(0.00, 0.45)), StyleParam.SubPlotId.NewXAxis(3))
+                    .WithYAxis(LinearAxis.init<int, int, int, int, int, int>(Domain: StyleParam.Range.NewMinMax(0.00, 0.45)), StyleParam.SubPlotId.NewYAxis(3)),
+                pepQValueFilteredProteoforms.ChimeraTargetDecoyChart(true, ChimeraBreakdownType.Peptide, "PEP QValue", true, out width)
+                    .WithXAxis(LinearAxis.init<int, int, int, int, int, int>(Domain: StyleParam.Range.NewMinMax(0.55, 1.00)), StyleParam.SubPlotId.NewXAxis(4))
+                    .WithYAxis(LinearAxis.init<int, int, int, int, int, int>(Domain: StyleParam.Range.NewMinMax(0.00, 0.45)), StyleParam.SubPlotId.NewYAxis(4))
+            }, 2, 2, YGap: 50)
+            .WithSize(1000, 1000)
+            .WithTitle($"{selectedCondition.Value} Proteoforms Target Decoy: QValue Filtered {qValueFilteredProteoforms.Count} | PEP QValue Filtered {pepQValueFilteredProteoforms.Count}");
+            string proteoformChartOutPath = Path.Combine(outputDir, $"{selectedCondition.Value}_Proteoforms_Target_Decoy");
+            proteoformChart.SavePNG(proteoformChartOutPath, null, 1000, 1000);
+
+        }
+
+
+        public static GenericChart.GenericChart ChimeraTargetDecoyChart(this List<PsmFromTsv> psms, bool isTopDown, ChimeraBreakdownType type, string filterType,
+            bool absolute, out int width)
+        {
+            var data = absolute
+                ? psms.GroupBy(p => p, CustomComparer<PsmFromTsv>.ChimeraComparer)
+                    .GroupBy(p => p.Count(), p => p)
+                    .ToDictionary(p => p.Key, p => p.SelectMany(m => m).ToList())
+                    .Select(p => (
+                        p.Key,
+                        (double)p.Value.Count(m => m.IsDecoy()),
+                        (double)p.Value.Count(m => !m.IsDecoy()))
+                    )
+                    .ToArray()
+                : psms.GroupBy(p => p, CustomComparer<PsmFromTsv>.ChimeraComparer)
+                    .GroupBy(p => p.Count(), p => p)
+                    .ToDictionary(p => p.Key, p => p.SelectMany(m => m).ToList())
+                    .Select(p => (
+                        p.Key,
+                        Math.Round(p.Value.Count(m => m.IsDecoy()) / (double)p.Value.Count * 100, 2),
+                        Math.Round(p.Value.Count(m => !m.IsDecoy()) / (double)p.Value.Count * 100, 2))
+                    )
+                    .ToArray();
 
             var keys = data.Select(p => p.Key).ToArray();
             width = Math.Max(600, 50 * data.Length);
@@ -1058,19 +1278,31 @@ namespace Analyzer.Plotting
 
             width = Math.Max(600, 50 * data.Length);
             var chart = Chart.Combine(new[]
-            {
+                {
 
-                Chart.StackedColumn<double, int, string>(data.Select(p => p.Item3), keys, "Targets",
-                    MarkerColor: ConditionToColorDictionary["Targets"], MultiText: data.Select(p => p.Item3.ToString()).ToArray()),
-                Chart.StackedColumn<double, int, string>(data.Select(p => p.Item2), keys, "Decoys",
-                                           MarkerColor: ConditionToColorDictionary["Decoys"], MultiText: data.Select(p => p.Item2.ToString()).ToArray())
-            })
-            .WithLayout(DefaultLayoutWithLegend)
-            .WithTitle($"{psms.Count} {filterType} Filtered {title} Chimera Target Decoy Distribution")
-            .WithXAxisStyle(Title.init($"1% {title}s Per Spectrum"))
-            .WithYAxis(LinearAxis.init<int, int, int, int, int, int>(AxisType: StyleParam.AxisType.Linear))
-            .WithYAxisStyle(Title.init("Count"))
-            .WithSize(width, DefaultHeight);
+                    Chart.StackedColumn<double, int, string>(data.Select(p => p.Item3), keys, "Targets",
+                        MarkerColor: ConditionToColorDictionary["Targets"],
+                        MultiText: data.Select(p => p.Item3.ToString()).ToArray()),
+                    Chart.StackedColumn<double, int, string>(data.Select(p => p.Item2), keys, "Decoys",
+                        MarkerColor: ConditionToColorDictionary["Decoys"],
+                        MultiText: data.Select(p => p.Item2.ToString()).ToArray())
+                })
+                .WithLayout(Layout.init<string>(
+                    //PaperBGColor: Color.fromARGB(0, 0,0,0),
+                    //PlotBGColor: Color.fromARGB(0, 0, 0, 0),
+                    PaperBGColor: Color.fromKeyword(ColorKeyword.White),
+                    PlotBGColor: Color.fromKeyword(ColorKeyword.White),
+                    ShowLegend: true,
+                    Font: Font.init(null, 12), 
+                    Legend: Legend.init(X: 0.5, Y: -0.2, Orientation: StyleParam.Orientation.Horizontal, EntryWidth: 0,
+                        VerticalAlign: StyleParam.VerticalAlign.Bottom,
+                        XAnchor: StyleParam.XAnchorPosition.Center,
+                        YAnchor: StyleParam.YAnchorPosition.Top
+                    )))
+                .WithTitle($"{psms.Count} {filterType} Filtered {title} Chimera Target Decoy")
+                .WithXAxisStyle(Title.init($"1% {title}s Per Spectrum"))
+                .WithYAxisStyle(Title.init(absolute ? "Count" : "% Decoys"))
+                .WithSize(width, 1200);
             return chart;
         }
 
