@@ -44,18 +44,19 @@ namespace Analyzer.Plotting
         // Top Down
         public static string[] AcceptableConditionsToPlotIndividualFileComparisonTopDown =
         {
-            "MetaMorpheus", "MetaMorpheusNoChimeras", 
-            /*"MsPathFinderT", "MsPathFinderTWithMods",*/ "MsPathFinderTWithModsNoChimeras", "MsPathFinderTWithMods_7",
-            "ProsightPDChimeras", "ProsightPDNoChimeras", "ProsightPD_SubsequenceSearch",
+            "MetaMorpheus", "MetaMorpheusNoChimeras",
+            "MsPathFinderTWithModsNoChimerasRep2", "MsPathFinderTWithMods_7Rep2",
+            /*"MsPathFinderTWithModsNoChimeras", "MsPathFinderTWithMods_7",*/ 
+            "ProsightPDChimeras", "ProsightPDNoChimeras", 
 
 
-            "MetaMorpheus_Rep1_BuildLibrary",
-            "MetaMorpheus_Rep2_NoLibrary",
+            //"MetaMorpheus_Rep1_BuildLibrary",
+            //"MetaMorpheus_Rep2_NoLibrary",
             "MetaMorpheus_Rep2_WithLibrary",
-            "Full_ChimeraIncorporation",
-            "MetaMorpheus_FullPEPChimeraIncorporation",
-            "Full_ChimeraIncorporation_NoNormalization",
-            "Small_ChimeraIncorporation"
+            //"Full_ChimeraIncorporation",
+            //"MetaMorpheus_FullPEPChimeraIncorporation",
+            //"Full_ChimeraIncorporation_NoNormalization",
+            //"Small_ChimeraIncorporation"
         };
 
         public static string[] AcceptableConditonsToPlotInternalMMComparisonTopDown =
@@ -65,14 +66,20 @@ namespace Analyzer.Plotting
 
         public static string[] AcceptableConditionsToPlotBulkResultsComparisonTopDown =
         {
-            "MetaMorpheus", "MetaMorpheusNoChimeras", 
-            /*"MsPathFinderT", "MsPathFinderTWithMods",*/ "MsPathFinderTWithModsNoChimeras", "MsPathFinderTWithMods_7",
-            "ProsightPDChimeras", "ProsightPDNoChimeras", "ProsightPD_SubsequenceSearch",
+            "MetaMorpheus", "MetaMorpheusNoChimeras",
+            "MsPathFinderTWithModsNoChimerasRep2", "MsPathFinderTWithMods_7Rep2",
+            /*"MsPathFinderTWithModsNoChimeras", "MsPathFinderTWithMods_7",*/ 
+            "ProsightPDChimeras", "ProsightPDNoChimeras", 
         };
 
         public static string[] AcceptableConditionsToPlotChimeraBreakdownTopDown =
         {
             "MetaMorpheus", "MetaMorpheus_FullPEPChimeraIncorporation"
+        };
+
+        public static string[] AcceptableConditionsToPlotFDRComparisonResultsTopDown =
+        {
+            "MetaMorpheus_Rep2_WithLibrary"
         };
 
 
@@ -103,9 +110,11 @@ namespace Analyzer.Plotting
             {"MetaMorpheus", Color.fromKeyword(ColorKeyword.Purple) },
             {"MetaMorpheusNoChimeras", Color.fromKeyword(ColorKeyword.Plum) },
             {"MsPathFinderTWithModsNoChimeras", Color.fromKeyword(ColorKeyword.Moccasin)},
+            {"MsPathFinderTWithModsNoChimerasRep2", Color.fromKeyword(ColorKeyword.Moccasin)},
             {"MsPathFinderT", Color.fromKeyword(ColorKeyword.Khaki)},
             {"MsPathFinderTWithMods", Color.fromKeyword(ColorKeyword.Gold)},
             {"MsPathFinderTWithMods_7", Color.fromKeyword(ColorKeyword.GoldenRod)},
+            {"MsPathFinderTWithMods_7Rep2", Color.fromKeyword(ColorKeyword.GoldenRod)},
             {"ProsightPDNoChimeras", Color.fromKeyword(ColorKeyword.PaleVioletRed)},
             {"ProsightPDChimeras", Color.fromKeyword(ColorKeyword.Red)},
             {"ProsightPD_SubsequenceSearch", Color.fromKeyword(ColorKeyword.OrangeRed)},
@@ -436,6 +445,8 @@ namespace Analyzer.Plotting
             { "MetaMorpheus", "MetaMorpheus\u2800" },
             { "MetaMorpheusNoChimeras", "MetaMorpheus No Chimeras" },
             { "MsPathFinderTWithMods_7", "MsPathFinderT⠀" },
+            { "MsPathFinderTWithModsNoChimerasRep2", "MsPathFinderT No Chimeras" },
+            { "MsPathFinderTWithMods_7Rep2", "MsPathFinderT⠀" },
             { "MsPathFinderTWithModsNoChimeras", "MsPathFinderT No Chimeras" },
             {"ProsightPDNoChimeras", "ProsightPD No Chimeras"},
             {"ProsightPDChimeras", "ProsightPD⠀Chimeras"},
@@ -768,13 +779,19 @@ namespace Analyzer.Plotting
         private static GenericChart.GenericChart GetCellLineSpectralSimilarity(this CellLineResults cellLine)
         {
             bool isTopDown = cellLine.First().IsTopDown;
-            string[] chimeraLabels;
-            string[] nonChimeraLabels;
             double[] chimeraAngles;
             double[] nonChimeraAngles;
             if (isTopDown)
             {
-
+                var angles = cellLine.Results
+                    .Where(p => AcceptableConditionsToPlotFDRComparisonResultsTopDown.Contains(p.Condition))
+                    .SelectMany(p => ((MetaMorpheusResult)p).AllPeptides.Where(m => m.SpectralAngle is not -1 or double.NaN))
+                    .GroupBy(p => p, CustomComparer<PsmFromTsv>.ChimeraComparer)
+                    .SelectMany(chimeraGroup =>
+                        chimeraGroup.Select(prsm => (prsm.SpectralAngle ?? -1, chimeraGroup.Count() > 1)))
+                    .ToList();
+                chimeraAngles = angles.Where(p => p.Item2).Select(p => p.Item1).ToArray();
+                nonChimeraAngles = angles.Where(p => !p.Item2).Select(p => p.Item1).ToArray();
             }
             else
             {
@@ -786,43 +803,9 @@ namespace Analyzer.Plotting
                     .ToList();
                 chimeraAngles = angles.Where(p => p.IsChimeric).Select(p => p.SpectralAngle).ToArray();
                 nonChimeraAngles = angles.Where(p => !p.IsChimeric).Select(p => p.SpectralAngle).ToArray();
-                chimeraLabels = Enumerable.Repeat("Chimeras", chimeraAngles.Length).ToArray();
-                nonChimeraLabels = Enumerable.Repeat("No Chimeras", nonChimeraAngles.Length).ToArray();
             }
 
-
-            var individualFiles = cellLine.Results
-                .Where(p => AcceptableConditionsToPlotFDRComparisonResults.Contains(p.Condition))
-                .OrderBy(p => ((MetaMorpheusResult)p).RetentionTimePredictionFile.First())
-                .Select(p => ((MetaMorpheusResult)p).RetentionTimePredictionFile)
-                .ToList();
-
-
-
-            var results = individualFiles.SelectMany(p => p.Where(m => m.SpectralAngle is not -1 or double.NaN))
-                .ToList();
-            
-            var violin = Chart.Combine(new[]
-                {
-                    // chimeras
-                    Chart.Violin<string, double, string> (
-                        new Plotly.NET.CSharp.Optional<IEnumerable<string>>(Enumerable.Repeat("Chimeras", results.Count(p => p.IsChimeric)), true),
-                        new Plotly.NET.CSharp.Optional<IEnumerable<double>>(results.Where(p => p.IsChimeric).Select(p => p.SpectralAngle), true),
-                        null, MarkerColor:  ConditionToColorDictionary["Chimeras"], MeanLine: MeanLine.init(true,  ConditionToColorDictionary["Chimeras"]),
-                        ShowLegend: false), 
-                    // not chimeras
-                    Chart.Violin<string, double, string> (
-                        new Plotly.NET.CSharp.Optional<IEnumerable<string>>(Enumerable.Repeat("No Chimeras", results.Count(p => !p.IsChimeric)), true),
-                        new Plotly.NET.CSharp.Optional<IEnumerable<double>>(results.Where(p => !p.IsChimeric).Select(p => p.SpectralAngle), true),
-                        null, MarkerColor:  ConditionToColorDictionary["No Chimeras"], MeanLine: MeanLine.init(true,  ConditionToColorDictionary["No Chimeras"]),
-                        ShowLegend: false)
-
-                })
-                .WithTitle($"{cellLine.CellLine} Spectral Angle Distribution (1% Peptides)")
-                .WithYAxisStyle(Title.init("Spectral Angle"))
-                .WithLayout(DefaultLayout)
-                .WithSize(1000, 600);
-            return violin;
+            return SpectralAngleChimeraComparisonViolinPlot(chimeraAngles, nonChimeraAngles, cellLine.CellLine, isTopDown);
         }
 
         #endregion
@@ -849,7 +832,7 @@ namespace Analyzer.Plotting
                     labels, null, "No Chimeras", MarkerColor: ConditionToColorDictionary[noChimeras.First().Condition]),
                 Chart2D.Chart.Column<int, string, string, int, int>(withChimeras.Select(p => p.OnePercentPsmCount),
                     labels, null, "Chimeras", MarkerColor: ConditionToColorDictionary[withChimeras.First().Condition]),
-                //Chart2D.Chart.Column<int, string, string, int, int>(others.Select(p => p.OnePercentPsmCount),
+                //Chart2D.Chart.Column<int, string, string, int, int>(others.Select(chimeraGroup => chimeraGroup.OnePercentPsmCount),
                 //    labels, null, "Others", MarkerColor: ConditionToColorDictionary[others.First().Condition])
             });
             var smLabel = allResults.First().First().IsTopDown ? "PrSMs" : "PSMs";
@@ -866,7 +849,7 @@ namespace Analyzer.Plotting
                     labels, null, "No Chimeras", MarkerColor: ConditionToColorDictionary[noChimeras.First().Condition]),
                 Chart2D.Chart.Column<int, string, string, int, int>(withChimeras.Select(p => p.OnePercentPeptideCount),
                     labels, null, "Chimeras", MarkerColor: ConditionToColorDictionary[withChimeras.First().Condition]),
-                //Chart2D.Chart.Column<int, string, string, int, int>(others.Select(p => p.OnePercentPeptideCount),
+                //Chart2D.Chart.Column<int, string, string, int, int>(others.Select(chimeraGroup => chimeraGroup.OnePercentPeptideCount),
                 //    labels, null, "Others", MarkerColor: ConditionToColorDictionary[others.First().Condition])
             });
             peptideChart.WithTitle($"MetaMorpheus 1% FDR {allResults.First().First().ResultType}s")
@@ -882,7 +865,7 @@ namespace Analyzer.Plotting
                     labels, null, "No Chimeras", MarkerColor: ConditionToColorDictionary[noChimeras.First().Condition]),
                 Chart2D.Chart.Column<int, string, string, int, int>(withChimeras.Select(p => p.OnePercentProteinGroupCount),
                     labels, null, "Chimeras", MarkerColor: ConditionToColorDictionary[withChimeras.First().Condition]),
-                //Chart2D.Chart.Column<int, string, string, int, int>(others.Select(p => p.OnePercentProteinGroupCount),
+                //Chart2D.Chart.Column<int, string, string, int, int>(others.Select(chimeraGroup => chimeraGroup.OnePercentProteinGroupCount),
                 //    labels, null, "Chimeras", MarkerColor: ConditionToColorDictionary[others.First().Condition]),
             });
             proteinChart.WithTitle("MetaMorpheus 1% FDR Proteins")
@@ -1261,6 +1244,31 @@ namespace Analyzer.Plotting
                 .WithSize(width, DefaultHeight);
             return chart;
         }
+
+
+        private static GenericChart.GenericChart SpectralAngleChimeraComparisonViolinPlot(double[] chimeraAngles,
+            double[] nonChimeraAngles, string identifier = "", bool isTopDown = false)
+        {
+            var chimeraLabels = Enumerable.Repeat("Chimeras", chimeraAngles.Length).ToArray();
+            var nonChimeraLabels = Enumerable.Repeat("No Chimeras", nonChimeraAngles.Length).ToArray();
+            string resultType = isTopDown ? "Proteoforms" : "Peptides";
+            var violin = Chart.Combine(new[]
+                {
+                    // chimeras
+                    Chart.Violin<string, double, string> (chimeraLabels,chimeraAngles, null, MarkerColor:  ConditionToColorDictionary["Chimeras"], 
+                        MeanLine: MeanLine.init(true,  ConditionToColorDictionary["Chimeras"]), ShowLegend: false), 
+                    // not chimeras
+                    Chart.Violin<string, double, string> (nonChimeraLabels,nonChimeraAngles, null, MarkerColor:  ConditionToColorDictionary["No Chimeras"], 
+                        MeanLine: MeanLine.init(true,  ConditionToColorDictionary["No Chimeras"]), ShowLegend: false)
+
+                })
+                .WithTitle($"{identifier} Spectral Angle Distribution (1% {resultType})")
+                .WithYAxisStyle(Title.init("Spectral Angle"))
+                .WithLayout(DefaultLayout)
+                .WithSize(1000, 600);
+            return violin;
+        }
+
 
         #endregion
 

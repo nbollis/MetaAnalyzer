@@ -31,8 +31,8 @@ namespace Test
             {
                 foreach (var result in cellLine)
                 {
-                    if (result is MsPathFinderTResults)
-                        result.Override = true;
+                    //if (result is MsPathFinderTResults)
+                    //    result.Override = true;
                     result.IndividualFileComparison();
                     result.GetBulkResultCountComparisonFile();
                     result.CountChimericPsms();
@@ -61,16 +61,17 @@ namespace Test
         {
             foreach (CellLineResults cellLine in AllResults)
             {
-                cellLine.PlotIndividualFileResults();
-                cellLine.PlotCellLineChimeraBreakdown();
-                cellLine.PlotCellLineChimeraBreakdown_TargetDecoy();
+                //cellLine.PlotIndividualFileResults(); 
+                cellLine.PlotCellLineSpectralSimilarity();
+                //cellLine.PlotCellLineChimeraBreakdown();
+                //cellLine.PlotCellLineChimeraBreakdown_TargetDecoy();
             }
 
-            AllResults.PlotInternalMMComparison();
-            AllResults.PlotBulkResultComparison();
-            AllResults.PlotStackedIndividualFileComparison();
-            AllResults.PlotBulkResultChimeraBreakDown();
-            AllResults.PlotBulkResultChimeraBreakDown_TargetDecoy();
+            //AllResults.PlotInternalMMComparison();
+            //AllResults.PlotBulkResultComparison();
+            //AllResults.PlotStackedIndividualFileComparison();
+            //AllResults.PlotBulkResultChimeraBreakDown();
+            //AllResults.PlotBulkResultChimeraBreakDown_TargetDecoy();
         }
 
         [Test]
@@ -94,7 +95,7 @@ namespace Test
         public static void MsPathTDatasetInfoGenerator()
         {
             foreach (MsPathFinderTResults mspt in AllResults.SelectMany(p => p.Results)
-                .Where(p => p is MsPathFinderTResults mspt && mspt.IndividualFileResults.Count is 20 or 43))
+                .Where(p => p is MsPathFinderTResults mspt && mspt.IndividualFileResults.Count is 20 or 43 or 10))
             {
                 mspt.CreateDatasetInfoFile();
             }
@@ -135,9 +136,13 @@ namespace Test
 
             var outDir = @"B:\Users\Nic\Chimeras\TopDown_Analysis\Jurkat\SearchResults\MetaMorpheus\Figures";
             results.ExportCombinedChimeraTargetDecoyExploration(outDir, selectedCondition.Value);
+        }
 
- 
-
+        [Test]
+        public static void SpectralAngle()
+        {
+            CellLineResults cellLine = new(@"B:\Users\Nic\Chimeras\PEPTesting");
+            cellLine.PlotCellLineSpectralSimilarity();
         }
     }
 }

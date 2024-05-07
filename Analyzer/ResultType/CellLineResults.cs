@@ -63,9 +63,8 @@ public class CellLineResults : IEnumerable<BulkResult>
             }
             else if (Directory.GetFiles(directory, "*IcTda.tsv", SearchOption.AllDirectories).Any())
             {
-                if (Directory.GetFiles(directory, "*IcTda.tsv", SearchOption.AllDirectories).Count() != (_dataFilePaths?.Length ?? int.MaxValue)) // short circuit fi searching is not yet finishedes from parsing
-                    continue;
-                Results.Add(new MsPathFinderTResults(directory));
+                if (Directory.GetFiles(directory, "*IcTda.tsv", SearchOption.AllDirectories).Count() is 20 or 10 or 43) // short circuit fi searching is not yet finishedes from parsing
+                    Results.Add(new MsPathFinderTResults(directory));
             }
             else if (Directory.GetFiles(directory, "*.fp-manifest", SearchOption.AllDirectories).Any())
                 Results.Add(new MsFraggerResult(directory));

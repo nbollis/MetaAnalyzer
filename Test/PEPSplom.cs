@@ -69,13 +69,16 @@ namespace Test
                 @"B:\Users\Nic\Chimeras\TopDown_Analysis\Jurkat\SearchResults\MetaMorpheus";
             string jurkatNoNormRemove2 =
                 @"B:\Users\Nic\Chimeras\PEPTesting\SearchResults\Jurkat_NoNorm_Remove2";
+            string jurkatNormRemove2 =
+                @"B:\Users\Nic\Chimeras\PEPTesting\SearchResults\Jurkat_Norm_Remove2";
 
             List<(MetaMorpheusResult, string)> results = new()
             {
                 //(new MetaMorpheusResult(helaNoNormPath), "Hela No Norm"),
                 //(new MetaMorpheusResult(helaNormPath), "Hela Norm"),
                 //(new MetaMorpheusResult(jurkatNormPath), "Jurkat Norm"),
-                (new MetaMorpheusResult(jurkatNoNormRemove2), "Jurkat No Norm-2"),
+                //(new MetaMorpheusResult(jurkatNoNormRemove2), "Jurkat No Norm-2"),
+                (new MetaMorpheusResult(jurkatNormRemove2), "Jurkat Norm-2"),
                 //(new MetaMorpheusResult(jurkatNoNormpath), "Jurkat No Norm"),
                 //(new MetaMorpheusResult(originalMMPath), "Original Jurkat"),
 
