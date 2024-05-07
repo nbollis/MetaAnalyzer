@@ -6,7 +6,7 @@ using Readers;
 
 namespace Analyzer.FileTypes.Internal
 {
-    public class BulkResultCountComparison
+    public class BulkResultCountComparison : IEquatable<BulkResultCountComparison>
     {
 
         public static CsvConfiguration CsvConfig = new CsvConfiguration(CultureInfo.InvariantCulture)
@@ -28,6 +28,26 @@ namespace Analyzer.FileTypes.Internal
         public int OnePercentProteinGroupCount { get; set; }
         [Optional] public int OnePercentUnambiguousPsmCount { get; set; }
         [Optional] public int OnePercentUnambiguousPeptideCount { get; set; }
+
+        public bool Equals(BulkResultCountComparison? other)
+        {
+            if (ReferenceEquals(null, other)) return false;
+            if (ReferenceEquals(this, other)) return true;
+            return DatasetName == other.DatasetName && FileName == other.FileName && Condition == other.Condition;
+        }
+
+        public override bool Equals(object? obj)
+        {
+            if (ReferenceEquals(null, obj)) return false;
+            if (ReferenceEquals(this, obj)) return true;
+            if (obj.GetType() != this.GetType()) return false;
+            return Equals((BulkResultCountComparison)obj);
+        }
+
+        public override int GetHashCode()
+        {
+            return HashCode.Combine(DatasetName, FileName, Condition);
+        }
     }
 
 

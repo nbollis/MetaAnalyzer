@@ -11,6 +11,20 @@ namespace Analyzer.ResultType
 {
     public class MetaMorpheusResult : BulkResult
     {
+        #region Results
+
+        private List<PsmFromTsv> allPsms;
+        public List<PsmFromTsv> AllPsms => allPsms ??= SpectrumMatchTsvReader.ReadPsmTsv(_psmPath, out _);
+
+        private List<PsmFromTsv> allPeptides;
+        public List<PsmFromTsv> AllPeptides => allPeptides ??= SpectrumMatchTsvReader.ReadPsmTsv(_peptidePath, out _);
+
+
+        #endregion
+
+
+
+
         public override BulkResultCountComparisonFile BaseSeqIndividualFileComparisonFile => _baseSeqIndividualFileComparison ??= CountIndividualFilesForFengChaoComparison();
         public string[] DataFilePaths { get; set; } // set by CellLineResults constructor
         public MetaMorpheusResult(string directoryPath) : base(directoryPath)
@@ -53,9 +67,8 @@ namespace Analyzer.ResultType
                 string peptide = individualFile.Value.First(p => p.Contains("Peptide") || p.Contains("Proteoform"));
                 string protein = individualFile.Value.First(p => p.Contains("Protein"));
 
-                var spectralmatches = SpectrumMatchTsvReader.ReadPsmTsv(psm, out _)
-                    .Where(p => p.DecoyContamTarget == "T").ToList();
-                var peptides = SpectrumMatchTsvReader.ReadPsmTsv(peptide, out _)
+                var spectralmatches = AllPsms.Where(p => p.DecoyContamTarget == "T").ToList();
+                var peptides = AllPeptides
                     .Where(p => p.DecoyContamTarget == "T")
                     .DistinctBy(p => p.BaseSeq).ToList();
 
@@ -110,7 +123,7 @@ namespace Analyzer.ResultType
             if (File.Exists(_chimeraPsmPath))
                 return new ChimeraCountingFile(_chimeraPsmPath);
 
-            var psms = SpectrumMatchTsvReader.ReadPsmTsv(_psmPath, out _).Where(p => p.DecoyContamTarget == "T").ToList();
+            var psms = AllPsms.Where(p => p.DecoyContamTarget == "T").ToList();
             var allPsmCounts = psms.GroupBy(p => p, CustomComparer<PsmFromTsv>.ChimeraComparer)
                 .GroupBy(m => m.Count()).ToDictionary(p => p.Key, p => p.Count());
             var onePercentFdrPsmCounts = psms.Where(p => p.PEP_QValue <= 0.01).GroupBy(p => p, CustomComparer<PsmFromTsv>.ChimeraComparer)
@@ -131,7 +144,7 @@ namespace Analyzer.ResultType
             if (!Override && File.Exists(_chimeraPeptidePath))
                 return new ChimeraCountingFile(_chimeraPeptidePath);
 
-            var peptides = SpectrumMatchTsvReader.ReadPsmTsv(_peptidePath, out _).Where(p => p.DecoyContamTarget == "T").ToList();
+            var peptides = AllPeptides.Where(p => p.DecoyContamTarget == "T").ToList();
             var allPeptideCounts = peptides.GroupBy(p => p, CustomComparer<PsmFromTsv>.ChimeraComparer)
                 .GroupBy(m => m.Count()).ToDictionary(p => p.Key, p => p.Count());
             var onePercentFdrPeptideCounts = peptides.Where(p => p.PEP_QValue <= 0.01).GroupBy(p => p, CustomComparer<PsmFromTsv>.ChimeraComparer)
@@ -166,7 +179,7 @@ namespace Analyzer.ResultType
                 string peptide = individualFile.Value.First(p => p.Contains("Peptide"));
                 string protein = individualFile.Value.First(p => p.Contains("Protein"));
 
-                var spectralmatches = SpectrumMatchTsvReader.ReadPsmTsv(psm, out _)
+                var spectralmatches = AllPsms
                     .Where(p => p.DecoyContamTarget == "T").ToList();
                 var peptides = SpectrumMatchTsvReader.ReadPsmTsv(peptide, out _)
                     .Where(p => p.DecoyContamTarget == "T")
@@ -225,11 +238,11 @@ namespace Analyzer.ResultType
                 return new BulkResultCountComparisonFile(path);
 
             var psms = path.Contains("BaseS") ?
-                SpectrumMatchTsvReader.ReadPsmTsv(_psmPath, out _).Where(p => p.DecoyContamTarget == "T").DistinctBy(p => p.BaseSeq).ToList() 
-                : SpectrumMatchTsvReader.ReadPsmTsv(_psmPath, out _).Where(p => p.DecoyContamTarget == "T").ToList();
+                AllPsms.Where(p => p.DecoyContamTarget == "T").DistinctBy(p => p.BaseSeq).ToList() 
+                : AllPsms.Where(p => p.DecoyContamTarget == "T").ToList();
             var peptides = path.Contains("BaseS") ?
-                SpectrumMatchTsvReader.ReadPsmTsv(_peptidePath, out _).Where(p => p.DecoyContamTarget == "T").DistinctBy(p => p.BaseSeq).ToList()
-                : SpectrumMatchTsvReader.ReadPsmTsv(_peptidePath, out _).Where(p => p.DecoyContamTarget == "T").ToList();
+                AllPeptides.Where(p => p.DecoyContamTarget == "T").DistinctBy(p => p.BaseSeq).ToList()
+                : AllPeptides.Where(p => p.DecoyContamTarget == "T").ToList();
 
             int psmsCount = psms.Count;
             int peptidesCount = peptides.Count;
@@ -294,7 +307,7 @@ namespace Analyzer.ResultType
             bool useIsolation;
             List<ChimeraBreakdownRecord> chimeraBreakDownRecords = new();
             // PSMs or PrSMs
-            foreach (var fileGroup in SpectrumMatchTsvReader.ReadPsmTsv(_psmPath, out _)
+            foreach (var fileGroup in AllPsms
                          .Where(p => p.PEP_QValue <= 0.01)
                          .GroupBy(p => p.FileNameWithoutExtension))
             {
@@ -377,7 +390,7 @@ namespace Analyzer.ResultType
 
 
             // Peptides or Proteoforms
-            foreach (var fileGroup in SpectrumMatchTsvReader.ReadPsmTsv(_peptidePath, out _)
+            foreach (var fileGroup in AllPeptides
                          .Where(p => p.PEP_QValue <= 0.01)
                          .GroupBy(p => p.FileNameWithoutExtension))
             {
@@ -490,7 +503,7 @@ namespace Analyzer.ResultType
             if (File.Exists(outpath) || !DirectoryPath.Contains("MetaMorpheusWithLibrary"))
                 return;
             var modDict = GlobalVariables.AllModsKnown.ToDictionary(p => p.IdWithMotif, p => p.MonoisotopicMass.Value);
-            var peptides = SpectrumMatchTsvReader.ReadPsmTsv(_peptidePath, out _)
+            var peptides = AllPeptides
                 .Where(p => p.DecoyContamTarget == "T" && p.PEP_QValue <= 0.01)
                 .ToList();
             var calc = new SSRCalc3("SSRCalc 3.0 (300A)", SSRCalc3.Column.A300);

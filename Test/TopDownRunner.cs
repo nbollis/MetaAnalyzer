@@ -112,6 +112,7 @@ namespace Test
                 { "MetaMorpheus_ChimeraInPEP_Positive", "PEP Positive" },
                 { "MetaMorpheus_DeconScoreAndPeaksInPEP", "Decon Score And Peaks" },
                 { "MetaMorpheus_OneMissedMonoIsotopic", "OneMissedMono" },
+                { "MetaMorpheus_FullPEPChimeraIncorporation", "FullPEPIncorporation" },
             };
             //var selectedCondition = conditionsAndOutHeader.First();
             //var condition = selectedCondition.Key;
@@ -126,14 +127,14 @@ namespace Test
 
 
 
-            var selectedCondition = conditionsAndOutHeader.Skip(0).First();
+            var selectedCondition = conditionsAndOutHeader.Skip(5).First();
             var condition = selectedCondition.Key;
             var results = AllResults
                 .First(p => p.CellLine == "Jurkat")
                 .First(p => p.Condition == condition) as MetaMorpheusResult;
 
             var outDir = @"B:\Users\Nic\Chimeras\TopDown_Analysis\Jurkat\SearchResults\MetaMorpheus\Figures";
-            results.ExportCombinedChimeraTargetDecoyExploration(outDir, selectedCondition);
+            results.ExportCombinedChimeraTargetDecoyExploration(outDir, selectedCondition.Value);
 
  
 

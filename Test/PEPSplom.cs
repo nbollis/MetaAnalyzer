@@ -5,6 +5,8 @@ using System.Text;
 using System.Threading.Tasks;
 using Analyzer.FileTypes.Internal;
 using Analyzer.Plotting;
+using Analyzer.ResultType;
+using Plotly.NET;
 
 namespace Test
 {
@@ -12,15 +14,81 @@ namespace Test
     {
         internal static string TestPath = @"B:\Users\Nic\Chimeras\PEPTesting\AllPSMs_FormattedForPercolator.tab";
 
+        internal static string Small_TopDown_ChimeraPath =
+            @"B:\Users\Nic\Chimeras\PEPTesting\Small_ChimeraIncorporation\AllPSMs_FormattedForPercolator.tab";
+
+
         [Test]
         public static void TestSplom()
         {
-            var pepAnalysis = new PepAnalysisForPercolatorFile(TestPath);
+            var pepAnalysis = new PepAnalysisForPercolatorFile(Small_TopDown_ChimeraPath);
             pepAnalysis.LoadResults();
             var allResults = pepAnalysis.Results;
 
             var pepEvaluationPlot = new PepEvaluationPlot(allResults);
-            pepEvaluationPlot.GenerateChart();
+            pepEvaluationPlot.ShowChart();
+        }
+
+
+
+        [Test]
+        public static void PlotAsCellLine()
+        {
+            string dirPath = @"B:\Users\Nic\Chimeras\PEPTesting";
+            string figPath = @"B:\Users\Nic\Chimeras\PEPTesting\Figures";
+            var cellLine = new CellLineResults(dirPath);
+            foreach (MetaMorpheusResult result in cellLine)
+            {
+                result.CountChimericPsms();
+                result.CountChimericPeptides();
+                result.GetBulkResultCountComparisonFile();
+                result.IndividualFileComparison();
+                //result.ExportPepFeaturesPlots();
+                //result.ExportCombinedChimeraTargetDecoyExploration(figPath,
+                //    new KeyValuePair<string, string>(result.Condition, result.Condition));
+
+            }
+            cellLine.PlotIndividualFileResults();
+            cellLine.GetBulkResultCountComparisonFile();
+            cellLine.CountChimericPsms();
+            cellLine.CountChimericPeptides();
+        }
+
+        [Test]
+        public static void TopDownBottomUpNormalizationComparison()
+        {
+            string helaNoNormPath =
+                @"B:\Users\Nic\Chimeras\Mann_11cell_analysis\Hela\SearchResults\MetaMorpheus_NoNormalization";
+            string helaNormPath =
+                @"B:\Users\Nic\Chimeras\Mann_11cell_analysis\Hela\SearchResults\MetaMorpheusWithLibrary";
+            string jurkatNormPath =
+                @"B:\Users\Nic\Chimeras\PEPTesting\SearchResults\Full_ChimeraIncorporation";
+            string jurkatNoNormpath = 
+                @"B:\Users\Nic\Chimeras\PEPTesting\SearchResults\Full_ChimeraIncorporation_NoNormalization";
+            string originalMMPath = 
+                @"B:\Users\Nic\Chimeras\TopDown_Analysis\Jurkat\SearchResults\MetaMorpheus";
+            string jurkatNoNormRemove2 =
+                @"B:\Users\Nic\Chimeras\PEPTesting\SearchResults\Jurkat_NoNorm_Remove2";
+
+            List<(MetaMorpheusResult, string)> results = new()
+            {
+                //(new MetaMorpheusResult(helaNoNormPath), "Hela No Norm"),
+                //(new MetaMorpheusResult(helaNormPath), "Hela Norm"),
+                //(new MetaMorpheusResult(jurkatNormPath), "Jurkat Norm"),
+                (new MetaMorpheusResult(jurkatNoNormRemove2), "Jurkat No Norm-2"),
+                //(new MetaMorpheusResult(jurkatNoNormpath), "Jurkat No Norm"),
+                //(new MetaMorpheusResult(originalMMPath), "Original Jurkat"),
+
+            };
+
+
+            string figPath = @"B:\Users\Nic\Chimeras\PEPTesting\Figures\BUTDNormComparison";
+            foreach (var result in results)
+            {
+                result.Item1.ExportPepFeaturesPlots(result.Item2);
+                result.Item1.ExportCombinedChimeraTargetDecoyExploration(figPath, result.Item2);
+            }
+
         }
     }
 }

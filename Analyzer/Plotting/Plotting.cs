@@ -1,13 +1,13 @@
 ﻿using Analyzer.FileTypes.Internal;
 using Analyzer.ResultType;
 using Analyzer.Util;
+using Proteomics.PSM;
+using Readers;
+using Chart = Plotly.NET.CSharp.Chart;
 using Plotly.NET;
 using Plotly.NET.ImageExport;
 using Plotly.NET.LayoutObjects;
 using Plotly.NET.TraceObjects;
-using Proteomics.PSM;
-using Readers;
-using Chart = Plotly.NET.CSharp.Chart;
 
 
 namespace Analyzer.Plotting
@@ -19,7 +19,7 @@ namespace Analyzer.Plotting
         // Bottom Up
         public static string[] AcceptableConditionsToPlotIndividualFileComparisonBottomUp =
         {
-            "MetaMorpheusWithLibrary", "MetaMorpheusNoChimerasWithLibrary",
+            "MetaMorpheusWithLibrary", "MetaMorpheusNoChimerasWithLibrary", "MetaMorpheus_NoNormalization",
             "ReviewdDatabaseNoPhospho_MsFraggerDDA", "ReviewdDatabaseNoPhospho_MsFraggerDDA+", "ReviewdDatabaseNoPhospho_MsFragger"
         };
 
@@ -46,12 +46,21 @@ namespace Analyzer.Plotting
         {
             "MetaMorpheus", "MetaMorpheusNoChimeras", 
             /*"MsPathFinderT", "MsPathFinderTWithMods",*/ "MsPathFinderTWithModsNoChimeras", "MsPathFinderTWithMods_7",
-            "ProsightPDChimeras", "ProsightPDNoChimeras", "ProsightPD_SubsequenceSearch"
+            "ProsightPDChimeras", "ProsightPDNoChimeras", "ProsightPD_SubsequenceSearch",
+
+
+            "MetaMorpheus_Rep1_BuildLibrary",
+            "MetaMorpheus_Rep2_NoLibrary",
+            "MetaMorpheus_Rep2_WithLibrary",
+            "Full_ChimeraIncorporation",
+            "MetaMorpheus_FullPEPChimeraIncorporation",
+            "Full_ChimeraIncorporation_NoNormalization",
+            "Small_ChimeraIncorporation"
         };
 
         public static string[] AcceptableConditonsToPlotInternalMMComparisonTopDown =
         {
-            "MetaMorpheus", "MetaMorpheusNoChimeras", 
+            "MetaMorpheus", "MetaMorpheusNoChimeras", "MetaMorpheus_FullPEPChimeraIncorporation"
         };
 
         public static string[] AcceptableConditionsToPlotBulkResultsComparisonTopDown =
@@ -63,7 +72,7 @@ namespace Analyzer.Plotting
 
         public static string[] AcceptableConditionsToPlotChimeraBreakdownTopDown =
         {
-            "MetaMorpheus"
+            "MetaMorpheus", "MetaMorpheus_FullPEPChimeraIncorporation"
         };
 
 
@@ -113,6 +122,17 @@ namespace Analyzer.Plotting
             {"Unique Protein", Color.fromKeyword(ColorKeyword.MediumAquamarine)},
             {"Targets", Color.fromKeyword(ColorKeyword.LightAkyBlue)},
             {"Decoys", Color.fromKeyword(ColorKeyword.Gold)},
+
+            // PEP testing
+            {"MetaMorpheus_Rep1_BuildLibrary", Color.fromKeyword(ColorKeyword.LightAkyBlue)},
+            {"MetaMorpheus_Rep2_NoLibrary", Color.fromKeyword(ColorKeyword.MediumVioletRed)},
+            {"MetaMorpheus_Rep2_WithLibrary", Color.fromKeyword(ColorKeyword.MediumAquamarine)},
+            {"Full_ChimeraIncorporation", Color.fromKeyword(ColorKeyword.GoldenRod)},
+            {"MetaMorpheus_FullPEPChimeraIncorporation", Color.fromKeyword(ColorKeyword.GoldenRod)},
+            {"Full_ChimeraIncorporation_NoNormalization", Color.fromKeyword(ColorKeyword.Plum)},
+            {"Small_ChimeraIncorporation", Color.fromKeyword(ColorKeyword.RoyalBlue)},
+            {"MetaMorpheus_NoNormalization", Color.fromKeyword(ColorKeyword.RoyalBlue)},
+
         };
 
         public static Dictionary<string, string> FileNameConversionDictionary = new()
@@ -566,8 +586,8 @@ namespace Analyzer.Plotting
             var selector = cellLine.First().IsTopDown
                 ? AcceptableConditionsToPlotIndividualFileComparisonTopDown
                 : AcceptableConditionsToPlotIndividualFileComparisonBottomUp;
-            var individualFileResults = cellLine.Results.Select(p => p.IndividualFileComparisonFile)
-                .Where(p => selector.Contains(p.First().Condition))
+            var individualFileResults = cellLine.Results.Select(p => p.IndividualFileComparisonFile )
+                .Where(p => p != null && selector.Contains(p.First().Condition))
                 .OrderBy(p => p.First().Condition.ConvertConditionName())
                 .ToList();
             var labels = individualFileResults.SelectMany(p => p.Results.Select(m => m.FileName))
@@ -579,6 +599,32 @@ namespace Analyzer.Plotting
             {
                 individualFileResults.ForEach(p => p.Results = p.Results.OrderBy(m => m.FileName.ConvertFileName()).ToList());
                 labels = labels.OrderBy(p => p.ConvertFileName()).ToList();
+
+                // if results exist for one dataset but not the other, ensure they are plotted in the correct order
+                foreach (var individualFile in individualFileResults)
+                {
+                    if (individualFile.Results.Count != labels.Count)
+                    {
+                        var allResults = new List<BulkResultCountComparison>();
+                        foreach (var file in labels)
+                        {
+                            if (individualFile.Any(p => p.FileName.ConvertFileName() == file))
+                                allResults.Add(individualFile.First(p => p.FileName.ConvertFileName() == file));
+                            else
+                                allResults.Add(new BulkResultCountComparison()
+                                {
+                                    FileName = file,
+                                    Condition = individualFile.First().Condition,
+                                    OnePercentPsmCount = 0,
+                                    OnePercentPeptideCount = 0,
+                                    OnePercentProteinGroupCount = 0
+                                });
+                        }
+
+                        individualFile.Results = allResults;
+                    }
+                }
+
 
                 chart = Chart.Combine(individualFileResults.Select(p =>
                     Chart2D.Chart.Column<int, string, string, int, int>(p.Select(m => m.OnePercentPsmCount), labels, null,
@@ -721,21 +767,50 @@ namespace Analyzer.Plotting
         }
         private static GenericChart.GenericChart GetCellLineSpectralSimilarity(this CellLineResults cellLine)
         {
+            bool isTopDown = cellLine.First().IsTopDown;
+            string[] chimeraLabels;
+            string[] nonChimeraLabels;
+            double[] chimeraAngles;
+            double[] nonChimeraAngles;
+            if (isTopDown)
+            {
+
+            }
+            else
+            {
+                var angles = cellLine.Results
+                    .Where(p => AcceptableConditionsToPlotFDRComparisonResults.Contains(p.Condition))
+                    .OrderBy(p => ((MetaMorpheusResult)p).RetentionTimePredictionFile.First())
+                    .Select(p => ((MetaMorpheusResult)p).RetentionTimePredictionFile)
+                    .SelectMany(p => p.Where(m => m.SpectralAngle is not -1 or double.NaN))
+                    .ToList();
+                chimeraAngles = angles.Where(p => p.IsChimeric).Select(p => p.SpectralAngle).ToArray();
+                nonChimeraAngles = angles.Where(p => !p.IsChimeric).Select(p => p.SpectralAngle).ToArray();
+                chimeraLabels = Enumerable.Repeat("Chimeras", chimeraAngles.Length).ToArray();
+                nonChimeraLabels = Enumerable.Repeat("No Chimeras", nonChimeraAngles.Length).ToArray();
+            }
+
+
             var individualFiles = cellLine.Results
                 .Where(p => AcceptableConditionsToPlotFDRComparisonResults.Contains(p.Condition))
                 .OrderBy(p => ((MetaMorpheusResult)p).RetentionTimePredictionFile.First())
                 .Select(p => ((MetaMorpheusResult)p).RetentionTimePredictionFile)
                 .ToList();
+
+
+
             var results = individualFiles.SelectMany(p => p.Where(m => m.SpectralAngle is not -1 or double.NaN))
                 .ToList();
             
             var violin = Chart.Combine(new[]
                 {
+                    // chimeras
                     Chart.Violin<string, double, string> (
                         new Plotly.NET.CSharp.Optional<IEnumerable<string>>(Enumerable.Repeat("Chimeras", results.Count(p => p.IsChimeric)), true),
                         new Plotly.NET.CSharp.Optional<IEnumerable<double>>(results.Where(p => p.IsChimeric).Select(p => p.SpectralAngle), true),
                         null, MarkerColor:  ConditionToColorDictionary["Chimeras"], MeanLine: MeanLine.init(true,  ConditionToColorDictionary["Chimeras"]),
                         ShowLegend: false), 
+                    // not chimeras
                     Chart.Violin<string, double, string> (
                         new Plotly.NET.CSharp.Optional<IEnumerable<string>>(Enumerable.Repeat("No Chimeras", results.Count(p => !p.IsChimeric)), true),
                         new Plotly.NET.CSharp.Optional<IEnumerable<double>>(results.Where(p => !p.IsChimeric).Select(p => p.SpectralAngle), true),
@@ -765,14 +840,17 @@ namespace Analyzer.Plotting
             var labels = results.Select(p => p.DatasetName).Distinct().ConvertConditionNames().ToList();
 
             var noChimeras = results.Where(p => p.Condition.Contains("NoChimeras")).ToList();
-            var withChimeras = results.Where(p => !p.Condition.Contains("NoChimeras")).ToList();
+            var withChimeras = results.Where(p => !p.Condition.Contains("NoChimeras") && !p.Condition.Contains("PEP")).ToList();
+            var others = results.Except(noChimeras).Except(withChimeras).ToList();
 
             var psmChart = Chart.Combine(new[]
             {
                 Chart2D.Chart.Column<int, string, string, int, int>(noChimeras.Select(p => p.OnePercentPsmCount),
                     labels, null, "No Chimeras", MarkerColor: ConditionToColorDictionary[noChimeras.First().Condition]),
                 Chart2D.Chart.Column<int, string, string, int, int>(withChimeras.Select(p => p.OnePercentPsmCount),
-                    labels, null, "Chimeras", MarkerColor: ConditionToColorDictionary[withChimeras.First().Condition])
+                    labels, null, "Chimeras", MarkerColor: ConditionToColorDictionary[withChimeras.First().Condition]),
+                //Chart2D.Chart.Column<int, string, string, int, int>(others.Select(p => p.OnePercentPsmCount),
+                //    labels, null, "Others", MarkerColor: ConditionToColorDictionary[others.First().Condition])
             });
             var smLabel = allResults.First().First().IsTopDown ? "PrSMs" : "PSMs";
             psmChart.WithTitle($"MetaMorpheus 1% FDR {smLabel}")
@@ -787,7 +865,9 @@ namespace Analyzer.Plotting
                 Chart2D.Chart.Column<int, string, string, int, int>(noChimeras.Select(p => p.OnePercentPeptideCount),
                     labels, null, "No Chimeras", MarkerColor: ConditionToColorDictionary[noChimeras.First().Condition]),
                 Chart2D.Chart.Column<int, string, string, int, int>(withChimeras.Select(p => p.OnePercentPeptideCount),
-                    labels, null, "Chimeras", MarkerColor: ConditionToColorDictionary[withChimeras.First().Condition])
+                    labels, null, "Chimeras", MarkerColor: ConditionToColorDictionary[withChimeras.First().Condition]),
+                //Chart2D.Chart.Column<int, string, string, int, int>(others.Select(p => p.OnePercentPeptideCount),
+                //    labels, null, "Others", MarkerColor: ConditionToColorDictionary[others.First().Condition])
             });
             peptideChart.WithTitle($"MetaMorpheus 1% FDR {allResults.First().First().ResultType}s")
                 .WithXAxisStyle(Title.init("Cell Line"))
@@ -801,7 +881,9 @@ namespace Analyzer.Plotting
                 Chart2D.Chart.Column<int, string, string, int, int>(noChimeras.Select(p => p.OnePercentProteinGroupCount),
                     labels, null, "No Chimeras", MarkerColor: ConditionToColorDictionary[noChimeras.First().Condition]),
                 Chart2D.Chart.Column<int, string, string, int, int>(withChimeras.Select(p => p.OnePercentProteinGroupCount),
-                    labels, null, "Chimeras", MarkerColor: ConditionToColorDictionary[withChimeras.First().Condition])
+                    labels, null, "Chimeras", MarkerColor: ConditionToColorDictionary[withChimeras.First().Condition]),
+                //Chart2D.Chart.Column<int, string, string, int, int>(others.Select(p => p.OnePercentProteinGroupCount),
+                //    labels, null, "Chimeras", MarkerColor: ConditionToColorDictionary[others.First().Condition]),
             });
             proteinChart.WithTitle("MetaMorpheus 1% FDR Proteins")
                 .WithXAxisStyle(Title.init("Cell Line"))
@@ -1180,19 +1262,16 @@ namespace Analyzer.Plotting
             return chart;
         }
 
-
-
-
         #endregion
 
         #region TargetDecoy Investigation
 
-        public static void ExportCombinedChimeraTargetDecoyExploration(this MetaMorpheusResult results, string outputDir, KeyValuePair<string, string> selectedCondition)
+        public static void ExportCombinedChimeraTargetDecoyExploration(this MetaMorpheusResult results, string outputDir, string selectedCondition)
         {
-            var proteoforms = SpectrumMatchTsvReader.ReadPsmTsv(results._peptidePath, out _);
+            var proteoforms = results.AllPeptides;
             var qValueFilteredProteoforms = proteoforms.Where(p => p.QValue <= 0.01).ToList();
             var pepQValueFilteredProteoforms = proteoforms.Where(p => p.PEP_QValue <= 0.01).ToList();
-            var psms = SpectrumMatchTsvReader.ReadPsmTsv(results._psmPath, out _);
+            var psms = results.AllPsms;
             var qValueFiltered = psms.Where(p => p.QValue <= 0.01).ToList();
             var pepQValueFiltered = psms.Where(p => p.PEP_QValue <= 0.01).ToList();
 
@@ -1217,8 +1296,8 @@ namespace Analyzer.Plotting
                         .WithYAxis(LinearAxis.init<int, int, int, int, int, int>(Domain: StyleParam.Range.NewMinMax(0.00, 0.45)), StyleParam.SubPlotId.NewYAxis(4)),
                 }, 2, 2, YGap: 50)
                 .WithSize(1000, 1000)
-                .WithTitle($"{selectedCondition.Value} PSMs Target Decoy: QValue Filtered {qValueFiltered.Count} | PEP QValue Filtered {pepQValueFiltered.Count}");
-            string psmChartOutPath = Path.Combine(outputDir, $"{selectedCondition.Value}_PSMs_Target_Decoy");
+                .WithTitle($"{selectedCondition} PSMs Target Decoy: QValue Filtered {qValueFiltered.Count} | PEP QValue Filtered {pepQValueFiltered.Count}");
+            string psmChartOutPath = Path.Combine(outputDir, $"PSMs_Target_Decoy_{selectedCondition}");
             psmChart.SavePNG(psmChartOutPath, null, 1000, 1000);
 
 
@@ -1240,12 +1319,11 @@ namespace Analyzer.Plotting
                     .WithYAxis(LinearAxis.init<int, int, int, int, int, int>(Domain: StyleParam.Range.NewMinMax(0.00, 0.45)), StyleParam.SubPlotId.NewYAxis(4))
             }, 2, 2, YGap: 50)
             .WithSize(1000, 1000)
-            .WithTitle($"{selectedCondition.Value} Proteoforms Target Decoy: QValue Filtered {qValueFilteredProteoforms.Count} | PEP QValue Filtered {pepQValueFilteredProteoforms.Count}");
-            string proteoformChartOutPath = Path.Combine(outputDir, $"{selectedCondition.Value}_Proteoforms_Target_Decoy");
+            .WithTitle($"{selectedCondition} Proteoforms Target Decoy: QValue Filtered {qValueFilteredProteoforms.Count} | PEP QValue Filtered {pepQValueFilteredProteoforms.Count}");
+            string proteoformChartOutPath = Path.Combine(outputDir, $"Proteoforms_Target_Decoy_{selectedCondition}");
             proteoformChart.SavePNG(proteoformChartOutPath, null, 1000, 1000);
 
         }
-
 
         public static GenericChart.GenericChart ChimeraTargetDecoyChart(this List<PsmFromTsv> psms, bool isTopDown, ChimeraBreakdownType type, string filterType,
             bool absolute, out int width)
@@ -1306,6 +1384,14 @@ namespace Analyzer.Plotting
             return chart;
         }
 
+        public static void ExportPepFeaturesPlots(this MetaMorpheusResult results, string? condition = null)
+        {
+            string pepForPercolatorPath = Directory.GetFiles(results.DirectoryPath, "*.tab", SearchOption.AllDirectories).First();
+            string exportPath = Path.Combine(results.GetFigureDirectory(),
+                $"{FileIdentifiers.PepGridChartFigure}_{condition ?? results.Condition}");
+            new PepEvaluationPlot(pepForPercolatorPath).Export(exportPath);
+        }
+
         #endregion
 
         private static string GetFigureDirectory(this AllResults allResults)
@@ -1318,7 +1404,19 @@ namespace Analyzer.Plotting
 
         private static string GetFigureDirectory(this CellLineResults cellLine)
         {
-            var directory = Path.Combine(Path.GetDirectoryName(cellLine.DirectoryPath)!, "Figures");
+            string directory = cellLine.DirectoryPath.Contains("PEPTesting") ?
+                 Path.Combine(cellLine.DirectoryPath, "Figures")
+                 : Path.Combine(Path.GetDirectoryName(cellLine.DirectoryPath)!, "Figures");
+            if (!Directory.Exists(directory))
+                Directory.CreateDirectory(directory);
+            return directory;
+        }
+
+        private static string GetFigureDirectory(this MetaMorpheusResult result)
+        {
+            string directory = result.DirectoryPath.Contains("PEPTesting") ?
+                Path.Combine(Path.GetDirectoryName(Path.GetDirectoryName(result.DirectoryPath)), "Figures")
+                : Path.Combine(Path.GetDirectoryName(Path.GetDirectoryName(Path.GetDirectoryName(result.DirectoryPath)))!, "Figures");
             if (!Directory.Exists(directory))
                 Directory.CreateDirectory(directory);
             return directory;

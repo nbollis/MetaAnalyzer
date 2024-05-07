@@ -31,6 +31,7 @@
         public static string SSRCalcFigure => "RetentionTimeVsSSRCalc3";
         public static string ChronologerFigure => "RetentionTimeVsChronologer";
         public static string SpectralAngleFigure => "SpectralAngleComparison";
+        public static string PepGridChartFigure => "PepFeatureAnalysis";
 
     }
 }

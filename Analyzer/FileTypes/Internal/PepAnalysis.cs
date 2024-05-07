@@ -57,7 +57,7 @@ namespace Analyzer.FileTypes.Internal
 
         [Name("TotalMatchingFragmentCount")]
         [Optional]
-        public int MatchedIonCount { get; set; }
+        public double MatchedIonCount { get; set; }
 
         [Name("Intensity")]
         [Optional]
@@ -65,7 +65,7 @@ namespace Analyzer.FileTypes.Internal
 
         [Name("PrecursorChargeDiffToMode")]
         [Optional]
-        public int PrecursorChargeDifference { get; set; }
+        public double PrecursorChargeDifference { get; set; }
 
         [Name("DeltaScore")]
         [Optional]
@@ -73,37 +73,50 @@ namespace Analyzer.FileTypes.Internal
 
         [Name("Notch")]
         [Optional]
-        public int Notch { get; set; }
+        public double Notch { get; set; }
 
         [Name("PsmCount")]
         [Optional]
-        public int PsmCount { get; set; }
+        public double PsmCount { get; set; }
 
         [Name("ModsCount")]
         [Optional]
-        public int ModCount { get; set; }
+        public double ModCount { get; set; }
 
         [Name("AbsoluteAverageFragmentMassErrorFromMedian")]
         [Optional]
         public double FragmentMassError { get; set; }
 
         [Optional]
-        public int MissedCleavages { get; set; }
+        public double MissedCleavages { get; set; }
 
         [Name("Ambiguity")]
         [Optional]
-        public int AmbiguityLevel { get; set; }
+        public double AmbiguityLevel { get; set; }
 
         [Name("LongestFragmentIonSeries")]
         [Optional]
-        public int LongestIonSeries { get; set; }
+        public double LongestIonSeries { get; set; }
 
         [Name("ComplementaryIonCount")]
         [Optional]
-        public int ComplementaryIonCount { get; set; }
+        public double ComplementaryIonCount { get; set; }
 
         [Optional]
-        public double HydrophobicityDeviation { get; set; }
+        [Name("HydrophobicityZScore")]
+        public double HydrophobicityZScore { get; set; }
+
+        [Optional]
+        [Name("IsVariantPeptide")]
+        public double IsVariantPeptide { get; set; }
+
+        [Optional]
+        [Name("IsDeadEnd")]
+        public double IsDeadEnd { get; set; }
+
+        [Optional]
+        [Name("IsLoop")]
+        public double IsLoop { get; set; }
 
         [Name("SpectralAngle")]
         [Optional]
@@ -111,11 +124,11 @@ namespace Analyzer.FileTypes.Internal
 
         [Name("HasSpectralAngle")]
         [Optional]
-        public int HasSpectralAngle { get; set; }
+        public double HasSpectralAngle { get; set; }
 
         [Name("PeaksInPrecursorEnvelope")]
         [Optional]
-        public int PeaksInPrecursorEnvelope { get; set; }
+        public double PeaksInPrecursorEnvelope { get; set; }
 
         [Name("PrecursorEnvelopeScore")]
         [Optional]
@@ -127,7 +140,7 @@ namespace Analyzer.FileTypes.Internal
 
         [Name("ChimeraCount")]
         [Optional]
-        public int ChimeraCount { get; set; }
+        public double ChimeraCount { get; set; }
 
         [Name("Peptide")]
         [Optional]
@@ -137,6 +150,6 @@ namespace Analyzer.FileTypes.Internal
         [Optional]
         public string Proteins { get; set; }
 
-        [Ignore] public bool IsDecoy => Label == 0;
+        [Ignore] public bool IsDecoy => Label == -1;
     }
 }

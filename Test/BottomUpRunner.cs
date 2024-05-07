@@ -64,15 +64,15 @@ namespace Test
         [Test]
         public static void PlotAllFigures()
         {
-            foreach (CellLineResults cellLine in AllResults)
-            {
-                cellLine.PlotIndividualFileResults();
-                cellLine.PlotCellLineChimeraBreakdown();
-                //cellLine.PlotCellLineRetentionTimePredictions();
-                //cellLine.PlotCellLineSpectralSimilarity();
-                cellLine.PlotCellLineChimeraBreakdown();
-                cellLine.PlotCellLineChimeraBreakdown_TargetDecoy();
-            }
+            //foreach (CellLineResults cellLine in AllResults)
+            //{
+            //    cellLine.PlotIndividualFileResults();
+            //    cellLine.PlotCellLineChimeraBreakdown();
+            //    //cellLine.PlotCellLineRetentionTimePredictions();
+            //    //cellLine.PlotCellLineSpectralSimilarity();
+            //    cellLine.PlotCellLineChimeraBreakdown();
+            //    cellLine.PlotCellLineChimeraBreakdown_TargetDecoy();
+            //}
 
             AllResults.PlotInternalMMComparison();
             AllResults.PlotBulkResultComparison();

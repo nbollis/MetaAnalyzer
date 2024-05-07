@@ -26,9 +26,9 @@ public class CellLineResults : IEnumerable<BulkResult>
         Results = new List<BulkResult>();
 
     
-        if (directoryPath.Contains("TopDown"))
+        if (directoryPath.Contains("TopDown") || directoryPath.Contains("PEP"))
         {
-            var calibAveragedDir = Path.Combine(SearchResultsDirectoryPath, "MetaMorpheus", "Task2-AveragingTask");
+            var calibAveragedDir = Path.Combine(@"B:\Users\Nic\Chimeras\TopDown_Analysis\Jurkat\SearchResults", "MetaMorpheus", "Task2-AveragingTask");
             _dataFilePaths = Directory.GetFiles(calibAveragedDir, "*.mzML", SearchOption.AllDirectories);
         }
         else
@@ -56,7 +56,7 @@ public class CellLineResults : IEnumerable<BulkResult>
                 }
                 //else if (directory.Contains("PEP"))
                 //    continue;
-                else if (!files.Any(p => p.Contains("AllProteoforms")) && !files.Any(p => p.Contains("AllProteinGroups")))
+                else if (!files.Any(p => p.Contains("AllProteoforms") || p.Contains("AllPSMs")) && !files.Any(p => p.Contains("AllProteinGroups")))
                     continue;
                 else
                     Results.Add(new MetaMorpheusResult(directory) { DataFilePaths = _dataFilePaths });
