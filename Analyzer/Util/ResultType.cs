@@ -10,5 +10,6 @@ namespace Analyzer.Util
     {
         Psm,
         Peptide,
+        Protein
     }
 }

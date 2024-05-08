@@ -66,7 +66,7 @@ namespace Test
         {
             foreach (CellLineResults cellLine in AllResults)
             {
-                cellLine.PlotIndividualFileResults();
+                //cellLine.PlotIndividualFileResults();
                 //cellLine.PlotCellLineChimeraBreakdown();
                 ////cellLine.PlotCellLineRetentionTimePredictions();
                 ////cellLine.PlotCellLineSpectralSimilarity();
@@ -74,8 +74,8 @@ namespace Test
                 //cellLine.PlotCellLineChimeraBreakdown_TargetDecoy();
             }
 
-            AllResults.PlotInternalMMComparison();
-            AllResults.PlotBulkResultComparison();
+            //AllResults.PlotInternalMMComparison();
+            AllResults.PlotBulkResultComparisons();
             AllResults.PlotStackedIndividualFileComparison();
             AllResults.PlotBulkResultChimeraBreakDown();
             //AllResults.PlotStackedSpectralSimilarity();

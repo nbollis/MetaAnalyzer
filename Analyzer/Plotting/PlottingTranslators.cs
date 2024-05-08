@@ -1,8 +1,7 @@
 ﻿using Analyzer.SearchType;
-using Analyzer.Util;
 using Plotly.NET;
-using Plotly.NET.ImageExport;
-using Proteomics.AminoAcidPolymer;
+using Plotly.NET.LayoutObjects;
+using Plotly.NET.TraceObjects;
 
 namespace Analyzer.Plotting;
 
@@ -532,35 +531,4 @@ public static class PlottingTranslators
 
     #endregion
 
-}
-public static class CellLinePlots
-{
-    public static void PlotIndividualFileResults(this CellLineResults cellLine, ResultType? resultType = null,
-        string? outputDirectory = null)
-    {
-        bool isTopDown = cellLine.First().IsTopDown;
-        resultType ??= isTopDown ? ResultType.Psm : ResultType.Peptide;
-        outputDirectory ??= cellLine.GetFigureDirectory();
-
-        string outPath = Path.Combine(outputDirectory, $"{FileIdentifiers.IndividualFileComparisonFigure}_{resultType}_{cellLine.CellLine}.png");
-        var chart = cellLine.GetIndividualFileResultsBarChart(out int width, out int height, resultType.Value);
-        chart.SavePNG(outPath, null, width, height);
-    }
-
-    public static GenericChart.GenericChart GetIndividualFileResultsBarChart(this CellLineResults cellLine, out int width,
-        out int height, Util.ResultType resultType = ResultType.Psm, bool filter = true)
-    {
-        bool isTopDown = cellLine.First().IsTopDown;
-        var fileResults = (filter ? cellLine.Select(p => p.IndividualFileComparisonFile)
-            .Where(p => p != null && isTopDown.IndividualFileComparisonSelector().Contains(p.First().Condition))
-            : cellLine.Select(p => p.IndividualFileComparisonFile))
-            .OrderBy(p => p.First().Condition.ConvertConditionName())
-            .ToList();
-
-
-
-
-        return GenericPlots.IndividualFileResultBarChart(fileResults, out width, out height, cellLine.CellLine,
-            isTopDown, resultType);
-    }
 }
