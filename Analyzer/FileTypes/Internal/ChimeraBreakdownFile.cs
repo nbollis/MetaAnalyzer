@@ -1,15 +1,12 @@
 ﻿using System.Globalization;
+using Analyzer.Util;
 using CsvHelper.Configuration;
 using CsvHelper.Configuration.Attributes;
 using Readers;
 
 namespace Analyzer.FileTypes.Internal
 {
-    public enum ChimeraBreakdownType
-    {
-        Psm,
-        Peptide,
-    }
+   
 
     public class ChimeraBreakdownRecord
     {
@@ -24,7 +21,7 @@ namespace Analyzer.FileTypes.Internal
         public string FileName { get; set; }
         public string Condition { get; set; }
         public int Ms2ScanNumber { get; set; }
-        public ChimeraBreakdownType Type { get; set; }
+        public ResultType Type { get; set; }
 
         // results
         [Optional] public double IsolationMz { get; set; } = -1;

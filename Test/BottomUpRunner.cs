@@ -1,6 +1,6 @@
 ﻿using System.Text;
 using Analyzer.Plotting;
-using Analyzer.ResultType;
+using Analyzer.SearchType;
 using Proteomics;
 using Readers;
 using UsefulProteomicsDatabases;
@@ -15,7 +15,7 @@ namespace Test
 
         internal static AllResults? _allResults;
         internal static AllResults AllResults => _allResults ??= new AllResults(DirectoryPath, Directory.GetDirectories(DirectoryPath)
-                   .Where(p => !p.Contains("Figures") && RunOnAll || p.Contains("Hela"))
+                   .Where(p => !p.Contains("Figures") && !p.Contains("Prosight") && RunOnAll || p.Contains("Hela"))
                    .Select(datasetDirectory => new CellLineResults(datasetDirectory)).ToList());
 
         [OneTimeSetUp]
@@ -64,15 +64,15 @@ namespace Test
         [Test]
         public static void PlotAllFigures()
         {
-            //foreach (CellLineResults cellLine in AllResults)
-            //{
-            //    cellLine.PlotIndividualFileResults();
-            //    cellLine.PlotCellLineChimeraBreakdown();
-            //    //cellLine.PlotCellLineRetentionTimePredictions();
-            //    //cellLine.PlotCellLineSpectralSimilarity();
-            //    cellLine.PlotCellLineChimeraBreakdown();
-            //    cellLine.PlotCellLineChimeraBreakdown_TargetDecoy();
-            //}
+            foreach (CellLineResults cellLine in AllResults)
+            {
+                cellLine.PlotIndividualFileResults();
+                //cellLine.PlotCellLineChimeraBreakdown();
+                ////cellLine.PlotCellLineRetentionTimePredictions();
+                ////cellLine.PlotCellLineSpectralSimilarity();
+                //cellLine.PlotCellLineChimeraBreakdown();
+                //cellLine.PlotCellLineChimeraBreakdown_TargetDecoy();
+            }
 
             AllResults.PlotInternalMMComparison();
             AllResults.PlotBulkResultComparison();

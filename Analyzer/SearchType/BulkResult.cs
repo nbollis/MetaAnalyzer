@@ -1,7 +1,7 @@
 ﻿using Analyzer.FileTypes.Internal;
 using Analyzer.Util;
 
-namespace Analyzer.ResultType
+namespace Analyzer.SearchType
 {
     public abstract class BulkResult
     {

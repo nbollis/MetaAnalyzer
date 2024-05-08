@@ -7,7 +7,7 @@ using Proteomics.PSM;
 using Proteomics.RetentionTimePrediction;
 using Readers;
 
-namespace Analyzer.ResultType
+namespace Analyzer.SearchType
 {
     public class MetaMorpheusResult : BulkResult
     {
@@ -337,7 +337,7 @@ namespace Analyzer.ResultType
                         FileName = chimeraGroup.First().FileNameWithoutExtension.Replace("-calib", "").Replace("-averaged", ""),
                         Condition = Condition,
                         Ms2ScanNumber = chimeraGroup.First().Ms2ScanNumber,
-                        Type = ChimeraBreakdownType.Psm,
+                        Type = Util.ResultType.Psm,
                         IdsPerSpectra = chimeraGroup.Length,
                         TargetCount = chimeraGroup.Count(p => p.DecoyContamTarget == "T"),
                         DecoyCount = chimeraGroup.Count(p => p.DecoyContamTarget == "D")
@@ -420,7 +420,7 @@ namespace Analyzer.ResultType
                         FileName = chimeraGroup.First().FileNameWithoutExtension.Replace("-calib", "").Replace("-averaged", ""),
                         Condition = Condition,
                         Ms2ScanNumber = chimeraGroup.First().Ms2ScanNumber,
-                        Type = ChimeraBreakdownType.Peptide,
+                        Type = Util.ResultType.Peptide,
                         IdsPerSpectra = chimeraGroup.Length,
                         TargetCount = chimeraGroup.Count(p => p.DecoyContamTarget == "T"),
                         DecoyCount = chimeraGroup.Count(p => p.DecoyContamTarget == "D")

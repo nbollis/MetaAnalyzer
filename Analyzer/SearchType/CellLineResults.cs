@@ -5,7 +5,7 @@ using Analyzer.Util;
 using Proteomics.PSM;
 using Readers;
 
-namespace Analyzer.ResultType;
+namespace Analyzer.SearchType;
 
 public class CellLineResults : IEnumerable<BulkResult>
 {

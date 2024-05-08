@@ -1,5 +1,5 @@
 ﻿using Analyzer.FileTypes.Internal;
-using Analyzer.ResultType;
+using Analyzer.SearchType;
 using Analyzer.Util;
 using Proteomics.PSM;
 using Readers;
@@ -102,6 +102,15 @@ namespace Analyzer.Plotting
 
         #endregion
 
+
+        #region ToKeep
+
+        
+
+        #endregion
+
+
+
         #region Cell Line
 
         /// <summary>
@@ -123,12 +132,12 @@ namespace Analyzer.Plotting
                 .SelectMany(p => ((MetaMorpheusResult)p).ChimeraBreakdownFile)
                 .ToList();
 
-            var psmChart = results.GetChimeraBreakDownStackedColumn(ChimeraBreakdownType.Psm, isTopDown, out int width);
-            var peptideChart = results.GetChimeraBreakDownStackedColumn(ChimeraBreakdownType.Peptide, isTopDown, out width);
-            var absolutePsmChart = results.GetChimeraBreakDownStackedColumn_TargetDecoy(ChimeraBreakdownType.Psm, isTopDown, true, out width);
-            var relativePsmChart = results.GetChimeraBreakDownStackedColumn_TargetDecoy(ChimeraBreakdownType.Psm, isTopDown, false, out width);
-            var absolutePeptideChart = results.GetChimeraBreakDownStackedColumn_TargetDecoy(ChimeraBreakdownType.Peptide, isTopDown, true, out width);
-            var relativePeptideChart = results.GetChimeraBreakDownStackedColumn_TargetDecoy(ChimeraBreakdownType.Peptide, isTopDown, false, out width);
+            var psmChart = results.GetChimeraBreakDownStackedColumn(ResultType.Psm, isTopDown, out int width);
+            var peptideChart = results.GetChimeraBreakDownStackedColumn(ResultType.Peptide, isTopDown, out width);
+            var absolutePsmChart = results.GetChimeraBreakDownStackedColumn_TargetDecoy(ResultType.Psm, isTopDown, true, out width);
+            var relativePsmChart = results.GetChimeraBreakDownStackedColumn_TargetDecoy(ResultType.Psm, isTopDown, false, out width);
+            var absolutePeptideChart = results.GetChimeraBreakDownStackedColumn_TargetDecoy(ResultType.Peptide, isTopDown, true, out width);
+            var relativePeptideChart = results.GetChimeraBreakDownStackedColumn_TargetDecoy(ResultType.Peptide, isTopDown, false, out width);
 
             GenericChart.GenericChart grid;
             if (isTopDown)
@@ -205,7 +214,7 @@ namespace Analyzer.Plotting
             grid.Show();
         }
 
-        public static void PlotIndividualFileResults(this CellLineResults cellLine)
+        public static void PlotIndividualFileResults2(this CellLineResults cellLine)
         {
             string outPath = Path.Combine(cellLine.GetFigureDirectory(), $"{FileIdentifiers.IndividualFileComparisonFigure}_{cellLine.CellLine}");
             cellLine.GetIndividualFileResults(out int width, out int height).SavePNG(outPath, null, width, height);
@@ -292,13 +301,13 @@ namespace Analyzer.Plotting
                 .SelectMany(p => ((MetaMorpheusResult)p).ChimeraBreakdownFile)
                 .ToList();
             var psmChart =
-                results.GetChimeraBreakDownStackedColumn(ChimeraBreakdownType.Psm, cellLine.First().IsTopDown, out int width);
+                results.GetChimeraBreakDownStackedColumn(ResultType.Psm, cellLine.First().IsTopDown, out int width);
             string psmOutPath = Path.Combine(cellLine.GetFigureDirectory(),
                 $"{FileIdentifiers.ChimeraBreakdownComparisonFigure}_{smLabel}_{cellLine.CellLine}");
             psmChart.SavePNG(psmOutPath, null, width, DefaultHeight);
 
             var peptideChart =
-                results.GetChimeraBreakDownStackedColumn(ChimeraBreakdownType.Peptide, cellLine.First().IsTopDown, out width);
+                results.GetChimeraBreakDownStackedColumn(ResultType.Peptide, cellLine.First().IsTopDown, out width);
             string peptideOutPath = Path.Combine(cellLine.GetFigureDirectory(),
                 $"{FileIdentifiers.ChimeraBreakdownComparisonFigure}_{pepLabel}_{cellLine.CellLine}");
             peptideChart.SavePNG(peptideOutPath, null, width, DefaultHeight);
@@ -317,13 +326,13 @@ namespace Analyzer.Plotting
                 .SelectMany(p => ((MetaMorpheusResult)p).ChimeraBreakdownFile)
                 .ToList();
             var psmChart =
-                results.GetChimeraBreakDownStackedColumn_TargetDecoy(ChimeraBreakdownType.Psm, cellLine.First().IsTopDown, absolute, out int width);
+                results.GetChimeraBreakDownStackedColumn_TargetDecoy(ResultType.Psm, cellLine.First().IsTopDown, absolute, out int width);
             string psmOutPath = Path.Combine(cellLine.GetFigureDirectory(),
                 $"{FileIdentifiers.ChimeraBreakdownTargetDecoy}_{smLabel}_{cellLine.CellLine}");
             psmChart.SavePNG(psmOutPath, null, width, DefaultHeight);
 
             var peptideChart =
-                results.GetChimeraBreakDownStackedColumn_TargetDecoy(ChimeraBreakdownType.Peptide, cellLine.First().IsTopDown, absolute, out width);
+                results.GetChimeraBreakDownStackedColumn_TargetDecoy(ResultType.Peptide, cellLine.First().IsTopDown, absolute, out width);
             string peptideOutPath = Path.Combine(cellLine.GetFigureDirectory(),
                 $"{FileIdentifiers.ChimeraBreakdownTargetDecoy}_{pepLabel}_{cellLine.CellLine}");
             peptideChart.SavePNG(peptideOutPath, null, width, DefaultHeight);
@@ -579,13 +588,13 @@ namespace Analyzer.Plotting
                 .SelectMany(p => ((MetaMorpheusResult)p).ChimeraBreakdownFile.Results))
                 .ToList();
             var psmChart =
-                results.GetChimeraBreakDownStackedColumn(ChimeraBreakdownType.Psm, isTopDown, out int width);
+                results.GetChimeraBreakDownStackedColumn(ResultType.Psm, isTopDown, out int width);
             var psmOutPath = Path.Combine(allResults.GetFigureDirectory(),
                                $"AllResults_{FileIdentifiers.ChimeraBreakdownComparisonFigure}{smLabel}s");
             psmChart.SavePNG(psmOutPath, null, width, DefaultHeight);
 
             var peptideChart =
-                results.GetChimeraBreakDownStackedColumn(ChimeraBreakdownType.Peptide, isTopDown, out width);
+                results.GetChimeraBreakDownStackedColumn(ResultType.Peptide, isTopDown, out width);
             var peptideOutPath = Path.Combine(allResults.GetFigureDirectory(),
                                $"AllResults_{FileIdentifiers.ChimeraBreakdownComparisonFigure}{pepLabel}s");
             peptideChart.SavePNG(peptideOutPath, null, width, DefaultHeight);
@@ -604,13 +613,13 @@ namespace Analyzer.Plotting
                            .SelectMany(p => ((MetaMorpheusResult)p).ChimeraBreakdownFile.Results))
                 .ToList();
             var psmChart =
-                results.GetChimeraBreakDownStackedColumn_TargetDecoy(ChimeraBreakdownType.Psm, isTopDown, false, out int width);
+                results.GetChimeraBreakDownStackedColumn_TargetDecoy(ResultType.Psm, isTopDown, false, out int width);
             var psmOutPath = Path.Combine(allResults.GetFigureDirectory(),
                                               $"AllResults_{FileIdentifiers.ChimeraBreakdownTargetDecoy}_{smLabel}");
             psmChart.SavePNG(psmOutPath, null, width, DefaultHeight);
 
             var peptideChart =
-                results.GetChimeraBreakDownStackedColumn_TargetDecoy(ChimeraBreakdownType.Peptide, isTopDown, false, out width);
+                results.GetChimeraBreakDownStackedColumn_TargetDecoy(ResultType.Peptide, isTopDown, false, out width);
             var peptideOutPath = Path.Combine(allResults.GetFigureDirectory(),
                                               $"AllResults_{FileIdentifiers.ChimeraBreakdownTargetDecoy}_{pepLabel}");
             peptideChart.SavePNG(peptideOutPath, null, width, DefaultHeight);
@@ -777,7 +786,7 @@ namespace Analyzer.Plotting
 
         #region Generic
 
-        internal static GenericChart.GenericChart GetChimeraBreakDownStackedColumn(this List<ChimeraBreakdownRecord> results, ChimeraBreakdownType type, bool isTopDown, out int width)
+        internal static GenericChart.GenericChart GetChimeraBreakDownStackedColumn(this List<ChimeraBreakdownRecord> results, ResultType type, bool isTopDown, out int width)
         {
             (int IdPerSpec, int Parent, int UniqueProtein, int UniqueForms, int Decoys)[] data = results.Where(p => p.Type == type)
                 .GroupBy(p => p.IdsPerSpectra)
@@ -794,8 +803,8 @@ namespace Analyzer.Plotting
             var keys = data.Select(p => p.IdPerSpec).ToArray();
             width = Math.Max(600, 50 * data.Length);
             var form = isTopDown ? "Proteoform" : "Peptidoform";
-            string title = isTopDown ? type == ChimeraBreakdownType.Psm ? "PrSM" : "Proteoform" :
-                type == ChimeraBreakdownType.Psm ? "PSM" : "Peptide";
+            string title = isTopDown ? type == ResultType.Psm ? "PrSM" : "Proteoform" :
+                type == ResultType.Psm ? "PSM" : "Peptide";
             var title2 = results.Select(p => p.Dataset).Distinct().Count() == 1 ? results.First().Dataset : "All Results";
             var chart = Chart.Combine(new[]
                 {
@@ -818,7 +827,7 @@ namespace Analyzer.Plotting
         }
 
         internal static GenericChart.GenericChart GetChimeraBreakDownStackedColumn_TargetDecoy(
-            this List<ChimeraBreakdownRecord> results, ChimeraBreakdownType type, bool isTopDown, bool absolute, out int width)
+            this List<ChimeraBreakdownRecord> results, ResultType type, bool isTopDown, bool absolute, out int width)
         {
             (int IdPerSpec, int Parent, double Targets, double Decoys)[] data = absolute
                 ? results.Where(p => p.Type == type)
@@ -846,8 +855,8 @@ namespace Analyzer.Plotting
             var keys = data.Select(p => p.IdPerSpec).ToArray();
             width = Math.Max(600, 50 * data.Length);
             var form = isTopDown ? "Proteoform" : "Peptidoform";
-            string title = isTopDown ? type == ChimeraBreakdownType.Psm ? "PrSM" : "Proteoform" :
-                type == ChimeraBreakdownType.Psm ? "PSM" : "Peptide";
+            string title = isTopDown ? type == ResultType.Psm ? "PrSM" : "Proteoform" :
+                type == ResultType.Psm ? "PSM" : "Peptide";
             var title2 = results.Select(p => p.Dataset).Distinct().Count() == 1 ? results.First().Dataset : "All Results";
             var chart = Chart.Combine(new[]
                 {
@@ -905,20 +914,20 @@ namespace Analyzer.Plotting
             int width;
             var psmChart = Chart.Grid(new List<GenericChart.GenericChart>()
                 {
-                    qValueFiltered.ChimeraTargetDecoyChart(true, ChimeraBreakdownType.Psm, "QValue", false, out width)
+                    qValueFiltered.ChimeraTargetDecoyChart(true, ResultType.Psm, "QValue", false, out width)
                         .WithXAxisStyle(Title.init(""))
                         .WithXAxis(LinearAxis.init<int, int, int, int, int, int>(Domain: StyleParam.Range.NewMinMax(0.00, 0.45)), StyleParam.SubPlotId.NewXAxis(1))
                         .WithYAxis(LinearAxis.init<int, int, int, int, int, int>(Domain: StyleParam.Range.NewMinMax(0.55, 0.90)), StyleParam.SubPlotId.NewYAxis(1)),
                     pepQValueFiltered
-                        .ChimeraTargetDecoyChart(true, ChimeraBreakdownType.Psm, "PEP QValue", false, out width)
+                        .ChimeraTargetDecoyChart(true, ResultType.Psm, "PEP QValue", false, out width)
                         .WithXAxisStyle(Title.init(""))
                         .WithXAxis(LinearAxis.init<int, int, int, int, int, int>(Domain: StyleParam.Range.NewMinMax(0.55, 1.00)), StyleParam.SubPlotId.NewXAxis(2))
                         .WithYAxis(LinearAxis.init<int, int, int, int, int, int>(Domain: StyleParam.Range.NewMinMax(0.55, 0.90)), StyleParam.SubPlotId.NewYAxis(2)),
-                    qValueFiltered.ChimeraTargetDecoyChart(true, ChimeraBreakdownType.Psm, "QValue", true, out width)
+                    qValueFiltered.ChimeraTargetDecoyChart(true, ResultType.Psm, "QValue", true, out width)
                         .WithXAxis(LinearAxis.init<int, int, int, int, int, int>(Domain: StyleParam.Range.NewMinMax(0.00, 0.45)), StyleParam.SubPlotId.NewXAxis(3))
                         .WithYAxis(LinearAxis.init<int, int, int, int, int, int>(Domain: StyleParam.Range.NewMinMax(0.00, 0.45)), StyleParam.SubPlotId.NewYAxis(3)),
                     pepQValueFiltered
-                        .ChimeraTargetDecoyChart(true, ChimeraBreakdownType.Psm, "PEP QValue", true, out width)
+                        .ChimeraTargetDecoyChart(true, ResultType.Psm, "PEP QValue", true, out width)
                         .WithXAxis(LinearAxis.init<int, int, int, int, int, int>(Domain: StyleParam.Range.NewMinMax(0.55, 1.00)), StyleParam.SubPlotId.NewXAxis(4))
                         .WithYAxis(LinearAxis.init<int, int, int, int, int, int>(Domain: StyleParam.Range.NewMinMax(0.00, 0.45)), StyleParam.SubPlotId.NewYAxis(4)),
                 }, 2, 2, YGap: 50)
@@ -930,18 +939,18 @@ namespace Analyzer.Plotting
 
             var proteoformChart = Chart.Grid(new List<GenericChart.GenericChart>()
             {
-                qValueFilteredProteoforms.ChimeraTargetDecoyChart(true, ChimeraBreakdownType.Peptide, "QValue", false, out width)
+                qValueFilteredProteoforms.ChimeraTargetDecoyChart(true, ResultType.Peptide, "QValue", false, out width)
                     .WithXAxisStyle(Title.init(""))
                     .WithXAxis(LinearAxis.init<int, int, int, int, int, int>(Domain: StyleParam.Range.NewMinMax(0.00, 0.45)), StyleParam.SubPlotId.NewXAxis(1))
                     .WithYAxis(LinearAxis.init<int, int, int, int, int, int>(Domain: StyleParam.Range.NewMinMax(0.55, 0.90)), StyleParam.SubPlotId.NewYAxis(1)),
-                pepQValueFilteredProteoforms.ChimeraTargetDecoyChart(true, ChimeraBreakdownType.Peptide, "PEP QValue", false, out width)
+                pepQValueFilteredProteoforms.ChimeraTargetDecoyChart(true, ResultType.Peptide, "PEP QValue", false, out width)
                     .WithXAxisStyle(Title.init(""))
                     .WithXAxis(LinearAxis.init<int, int, int, int, int, int>(Domain: StyleParam.Range.NewMinMax(0.55, 1.00)), StyleParam.SubPlotId.NewXAxis(2))
                     .WithYAxis(LinearAxis.init<int, int, int, int, int, int>(Domain: StyleParam.Range.NewMinMax(0.55, 0.90)), StyleParam.SubPlotId.NewYAxis(2)),
-                qValueFilteredProteoforms.ChimeraTargetDecoyChart(true, ChimeraBreakdownType.Peptide, "QValue", true, out width)
+                qValueFilteredProteoforms.ChimeraTargetDecoyChart(true, ResultType.Peptide, "QValue", true, out width)
                     .WithXAxis(LinearAxis.init<int, int, int, int, int, int>(Domain: StyleParam.Range.NewMinMax(0.00, 0.45)), StyleParam.SubPlotId.NewXAxis(3))
                     .WithYAxis(LinearAxis.init<int, int, int, int, int, int>(Domain: StyleParam.Range.NewMinMax(0.00, 0.45)), StyleParam.SubPlotId.NewYAxis(3)),
-                pepQValueFilteredProteoforms.ChimeraTargetDecoyChart(true, ChimeraBreakdownType.Peptide, "PEP QValue", true, out width)
+                pepQValueFilteredProteoforms.ChimeraTargetDecoyChart(true, ResultType.Peptide, "PEP QValue", true, out width)
                     .WithXAxis(LinearAxis.init<int, int, int, int, int, int>(Domain: StyleParam.Range.NewMinMax(0.55, 1.00)), StyleParam.SubPlotId.NewXAxis(4))
                     .WithYAxis(LinearAxis.init<int, int, int, int, int, int>(Domain: StyleParam.Range.NewMinMax(0.00, 0.45)), StyleParam.SubPlotId.NewYAxis(4))
             }, 2, 2, YGap: 50)
@@ -952,7 +961,7 @@ namespace Analyzer.Plotting
 
         }
 
-        public static GenericChart.GenericChart ChimeraTargetDecoyChart(this List<PsmFromTsv> psms, bool isTopDown, ChimeraBreakdownType type, string filterType,
+        public static GenericChart.GenericChart ChimeraTargetDecoyChart(this List<PsmFromTsv> psms, bool isTopDown, ResultType type, string filterType,
             bool absolute, out int width)
         {
             var data = absolute
@@ -978,8 +987,8 @@ namespace Analyzer.Plotting
             var keys = data.Select(p => p.Key).ToArray();
             width = Math.Max(600, 50 * data.Length);
             var form = isTopDown ? "Proteoform" : "Peptidoform";
-            string title = isTopDown ? type == ChimeraBreakdownType.Psm ? "PrSM" : "Proteoform" :
-                type == ChimeraBreakdownType.Psm ? "PSM" : "Peptide";
+            string title = isTopDown ? type == ResultType.Psm ? "PrSM" : "Proteoform" :
+                type == ResultType.Psm ? "PSM" : "Peptide";
 
             width = Math.Max(600, 50 * data.Length);
             var chart = Chart.Combine(new[]
@@ -1021,32 +1030,5 @@ namespace Analyzer.Plotting
 
         #endregion
 
-        private static string GetFigureDirectory(this AllResults allResults)
-        {
-            var directory = Path.Combine(allResults.DirectoryPath, "Figures");
-            if (!Directory.Exists(directory))
-                Directory.CreateDirectory(directory);
-            return directory;
-        }
-
-        private static string GetFigureDirectory(this CellLineResults cellLine)
-        {
-            string directory = cellLine.DirectoryPath.Contains("PEPTesting") ?
-                 Path.Combine(cellLine.DirectoryPath, "Figures")
-                 : Path.Combine(Path.GetDirectoryName(cellLine.DirectoryPath)!, "Figures");
-            if (!Directory.Exists(directory))
-                Directory.CreateDirectory(directory);
-            return directory;
-        }
-
-        private static string GetFigureDirectory(this MetaMorpheusResult result)
-        {
-            string directory = result.DirectoryPath.Contains("PEPTesting") ?
-                Path.Combine(Path.GetDirectoryName(Path.GetDirectoryName(result.DirectoryPath)), "Figures")
-                : Path.Combine(Path.GetDirectoryName(Path.GetDirectoryName(Path.GetDirectoryName(result.DirectoryPath)))!, "Figures");
-            if (!Directory.Exists(directory))
-                Directory.CreateDirectory(directory);
-            return directory;
-        }
     }
 }

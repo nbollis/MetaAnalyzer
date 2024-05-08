@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Analyzer.FileTypes.Internal;
 using Analyzer.Plotting;
-using Analyzer.ResultType;
+using Analyzer.SearchType;
 using Plotly.NET;
 
 namespace Test

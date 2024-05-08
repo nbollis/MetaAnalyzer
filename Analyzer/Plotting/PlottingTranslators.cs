@@ -1,4 +1,8 @@
-﻿using Plotly.NET;
+﻿using Analyzer.SearchType;
+using Analyzer.Util;
+using Plotly.NET;
+using Plotly.NET.ImageExport;
+using Proteomics.AminoAcidPolymer;
 
 namespace Analyzer.Plotting;
 
@@ -66,7 +70,7 @@ public static class PlottingTranslators
         {"MetaMorpheus_NoNormalization", Color.fromKeyword(ColorKeyword.RoyalBlue)},
     };
 
-    public static Dictionary<string, string> FileNameConversionDictionary = new()
+    private static Dictionary<string, string> FileNameConversionDictionary = new()
     {
         // Bottom Up Mann-11
         { "20100604_Velos1_TaGe_SA_A549_1", "A549_1_1" },
@@ -342,7 +346,7 @@ public static class PlottingTranslators
         {"Ecoli_SEC5_F9","5_09"},
     };
 
-    public static Dictionary<string, string> ConditionNameConversionDictionary = new()
+    private static Dictionary<string, string> ConditionNameConversionDictionary = new()
     {
         // Bottom up
         { "MetaMorpheusWithLibrary", "MetaMorpheus⠀" },
@@ -400,5 +404,163 @@ public static class PlottingTranslators
 
     #endregion
 
+    #region Selectors
 
+    public static string[] IndividualFileComparisonSelector(this bool isTopDown)
+    {
+        if (isTopDown)
+        {
+            return new [] {
+                "MetaMorpheus", "MetaMorpheusNoChimeras",
+                "MsPathFinderTWithModsNoChimerasRep2", "MsPathFinderTWithMods_7Rep2",
+                /*"MsPathFinderTWithModsNoChimeras", "MsPathFinderTWithMods_7",*/ 
+                "ProsightPDChimeras", "ProsightPDNoChimeras", 
+
+
+                //"MetaMorpheus_Rep1_BuildLibrary",
+                //"MetaMorpheus_Rep2_NoLibrary",
+                "MetaMorpheus_Rep2_WithLibrary",
+                //"Full_ChimeraIncorporation",
+                //"MetaMorpheus_FullPEPChimeraIncorporation",
+                //"Full_ChimeraIncorporation_NoNormalization",
+                //"Small_ChimeraIncorporation"
+            };
+        }
+
+        return new[]
+        {
+            "MetaMorpheusWithLibrary", "MetaMorpheusNoChimerasWithLibrary", "MetaMorpheus_NoNormalization",
+            "ReviewdDatabaseNoPhospho_MsFraggerDDA", "ReviewdDatabaseNoPhospho_MsFraggerDDA+", "ReviewdDatabaseNoPhospho_MsFragger"
+        };
+    }
+
+    public static string[] InternalMMComparisonSelector(this bool isTopDown)
+    {
+        if (isTopDown)
+        {
+            return new[]
+            {
+                "MetaMorpheus", "MetaMorpheusNoChimeras", "MetaMorpheus_FullPEPChimeraIncorporation"
+            };
+        }
+        return new[]
+        {
+            "MetaMorpheusWithLibrary", "MetaMorpheusNoChimerasWithLibrary"
+        };
+    }
+
+    public static string[] BulkResultComparisonSelector(this bool isTopDown)
+    {
+        if (isTopDown)
+        {
+            return new[]
+            {
+                "MetaMorpheus", "MetaMorpheusNoChimeras",
+                "MsPathFinderTWithModsNoChimerasRep2", "MsPathFinderTWithMods_7Rep2",
+                /*"MsPathFinderTWithModsNoChimeras", "MsPathFinderTWithMods_7",*/ 
+                "ProsightPDChimeras", "ProsightPDNoChimeras",
+            };
+        }
+        return new[]
+        {
+            "MetaMorpheusWithLibrary", "MetaMorpheusNoChimerasWithLibrary",
+            "ReviewdDatabaseNoPhospho_MsFraggerDDA+", "ReviewdDatabaseNoPhospho_MsFragger",
+        };
+    }
+
+    public static string[] ChimeraBreakdownSelector(this bool isTopDown)
+    {
+        if (isTopDown)
+        {
+            return new string []
+            {
+                "MetaMorpheus", "MetaMorpheus_FullPEPChimeraIncorporation"
+            };
+        }
+        return new string[]
+        {
+
+        };
+    }
+
+    public static string[] FdrPlotSelector(this bool isTopDown)
+    {
+        if (isTopDown)
+        {
+            return new string[]
+            {
+                "MetaMorpheus_Rep2_WithLibrary"
+            };
+        }
+        return new string[]
+        {
+            "MetaMorpheusWithLibrary"
+        };
+    }
+
+    #endregion
+
+    #region Directory Locators
+
+    public static string GetFigureDirectory(this AllResults allResults)
+    {
+        var directory = Path.Combine(allResults.DirectoryPath, "Figures");
+        if (!Directory.Exists(directory))
+            Directory.CreateDirectory(directory);
+        return directory;
+    }
+
+    public static string GetFigureDirectory(this CellLineResults cellLine)
+    {
+        string directory = cellLine.DirectoryPath.Contains("PEPTesting") ?
+            Path.Combine(cellLine.DirectoryPath, "Figures")
+            : Path.Combine(Path.GetDirectoryName(cellLine.DirectoryPath)!, "Figures");
+        if (!Directory.Exists(directory))
+            Directory.CreateDirectory(directory);
+        return directory;
+    }
+
+    public static string GetFigureDirectory(this MetaMorpheusResult result)
+    {
+        string directory = result.DirectoryPath.Contains("PEPTesting") ?
+            Path.Combine(Path.GetDirectoryName(Path.GetDirectoryName(result.DirectoryPath)), "Figures")
+            : Path.Combine(Path.GetDirectoryName(Path.GetDirectoryName(Path.GetDirectoryName(result.DirectoryPath)))!, "Figures");
+        if (!Directory.Exists(directory))
+            Directory.CreateDirectory(directory);
+        return directory;
+    }
+
+    #endregion
+
+}
+public static class CellLinePlots
+{
+    public static void PlotIndividualFileResults(this CellLineResults cellLine, ResultType? resultType = null,
+        string? outputDirectory = null)
+    {
+        bool isTopDown = cellLine.First().IsTopDown;
+        resultType ??= isTopDown ? ResultType.Psm : ResultType.Peptide;
+        outputDirectory ??= cellLine.GetFigureDirectory();
+
+        string outPath = Path.Combine(outputDirectory, $"{FileIdentifiers.IndividualFileComparisonFigure}_{resultType}_{cellLine.CellLine}.png");
+        var chart = cellLine.GetIndividualFileResultsBarChart(out int width, out int height, resultType.Value);
+        chart.SavePNG(outPath, null, width, height);
+    }
+
+    public static GenericChart.GenericChart GetIndividualFileResultsBarChart(this CellLineResults cellLine, out int width,
+        out int height, Util.ResultType resultType = ResultType.Psm, bool filter = true)
+    {
+        bool isTopDown = cellLine.First().IsTopDown;
+        var fileResults = (filter ? cellLine.Select(p => p.IndividualFileComparisonFile)
+            .Where(p => p != null && isTopDown.IndividualFileComparisonSelector().Contains(p.First().Condition))
+            : cellLine.Select(p => p.IndividualFileComparisonFile))
+            .OrderBy(p => p.First().Condition.ConvertConditionName())
+            .ToList();
+
+
+
+
+        return GenericPlots.IndividualFileResultBarChart(fileResults, out width, out height, cellLine.CellLine,
+            isTopDown, resultType);
+    }
 }

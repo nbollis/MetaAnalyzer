@@ -5,7 +5,7 @@ using Analyzer.FileTypes.Internal;
 using Analyzer.Util;
 using Easy.Common.Extensions;
 
-namespace Analyzer.ResultType
+namespace Analyzer.SearchType
 {
     public class MsPathFinderTResults : BulkResult, IEnumerable<MsPathFinderTIndividualFileResult>
     {

@@ -2,7 +2,7 @@
 using Plotly.NET.ImageExport;
 using Readers;
 using Analyzer.Plotting;
-using Analyzer.ResultType;
+using Analyzer.SearchType;
 using Plotly.NET;
 using Plotly.NET.LayoutObjects;
 using UsefulProteomicsDatabases;
@@ -61,8 +61,8 @@ namespace Test
         {
             foreach (CellLineResults cellLine in AllResults)
             {
-                //cellLine.PlotIndividualFileResults(); 
-                cellLine.PlotCellLineSpectralSimilarity();
+                cellLine.PlotIndividualFileResults(); 
+                //cellLine.PlotCellLineSpectralSimilarity();
                 //cellLine.PlotCellLineChimeraBreakdown();
                 //cellLine.PlotCellLineChimeraBreakdown_TargetDecoy();
             }
