@@ -17,7 +17,7 @@ public static class PlottingTranslators
     /// MsPathFinderT -> Yellow
     /// ProsightPD -> Red
     /// </summary>
-    public static Dictionary<string, Color> ConditionToColorDictionary = new()
+    private static Dictionary<string, Color> ConditionToColorDictionary = new()
     {
         // Bottom Up
         {"MetaMorpheusWithLibrary", Color.fromKeyword(ColorKeyword.Purple) },
@@ -471,14 +471,14 @@ public static class PlottingTranslators
     {
         if (isTopDown)
         {
-            return new string []
+            return new[]
             {
                 "MetaMorpheus", "MetaMorpheus_FullPEPChimeraIncorporation"
             };
         }
-        return new string[]
+        return new[]
         {
-
+            "MetaMorpheusWithLibrary"
         };
     }
 
@@ -486,12 +486,12 @@ public static class PlottingTranslators
     {
         if (isTopDown)
         {
-            return new string[]
+            return new[]
             {
                 "MetaMorpheus_Rep2_WithLibrary"
             };
         }
-        return new string[]
+        return new[]
         {
             "MetaMorpheusWithLibrary"
         };

@@ -66,15 +66,15 @@ namespace Test
         {
             foreach (CellLineResults cellLine in AllResults)
             {
-                //cellLine.PlotIndividualFileResults();
-                //cellLine.PlotCellLineChimeraBreakdown();
-                ////cellLine.PlotCellLineRetentionTimePredictions();
-                ////cellLine.PlotCellLineSpectralSimilarity();
-                //cellLine.PlotCellLineChimeraBreakdown();
-                //cellLine.PlotCellLineChimeraBreakdown_TargetDecoy();
+                cellLine.PlotIndividualFileResults();
+                cellLine.PlotCellLineChimeraBreakdown();
+                cellLine.PlotCellLineRetentionTimePredictions();
+                cellLine.PlotCellLineSpectralSimilarity();
+                cellLine.PlotCellLineChimeraBreakdown();
+                cellLine.PlotCellLineChimeraBreakdown_TargetDecoy();
             }
 
-            //AllResults.PlotInternalMMComparison();
+            AllResults.PlotInternalMMComparison();
             AllResults.PlotBulkResultComparisons();
             AllResults.PlotStackedIndividualFileComparison();
             AllResults.PlotBulkResultChimeraBreakDown();
@@ -152,75 +152,6 @@ namespace Test
             sb.AppendLine($"In the following files:");
             sb.AppendLine(string.Join('\n', filesFoundIn));
             var result = sb.ToString();
-        }
-
-        [Test]
-        public static void RunBulkParsing()
-        {
-            var bottomUpResults = AllResults;
-            var topDownResults = TopDownRunner.AllResults;
-            
-            //string[] bottomUpCellLineToRerun = { "MCF7", "RKO", "U2OS"  };
-            //foreach (var cellLine in bottomUpResults)
-            //{
-            //    foreach (var result in cellLine)
-            //    {
-            //        if (!bottomUpCellLineToRerun.Contains(cellLine.CellLine))
-            //            continue;
-
-            //        result.Override = true;
-            //        if (result is MetaMorpheusResult { Condition: "MetaMorpheusWithLibrary" } mm)
-            //        {
-            //            mm.GetChimeraBreakdownFile();
-            //        }
-            //        result.Override = false;
-            //    }
-
-            //    cellLine.Override = true;
-            //    cellLine.GetChimeraBreakdownFile();
-            //    cellLine.Override = false;
-
-            //    cellLine.PlotCellLineChimeraBreakdown();
-            //    cellLine.PlotCellLineChimeraBreakdown_TargetDecoy();
-            //}
-
-            //bottomUpResults.Override = true;
-            //bottomUpResults.GetChimeraBreakdownFile();
-            //bottomUpResults.Override = false;
-            //bottomUpResults.PlotBulkResultChimeraBreakDown();
-            //bottomUpResults.PlotBulkResultChimeraBreakDown_TargetDecoy();
-
-            //foreach (var cellLine in topDownResults)
-            //{
-            //    foreach (var result in cellLine)
-            //    {
-            //        if (result is MetaMorpheusResult { Condition: "MetaMorpheus" } mm)
-            //        {
-            //            //mm.Override = true;
-            //            //mm.GetChimeraBreakdownFile();
-            //        }
-            //        else if (result is MsPathFinderTResults mspt)
-            //        {
-            //            //mspt.CountChimericPsms();
-            //            //mspt.IndividualFileComparison();
-            //            //mspt.GetBulkResultCountComparisonFile();
-            //        }
-            //        else if (result is ProsightPDResult pspd)
-            //        {
-            //            pspd.CountChimericPsms();
-            //            pspd.IndividualFileComparison();
-            //            pspd.Override = true;
-            //            pspd.GetBulkResultCountComparisonFile();
-            //        }
-
-            //        result.Override = false;
-            //    }
-
-            //    cellLine.PlotIndividualFileResults();
-            //}
-
-            topDownResults.PlotStackedIndividualFileComparison();
-            topDownResults.PlotBulkResultComparison();
         }
 
     }

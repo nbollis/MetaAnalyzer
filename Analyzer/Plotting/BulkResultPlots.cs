@@ -41,9 +41,9 @@ public static class BulkResultPlots
         var psmChart = Chart.Combine(new[]
         {
             Chart2D.Chart.Column<int, string, string, int, int>(noChimeras.Select(p => p.OnePercentPsmCount),
-                labels, null, "No Chimeras", MarkerColor: PlottingTranslators.ConditionToColorDictionary[noChimeras.First().Condition]),
+                labels, null, "No Chimeras", MarkerColor: noChimeras.First().Condition.ConvertConditionToColor()),
             Chart2D.Chart.Column<int, string, string, int, int>(withChimeras.Select(p => p.OnePercentPsmCount),
-                labels, null, "Chimeras", MarkerColor: PlottingTranslators.ConditionToColorDictionary[withChimeras.First().Condition]),
+                labels, null, "Chimeras", MarkerColor: withChimeras.First().Condition.ConvertConditionToColor()),
             //Chart2D.Chart.Column<int, string, string, int, int>(others.Select(chimeraGroup => chimeraGroup.OnePercentPsmCount),
             //    labels, null, "Others", MarkerColor: ConditionToColorDictionary[others.First().Condition])
         });
@@ -58,9 +58,9 @@ public static class BulkResultPlots
         var peptideChart = Chart.Combine(new[]
         {
             Chart2D.Chart.Column<int, string, string, int, int>(noChimeras.Select(p => p.OnePercentPeptideCount),
-                labels, null, "No Chimeras", MarkerColor: PlottingTranslators.ConditionToColorDictionary[noChimeras.First().Condition]),
+                labels, null, "No Chimeras", MarkerColor: noChimeras.First().Condition.ConvertConditionToColor()),
             Chart2D.Chart.Column<int, string, string, int, int>(withChimeras.Select(p => p.OnePercentPeptideCount),
-                labels, null, "Chimeras", MarkerColor: PlottingTranslators.ConditionToColorDictionary[withChimeras.First().Condition]),
+                labels, null, "Chimeras", MarkerColor: withChimeras.First().Condition.ConvertConditionToColor()),
             //Chart2D.Chart.Column<int, string, string, int, int>(others.Select(chimeraGroup => chimeraGroup.OnePercentPeptideCount),
             //    labels, null, "Others", MarkerColor: ConditionToColorDictionary[others.First().Condition])
         });
@@ -74,9 +74,9 @@ public static class BulkResultPlots
         var proteinChart = Chart.Combine(new[]
         {
             Chart2D.Chart.Column<int, string, string, int, int>(noChimeras.Select(p => p.OnePercentProteinGroupCount),
-                labels, null, "No Chimeras", MarkerColor: PlottingTranslators.ConditionToColorDictionary[noChimeras.First().Condition]),
+                labels, null, "No Chimeras", MarkerColor: noChimeras.First().Condition.ConvertConditionToColor()),
             Chart2D.Chart.Column<int, string, string, int, int>(withChimeras.Select(p => p.OnePercentProteinGroupCount),
-                labels, null, "Chimeras", MarkerColor: PlottingTranslators.ConditionToColorDictionary[withChimeras.First().Condition]),
+                labels, null, "Chimeras", MarkerColor: withChimeras.First().Condition.ConvertConditionToColor()),
             //Chart2D.Chart.Column<int, string, string, int, int>(others.Select(chimeraGroup => chimeraGroup.OnePercentProteinGroupCount),
             //    labels, null, "Chimeras", MarkerColor: ConditionToColorDictionary[others.First().Condition]),
         });
@@ -112,6 +112,33 @@ public static class BulkResultPlots
         proteinChart.SavePNG(proteinPath);
     }
 
+    /// <summary>
+    /// Stacked column: Plots the type of chimeric identifications as a function of the degree of chimericity
+    /// </summary>
+    /// <param name="allResults"></param>
+    public static void PlotBulkResultChimeraBreakDown(this AllResults allResults)
+    {
+        var selector = allResults.First().First().IsTopDown.ChimeraBreakdownSelector();
+        bool isTopDown = allResults.First().First().IsTopDown;
+        var smLabel = isTopDown ? "PrSM" : "PSM";
+        var pepLabel = isTopDown ? "Proteoform" : "Peptide";
+        var results = allResults.SelectMany(z => z.Results
+                .Where(p => p is MetaMorpheusResult && selector.Contains(p.Condition))
+                .SelectMany(p => ((MetaMorpheusResult)p).ChimeraBreakdownFile.Results))
+            .ToList();
+        var psmChart =
+            results.GetChimeraBreakDownStackedColumn(ResultType.Psm, isTopDown, out int width);
+        var psmOutPath = Path.Combine(allResults.GetFigureDirectory(),
+            $"AllResults_{FileIdentifiers.ChimeraBreakdownComparisonFigure}{smLabel}s");
+        psmChart.SavePNG(psmOutPath, null, width, GenericPlots.DefaultHeight);
+
+        var peptideChart =
+            results.GetChimeraBreakDownStackedColumn(ResultType.Peptide, isTopDown, out width);
+        var peptideOutPath = Path.Combine(allResults.GetFigureDirectory(),
+            $"AllResults_{FileIdentifiers.ChimeraBreakdownComparisonFigure}{pepLabel}s");
+        peptideChart.SavePNG(peptideOutPath, null, width, GenericPlots.DefaultHeight);
+    }
+
     #region Retention Time
 
     // Too big to export
@@ -135,11 +162,11 @@ public static class BulkResultPlots
                 Chart2D.Chart.Scatter<double, double, string>(
                     chronologer.Where(p => !p.IsChimeric).Select(p => p.RetentionTime),
                     chronologer.Where(p => !p.IsChimeric).Select(p => p.ChronologerPrediction), StyleParam.Mode.Markers,
-                    "No Chimeras", MarkerColor: PlottingTranslators.ConditionToColorDictionary["No Chimeras"]),
+                    "No Chimeras", MarkerColor: "No Chimeras".ConvertConditionToColor()),
                 Chart2D.Chart.Scatter<double, double, string>(
                     chronologer.Where(p => p.IsChimeric).Select(p => p.RetentionTime),
                     chronologer.Where(p => p.IsChimeric).Select(p => p.ChronologerPrediction), StyleParam.Mode.Markers,
-                    "Chimeras", MarkerColor: PlottingTranslators.ConditionToColorDictionary["Chimeras"])
+                    "Chimeras", MarkerColor: "Chimeras".ConvertConditionToColor())
             })
             .WithTitle($"All Results Chronologer Predicted HI vs Retention Time (1% Peptides)")
             .WithXAxisStyle(Title.init("Retention Time"))
@@ -157,11 +184,11 @@ public static class BulkResultPlots
                 Chart2D.Chart.Scatter<double, double, string>(
                     ssrCalc.Where(p => !p.IsChimeric).Select(p => p.RetentionTime),
                     ssrCalc.Where(p => !p.IsChimeric).Select(p => p.SSRCalcPrediction), StyleParam.Mode.Markers,
-                    "No Chimeras", MarkerColor: PlottingTranslators.ConditionToColorDictionary["No Chimeras"]),
+                    "No Chimeras", MarkerColor: "No Chimeras".ConvertConditionToColor()),
                 Chart2D.Chart.Scatter<double, double, string>(
                     ssrCalc.Where(p => p.IsChimeric).Select(p => p.RetentionTime),
                     ssrCalc.Where(p => p.IsChimeric).Select(p => p.SSRCalcPrediction), StyleParam.Mode.Markers,
-                    "Chimeras", MarkerColor: PlottingTranslators.ConditionToColorDictionary["Chimeras"])
+                    "Chimeras", MarkerColor: "Chimeras".ConvertConditionToColor())
             })
             .WithTitle($"All Results SSRCalc3 Predicted HI vs Retention Time (1% Peptides)")
             .WithXAxisStyle(Title.init("Retention Time"))
@@ -239,5 +266,35 @@ public static class BulkResultPlots
 
     #endregion
 
+    #region Target Decoy
+
+    /// <summary>
+    /// Stacked Column: Plots the target decoy distribution as a function of the degree of chimericity
+    /// </summary>
+    /// <param name="allResults"></param>
+    public static void PlotBulkResultChimeraBreakDown_TargetDecoy(this AllResults allResults)
+    {
+        var selector = allResults.First().First().IsTopDown.ChimeraBreakdownSelector();
+        bool isTopDown = allResults.First().First().IsTopDown;
+        var smLabel = isTopDown ? "PrSM" : "PSM";
+        var pepLabel = isTopDown ? "Proteoform" : "Peptide";
+        var results = allResults.SelectMany(z => z.Results
+                       .Where(p => p is MetaMorpheusResult && selector.Contains(p.Condition))
+                       .SelectMany(p => ((MetaMorpheusResult)p).ChimeraBreakdownFile.Results))
+            .ToList();
+        var psmChart =
+            results.GetChimeraBreakDownStackedColumn_TargetDecoy(ResultType.Psm, isTopDown, false, out int width);
+        var psmOutPath = Path.Combine(allResults.GetFigureDirectory(),
+                                          $"AllResults_{FileIdentifiers.ChimeraBreakdownTargetDecoy}_{smLabel}");
+        psmChart.SavePNG(psmOutPath, null, width, GenericPlots.DefaultHeight);
+
+        var peptideChart =
+            results.GetChimeraBreakDownStackedColumn_TargetDecoy(ResultType.Peptide, isTopDown, false, out width);
+        var peptideOutPath = Path.Combine(allResults.GetFigureDirectory(),
+                                          $"AllResults_{FileIdentifiers.ChimeraBreakdownTargetDecoy}_{pepLabel}");
+        peptideChart.SavePNG(peptideOutPath, null, width, GenericPlots.DefaultHeight);
+    }
+
+    #endregion
 
 }

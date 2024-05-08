@@ -70,11 +70,11 @@ public static class CellLinePlots
                 Chart2D.Chart.Scatter<double, double, string>(
                     chronologer.Where(p => !p.IsChimeric).Select(p => p.RetentionTime),
                     chronologer.Where(p => !p.IsChimeric).Select(p => p.ChronologerPrediction), StyleParam.Mode.Markers,
-                    "No Chimeras", MarkerColor: PlottingTranslators.ConditionToColorDictionary["No Chimeras"]),
+                    "No Chimeras", MarkerColor: "No Chimeras".ConvertConditionToColor()),
                 Chart2D.Chart.Scatter<double, double, string>(
                     chronologer.Where(p => p.IsChimeric).Select(p => p.RetentionTime),
                     chronologer.Where(p => p.IsChimeric).Select(p => p.ChronologerPrediction), StyleParam.Mode.Markers,
-                    "Chimeras", MarkerColor: PlottingTranslators.ConditionToColorDictionary["Chimeras"])
+                    "Chimeras", MarkerColor: "Chimeras".ConvertConditionToColor())
             })
             .WithTitle($"{cellLine.CellLine} Chronologer Predicted HI vs Retention Time (1% Peptides)")
             .WithXAxisStyle(Title.init("Retention Time"))
@@ -87,11 +87,11 @@ public static class CellLinePlots
                 Chart2D.Chart.Scatter<double, double, string>(
                     ssrCalc.Where(p => !p.IsChimeric).Select(p => p.RetentionTime),
                     ssrCalc.Where(p => !p.IsChimeric).Select(p => p.SSRCalcPrediction), StyleParam.Mode.Markers,
-                    "No Chimeras", MarkerColor: PlottingTranslators.ConditionToColorDictionary["No Chimeras"]),
+                    "No Chimeras", MarkerColor: "No Chimeras".ConvertConditionToColor()),
                 Chart2D.Chart.Scatter<double, double, string>(
                     ssrCalc.Where(p => p.IsChimeric).Select(p => p.RetentionTime),
                     ssrCalc.Where(p => p.IsChimeric).Select(p => p.SSRCalcPrediction), StyleParam.Mode.Markers,
-                    "Chimeras", MarkerColor: PlottingTranslators.ConditionToColorDictionary["Chimeras"])
+                    "Chimeras", MarkerColor: "Chimeras".ConvertConditionToColor())
             })
             .WithTitle($"{cellLine.CellLine} SSRCalc3 Predicted HI vs Retention Time (1% Peptides)")
             .WithXAxisStyle(Title.init("Retention Time"))
@@ -144,5 +144,65 @@ public static class CellLinePlots
     }
 
     #endregion
+
+    #region Target Decoy
+
+    /// <summary>
+    /// Stacked Column: Plots the target decoy distribution as a function of the degree of chimericity
+    /// </summary>
+    /// <param name="cellLine"></param>
+    /// <param name="absolute"></param>
+    public static void PlotCellLineChimeraBreakdown_TargetDecoy(this CellLineResults cellLine, bool absolute = false)
+    {
+        var selector = cellLine.First().IsTopDown.ChimeraBreakdownSelector();
+        var smLabel = cellLine.First().IsTopDown ? "PrSM" : "PSM";
+        var pepLabel = cellLine.First().IsTopDown ? "Proteoform" : "Peptide";
+
+        var results = cellLine.Results
+            .Where(p => p is MetaMorpheusResult && selector.Contains(p.Condition))
+            .SelectMany(p => ((MetaMorpheusResult)p).ChimeraBreakdownFile)
+            .ToList();
+        var psmChart =
+            results.GetChimeraBreakDownStackedColumn_TargetDecoy(ResultType.Psm, cellLine.First().IsTopDown, absolute, out int width);
+        string psmOutPath = Path.Combine(cellLine.GetFigureDirectory(),
+            $"{FileIdentifiers.ChimeraBreakdownTargetDecoy}_{smLabel}_{cellLine.CellLine}");
+        psmChart.SavePNG(psmOutPath, null, width, GenericPlots.DefaultHeight);
+
+        var peptideChart =
+            results.GetChimeraBreakDownStackedColumn_TargetDecoy(ResultType.Peptide, cellLine.First().IsTopDown, absolute, out width);
+        string peptideOutPath = Path.Combine(cellLine.GetFigureDirectory(),
+            $"{FileIdentifiers.ChimeraBreakdownTargetDecoy}_{pepLabel}_{cellLine.CellLine}");
+        peptideChart.SavePNG(peptideOutPath, null, width, GenericPlots.DefaultHeight);
+    }
+
+    #endregion
+
+
+    /// <summary>
+    /// Stacked column: Plots the type of chimeric identifications as a function of the degree of chimericity
+    /// </summary>
+    /// <param name="cellLine"></param>
+    public static void PlotCellLineChimeraBreakdown(this CellLineResults cellLine)
+    {
+        var selector = cellLine.First().IsTopDown.ChimeraBreakdownSelector();
+        var smLabel = cellLine.First().IsTopDown ? "PrSM" : "PSM";
+        var pepLabel = cellLine.First().IsTopDown ? "Proteoform" : "Peptide";
+
+        var results = cellLine.Results
+            .Where(p => p is MetaMorpheusResult && selector.Contains(p.Condition))
+            .SelectMany(p => ((MetaMorpheusResult)p).ChimeraBreakdownFile)
+            .ToList();
+        var psmChart =
+            results.GetChimeraBreakDownStackedColumn(ResultType.Psm, cellLine.First().IsTopDown, out int width);
+        string psmOutPath = Path.Combine(cellLine.GetFigureDirectory(),
+            $"{FileIdentifiers.ChimeraBreakdownComparisonFigure}_{smLabel}_{cellLine.CellLine}");
+        psmChart.SavePNG(psmOutPath, null, width, GenericPlots.DefaultHeight);
+
+        var peptideChart =
+            results.GetChimeraBreakDownStackedColumn(ResultType.Peptide, cellLine.First().IsTopDown, out width);
+        string peptideOutPath = Path.Combine(cellLine.GetFigureDirectory(),
+            $"{FileIdentifiers.ChimeraBreakdownComparisonFigure}_{pepLabel}_{cellLine.CellLine}");
+        peptideChart.SavePNG(peptideOutPath, null, width, GenericPlots.DefaultHeight);
+    }
 
 }

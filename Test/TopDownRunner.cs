@@ -59,19 +59,19 @@ namespace Test
         [Test]
         public static void GenerateAllFigures()
         {
-            foreach (CellLineResults cellLine in AllResults)
+            foreach (CellLineResults cellLine in AllResults.Skip(1))
             {
-                cellLine.PlotIndividualFileResults(); 
-                //cellLine.PlotCellLineSpectralSimilarity();
-                //cellLine.PlotCellLineChimeraBreakdown();
-                //cellLine.PlotCellLineChimeraBreakdown_TargetDecoy();
+                cellLine.PlotIndividualFileResults();
+                cellLine.PlotCellLineSpectralSimilarity();
+                cellLine.PlotCellLineChimeraBreakdown();
+                cellLine.PlotCellLineChimeraBreakdown_TargetDecoy();
             }
 
-            //AllResults.PlotInternalMMComparison();
-            //AllResults.PlotBulkResultComparison();
-            //AllResults.PlotStackedIndividualFileComparison();
-            //AllResults.PlotBulkResultChimeraBreakDown();
-            //AllResults.PlotBulkResultChimeraBreakDown_TargetDecoy();
+            AllResults.PlotInternalMMComparison();
+            AllResults.PlotBulkResultComparisons();
+            AllResults.PlotStackedIndividualFileComparison();
+            AllResults.PlotBulkResultChimeraBreakDown();
+            AllResults.PlotBulkResultChimeraBreakDown_TargetDecoy();
         }
 
         [Test]
