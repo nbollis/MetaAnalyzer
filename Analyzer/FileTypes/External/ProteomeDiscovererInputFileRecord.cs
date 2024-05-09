@@ -5,7 +5,7 @@ using Readers;
 
 namespace Analyzer.FileTypes.External
 {
-    public class PSPDInputFileRecord
+    public class ProteomeDiscovererInputFileRecord
     {
         public static CsvConfiguration CsvConfiguration => new CsvConfiguration(System.Globalization.CultureInfo.InvariantCulture)
         {
@@ -15,6 +15,7 @@ namespace Analyzer.FileTypes.External
             TrimOptions = TrimOptions.Trim,
             BadDataFound = null,
             MissingFieldFound = null,
+            HeaderValidated = null,
         };
 
         [Name("File ID")]
@@ -37,13 +38,13 @@ namespace Analyzer.FileTypes.External
 
     }
 
-    public class PSPDInputFileFile : ResultFile<PSPDInputFileRecord>, IResultFile
+    public class ProteomeDiscovererInputFileFile : ResultFile<ProteomeDiscovererInputFileRecord>, IResultFile
     {
-        public PSPDInputFileFile(string filePath) : base(filePath)
+        public ProteomeDiscovererInputFileFile(string filePath) : base(filePath)
         {
         }
 
-        public PSPDInputFileFile()
+        public ProteomeDiscovererInputFileFile()
         {
         }
         public override SupportedFileType FileType => SupportedFileType.Tsv_FlashDeconv;
@@ -51,15 +52,15 @@ namespace Analyzer.FileTypes.External
 
         public override void LoadResults()
         {
-            using var csv = new CsvReader(new StreamReader(FilePath), PSPDInputFileRecord.CsvConfiguration);
-            Results = csv.GetRecords<PSPDInputFileRecord>().ToList();
+            using var csv = new CsvReader(new StreamReader(FilePath), ProteomeDiscovererInputFileRecord.CsvConfiguration);
+            Results = csv.GetRecords<ProteomeDiscovererInputFileRecord>().ToList();
         }
 
         public override void WriteResults(string outputPath)
         {
-            using var csv = new CsvWriter(new StreamWriter(File.Create(outputPath)), PSPDInputFileRecord.CsvConfiguration);
+            using var csv = new CsvWriter(new StreamWriter(File.Create(outputPath)), ProteomeDiscovererInputFileRecord.CsvConfiguration);
 
-            csv.WriteHeader<PSPDInputFileRecord>();
+            csv.WriteHeader<ProteomeDiscovererInputFileRecord>();
             foreach (var result in Results)
             {
                 csv.NextRecord();

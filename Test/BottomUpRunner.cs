@@ -1,6 +1,7 @@
 ﻿using System.Text;
 using Analyzer.Plotting;
 using Analyzer.SearchType;
+using Analyzer.Util;
 using Proteomics;
 using Readers;
 using UsefulProteomicsDatabases;
@@ -28,7 +29,7 @@ namespace Test
             {
                 foreach (var result in cellLine)
                 {
-                    if (result is not MetaMorpheusResult)
+                    if (result is MetaMorpheusResult)
                         continue;
                     result.Override = true;
                     result.IndividualFileComparison();
@@ -82,6 +83,26 @@ namespace Test
             //AllResults.PlotAggregatedSpectralSimilarity();
             AllResults.PlotBulkResultChimeraBreakDown();
             AllResults.PlotBulkResultChimeraBreakDown_TargetDecoy();
+        }
+
+        [Test]
+        public static void RunSpecificCellLine()
+        {
+            string cellLineString = "A549";
+            var cellLine = AllResults.First(p => p.CellLine == cellLineString);
+            var chimerys = cellLine.First(p => p.Condition.Contains("Chimerys"));
+            //chimerys.IndividualFileComparison();
+            //chimerys.CountChimericPsms();
+            //chimerys.GetBulkResultCountComparisonFile();
+
+            cellLine.PlotIndividualFileResults();
+            cellLine.PlotIndividualFileResults(ResultType.Psm);
+            cellLine.PlotIndividualFileResults(ResultType.Protein);
+            //cellLine.PlotCellLineChimeraBreakdown();
+            //cellLine.PlotCellLineRetentionTimePredictions();
+            //cellLine.PlotCellLineSpectralSimilarity();
+            //cellLine.PlotCellLineChimeraBreakdown();
+            //cellLine.PlotCellLineChimeraBreakdown_TargetDecoy();
         }
 
 

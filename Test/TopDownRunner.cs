@@ -31,13 +31,16 @@ namespace Test
             {
                 foreach (var result in cellLine)
                 {
-                    //if (result is MsPathFinderTResults)
-                    //    result.Override = true;
+                    if (result is ProteomeDiscovererResult)
+                        result.Override = true;
                     result.IndividualFileComparison();
                     result.GetBulkResultCountComparisonFile();
                     result.CountChimericPsms();
                     if (result is MetaMorpheusResult mm)
+                    {
+                        mm.GetChimeraBreakdownFile();
                         mm.CountChimericPeptides();
+                    }
                     result.Override = false;
                 }
 
@@ -59,7 +62,7 @@ namespace Test
         [Test]
         public static void GenerateAllFigures()
         {
-            foreach (CellLineResults cellLine in AllResults.Skip(1))
+            foreach (CellLineResults cellLine in AllResults)
             {
                 cellLine.PlotIndividualFileResults();
                 cellLine.PlotCellLineSpectralSimilarity();
@@ -77,13 +80,13 @@ namespace Test
         [Test]
         public static void AddNewResult()
         {
-            string direcoryPath =
-                @"B:\Users\Nic\Chimeras\TopDown_Analysis\Jurkat\SearchResults\MetaMorpheus_ChimeraInPEP_Positive";
-            var mm = new MetaMorpheusResult(direcoryPath);
-            mm.GetBulkResultCountComparisonFile();
-            mm.IndividualFileComparison();
-            mm.CountChimericPsms();
-            mm.CountChimericPeptides();
+            
+
+
+            //mm.GetBulkResultCountComparisonFile();
+            //mm.IndividualFileComparison();
+            //mm.CountChimericPsms();
+            //mm.CountChimericPeptides();
 
 
 
@@ -138,11 +141,6 @@ namespace Test
             results.ExportCombinedChimeraTargetDecoyExploration(outDir, selectedCondition.Value);
         }
 
-        [Test]
-        public static void SpectralAngle()
-        {
-            CellLineResults cellLine = new(@"B:\Users\Nic\Chimeras\PEPTesting");
-            cellLine.PlotCellLineSpectralSimilarity();
-        }
+   
     }
 }

@@ -18,7 +18,7 @@ public static class CellLinePlots
         resultType ??= isTopDown ? ResultType.Psm : ResultType.Peptide;
         outputDirectory ??= cellLine.GetFigureDirectory();
 
-        string outPath = Path.Combine(outputDirectory, $"{FileIdentifiers.IndividualFileComparisonFigure}_{resultType}_{cellLine.CellLine}.png");
+        string outPath = Path.Combine(outputDirectory, $"{FileIdentifiers.IndividualFileComparisonFigure}_{resultType}_{cellLine.CellLine}");
         var chart = cellLine.GetIndividualFileResultsBarChart(out int width, out int height, resultType.Value);
         chart.SavePNG(outPath, null, width, height);
     }

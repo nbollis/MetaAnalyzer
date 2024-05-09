@@ -370,7 +370,7 @@ namespace Analyzer.SearchType
                             orderedChimeras = chimeraGroup
                                 .Where(p => p.DecoyContamTarget == "T")
                                 .OrderByDescending(p => p.Score)
-                                .ThenBy(p => Math.Abs(double.Parse(p.MassDiffDa)))
+                                .ThenBy(p => Math.Abs(double.Parse(p.MassDiffDa.Split('|')[0])))
                                 .ToArray();
                         }
 

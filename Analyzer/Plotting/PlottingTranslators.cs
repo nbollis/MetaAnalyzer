@@ -410,26 +410,29 @@ public static class PlottingTranslators
         if (isTopDown)
         {
             return new [] {
-                "MetaMorpheus", "MetaMorpheusNoChimeras",
+                /*"MetaMorpheus",*/ "MetaMorpheusNoChimeras", // first searches ran
+                "MetaMorpheus_NewPEP_NoNorm", // ecoli ran with new pep
+                "MetaMorpheus_Rep2_WithLibrary", // metamorpheus rep2 with library and old pep
+
                 "MsPathFinderTWithModsNoChimerasRep2", "MsPathFinderTWithMods_7Rep2",
                 /*"MsPathFinderTWithModsNoChimeras", "MsPathFinderTWithMods_7",*/ 
-                "ProsightPDChimeras", "ProsightPDNoChimeras", 
+
+                //"ProsightPDChimeras", "ProsightPDNoChimeras", 
+                "ProsightPDChimeras_Rep2", "ProsightPDNoChimeras_Rep2", 
 
 
-                //"MetaMorpheus_Rep1_BuildLibrary",
-                //"MetaMorpheus_Rep2_NoLibrary",
-                "MetaMorpheus_Rep2_WithLibrary",
-                //"Full_ChimeraIncorporation",
-                //"MetaMorpheus_FullPEPChimeraIncorporation",
-                //"Full_ChimeraIncorporation_NoNormalization",
-                //"Small_ChimeraIncorporation"
+
             };
         }
 
         return new[]
         {
             "MetaMorpheusWithLibrary", "MetaMorpheusNoChimerasWithLibrary", "MetaMorpheus_NoNormalization",
-            "ReviewdDatabaseNoPhospho_MsFraggerDDA", "ReviewdDatabaseNoPhospho_MsFraggerDDA+", "ReviewdDatabaseNoPhospho_MsFragger"
+
+            "MetaMorpheusFraggerEquivalentChimeras_IndividualFiles",
+
+            "ReviewdDatabaseNoPhospho_MsFraggerDDA", "ReviewdDatabaseNoPhospho_MsFraggerDDA+", "ReviewdDatabaseNoPhospho_MsFragger",
+            "Chimerys"
         };
     }
 

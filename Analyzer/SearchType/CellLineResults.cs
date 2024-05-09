@@ -70,7 +70,7 @@ public class CellLineResults : IEnumerable<BulkResult>
                 Results.Add(new MsFraggerResult(directory));
             else if (Directory.GetFiles(directory, "*.tdReport").Any())
                 if (Directory.GetFiles(directory, "*.txt").Length == 4)
-                    Results.Add(new ProsightPDResult(directory));
+                    Results.Add(new ProteomeDiscovererResult(directory));
         }
     }
 

@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Analyzer.FileTypes.Internal;
 using Analyzer.Plotting;
 using Analyzer.SearchType;
+using Analyzer.Util;
 using Plotly.NET;
 
 namespace Test
@@ -76,14 +77,20 @@ namespace Test
             {
                 //(new MetaMorpheusResult(helaNoNormPath), "Hela No Norm"),
                 //(new MetaMorpheusResult(helaNormPath), "Hela Norm"),
-                //(new MetaMorpheusResult(jurkatNormPath), "Jurkat Norm"),
-                //(new MetaMorpheusResult(jurkatNoNormRemove2), "Jurkat No Norm-2"),
+                (new MetaMorpheusResult(jurkatNormPath), "Jurkat Norm"),
+                (new MetaMorpheusResult(jurkatNoNormRemove2), "Jurkat No Norm-2"),
                 (new MetaMorpheusResult(jurkatNormRemove2), "Jurkat Norm-2"),
-                //(new MetaMorpheusResult(jurkatNoNormpath), "Jurkat No Norm"),
-                //(new MetaMorpheusResult(originalMMPath), "Original Jurkat"),
+                (new MetaMorpheusResult(jurkatNoNormpath), "Jurkat No Norm"),
+                (new MetaMorpheusResult(originalMMPath), "Original Jurkat"),
 
             };
 
+            results.ForEach(p => p.Item1.IndividualFileComparison());
+            var temp = results.Select(p => p.Item1.IndividualFileComparisonFile).ToList();
+            
+            var chart = GenericPlots.IndividualFileResultBarChart(temp,
+                out int width, out int height, "PEP Exploration", true, ResultType.Psm);
+            chart.Show();
 
             string figPath = @"B:\Users\Nic\Chimeras\PEPTesting\Figures\BUTDNormComparison";
             foreach (var result in results)

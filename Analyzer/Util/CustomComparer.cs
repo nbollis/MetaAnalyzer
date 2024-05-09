@@ -78,8 +78,8 @@ namespace Analyzer.Util
                 prsm => prsm.OneBasedScanNumber, 
                 prsm => prsm.FileNameWithoutExtension);
 
-        public static CustomComparer<PSPDPrSMRecord> PSPDPrSMChimeraComparer =>
-            new CustomComparer<PSPDPrSMRecord>(
+        public static CustomComparer<ProteomeDiscovererPsmRecord> PSPDPrSMChimeraComparer =>
+            new CustomComparer<ProteomeDiscovererPsmRecord>(
                 prsm => prsm.FileID,
                 prsm => prsm.Ms2ScanNumber);
 
