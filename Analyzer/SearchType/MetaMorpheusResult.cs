@@ -67,8 +67,8 @@ namespace Analyzer.SearchType
                 string peptide = individualFile.Value.First(p => p.Contains("Peptide") || p.Contains("Proteoform"));
                 string protein = individualFile.Value.First(p => p.Contains("Protein"));
 
-                var spectralmatches = AllPsms.Where(p => p.DecoyContamTarget == "T").ToList();
-                var peptides = AllPeptides
+                var spectralmatches = SpectrumMatchTsvReader.ReadPsmTsv(psm, out _).Where(p => p.DecoyContamTarget == "T").ToList();
+                var peptides = SpectrumMatchTsvReader.ReadPsmTsv(peptide, out _)
                     .Where(p => p.DecoyContamTarget == "T")
                     .DistinctBy(p => p.BaseSeq).ToList();
 

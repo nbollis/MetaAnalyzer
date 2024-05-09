@@ -65,22 +65,29 @@ namespace Test
             foreach (CellLineResults cellLine in AllResults)
             {
                 cellLine.PlotIndividualFileResults();
-                cellLine.PlotCellLineSpectralSimilarity();
-                cellLine.PlotCellLineChimeraBreakdown();
-                cellLine.PlotCellLineChimeraBreakdown_TargetDecoy();
+                //cellLine.PlotCellLineSpectralSimilarity();
+                //cellLine.PlotCellLineChimeraBreakdown();
+                //cellLine.PlotCellLineChimeraBreakdown_TargetDecoy();
             }
 
             AllResults.PlotInternalMMComparison();
             AllResults.PlotBulkResultComparisons();
             AllResults.PlotStackedIndividualFileComparison();
-            AllResults.PlotBulkResultChimeraBreakDown();
-            AllResults.PlotBulkResultChimeraBreakDown_TargetDecoy();
+            //AllResults.PlotBulkResultChimeraBreakDown();
+            //AllResults.PlotBulkResultChimeraBreakDown_TargetDecoy();
         }
 
         [Test]
         public static void AddNewResult()
         {
-            
+            var ecoli = AllResults.First();
+            var result = ecoli.First(p => p.Condition.Contains("NewPEP"));
+            result.Override = true;
+            result.IndividualFileComparison();
+            ecoli.Override = true;
+            ecoli.IndividualFileComparison();
+            AllResults.Override = true;
+            AllResults.IndividualFileComparison();
 
 
             //mm.GetBulkResultCountComparisonFile();
@@ -90,7 +97,7 @@ namespace Test
 
 
 
-            
+
         }
 
 

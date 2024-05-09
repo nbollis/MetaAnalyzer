@@ -16,6 +16,7 @@ public static class BulkResultPlots
 
         double heightScaler = allResults.First().First().IsTopDown ? 1.5 : 2.5;
         var title = allResults.First().First().IsTopDown ? "PrSMs" : "Peptides";
+        var resultType = allResults.First().First().IsTopDown ? ResultType.Psm : ResultType.Peptide;
         var chart = Chart.Grid(
                 allResults.Select(p => p.GetIndividualFileResultsBarChart(out width, out height)
                     .WithYAxisStyle(Title.init(p.CellLine))),
@@ -95,7 +96,7 @@ public static class BulkResultPlots
 
         var results = allResults.CellLineResults.SelectMany(p => p.BulkResultCountComparisonFile.Results)
             .Where(p => filterByCondition ?
-                isTopDown.BulkResultComparisonSelector().Contains(p.Condition) : p != null)
+                isTopDown.BulkResultComparisonSelector(p.DatasetName).Contains(p.Condition) : p != null)
             .OrderBy(p => p.Condition.ConvertConditionName())
             .ToList();
 

@@ -27,6 +27,7 @@ public static class PlottingTranslators
         {"ReviewdDatabaseNoPhospho_MsFraggerDDA", Color.fromKeyword(ColorKeyword.LightAkyBlue) },
         {"ReviewdDatabaseNoPhospho_MsFragger", Color.fromKeyword(ColorKeyword.LightAkyBlue) },
         {"ReviewdDatabaseNoPhospho_MsFraggerDDA+", Color.fromKeyword(ColorKeyword.RoyalBlue) },
+        {"Chimerys", Color.fromKeyword(ColorKeyword.Green) },
 
         // General
         {"Chimeras", Color.fromKeyword(ColorKeyword.Purple) },
@@ -35,14 +36,20 @@ public static class PlottingTranslators
         // Top Down
         {"MetaMorpheus", Color.fromKeyword(ColorKeyword.Purple) },
         {"MetaMorpheusNoChimeras", Color.fromKeyword(ColorKeyword.Plum) },
+        {"MetaMorpheus_Rep2_WithLibrary", Color.fromKeyword(ColorKeyword.Purple)},
+
+
         {"MsPathFinderTWithModsNoChimeras", Color.fromKeyword(ColorKeyword.Moccasin)},
         {"MsPathFinderTWithModsNoChimerasRep2", Color.fromKeyword(ColorKeyword.Moccasin)},
         {"MsPathFinderT", Color.fromKeyword(ColorKeyword.Khaki)},
         {"MsPathFinderTWithMods", Color.fromKeyword(ColorKeyword.Gold)},
         {"MsPathFinderTWithMods_7", Color.fromKeyword(ColorKeyword.GoldenRod)},
+        
         {"MsPathFinderTWithMods_7Rep2", Color.fromKeyword(ColorKeyword.GoldenRod)},
         {"ProsightPDNoChimeras", Color.fromKeyword(ColorKeyword.PaleVioletRed)},
+        {"ProsightPDNoChimeras_Rep2", Color.fromKeyword(ColorKeyword.PaleVioletRed)},
         {"ProsightPDChimeras", Color.fromKeyword(ColorKeyword.Red)},
+        {"ProsightPDChimeras_Rep2", Color.fromKeyword(ColorKeyword.Red)},
         {"ProsightPD_SubsequenceSearch", Color.fromKeyword(ColorKeyword.OrangeRed)},
 
 
@@ -61,7 +68,6 @@ public static class PlottingTranslators
         // PEP testing
         {"MetaMorpheus_Rep1_BuildLibrary", Color.fromKeyword(ColorKeyword.LightAkyBlue)},
         {"MetaMorpheus_Rep2_NoLibrary", Color.fromKeyword(ColorKeyword.MediumVioletRed)},
-        {"MetaMorpheus_Rep2_WithLibrary", Color.fromKeyword(ColorKeyword.MediumAquamarine)},
         {"Full_ChimeraIncorporation", Color.fromKeyword(ColorKeyword.GoldenRod)},
         {"MetaMorpheus_FullPEPChimeraIncorporation", Color.fromKeyword(ColorKeyword.GoldenRod)},
         {"Full_ChimeraIncorporation_NoNormalization", Color.fromKeyword(ColorKeyword.Plum)},
@@ -357,12 +363,16 @@ public static class PlottingTranslators
         // Top Down
         { "MetaMorpheus", "MetaMorpheus\u2800" },
         { "MetaMorpheusNoChimeras", "MetaMorpheus No Chimeras" },
+
         { "MsPathFinderTWithMods_7", "MsPathFinderT⠀" },
         { "MsPathFinderTWithModsNoChimerasRep2", "MsPathFinderT No Chimeras" },
         { "MsPathFinderTWithMods_7Rep2", "MsPathFinderT⠀" },
         { "MsPathFinderTWithModsNoChimeras", "MsPathFinderT No Chimeras" },
+
         {"ProsightPDNoChimeras", "ProsightPD No Chimeras"},
         {"ProsightPDChimeras", "ProsightPD⠀Chimeras"},
+        {"ProsightPDNoChimeras_Rep2", "ProsightPD No Chimeras"},
+        {"ProsightPDChimeras_Rep2", "ProsightPD⠀Chimeras"},
     };
 
     #endregion
@@ -405,23 +415,45 @@ public static class PlottingTranslators
 
     #region Selectors
 
-    public static string[] IndividualFileComparisonSelector(this bool isTopDown)
+    public static string[] IndividualFileComparisonSelector(this bool isTopDown, string cellLine = "")
     {
         if (isTopDown)
         {
+            if (cellLine.Contains("Jurkat"))
+            {
+                return new[]
+                {
+                    "MetaMorpheusNoChimeras", "MetaMorpheus_FullPEPChimeraIncorporation",
+                    "MetaMorpheus_Rep2_WithLibrary", // metamorpheus rep2 with library and old pep
+
+                    "MsPathFinderTWithModsNoChimerasRep2", "MsPathFinderTWithMods_7Rep2",
+
+                    "ProsightPDChimeras_Rep2", "ProsightPDNoChimeras_Rep2",
+                };
+            }
+            else if (cellLine.Contains("Ecoli"))
+            {
+                return new[]
+                {
+                    "MetaMorpheus", "MetaMorpheusNoChimeras",
+                    "MetaMorpheus_NewPEP_NoNorm", // ecoli ran with new pep
+
+                    "MsPathFinderTWithModsNoChimeras", "MsPathFinderTWithMods_7",
+                    "ProsightPDChimeras", "ProsightPDNoChimeras",
+                };
+            }
+
             return new [] {
                 /*"MetaMorpheus",*/ "MetaMorpheusNoChimeras", // first searches ran
                 "MetaMorpheus_NewPEP_NoNorm", // ecoli ran with new pep
                 "MetaMorpheus_Rep2_WithLibrary", // metamorpheus rep2 with library and old pep
 
+                
+                "MsPathFinderTWithModsNoChimeras", "MsPathFinderTWithMods_7",
                 "MsPathFinderTWithModsNoChimerasRep2", "MsPathFinderTWithMods_7Rep2",
-                /*"MsPathFinderTWithModsNoChimeras", "MsPathFinderTWithMods_7",*/ 
 
                 //"ProsightPDChimeras", "ProsightPDNoChimeras", 
                 "ProsightPDChimeras_Rep2", "ProsightPDNoChimeras_Rep2", 
-
-
-
             };
         }
 
@@ -451,10 +483,36 @@ public static class PlottingTranslators
         };
     }
 
-    public static string[] BulkResultComparisonSelector(this bool isTopDown)
+    public static string[] BulkResultComparisonSelector(this bool isTopDown, string cellLine = "")
     {
         if (isTopDown)
         {
+
+            if (cellLine.Contains("Jurkat"))
+            {
+                return new[]
+                {
+                    "MetaMorpheus", "MetaMorpheusNoChimeras", "MetaMorpheus_FullPEPChimeraIncorporation",
+                    "MetaMorpheus_Rep2_WithLibrary", // metamorpheus rep2 with library and old pep
+
+                    "MsPathFinderTWithModsNoChimerasRep2", "MsPathFinderTWithMods_7Rep2",
+
+                    "ProsightPDChimeras_Rep2", "ProsightPDNoChimeras_Rep2",
+                };
+            }
+            else if (cellLine.Contains("Ecoli"))
+            {
+                return new[]
+                {
+                    "MetaMorpheus", "MetaMorpheusNoChimeras",
+                    "MetaMorpheus_NewPEP_NoNorm", // ecoli ran with new pep
+
+                    "MsPathFinderTWithModsNoChimeras", "MsPathFinderTWithMods_7",
+                    "ProsightPDChimeras", "ProsightPDNoChimeras",
+                };
+            }
+
+
             return new[]
             {
                 "MetaMorpheus", "MetaMorpheusNoChimeras",

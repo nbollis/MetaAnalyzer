@@ -24,11 +24,11 @@ public static class CellLinePlots
     }
 
     public static GenericChart.GenericChart GetIndividualFileResultsBarChart(this CellLineResults cellLine, out int width,
-        out int height, Util.ResultType resultType = ResultType.Psm, bool filterByCondition = true)
+        out int height, ResultType resultType = ResultType.Psm, bool filterByCondition = true)
     {
         bool isTopDown = cellLine.First().IsTopDown;
         var fileResults = (filterByCondition ? cellLine.Select(p => p.IndividualFileComparisonFile)
-                    .Where(p => p != null && isTopDown.IndividualFileComparisonSelector().Contains(p.First().Condition))
+                    .Where(p => p != null && isTopDown.IndividualFileComparisonSelector(cellLine.CellLine).Contains(p.First().Condition))
                 : cellLine.Select(p => p.IndividualFileComparisonFile))
             .OrderBy(p => p.First().Condition.ConvertConditionName())
             .ToList();
