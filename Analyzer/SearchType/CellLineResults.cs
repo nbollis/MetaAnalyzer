@@ -18,14 +18,18 @@ public class CellLineResults : IEnumerable<BulkResult>
 
     private string[] _dataFilePaths;
 
+    public string FigureDirectory { get; }
+
     public CellLineResults(string directoryPath)
     {
         DirectoryPath = directoryPath;
         SearchResultsDirectoryPath = Path.Combine(DirectoryPath, "SearchResults"); /*directoryPath*/;
         CellLine = Path.GetFileName(DirectoryPath);
         Results = new List<BulkResult>();
+        FigureDirectory = Path.Combine(DirectoryPath, "Figures");
+        if (!Directory.Exists(FigureDirectory))
+            Directory.CreateDirectory(FigureDirectory);
 
-    
         if (directoryPath.Contains("TopDown") || directoryPath.Contains("PEP"))
         {
             var calibAveragedDir = Path.Combine(@"B:\Users\Nic\Chimeras\TopDown_Analysis\Jurkat\SearchResults", "MetaMorpheus", "Task2-AveragingTask");
@@ -48,7 +52,7 @@ public class CellLineResults : IEnumerable<BulkResult>
             if (Directory.GetFiles(directory, "*.psmtsv", SearchOption.AllDirectories).Any())
             {
                 var files = Directory.GetFiles(directory, "*.psmtsv", SearchOption.AllDirectories);
-                if (directory.Contains("Fragger") && Directory.GetDirectories(directory).Length > 2)
+                if (directory.Contains("Fragger") && Directory.GetDirectories(directory).Count(p => !p.Contains("Figures")) > 2)
                 {
                     var directories = Directory.GetDirectories(directory);
                     Results.Add(new MetaMorpheusResult(directories.First(p => p.Contains("NoChimera"))) { DataFilePaths = _dataFilePaths });

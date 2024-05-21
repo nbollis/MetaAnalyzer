@@ -12,10 +12,17 @@ using Plotly.NET.LayoutObjects;
 using Plotly.NET.TraceObjects;
 using Proteomics.PSM;
 using Analyzer.SearchType;
+using Easy.Common;
 
 namespace Analyzer.Plotting
 {
-    
+    public enum TargetDecoyCurveMode
+    {
+        Score,
+        QValue,
+        PepQValue,
+        Pep,
+    }
 
     public static class GenericPlots
     {
@@ -123,7 +130,6 @@ namespace Analyzer.Plotting
                 .WithSize(width, height);
             return chart;
         }
-
 
         public static GenericChart.GenericChart SpectralAngleChimeraComparisonViolinPlot(double[] chimeraAngles,
             double[] nonChimeraAngles, string identifier = "", bool isTopDown = false)
@@ -405,7 +411,6 @@ namespace Analyzer.Plotting
             string psmChartOutPath = Path.Combine(outputDir, $"PSMs_Target_Decoy_{selectedCondition}");
             psmChart.SavePNG(psmChartOutPath, null, 1000, 1000);
 
-
             var proteoformChart = Chart.Grid(new List<GenericChart.GenericChart>()
             {
                 qValueFilteredProteoforms.GetChimeraBreakDownStackedColumn_TargetDecoy(true, ResultType.Peptide, "QValue", false, out width)
@@ -427,7 +432,6 @@ namespace Analyzer.Plotting
             .WithTitle($"{selectedCondition} Proteoforms Target Decoy: QValue Filtered {qValueFilteredProteoforms.Count} | PEP QValue Filtered {pepQValueFilteredProteoforms.Count}");
             string proteoformChartOutPath = Path.Combine(outputDir, $"Proteoforms_Target_Decoy_{selectedCondition}");
             proteoformChart.SavePNG(proteoformChartOutPath, null, 1000, 1000);
-
         }
 
 
@@ -440,9 +444,108 @@ namespace Analyzer.Plotting
         {
             string pepForPercolatorPath = Directory.GetFiles(results.DirectoryPath, "*.tab", SearchOption.AllDirectories).First();
             string exportPath = Path.Combine(results.GetFigureDirectory(),
-                $"{FileIdentifiers.PepGridChartFigure}_{condition ?? results.Condition}");
-            new PepEvaluationPlot(pepForPercolatorPath).Export(exportPath);
+                $"{FileIdentifiers.PepGridChartFigure}_{results.DatasetName}_{condition ?? results.Condition}");
+            var plot = new PepEvaluationPlot(pepForPercolatorPath);
+            plot.Export(exportPath);
+
+            exportPath = Path.Combine(results.FigureDirectory,
+                $"{FileIdentifiers.PepGridChartFigure}_{results.DatasetName}_{condition ?? results.Condition}");
+            plot.Export(exportPath);
         }
+
+
+        /// <summary>
+        /// Plots the target decoy curve(s) for the dataset, if result type or mode is left null, it will perform all
+        /// </summary>
+        /// <param name="results"></param>
+        /// <param name="resultType"></param>
+        /// <param name="mode"></param>
+        public static void PlotTargetDecoyCurves(this MetaMorpheusResult results,
+            ResultType? resultType = null, TargetDecoyCurveMode? mode = null)
+        {
+            List<(ResultType, TargetDecoyCurveMode)> plotsToRun = new List<(ResultType, TargetDecoyCurveMode)>();
+
+            
+            if (mode != null) // mode is selected
+            {
+                if (resultType != null)
+                    plotsToRun.Add((resultType.Value, mode.Value));
+                else
+                {
+                    plotsToRun.Add((ResultType.Psm, mode.Value));
+                    plotsToRun.Add((ResultType.Peptide, mode.Value));
+                }
+            }
+            else // mode is not selected
+            {
+                if (resultType != null)
+                    plotsToRun.AddRange(Enum.GetValues<TargetDecoyCurveMode>().Select(m => (resultType.Value, m)));
+                else
+                {
+                    plotsToRun.AddRange(Enum.GetValues<TargetDecoyCurveMode>().Select(m => (ResultType.Psm, m)));
+                    plotsToRun.AddRange(Enum.GetValues<TargetDecoyCurveMode>().Select(m => (ResultType.Peptide, m)));
+                }
+            }
+
+            foreach (var plotParams in plotsToRun)
+            {
+                var plot = results.CreateTargetDecoyCurve(plotParams.Item1, plotParams.Item2);
+                string outPath = Path.Combine(results.FigureDirectory,
+                                       $"{FileIdentifiers.TargetDecoyCurve}_{results.DatasetName}_{results.Condition}_{Label(results.IsTopDown, plotParams.Item1)}_{plotParams.Item2}");
+                plot.SavePNG(outPath, null, 600, 400);
+            }
+        }
+
+        internal static GenericChart.GenericChart CreateTargetDecoyCurve(this MetaMorpheusResult results, ResultType resultType, TargetDecoyCurveMode mode)
+        {
+            var allResults = resultType switch
+            {
+                ResultType.Psm => results.AllPsms,
+                ResultType.Peptide => results.AllPeptides,
+                _ => throw new ArgumentOutOfRangeException(nameof(resultType), resultType, null)
+            };
+
+            IEnumerable<IGrouping<double, PsmFromTsv>>? binnedResults;
+            switch (mode)
+            {
+                case TargetDecoyCurveMode.Score:
+                    binnedResults = allResults.GroupBy(p => Math.Floor(p.Score));
+                    break;
+                case TargetDecoyCurveMode.QValue: // from 0 to 1 in 100 bins
+                    binnedResults = allResults.GroupBy(p => Math.Floor(p.QValue * 100));
+                    break;
+                case TargetDecoyCurveMode.PepQValue: // from 0 to 1 in 100 bins
+                    binnedResults = allResults.GroupBy(p => Math.Floor(p.PEP_QValue * 100));
+                    break;
+                case TargetDecoyCurveMode.Pep: // from 0 to 1 in 100 bins
+                    binnedResults = allResults.GroupBy(p => Math.Floor(p.PEP * 100));
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException(nameof(mode), mode, null);
+            }
+            var resultDict = binnedResults.OrderBy(p => p.Key).ToDictionary(p => p.Key,
+                p => (p.Count(sm => sm.IsDecoy()), p.Count(sm => !sm.IsDecoy())));
+            var xValues = mode == TargetDecoyCurveMode.Score ? resultDict.Keys.ToArray() : resultDict.Keys.Select(p => p / 1000.0).ToArray();
+            var targetValues = mode == TargetDecoyCurveMode.Score 
+                ? resultDict.Values.Select(p => p.Item2).ToArray() 
+                : resultDict.Values.Select(p => p.Item2 / 100).ToArray();
+            var decoyValues = mode == TargetDecoyCurveMode.Score 
+                ? resultDict.Values.Select(p => p.Item1).ToArray() 
+                : resultDict.Values.Select(p => p.Item1 / 100).ToArray();
+
+            var targetDecoyChart = Chart.Combine(new[]
+                {
+                    Chart.Spline<double, int, string>(xValues, targetValues, Name: "Targets"),
+                    Chart.Spline<double, int, string>(xValues, decoyValues, Name: "Decoys"),
+                })
+                .WithTitle($"{results.DatasetName} {results.Condition} {Label(results.IsTopDown, resultType)} by {mode}")
+                .WithSize(600, 400)
+                .WithLayout(DefaultLayoutWithLegend);
+
+
+            return targetDecoyChart;
+        }
+
 
         #endregion
 

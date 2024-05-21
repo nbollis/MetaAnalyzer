@@ -425,10 +425,13 @@ public static class PlottingTranslators
                 {
                     "MetaMorpheusNoChimeras", "MetaMorpheus_FullPEPChimeraIncorporation",
                     "MetaMorpheus_Rep2_WithLibrary", // metamorpheus rep2 with library and old pep
+                    "MetaMorpheus_NewPEP_NoNormNoMult",
+
 
                     "MsPathFinderTWithModsNoChimerasRep2", "MsPathFinderTWithMods_7Rep2",
+                    "MsPathFinderTWithMods_15Rep2",
 
-                    "ProsightPDChimeras_Rep2", "ProsightPDNoChimeras_Rep2",
+                    "ProsightPDChimeras_Rep2", "ProsightPDNoChimeras_Rep2", "ProsightPDNoChimeras_Rep2_15",
                 };
             }
             else if (cellLine.Contains("Ecoli"))
@@ -437,9 +440,12 @@ public static class PlottingTranslators
                 {
                     "MetaMorpheus", "MetaMorpheusNoChimeras",
                     "MetaMorpheus_NewPEP_NoNorm", // ecoli ran with new pep
+                    "MetaMorpheus_NewPEP_NoNormNoMult", // ecoli ran with new pep no mult
 
                     "MsPathFinderTWithModsNoChimeras", "MsPathFinderTWithMods_7",
-                    "ProsightPDChimeras", "ProsightPDNoChimeras",
+                    "MsPathFinderTWithMods_15",
+
+                    "ProsightPDChimeras", "ProsightPDNoChimeras", "ProsightPDChimeras_15"
                 };
             }
 

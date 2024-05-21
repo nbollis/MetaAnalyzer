@@ -8,6 +8,7 @@ namespace Analyzer.SearchType
         public string DirectoryPath { get; set; }
         public string DatasetName { get; set; }
         public string Condition { get; set; }
+        public string FigureDirectory { get; }
         public bool Override { get; set; } = false;
 
         public string _psmPath;
@@ -49,6 +50,9 @@ namespace Analyzer.SearchType
         public BulkResult(string directoryPath)
         {
             DirectoryPath = directoryPath;
+            FigureDirectory = Path.Combine(DirectoryPath, "Figures");
+            if (!Directory.Exists(FigureDirectory))
+                Directory.CreateDirectory(FigureDirectory);
             if (DirectoryPath.Contains("Task"))
             {
                 DatasetName = Path.GetFileName(Path.GetDirectoryName(Path.GetDirectoryName(Path.GetDirectoryName(DirectoryPath))));

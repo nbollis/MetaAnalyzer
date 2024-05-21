@@ -72,7 +72,14 @@ namespace Analyzer.Plotting
 
         public void Export(string path)
         {
-            PepChart.SavePNG(path, null, exportWidth, exportHeight);
+            try
+            {
+                PepChart.SavePNG(path, null, exportWidth, exportHeight);
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
+            }
         }
 
         public List<PepSplomData> GenerateScatterData()

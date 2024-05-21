@@ -16,8 +16,9 @@ namespace Analyzer.FileTypes.External
         public override SupportedFileType FileType => SupportedFileType.Tsv_FlashDeconv;
         public override Software Software { get; set; }
 
-        private List<MsPathFinderTResult> _filteredResults;
-        public List<MsPathFinderTResult> FilteredResults => _filteredResults ??= Results.Where(p => p.EValue <= 0.01 && p.Probability >= 0.5).ToList();
+        private List<MsPathFinderTResult>? _filteredResults;
+        public List<MsPathFinderTResult> FilteredResults => _filteredResults ??=
+            Results.Where(p => p is { EValue: <= 0.01, Probability: >= 0.5 }).ToList();
 
         public MsPathFinderTResultFile(string filePath) : base(filePath, Software.Unspecified)
         {

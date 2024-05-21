@@ -13,17 +13,14 @@ namespace Analyzer.SearchType
     {
         #region Results
 
-        private List<PsmFromTsv> allPsms;
+        private List<PsmFromTsv>? allPsms;
         public List<PsmFromTsv> AllPsms => allPsms ??= SpectrumMatchTsvReader.ReadPsmTsv(_psmPath, out _);
 
-        private List<PsmFromTsv> allPeptides;
+        private List<PsmFromTsv>? allPeptides;
         public List<PsmFromTsv> AllPeptides => allPeptides ??= SpectrumMatchTsvReader.ReadPsmTsv(_peptidePath, out _);
 
 
         #endregion
-
-
-
 
         public override BulkResultCountComparisonFile BaseSeqIndividualFileComparisonFile => _baseSeqIndividualFileComparison ??= CountIndividualFilesForFengChaoComparison();
         public string[] DataFilePaths { get; set; } // set by CellLineResults constructor
@@ -156,8 +153,6 @@ namespace Analyzer.SearchType
             chimeraCountingFile.WriteResults(_chimeraPeptidePath);
             return chimeraCountingFile;
         }
-
-
         public BulkResultCountComparisonFile CountIndividualFilesForFengChaoComparison()
         {
             if (!Override && File.Exists(_baseSeqIndividualFilePath))

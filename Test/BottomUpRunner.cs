@@ -1,4 +1,5 @@
-﻿using System.Text;
+﻿using System.Data;
+using System.Text;
 using Analyzer.Plotting;
 using Analyzer.SearchType;
 using Analyzer.Util;
@@ -65,6 +66,7 @@ namespace Test
         [Test]
         public static void PlotAllFigures()
         {
+            var todo = new[] { "MCF7", "RKO", "U2OS" };
             foreach (CellLineResults cellLine in AllResults)
             {
                 cellLine.PlotIndividualFileResults();
@@ -73,14 +75,22 @@ namespace Test
                 cellLine.PlotCellLineSpectralSimilarity();
                 cellLine.PlotCellLineChimeraBreakdown();
                 cellLine.PlotCellLineChimeraBreakdown_TargetDecoy();
+                foreach (var individualResult in cellLine)
+                {
+                    if (individualResult is not MetaMorpheusResult mm) continue;
+                    if (!todo.Contains(individualResult.DatasetName)) continue;
+                    mm.ExportPepFeaturesPlots();
+                    mm.PlotTargetDecoyCurves();
+                    mm.ExportCombinedChimeraTargetDecoyExploration(mm.FigureDirectory, mm.Condition);
+                }
             }
 
             AllResults.PlotInternalMMComparison();
             AllResults.PlotBulkResultComparisons();
             AllResults.PlotStackedIndividualFileComparison();
             AllResults.PlotBulkResultChimeraBreakDown();
-            //AllResults.PlotStackedSpectralSimilarity();
-            //AllResults.PlotAggregatedSpectralSimilarity();
+            AllResults.PlotStackedSpectralSimilarity();
+            AllResults.PlotAggregatedSpectralSimilarity();
             AllResults.PlotBulkResultChimeraBreakDown();
             AllResults.PlotBulkResultChimeraBreakDown_TargetDecoy();
         }

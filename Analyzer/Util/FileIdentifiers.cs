@@ -18,6 +18,7 @@
         public static string ChimeraBreakdownComparison => "ChimeraBreakdownComparison.csv";
         public static string ChimeraBreakdownComparisonFigure => "ChimeraBreakdown_1%";
         public static string ChimeraBreakdownTargetDecoy => "ChimeraBreakdown_TargetDecoy";
+        public static string TargetDecoyCurve => "TargetDecoyCurve";
 
 
 

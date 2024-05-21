@@ -21,6 +21,9 @@ public static class CellLinePlots
         string outPath = Path.Combine(outputDirectory, $"{FileIdentifiers.IndividualFileComparisonFigure}_{resultType}_{cellLine.CellLine}");
         var chart = cellLine.GetIndividualFileResultsBarChart(out int width, out int height, resultType.Value);
         chart.SavePNG(outPath, null, width, height);
+
+        outPath = Path.Combine(cellLine.FigureDirectory, $"{FileIdentifiers.IndividualFileComparisonFigure}_{resultType}_{cellLine.CellLine}");
+        chart.SavePNG(outPath, null, width, height);
     }
 
     public static GenericChart.GenericChart GetIndividualFileResultsBarChart(this CellLineResults cellLine, out int width,
@@ -46,8 +49,12 @@ public static class CellLinePlots
         var plots = cellLine.GetCellLineRetentionTimePredictions();
         string outPath = Path.Combine(cellLine.GetFigureDirectory(), $"{FileIdentifiers.ChronologerFigure}_{cellLine.CellLine}");
         plots.Chronologer.SavePNG(outPath, null, 1000, GenericPlots.DefaultHeight);
+        outPath = Path.Combine(cellLine.FigureDirectory, $"{FileIdentifiers.ChronologerFigure}_{cellLine.CellLine}");
+        plots.Chronologer.SavePNG(outPath, null, 1000, GenericPlots.DefaultHeight);
 
         outPath = Path.Combine(cellLine.GetFigureDirectory(), $"{FileIdentifiers.SSRCalcFigure}_{cellLine.CellLine}");
+        plots.SSRCalc3.SavePNG(outPath, null, 1000, GenericPlots.DefaultHeight);
+        outPath = Path.Combine(cellLine.FigureDirectory, $"{FileIdentifiers.SSRCalcFigure}_{cellLine.CellLine}");
         plots.SSRCalc3.SavePNG(outPath, null, 1000, GenericPlots.DefaultHeight);
     }
 
@@ -107,7 +114,11 @@ public static class CellLinePlots
 
     public static void PlotCellLineSpectralSimilarity(this CellLineResults cellLine)
     {
+
         string outpath = Path.Combine(cellLine.GetFigureDirectory(), $"{FileIdentifiers.SpectralAngleFigure}_{cellLine.CellLine}");
+        var chart = cellLine.GetCellLineSpectralSimilarity();
+        chart.SavePNG(outpath);
+        outpath = Path.Combine(cellLine.FigureDirectory, $"{FileIdentifiers.SpectralAngleFigure}_{cellLine.CellLine}");
         cellLine.GetCellLineSpectralSimilarity().SavePNG(outpath);
     }
 
@@ -154,9 +165,10 @@ public static class CellLinePlots
     /// <param name="absolute"></param>
     public static void PlotCellLineChimeraBreakdown_TargetDecoy(this CellLineResults cellLine, bool absolute = false)
     {
-        var selector = cellLine.First().IsTopDown.ChimeraBreakdownSelector();
-        var smLabel = cellLine.First().IsTopDown ? "PrSM" : "PSM";
-        var pepLabel = cellLine.First().IsTopDown ? "Proteoform" : "Peptide";
+        bool isTopDown = cellLine.First().IsTopDown;
+        var selector = isTopDown.ChimeraBreakdownSelector();
+        var smLabel = GenericPlots.SpectralMatchLabel(isTopDown);
+        var pepLabel = GenericPlots.ResultLabel(isTopDown);
 
         var results = cellLine.Results
             .Where(p => p is MetaMorpheusResult && selector.Contains(p.Condition))
@@ -167,11 +179,17 @@ public static class CellLinePlots
         string psmOutPath = Path.Combine(cellLine.GetFigureDirectory(),
             $"{FileIdentifiers.ChimeraBreakdownTargetDecoy}_{smLabel}_{cellLine.CellLine}");
         psmChart.SavePNG(psmOutPath, null, width, GenericPlots.DefaultHeight);
+        psmOutPath = Path.Combine(cellLine.FigureDirectory,
+                       $"{FileIdentifiers.ChimeraBreakdownTargetDecoy}_{smLabel}_{cellLine.CellLine}");
+        psmChart.SavePNG(psmOutPath, null, width, GenericPlots.DefaultHeight);
 
         var peptideChart =
             results.GetChimeraBreakDownStackedColumn_TargetDecoy(ResultType.Peptide, cellLine.First().IsTopDown, absolute, out width);
         string peptideOutPath = Path.Combine(cellLine.GetFigureDirectory(),
             $"{FileIdentifiers.ChimeraBreakdownTargetDecoy}_{pepLabel}_{cellLine.CellLine}");
+        peptideChart.SavePNG(peptideOutPath, null, width, GenericPlots.DefaultHeight);
+        peptideOutPath = Path.Combine(cellLine.FigureDirectory,
+                                  $"{FileIdentifiers.ChimeraBreakdownTargetDecoy}_{pepLabel}_{cellLine.CellLine}");
         peptideChart.SavePNG(peptideOutPath, null, width, GenericPlots.DefaultHeight);
     }
 
@@ -184,9 +202,10 @@ public static class CellLinePlots
     /// <param name="cellLine"></param>
     public static void PlotCellLineChimeraBreakdown(this CellLineResults cellLine)
     {
-        var selector = cellLine.First().IsTopDown.ChimeraBreakdownSelector();
-        var smLabel = cellLine.First().IsTopDown ? "PrSM" : "PSM";
-        var pepLabel = cellLine.First().IsTopDown ? "Proteoform" : "Peptide";
+        bool isTopDown = cellLine.First().IsTopDown;
+        var selector = isTopDown.ChimeraBreakdownSelector();
+        var smLabel = GenericPlots.SpectralMatchLabel(isTopDown);
+        var pepLabel = GenericPlots.ResultLabel(isTopDown);
 
         var results = cellLine.Results
             .Where(p => p is MetaMorpheusResult && selector.Contains(p.Condition))
@@ -197,11 +216,17 @@ public static class CellLinePlots
         string psmOutPath = Path.Combine(cellLine.GetFigureDirectory(),
             $"{FileIdentifiers.ChimeraBreakdownComparisonFigure}_{smLabel}_{cellLine.CellLine}");
         psmChart.SavePNG(psmOutPath, null, width, GenericPlots.DefaultHeight);
+        psmOutPath = Path.Combine(cellLine.FigureDirectory,
+                                  $"{FileIdentifiers.ChimeraBreakdownComparisonFigure}_{smLabel}_{cellLine.CellLine}");
+        psmChart.SavePNG(psmOutPath, null, width, GenericPlots.DefaultHeight);
 
         var peptideChart =
             results.GetChimeraBreakDownStackedColumn(ResultType.Peptide, cellLine.First().IsTopDown, out width);
         string peptideOutPath = Path.Combine(cellLine.GetFigureDirectory(),
             $"{FileIdentifiers.ChimeraBreakdownComparisonFigure}_{pepLabel}_{cellLine.CellLine}");
+        peptideChart.SavePNG(peptideOutPath, null, width, GenericPlots.DefaultHeight);
+        peptideOutPath = Path.Combine(cellLine.FigureDirectory,
+                                             $"{FileIdentifiers.ChimeraBreakdownComparisonFigure}_{pepLabel}_{cellLine.CellLine}");
         peptideChart.SavePNG(peptideOutPath, null, width, GenericPlots.DefaultHeight);
     }
 

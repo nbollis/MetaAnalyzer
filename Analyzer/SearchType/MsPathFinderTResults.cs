@@ -9,14 +9,19 @@ namespace Analyzer.SearchType
 {
     public class MsPathFinderTResults : BulkResult, IEnumerable<MsPathFinderTIndividualFileResult>
     {
-        private string _combinedResultFilePath;
+        private string _datasetInfoFilePath => Path.Combine(DirectoryPath, "DatasetInfoFile.tsv");
+        private string _crossTabResultFilePath;
 
         private bool _runBulk =>
             Override ||
             !File.Exists(_bulkResultCountComparisonPath) ||
-            (new BulkResultCountComparisonFile(_bulkResultCountComparisonPath).First().ProteinGroupCount == 0 && !_combinedResultFilePath.IsNullOrEmpty());
+            (new BulkResultCountComparisonFile(_bulkResultCountComparisonPath).First().ProteinGroupCount == 0 && !_crossTabResultFilePath.IsNullOrEmpty());
 
-
+        private MsPathFinderTCrossTabResultFile _crossTabResultFile;
+        public MsPathFinderTCrossTabResultFile CrossTabResultFile => _crossTabResultFile ??= new MsPathFinderTCrossTabResultFile(_crossTabResultFilePath);
+        private string _combinedTargetResultFilePath => Path.Combine(DirectoryPath, "CombinedTargetResults_IcTarget.tsv");
+        private MsPathFinderTResultFile? _combinedTargetResults;
+        public MsPathFinderTResultFile CombinedTargetResults => _combinedTargetResults ??= CombinePrSMFiles();
         public List<MsPathFinderTIndividualFileResult> IndividualFileResults { get; set; }
         public MsPathFinderTResults(string directoryPath) : base(directoryPath)
         {
@@ -24,7 +29,7 @@ namespace Analyzer.SearchType
             IndividualFileResults = new List<MsPathFinderTIndividualFileResult>();
 
             // combined file if ProMexAlign was ran
-            _combinedResultFilePath = Directory.GetFiles(DirectoryPath).FirstOrDefault(p => p.Contains("crosstab.tsv")); 
+            _crossTabResultFilePath = Directory.GetFiles(DirectoryPath).FirstOrDefault(p => p.Contains("crosstab.tsv")); 
 
             // sorting out the individual result files
             var files = Directory.GetFiles(DirectoryPath)
@@ -74,7 +79,7 @@ namespace Analyzer.SearchType
                 results.Add(new BulkResultCountComparison()
                 {
                     Condition = Condition,
-                    DatasetName =DatasetName,
+                    DatasetName = DatasetName,
                     FileName = file.Name,
                     OnePercentPsmCount = onePercentProteoformCount,
                     PsmCount = proteoformCount,
@@ -111,40 +116,18 @@ namespace Analyzer.SearchType
             if (!_runBulk)
                 return new BulkResultCountComparisonFile(_bulkResultCountComparisonPath);
             
-
             int proteoformCount = 0;
             int onePercentProteoformCount = 0;
             List<string> accessions = new();
-            if (!_combinedResultFilePath.IsNullOrEmpty()) // if ProMexAlign was ran
+            if (!_crossTabResultFilePath.IsNullOrEmpty()) // if ProMexAlign was ran
             {
-                using (var sw = new StreamReader(_combinedResultFilePath))
-                {
-                    var header = sw.ReadLine();
-                    var eValueIndex = header!.Split('\t').ToList().IndexOf("BestEValue");
-                    var nameIndex = header!.Split('\t').ToList().IndexOf("ProteinName");
+                proteoformCount = CrossTabResultFile.TargetResults.Count;
+                onePercentProteoformCount = CrossTabResultFile.FilteredTargetResults.Count;
+                var temp = CrossTabResultFile.TargetResults.DistinctBy(p => p.BaseSequence).ToArray();
 
-                    while (!sw.EndOfStream)
-                    {
-                        var line = sw.ReadLine();
-                        var splits = line.Split('\t');
-                        if (splits[eValueIndex].IsNullOrEmpty())
-                            continue;
-                        proteoformCount++;
-                        if (double.TryParse(splits[eValueIndex], out double eValue) && eValue < 0.01)
-                            onePercentProteoformCount++;
-                        try
-                        {
-                            accessions.Add(splits[nameIndex].Split('|')[1].Trim());
-                        }
-                        catch (Exception e)
-                        {
-                            Console.WriteLine(e);
-                            Debugger.Break();
-                        }
-                    }
-                }
+                
+                accessions.AddRange(CrossTabResultFile.TargetResults.Select(p => p.ProteinAccession));
             }
-
 
             var distinctProteins = accessions.Distinct().Count();
             var result = new BulkResultCountComparison()
@@ -168,9 +151,6 @@ namespace Analyzer.SearchType
             return bulkComparisonFile;
         }
 
-        private string _combinedTargetResultFilePath => Path.Combine(DirectoryPath, "CombinedTargetResults_IcTarget.tsv");
-        private MsPathFinderTResultFile _combinedTargetResults;
-        public MsPathFinderTResultFile CombinedTargetResults => _combinedTargetResults ??= CombinePrSMFiles();
         public MsPathFinderTResultFile CombinePrSMFiles()
         {
             if (!Override && File.Exists(_combinedTargetResultFilePath))
@@ -182,7 +162,6 @@ namespace Analyzer.SearchType
             return file;
         }
 
-        private string _datasetInfoFilePath => Path.Combine(DirectoryPath, "DatasetInfoFile.tsv");
         public void CreateDatasetInfoFile()
         {
             if (File.Exists(_datasetInfoFilePath))
@@ -236,22 +215,5 @@ namespace Analyzer.SearchType
             ParamPath = paramPath;
             RawFilePath = rawFilePath;
         }
-
-        public void ReWriteParamFile()
-        {
-            var lines = File.ReadAllLines(ParamPath);
-            var newLines = new List<string>();
-            foreach (var line in lines)
-            {
-                if (line.StartsWith("ActivationMethod"))
-                    newLines.Add("ActivationMethod\tHCD");
-                else if (line.StartsWith("MaxDynamicModificationsPerSequence"))
-                    newLines.Add("MaxDynamicModificationsPerSequence\t2");
-                else
-                    newLines.Add(line);
-            }
-            File.WriteAllLines(ParamPath, newLines);
-        }
-        
     }
 }

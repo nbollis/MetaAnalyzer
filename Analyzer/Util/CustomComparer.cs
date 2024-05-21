@@ -83,6 +83,11 @@ namespace Analyzer.Util
                 prsm => prsm.FileID,
                 prsm => prsm.Ms2ScanNumber);
 
+        //public static CustomComparer<MsPathFinderTCrossTabResultRecord> MsPathFinderTCrossTabChimeraComparer =>
+        //new CustomComparer<MsPathFinderTCrossTabResultRecord>(
+        //               prsm => prsm.Scan
+        //               );
+
         #endregion
 
     }
