@@ -160,9 +160,9 @@ namespace Analyzer.Plotting
             var labels = results.Select(p => p.DatasetName).Distinct().ConvertConditionNames().ToList();
 
             List<GenericChart.GenericChart> charts = new();
-            foreach (var condition in results.Select(p => p.Condition).Distinct())
+            foreach (var condition in results.Select(p => p.Condition).ConvertConditionNames().Distinct())
             {
-                var conditionSpecificResults = results.Where(p => p.Condition == condition).ToList();
+                var conditionSpecificResults = results.Where(p => p.Condition.ConvertConditionName() == condition).ToList();
 
                 // if results exist for one dataset but not the other, ensure they are plotted in the correct order
                 if (conditionSpecificResults.Count != labels.Count)
@@ -244,6 +244,12 @@ namespace Analyzer.Plotting
                 .WithYAxisStyle(Title.init("Count"))
                 .WithSize(width, DefaultHeight);
             return chart;
+        }
+
+        internal static GenericChart.GenericChart GetChimeraBreakDownStackedArea(List<ChimeraBreakdownRecord> results,
+            ResultType type, bool isTopDown, out int width)
+        {
+
         }
 
         #region Target Decoy Exploration

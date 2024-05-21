@@ -118,18 +118,23 @@ namespace Analyzer.SearchType
             
             int proteoformCount = 0;
             int onePercentProteoformCount = 0;
-            List<string> accessions = new();
+            int proteinCount = 0;
+            int onePercentProteinCount = 0;
             if (!_crossTabResultFilePath.IsNullOrEmpty()) // if ProMexAlign was ran
             {
-                proteoformCount = CrossTabResultFile.TargetResults.Count;
-                onePercentProteoformCount = CrossTabResultFile.FilteredTargetResults.Count;
-                var temp = CrossTabResultFile.TargetResults.DistinctBy(p => p.BaseSequence).ToArray();
+                proteoformCount = CrossTabResultFile.TargetResults.DistinctBy(p => p,
+                        CustomComparer<MsPathFinderTCrossTabResultRecord>
+                            .MsPathFinderTCrossTabDistinctProteoformComparer)
+                    .Count();
+                onePercentProteoformCount = CrossTabResultFile.FilteredTargetResults.DistinctBy(p => p,
+                        CustomComparer<MsPathFinderTCrossTabResultRecord>
+                            .MsPathFinderTCrossTabDistinctProteoformComparer)
+                    .Count();
 
-                
-                accessions.AddRange(CrossTabResultFile.TargetResults.Select(p => p.ProteinAccession));
+                proteinCount = CrossTabResultFile.TargetResults.SelectMany(p => p.ProteinAccession).Distinct().Count();
+                onePercentProteinCount = CrossTabResultFile.FilteredTargetResults.SelectMany(p => p.ProteinAccession).Distinct().Count();
             }
 
-            var distinctProteins = accessions.Distinct().Count();
             var result = new BulkResultCountComparison()
             {
                 Condition = Condition,
@@ -139,8 +144,8 @@ namespace Analyzer.SearchType
                 PsmCount = CombinedTargetResults.Results.Count,
                 PeptideCount = proteoformCount,
                 OnePercentPeptideCount = onePercentProteoformCount,
-                ProteinGroupCount = distinctProteins,
-                OnePercentProteinGroupCount = distinctProteins
+                ProteinGroupCount = proteinCount,
+                OnePercentProteinGroupCount = onePercentProteinCount
             };
 
             var bulkComparisonFile = new BulkResultCountComparisonFile(_bulkResultCountComparisonPath)

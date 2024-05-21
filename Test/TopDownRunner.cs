@@ -38,7 +38,7 @@ namespace Test
                     result.GetBulkResultCountComparisonFile();
                     if (result is MetaMorpheusResult mm)
                     {
-                       // mm.GetChimeraBreakdownFile();
+                        // mm.GetChimeraBreakdownFile();
                         mm.CountChimericPeptides();
                     }
                     result.Override = false;
@@ -71,30 +71,30 @@ namespace Test
         [Test]
         public static void GenerateAllFigures()
         {
-            foreach (CellLineResults cellLine in AllResults)
-            {
-                cellLine.PlotIndividualFileResults();
-                cellLine.PlotCellLineSpectralSimilarity();
-                cellLine.PlotCellLineChimeraBreakdown();
-                cellLine.PlotCellLineChimeraBreakdown_TargetDecoy();
-                foreach (var individualResult in cellLine)
-                {
-                    if (individualResult is not MetaMorpheusResult mm) continue;
-                    //mm.ExportPepFeaturesPlots();
-                    //mm.ExportCombinedChimeraTargetDecoyExploration(mm.FigureDirectory, mm.Condition);
-                }
+            //foreach (CellLineResults cellLine in AllResults)
+            //{
+            //    cellLine.PlotIndividualFileResults();
+            //    cellLine.PlotCellLineSpectralSimilarity();
+            //    cellLine.PlotCellLineChimeraBreakdown();
+            //    cellLine.PlotCellLineChimeraBreakdown_TargetDecoy();
+            //    foreach (var individualResult in cellLine)
+            //    {
+            //        if (individualResult is not MetaMorpheusResult mm) continue;
+            //        //mm.ExportPepFeaturesPlots();
+            //        //mm.ExportCombinedChimeraTargetDecoyExploration(mm.FigureDirectory, mm.Condition);
+            //    }
 
-                cellLine.PlotIndividualFileResults();
-                cellLine.PlotCellLineSpectralSimilarity();
-                cellLine.PlotCellLineChimeraBreakdown();
-                cellLine.PlotCellLineChimeraBreakdown_TargetDecoy();
-            }
+            //    cellLine.PlotIndividualFileResults();
+            //    cellLine.PlotCellLineSpectralSimilarity();
+            //    cellLine.PlotCellLineChimeraBreakdown();
+            //    cellLine.PlotCellLineChimeraBreakdown_TargetDecoy();
+            //}
 
-            AllResults.PlotInternalMMComparison();
+            //AllResults.PlotInternalMMComparison();
             AllResults.PlotBulkResultComparisons();
             AllResults.PlotStackedIndividualFileComparison();
-            AllResults.PlotBulkResultChimeraBreakDown();
-            AllResults.PlotBulkResultChimeraBreakDown_TargetDecoy();
+           // AllResults.PlotBulkResultChimeraBreakDown();
+           // AllResults.PlotBulkResultChimeraBreakDown_TargetDecoy();
         }
 
         [Test]

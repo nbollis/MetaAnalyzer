@@ -1,5 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations.Schema;
 using System.Globalization;
+using System.Reflection.Metadata.Ecma335;
 using Analyzer.Util.TypeConverters;
 using CsvHelper;
 using CsvHelper.Configuration;
@@ -29,7 +30,7 @@ public class MsPathFinderTCrossTabResultFile : ResultFile<MsPathFinderTCrossTabR
         var abundance = headers.Where(p => p.Contains("_Abundance"))
             .ToDictionary(p => p, p => headers.IndexOf(p));
         var preIndex = headers.IndexOf("Pre");
-        Results = new List<MsPathFinderTCrossTabResultRecord>();
+        var results = new List<MsPathFinderTCrossTabResultRecord>();
 
         bool readHeader = false;
         while (csv.Read())
@@ -42,9 +43,11 @@ public class MsPathFinderTCrossTabResultFile : ResultFile<MsPathFinderTCrossTabR
             }
             if (csv.Parser.Record[preIndex].IsNullOrEmpty())
                 continue;
-            
+
 
             var record = csv.GetRecord<MsPathFinderTCrossTabResultRecord>();
+            if (record is null) 
+                continue;
             foreach (var kvp in spectraCount)
             {
                 var file = kvp.Key.Replace("_SpectraCount", "");
@@ -57,8 +60,10 @@ public class MsPathFinderTCrossTabResultFile : ResultFile<MsPathFinderTCrossTabR
                 record.AbundanceByFile[file] = csv.GetField<double>(kvp.Value);
             }
 
-            Results.Add(record);
+            results.Add(record);
         }
+
+        Results = results;
     }
 
     public override void WriteResults(string outputPath)

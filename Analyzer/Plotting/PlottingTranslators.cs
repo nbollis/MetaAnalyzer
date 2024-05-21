@@ -34,27 +34,27 @@ public static class PlottingTranslators
         {"No Chimeras", Color.fromKeyword(ColorKeyword.Plum) },
 
         // Top Down
-        {"MetaMorpheus", Color.fromKeyword(ColorKeyword.Purple) },
-        {"MetaMorpheusNoChimeras", Color.fromKeyword(ColorKeyword.Plum) },
-        {"MetaMorpheus_Rep2_WithLibrary", Color.fromKeyword(ColorKeyword.Purple)},
-
-
-        {"MsPathFinderTWithModsNoChimeras", Color.fromKeyword(ColorKeyword.Moccasin)},
-        {"MsPathFinderTWithModsNoChimerasRep2", Color.fromKeyword(ColorKeyword.Moccasin)},
-        {"MsPathFinderT", Color.fromKeyword(ColorKeyword.Khaki)},
-        {"MsPathFinderTWithMods", Color.fromKeyword(ColorKeyword.Gold)},
-        {"MsPathFinderTWithMods_7", Color.fromKeyword(ColorKeyword.GoldenRod)},
+        {"MetaMorpheus", Color.fromKeyword(ColorKeyword.Purple) }, // ecoli
+        {"MetaMorpheusNoChimeras", Color.fromKeyword(ColorKeyword.Plum) }, // shared
+        {"MetaMorpheus_Rep2_WithLibrary", Color.fromKeyword(ColorKeyword.MediumOrchid)}, // jurkat
+        {"MetaMorpheus_Rep2_WithLibrary_NewPEP_NoNorm", Color.fromKeyword(ColorKeyword.Purple)}, 
         
-        {"MsPathFinderTWithMods_7Rep2", Color.fromKeyword(ColorKeyword.GoldenRod)},
-        {"ProsightPDNoChimeras", Color.fromKeyword(ColorKeyword.PaleVioletRed)},
-        {"ProsightPDNoChimeras_Rep2", Color.fromKeyword(ColorKeyword.PaleVioletRed)},
-        {"ProsightPDChimeras", Color.fromKeyword(ColorKeyword.Red)},
-        {"ProsightPDChimeras_Rep2", Color.fromKeyword(ColorKeyword.Red)},
-        {"ProsightPD_SubsequenceSearch", Color.fromKeyword(ColorKeyword.OrangeRed)},
+        {"MsPathFinderTWithModsNoChimeras", Color.fromKeyword(ColorKeyword.Moccasin)}, // ecoli
+        {"MsPathFinderTWithMods_7", Color.fromKeyword(ColorKeyword.Gold)},
+        {"MsPathFinderTWithMods_15", Color.fromKeyword(ColorKeyword.GoldenRod)},
+        {"MsPathFinderTWithModsNoChimerasRep2", Color.fromKeyword(ColorKeyword.Moccasin)}, // jurkat
+        {"MsPathFinderTWithMods_7Rep2", Color.fromKeyword(ColorKeyword.Gold)},
+        {"MsPathFinderTWithMods_15Rep2", Color.fromKeyword(ColorKeyword.GoldenRod)},
+        
+        {"ProsightPDNoChimeras", Color.fromKeyword(ColorKeyword.PaleVioletRed)}, // ecoli
+        {"ProsightPDChimeras", Color.fromKeyword(ColorKeyword.IndianRed)},
+        {"ProsightPDChimeras_15", Color.fromKeyword(ColorKeyword.Red)},
+        {"ProsightPDNoChimeras_Rep2", Color.fromKeyword(ColorKeyword.PaleVioletRed)}, // jurkat
+        {"ProsightPDChimeras_Rep2", Color.fromKeyword(ColorKeyword.IndianRed)},
+        {"ProsightPDChimeras_Rep2_15", Color.fromKeyword(ColorKeyword.Red)},
 
 
-        { "MetaMorpheus_ChimeraInPEP_Negative", Color.fromKeyword(ColorKeyword.Black) },
-        { "MetaMorpheus_ChimeraInPEP_Positive", Color.fromKeyword(ColorKeyword.Brown) },
+
 
 
         // Chimera Breakdown plot
@@ -362,17 +362,22 @@ public static class PlottingTranslators
 
         // Top Down
         { "MetaMorpheus", "MetaMorpheus\u2800" },
+        { "MetaMorpheus_Rep2_WithLibrary", "MetaMorpheus\u2800" }, // temp until actual final is finished
         { "MetaMorpheusNoChimeras", "MetaMorpheus No Chimeras" },
 
-        { "MsPathFinderTWithMods_7", "MsPathFinderT⠀" },
-        { "MsPathFinderTWithModsNoChimerasRep2", "MsPathFinderT No Chimeras" },
-        { "MsPathFinderTWithMods_7Rep2", "MsPathFinderT⠀" },
         { "MsPathFinderTWithModsNoChimeras", "MsPathFinderT No Chimeras" },
+        { "MsPathFinderTWithModsNoChimerasRep2", "MsPathFinderT No Chimeras" },
+        { "MsPathFinderTWithMods_7", "MsPathFinderT⠀7" },
+        { "MsPathFinderTWithMods_7Rep2", "MsPathFinderT⠀7" },
+        { "MsPathFinderTWithMods_15", "MsPathFinderT⠀⠀15" },
+        { "MsPathFinderTWithMods_15Rep2", "MsPathFinderT⠀⠀15" },
 
         {"ProsightPDNoChimeras", "ProsightPD No Chimeras"},
-        {"ProsightPDChimeras", "ProsightPD⠀Chimeras"},
         {"ProsightPDNoChimeras_Rep2", "ProsightPD No Chimeras"},
-        {"ProsightPDChimeras_Rep2", "ProsightPD⠀Chimeras"},
+        {"ProsightPDChimeras", "ProsightPD⠀⠀Chimeras"},
+        {"ProsightPDChimeras_Rep2", "ProsightPD⠀⠀Chimeras"},
+        {"ProsightPDChimeras_15", "ProsightPD⠀15 Chimeras"},
+        {"ProsightPDChimeras_Rep2_15", "ProsightPD⠀15 Chimeras"},
     };
 
     #endregion
@@ -403,7 +408,21 @@ public static class PlottingTranslators
 
     public static Color ConvertConditionToColor(this string condition)
     {
-        return ConditionToColorDictionary.ContainsKey(condition) ? ConditionToColorDictionary[condition] : Color.fromKeyword(ColorKeyword.Black);
+        if(ConditionToColorDictionary.TryGetValue(condition, out var color))
+            return color;
+        else
+        {
+            if (ConditionNameConversionDictionary.ContainsValue(condition))
+            {
+                var key = ConditionNameConversionDictionary.FirstOrDefault(x => x.Value == condition).Key;
+                if (key is null)
+                    return Color.fromKeyword(ColorKeyword.Black);
+                if (ConditionToColorDictionary.TryGetValue(key, out color))
+                    return color;
+            }
+        }
+
+        return Color.fromKeyword(ColorKeyword.Black);
     }
 
     public static IEnumerable<Color> ConvertConditionsToColors(this IEnumerable<string> conditions)
@@ -426,10 +445,10 @@ public static class PlottingTranslators
                     "MetaMorpheusNoChimeras", "MetaMorpheus_FullPEPChimeraIncorporation",
                     "MetaMorpheus_Rep2_WithLibrary", // metamorpheus rep2 with library and old pep
                     "MetaMorpheus_NewPEP_NoNormNoMult",
+                    "MetaMorpheus_NewPEP_NoNorm",
 
 
-                    "MsPathFinderTWithModsNoChimerasRep2", "MsPathFinderTWithMods_7Rep2",
-                    "MsPathFinderTWithMods_15Rep2",
+                    "MsPathFinderTWithModsNoChimerasRep2", "MsPathFinderTWithMods_7Rep2", "MsPathFinderTWithMods_15Rep2",
 
                     "ProsightPDChimeras_Rep2", "ProsightPDNoChimeras_Rep2", "ProsightPDNoChimeras_Rep2_15",
                 };
@@ -442,8 +461,7 @@ public static class PlottingTranslators
                     "MetaMorpheus_NewPEP_NoNorm", // ecoli ran with new pep
                     "MetaMorpheus_NewPEP_NoNormNoMult", // ecoli ran with new pep no mult
 
-                    "MsPathFinderTWithModsNoChimeras", "MsPathFinderTWithMods_7",
-                    "MsPathFinderTWithMods_15",
+                    "MsPathFinderTWithModsNoChimeras", "MsPathFinderTWithMods_7", "MsPathFinderTWithMods_15",
 
                     "ProsightPDChimeras", "ProsightPDNoChimeras", "ProsightPDChimeras_15"
                 };
@@ -498,12 +516,14 @@ public static class PlottingTranslators
             {
                 return new[]
                 {
-                    "MetaMorpheus", "MetaMorpheusNoChimeras", "MetaMorpheus_FullPEPChimeraIncorporation",
+                    /*"MetaMorpheus",*/ "MetaMorpheusNoChimeras",/* "MetaMorpheus_FullPEPChimeraIncorporation",*/
                     "MetaMorpheus_Rep2_WithLibrary", // metamorpheus rep2 with library and old pep
+                    //"MetaMorpheus_NewPEP_NoNormNoMult",
+                    "MetaMorpheus_Rep2_WithLibrary_NewPEP_NoNorm",
 
-                    "MsPathFinderTWithModsNoChimerasRep2", "MsPathFinderTWithMods_7Rep2",
+                    "MsPathFinderTWithModsNoChimerasRep2", "MsPathFinderTWithMods_7Rep2", "MsPathFinderTWithMods_15Rep2",
 
-                    "ProsightPDChimeras_Rep2", "ProsightPDNoChimeras_Rep2",
+                    "ProsightPDChimeras_Rep2", "ProsightPDNoChimeras_Rep2","ProsightPDNoChimeras_Rep2_15",
                 };
             }
             else if (cellLine.Contains("Ecoli"))
@@ -513,8 +533,9 @@ public static class PlottingTranslators
                     "MetaMorpheus", "MetaMorpheusNoChimeras",
                     "MetaMorpheus_NewPEP_NoNorm", // ecoli ran with new pep
 
-                    "MsPathFinderTWithModsNoChimeras", "MsPathFinderTWithMods_7",
-                    "ProsightPDChimeras", "ProsightPDNoChimeras",
+                    "MsPathFinderTWithModsNoChimeras", "MsPathFinderTWithMods_7", "MsPathFinderTWithMods_15",
+
+                    "ProsightPDChimeras", "ProsightPDNoChimeras", "ProsightPDChimeras_15"
                 };
             }
 

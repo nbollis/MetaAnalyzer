@@ -83,10 +83,15 @@ namespace Analyzer.Util
                 prsm => prsm.FileID,
                 prsm => prsm.Ms2ScanNumber);
 
-        //public static CustomComparer<MsPathFinderTCrossTabResultRecord> MsPathFinderTCrossTabChimeraComparer =>
-        //new CustomComparer<MsPathFinderTCrossTabResultRecord>(
-        //               prsm => prsm.Scan
-        //               );
+        public static CustomComparer<MsPathFinderTCrossTabResultRecord> MsPathFinderTCrossTabDistinctProteoformComparer =>
+        new CustomComparer<MsPathFinderTCrossTabResultRecord>(
+                       prsm => prsm.BaseSequence,
+                       prsm => string.Join('.', prsm.Modifications),
+                       prsm => prsm.StartResidue,
+                       prsm => prsm.EndResidue,
+                       prsm => prsm.ProteinAccession
+                       );
+  
 
         #endregion
 
