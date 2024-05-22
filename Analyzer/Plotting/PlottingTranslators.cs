@@ -367,10 +367,10 @@ public static class PlottingTranslators
 
         { "MsPathFinderTWithModsNoChimeras", "MsPathFinderT No Chimeras" },
         { "MsPathFinderTWithModsNoChimerasRep2", "MsPathFinderT No Chimeras" },
-        { "MsPathFinderTWithMods_7", "MsPathFinderT⠀7" },
-        { "MsPathFinderTWithMods_7Rep2", "MsPathFinderT⠀7" },
-        { "MsPathFinderTWithMods_15", "MsPathFinderT⠀⠀15" },
-        { "MsPathFinderTWithMods_15Rep2", "MsPathFinderT⠀⠀15" },
+        { "MsPathFinderTWithMods_7", "MsPathFinderT\u200B 7" },
+        { "MsPathFinderTWithMods_7Rep2", "MsPathFinderT\u200B 7" },
+        { "MsPathFinderTWithMods_15", "MsPathFinderT⠀15" },
+        { "MsPathFinderTWithMods_15Rep2", "MsPathFinderT⠀15" },
 
         {"ProsightPDNoChimeras", "ProsightPD No Chimeras"},
         {"ProsightPDNoChimeras_Rep2", "ProsightPD No Chimeras"},
@@ -523,7 +523,7 @@ public static class PlottingTranslators
 
                     "MsPathFinderTWithModsNoChimerasRep2", "MsPathFinderTWithMods_7Rep2", "MsPathFinderTWithMods_15Rep2",
 
-                    "ProsightPDChimeras_Rep2", "ProsightPDNoChimeras_Rep2","ProsightPDNoChimeras_Rep2_15",
+                    "ProsightPDChimeras_Rep2", "ProsightPDNoChimeras_Rep2","ProsightPDChimeras_Rep2_15",
                 };
             }
             else if (cellLine.Contains("Ecoli"))
@@ -531,7 +531,7 @@ public static class PlottingTranslators
                 return new[]
                 {
                     "MetaMorpheus", "MetaMorpheusNoChimeras",
-                    "MetaMorpheus_NewPEP_NoNorm", // ecoli ran with new pep
+                    //"MetaMorpheus_NewPEP_NoNorm", // ecoli ran with new pep
 
                     "MsPathFinderTWithModsNoChimeras", "MsPathFinderTWithMods_7", "MsPathFinderTWithMods_15",
 

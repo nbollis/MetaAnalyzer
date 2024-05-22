@@ -1,11 +1,15 @@
 ﻿using Analyzer.FileTypes.External;
 using Analyzer.FileTypes.Internal;
 using Analyzer.Util;
+using MassSpectrometry;
+using Readers;
 using System.Linq;
+using Analyzer.Interfaces;
+using Chemistry;
 
 namespace Analyzer.SearchType
 {
-    public class ProteomeDiscovererResult : BulkResult
+    public class ProteomeDiscovererResult : BulkResult, IChimeraBreakdownCompatible
     {
         private ProteomeDiscovererPsmFile _psmFile;
         private ProteomeDiscovererProteoformFile _peptideFile;
@@ -14,31 +18,31 @@ namespace Analyzer.SearchType
         private ProteomeDiscovererInputFileFile _inputFile;
         private Dictionary<string, string> _idToFileNameDictionary;
 
-        public ProteomeDiscovererPsmFile PrsmFile => _psmFile ??= new ProteomeDiscovererPsmFile(_psmPath);
-        public ProteomeDiscovererProteoformFile ProteoformFile => _peptideFile ??= new ProteomeDiscovererProteoformFile(_peptidePath);
-        public ProteomeDiscovererProteinFile ProteinFile => _proteinFile ??= new ProteomeDiscovererProteinFile(_proteinPath);
+        public ProteomeDiscovererPsmFile PrsmFile => _psmFile ??= new ProteomeDiscovererPsmFile(PsmPath);
+        public ProteomeDiscovererProteoformFile ProteoformFile => _peptideFile ??= new ProteomeDiscovererProteoformFile(PeptidePath);
+        public ProteomeDiscovererProteinFile ProteinFile => _proteinFile ??= new ProteomeDiscovererProteinFile(ProteinPath);
         public ProteomeDiscovererInputFileFile InputFile => _inputFile ??= new ProteomeDiscovererInputFileFile(_inputFilePath);
         public Dictionary<string,string> IdToFileNameDictionary => _idToFileNameDictionary ??= InputFile.ToDictionary(p => p.FileID, p => Path.GetFileNameWithoutExtension(p.FileName));
 
         public ProteomeDiscovererResult(string directoryPath) : base(directoryPath)
         {
             var files = Directory.GetFiles(directoryPath);
-            _proteinPath = files.First(p => p.Contains("Proteins"));
+            ProteinPath = files.First(p => p.Contains("Proteins"));
             _inputFilePath = files.First(p => p.Contains("Input"));
             if (files.Any(file => file.Contains("PrSMs")))
             {
                 IsTopDown = true;
-                _psmPath = files.First(p => p.Contains("PrSMs"));
-                _peptidePath = files.First(p => p.Contains("Proteoforms"));
+                PsmPath = files.First(p => p.Contains("PrSMs"));
+                PeptidePath = files.First(p => p.Contains("Proteoforms"));
             }
             else if (files.Any(file => file.Contains("PSMs")))
             {
-                _psmPath  = files.First(p => p.Contains("PSMs"));
-                _peptidePath = files.First(p => p.Contains("PeptideGroups"));
+                PsmPath  = files.First(p => p.Contains("PSMs"));
+                PeptidePath = files.First(p => p.Contains("PeptideGroups"));
             }
         }
 
-        public override BulkResultCountComparisonFile IndividualFileComparison(string path = null)
+        public override BulkResultCountComparisonFile GetIndividualFileComparison(string path = null)
         {
             if (!Override && File.Exists(_IndividualFilePath))
                 return new BulkResultCountComparisonFile(_IndividualFilePath);
@@ -147,6 +151,109 @@ namespace Analyzer.SearchType
             };
             bulkComparisonFile.WriteResults(_bulkResultCountComparisonPath);
             return bulkComparisonFile;
+        }
+
+        private string _chimeraBreakDownPath => Path.Combine(DirectoryPath, $"{DatasetName}_{Condition}_{FileIdentifiers.ChimeraBreakdownComparison}");
+        private ChimeraBreakdownFile _chimeraBreakdownFile;
+        public ChimeraBreakdownFile ChimeraBreakdownFile => _chimeraBreakdownFile ??= GetChimeraBreakdownFile();
+
+        /// <summary>
+        /// Breaks down the distribution of chimeras between targets, unique proteoforms, and unique proteins
+        /// DOES NOT DO DECOYS - PSPD does not report them with enough information to determine where they came from
+        /// DOES NOT DO PROTEOFORMS - PSPD does not tell which result file the proteoforms came from
+        /// </summary>
+        /// <returns></returns>
+        public ChimeraBreakdownFile GetChimeraBreakdownFile()
+        {
+            if (!Override && File.Exists(_chimeraBreakDownPath))
+                return new ChimeraBreakdownFile(_chimeraBreakDownPath);
+
+            bool useIsolation = false;
+            List<ChimeraBreakdownRecord> chimeraBreakDownRecords = new();
+            foreach (var fileGroup in PrsmFile.FilteredResults.GroupBy(p => p.FileID))
+            {
+                useIsolation = true;
+                MsDataFile dataFile = null;
+                var dataFilePath = InputFile.Select(p => p.FileName)
+                    .FirstOrDefault(p => p.Contains(IdToFileNameDictionary[fileGroup.Key],
+                        StringComparison.InvariantCultureIgnoreCase));
+                if (dataFilePath == null)
+                    useIsolation = false;
+                else
+                {
+                    try
+                    {
+                        dataFile = MsDataFileReader.GetDataFile(dataFilePath);
+                        dataFile.InitiateDynamicConnection();
+                    }
+                    catch
+                    {
+                        useIsolation = false;
+                    }
+                }
+
+                foreach (var chimeraGroup in fileGroup.GroupBy(p => p,
+                                 CustomComparer<ProteomeDiscovererPsmRecord>.PSPDPrSMChimeraComparer)
+                             .Select(p => p.ToArray()))
+                {
+                    var record = new ChimeraBreakdownRecord()
+                    {
+                        Dataset = DatasetName,
+                        FileName = IdToFileNameDictionary[chimeraGroup.First().FileID],
+                        Condition = Condition,
+                        Ms2ScanNumber = chimeraGroup.First().FragmentationScans,
+                        Type = Util.ResultType.Psm,
+                        IdsPerSpectra = chimeraGroup.Length,
+                        TargetCount = chimeraGroup.Count(),
+                        DecoyCount = 0
+                    };
+
+                    ProteomeDiscovererPsmRecord parent = null;
+                    if (chimeraGroup.Length != 1)
+                    {
+                        ProteomeDiscovererPsmRecord[] orderedChimeras;
+                        if (useIsolation)
+                        {
+                            int scanNum = int.Parse(chimeraGroup.First().Ms2ScanNumber.Split(';')[0]);
+                            var ms2Scan = dataFile.GetOneBasedScanFromDynamicConnection(scanNum);
+                            var isolationMz = ms2Scan?.IsolationMz ?? null;
+                            if (isolationMz is null)
+                                orderedChimeras = chimeraGroup.OrderByDescending(p => p.NegativeLogEValue)
+                                    .ThenBy(p => p.DeltaMassDa)
+                                    .ToArray();
+                            else
+                                orderedChimeras = chimeraGroup
+                                    .OrderBy(p => p.Mz.ToMz(p.Charge) - (double)isolationMz)
+                                    .ThenByDescending(p => p.NegativeLogEValue)
+                                    .ToArray();
+                            record.IsolationMz = isolationMz ?? -1;
+                        }
+                        else
+                        {
+                            orderedChimeras = chimeraGroup.OrderByDescending(p => p.NegativeLogEValue)
+                                .ThenBy(p => p.DeltaMassDa)
+                                .ToArray();
+                        }
+
+                        foreach (var chimericPsm in orderedChimeras)
+                            if (parent is null)
+                                parent = chimericPsm;
+                            else if (parent.BaseSequence == chimericPsm.BaseSequence)
+                                record.UniqueForms++;
+                            else
+                                record.UniqueProteins++;
+                    }
+
+                    chimeraBreakDownRecords.Add(record);
+                }
+
+                if (useIsolation)
+                    dataFile.CloseDynamicConnection();
+            }
+
+            var file = new ChimeraBreakdownFile(_chimeraBreakDownPath) { Results = chimeraBreakDownRecords };
+            file.WriteResults(_chimeraBreakDownPath);
+            return file;
         }
     }
 }

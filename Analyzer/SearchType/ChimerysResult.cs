@@ -28,7 +28,7 @@ namespace Analyzer.SearchType
             IsTopDown = false;
         }
 
-        public override BulkResultCountComparisonFile IndividualFileComparison(string path = null)
+        public override BulkResultCountComparisonFile GetIndividualFileComparison(string path = null)
         {
             throw new NotImplementedException();
         }

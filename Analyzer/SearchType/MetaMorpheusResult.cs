@@ -1,5 +1,7 @@
-﻿using System.Text.RegularExpressions;
+﻿using System.IO;
+using System.Text.RegularExpressions;
 using Analyzer.FileTypes.Internal;
+using Analyzer.Interfaces;
 using Analyzer.Util;
 using MassSpectrometry;
 using Proteomics.ProteolyticDigestion;
@@ -9,15 +11,15 @@ using Readers;
 
 namespace Analyzer.SearchType
 {
-    public class MetaMorpheusResult : BulkResult
+    public class MetaMorpheusResult : BulkResult, IChimeraBreakdownCompatible
     {
         #region Results
 
         private List<PsmFromTsv>? allPsms;
-        public List<PsmFromTsv> AllPsms => allPsms ??= SpectrumMatchTsvReader.ReadPsmTsv(_psmPath, out _);
+        public List<PsmFromTsv> AllPsms => allPsms ??= SpectrumMatchTsvReader.ReadPsmTsv(PsmPath, out _);
 
         private List<PsmFromTsv>? allPeptides;
-        public List<PsmFromTsv> AllPeptides => allPeptides ??= SpectrumMatchTsvReader.ReadPsmTsv(_peptidePath, out _);
+        public List<PsmFromTsv> AllPeptides => allPeptides ??= SpectrumMatchTsvReader.ReadPsmTsv(PeptidePath, out _);
 
 
         #endregion
@@ -26,21 +28,21 @@ namespace Analyzer.SearchType
         public string[] DataFilePaths { get; set; } // set by CellLineResults constructor
         public MetaMorpheusResult(string directoryPath) : base(directoryPath)
         {
-            _psmPath = Directory.GetFiles(directoryPath, "*PSMs.psmtsv", SearchOption.AllDirectories).First();
-            _peptidePath = Directory.GetFiles(directoryPath, "*Peptides.psmtsv", SearchOption.AllDirectories).FirstOrDefault();
-            if (_peptidePath is null)
+            PsmPath = Directory.GetFiles(directoryPath, "*PSMs.psmtsv", SearchOption.AllDirectories).First();
+            PeptidePath = Directory.GetFiles(directoryPath, "*Peptides.psmtsv", SearchOption.AllDirectories).FirstOrDefault();
+            if (PeptidePath is null)
             {
                 IsTopDown = true;
-                _peptidePath = Directory.GetFiles(directoryPath, "*Proteoforms.psmtsv", SearchOption.AllDirectories).First();
-                _peptidePath = Directory.GetFiles(directoryPath, "*Proteoforms.psmtsv", SearchOption.AllDirectories).First();
+                PeptidePath = Directory.GetFiles(directoryPath, "*Proteoforms.psmtsv", SearchOption.AllDirectories).First();
+                PeptidePath = Directory.GetFiles(directoryPath, "*Proteoforms.psmtsv", SearchOption.AllDirectories).First();
             }
-            _proteinPath = Directory.GetFiles(directoryPath, "*ProteinGroups.tsv", SearchOption.AllDirectories).First();
+            ProteinPath = Directory.GetFiles(directoryPath, "*ProteinGroups.tsv", SearchOption.AllDirectories).First();
 
             _individualFileComparison = null;
             _chimeraPsmFile = null;
         }
 
-        public override BulkResultCountComparisonFile IndividualFileComparison(string path = null)
+        public override BulkResultCountComparisonFile GetIndividualFileComparison(string path = null)
         {
             path ??= _IndividualFilePath;
             if (!Override && File.Exists(path))
@@ -250,7 +252,7 @@ namespace Analyzer.SearchType
             int proteingCount = 0;
             int onePercentProteinCount = 0;
 
-            using (var sw = new StreamReader(File.OpenRead(_proteinPath)))
+            using (var sw = new StreamReader(File.OpenRead(ProteinPath)))
             {
                 var header = sw.ReadLine();
                 var headerSplit = header.Split('\t');
@@ -546,6 +548,8 @@ namespace Analyzer.SearchType
         }
 
         #endregion
+
+       
     }
 
     public static class Extensions

@@ -4,6 +4,7 @@ using CsvHelper;
 using CsvHelper.Configuration;
 using CsvHelper.Configuration.Attributes;
 using Readers;
+using static Analyzer.Util.TypeConverters.SemiColonDelimitedToDoubleArrayConverter;
 
 namespace Analyzer.FileTypes.External
 {
@@ -210,6 +211,8 @@ namespace Analyzer.FileTypes.External
         public override SupportedFileType FileType => SupportedFileType.Tsv_FlashDeconv;
         public override Software Software { get; set; }
 
+        private List<ProteomeDiscovererPsmRecord>? _filteredResults;
+        public List<ProteomeDiscovererPsmRecord> FilteredResults => _filteredResults ??= Results.Where(p => p is { QValue: <= 0.01, NegativeLogEValue: >= 5 }).ToList();
         public override void LoadResults()
         {
             using var csv = new CsvReader(new StreamReader(FilePath), ProteomeDiscovererPsmRecord.CsvConfiguration);

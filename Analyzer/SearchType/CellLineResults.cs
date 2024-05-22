@@ -58,9 +58,9 @@ public class CellLineResults : IEnumerable<BulkResult>
                     Results.Add(new MetaMorpheusResult(directories.First(p => p.Contains("NoChimera"))) { DataFilePaths = _dataFilePaths });
                     Results.Add(new MetaMorpheusResult(directories.First(p => p.Contains("WithChimera"))) { DataFilePaths = _dataFilePaths });
                 }
-                //else if (directory.Contains("PEP"))
-                //    continue;
                 else if (!files.Any(p => p.Contains("AllProteoforms") || p.Contains("AllPSMs")) && !files.Any(p => p.Contains("AllProteinGroups")))
+                    continue;
+                else if (directory.Contains("MetaMorpheus_Rep2_WithLibrary_NewPEP_NoNorm")) // TODO: remove this
                     continue;
                 else
                     Results.Add(new MetaMorpheusResult(directory) { DataFilePaths = _dataFilePaths });
@@ -188,8 +188,8 @@ public class CellLineResults : IEnumerable<BulkResult>
 
     private string _individualFilePath => Path.Combine(DirectoryPath, $"{CellLine}_{FileIdentifiers.IndividualFileComparison}");
     private BulkResultCountComparisonFile _individualFileComparison;
-    public BulkResultCountComparisonFile IndividualFileComparisonFile => _individualFileComparison ??= IndividualFileComparison();
-    public BulkResultCountComparisonFile IndividualFileComparison()
+    public BulkResultCountComparisonFile IndividualFileComparisonFile => _individualFileComparison ??= GetIndividualFileComparison();
+    public BulkResultCountComparisonFile GetIndividualFileComparison()
     {
         if (!Override && File.Exists(_individualFilePath))
         {

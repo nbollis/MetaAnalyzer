@@ -33,7 +33,7 @@ namespace Test
                     if (result is MetaMorpheusResult)
                         continue;
                     result.Override = true;
-                    result.IndividualFileComparison();
+                    result.GetIndividualFileComparison();
                     result.GetBulkResultCountComparisonFile();
                     result.CountChimericPsms();
                     if (result is MetaMorpheusResult mm)
@@ -45,7 +45,7 @@ namespace Test
                 }
 
                 cellLine.Override = true;
-                cellLine.IndividualFileComparison();
+                cellLine.GetIndividualFileComparison();
                 cellLine.GetBulkResultCountComparisonFile();
                 cellLine.CountChimericPsms();
                 cellLine.CountChimericPeptides();
@@ -101,7 +101,7 @@ namespace Test
             string cellLineString = "A549";
             var cellLine = AllResults.First(p => p.CellLine == cellLineString);
             var chimerys = cellLine.First(p => p.Condition.Contains("Chimerys"));
-            //chimerys.IndividualFileComparison();
+            //chimerys.GetIndividualFileComparison();
             //chimerys.CountChimericPsms();
             //chimerys.GetBulkResultCountComparisonFile();
 
@@ -131,7 +131,7 @@ namespace Test
             {
                 var mmResults = cellLine.First(p => p.Condition == "MetaMorpheusWithLibrary") as MetaMorpheusResult;
 
-                foreach (var psm in SpectrumMatchTsvReader.ReadPsmTsv(mmResults._psmPath, out _))
+                foreach (var psm in SpectrumMatchTsvReader.ReadPsmTsv(mmResults.PsmPath, out _))
                     if (psm.GeneName.Contains(geneOfInterest) || psm.Description.Contains(geneOfInterest, StringComparison.InvariantCultureIgnoreCase))
                     {
                         psmCount++;
@@ -140,7 +140,7 @@ namespace Test
                             onePercentPsmCount++;
                     }
 
-                foreach (var peptide in SpectrumMatchTsvReader.ReadPsmTsv(mmResults._peptidePath, out _))
+                foreach (var peptide in SpectrumMatchTsvReader.ReadPsmTsv(mmResults.PeptidePath, out _))
                     if (peptide.GeneName.Contains(geneOfInterest) || peptide.Description.Contains(geneOfInterest, StringComparison.InvariantCultureIgnoreCase))
                     {
                         peptideCount++;
@@ -148,7 +148,7 @@ namespace Test
                         if (peptide.QValue <= 0.01)
                             onePercentPeptideCount++;
                     }
-                using (var sw = new StreamReader(File.OpenRead(mmResults._proteinPath)))
+                using (var sw = new StreamReader(File.OpenRead(mmResults.ProteinPath)))
                 {
                     var header = sw.ReadLine();
                     var headerSplit = header.Split('\t');

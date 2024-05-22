@@ -13,10 +13,10 @@ namespace Analyzer.SearchType
         public MsFraggerPsmFile CombinedPsms => _psmFile ??= CombinePsmFiles();
 
         private MsFraggerPeptideFile _peptideFile;
-        public MsFraggerPeptideFile CombinedPeptides => _peptideFile ??= new MsFraggerPeptideFile(_peptidePath);
+        public MsFraggerPeptideFile CombinedPeptides => _peptideFile ??= new MsFraggerPeptideFile(PeptidePath);
 
         private MsFraggerProteinFile _proteinFile;
-        public MsFraggerProteinFile CombinedProteins => _proteinFile ??= new MsFraggerProteinFile(_proteinPath);
+        public MsFraggerProteinFile CombinedProteins => _proteinFile ??= new MsFraggerProteinFile(ProteinPath);
 
         #region Base Sequence Only Filtering
 
@@ -29,10 +29,10 @@ namespace Analyzer.SearchType
 
         public MsFraggerResult(string directoryPath) : base(directoryPath)
         {
-            _psmPath = Path.Combine(DirectoryPath, "Combined_psm.tsv");
-            _peptidePath = Path.Combine(DirectoryPath, "combined_peptide.tsv");
+            PsmPath = Path.Combine(DirectoryPath, "Combined_psm.tsv");
+            PeptidePath = Path.Combine(DirectoryPath, "combined_peptide.tsv");
             _peptideBaseSeqPath = Path.Combine(DirectoryPath, "Combined_BaseSequence_peptide.tsv");
-            _proteinPath = Path.Combine(DirectoryPath, "combined_protein.tsv");
+            ProteinPath = Path.Combine(DirectoryPath, "combined_protein.tsv");
 
             IndividualFileResults = new List<MsFraggerIndividualFileResult>();
             foreach (var directory in System.IO.Directory.GetDirectories(DirectoryPath).Where(p => !p.Contains("shepherd") && !p.Contains("meta")))
@@ -50,8 +50,8 @@ namespace Analyzer.SearchType
         /// <returns></returns>
         public MsFraggerPsmFile CombinePsmFiles()
         {
-            if (!Override && File.Exists(_psmPath))
-                return new MsFraggerPsmFile(_psmPath);
+            if (!Override && File.Exists(PsmPath))
+                return new MsFraggerPsmFile(PsmPath);
 
             var msFraggerResultFiles =
                 Directory.GetFiles(DirectoryPath, "*psm.tsv", SearchOption.AllDirectories)
@@ -64,14 +64,14 @@ namespace Analyzer.SearchType
                 results.AddRange(file.Results);
             }
 
-            var combinedMsFraggerPsmFile = new MsFraggerPsmFile(_psmPath) { Results = results };
-            combinedMsFraggerPsmFile.WriteResults(_psmPath);
+            var combinedMsFraggerPsmFile = new MsFraggerPsmFile(PsmPath) { Results = results };
+            combinedMsFraggerPsmFile.WriteResults(PsmPath);
             return combinedMsFraggerPsmFile;
         }
 
         public MsFraggerPeptideFile CombinePeptideFiles(string path = null)
         {
-            path ??= _peptidePath;
+            path ??= PeptidePath;
             if (!Override && File.Exists(path))
                 return new MsFraggerPeptideFile(path);
 
@@ -100,7 +100,7 @@ namespace Analyzer.SearchType
         /// </summary>
         /// <param name="path"></param>
         /// <returns></returns>
-        public override BulkResultCountComparisonFile IndividualFileComparison(string path = null)
+        public override BulkResultCountComparisonFile GetIndividualFileComparison(string path = null)
         {
             path ??= _IndividualFilePath;
             if (!Override && File.Exists(path))
@@ -126,7 +126,7 @@ namespace Analyzer.SearchType
 
                 int proteinCount;
                 int onePercentProteinCount;
-                using (var sr = new StreamReader(_proteinPath))
+                using (var sr = new StreamReader(ProteinPath))
                 {
                     var header = sr.ReadLine();
                     var headerSplit = header.Split('\t');
@@ -206,7 +206,7 @@ namespace Analyzer.SearchType
 
             int proteinCount;
             int onePercentProteinCount;
-            using (var sr = new StreamReader(_proteinPath))
+            using (var sr = new StreamReader(ProteinPath))
             {
                 var header = sr.ReadLine();
                 var headerSplit = header.Split('\t');

@@ -65,7 +65,7 @@ namespace Analyzer.SearchType
             }
         }
 
-        public override BulkResultCountComparisonFile IndividualFileComparison(string path = null)
+        public override BulkResultCountComparisonFile GetIndividualFileComparison(string path = null)
         {
             if (!Override && File.Exists(_IndividualFilePath))
                 return new BulkResultCountComparisonFile(_IndividualFilePath);
@@ -179,6 +179,43 @@ namespace Analyzer.SearchType
             }
             sw.Dispose();
         }
+
+
+
+        private string _chimeraBreakDownPath => Path.Combine(DirectoryPath, $"{DatasetName}_{Condition}_{FileIdentifiers.ChimeraBreakdownComparison}");
+        private ChimeraBreakdownFile _chimeraBreakdownFile;
+        public ChimeraBreakdownFile ChimeraBreakdownFile => _chimeraBreakdownFile ??= GetChimeraBreakdownFile();
+
+        public ChimeraBreakdownFile GetChimeraBreakdownFile()
+        {
+            if (!Override && File.Exists(_chimeraBreakDownPath))
+                return new ChimeraBreakdownFile(_chimeraBreakDownPath);
+
+            bool useIsolation;
+            List<ChimeraBreakdownRecord> chimeraBreakDownRecords = new();
+
+            // PrSMs
+            foreach (var individualFileResult in IndividualFileResults)
+            {
+                var tda = individualFileResult.CombinedResults.Results;
+
+
+
+
+            }
+
+
+            var file = new ChimeraBreakdownFile(_chimeraBreakDownPath) { Results = chimeraBreakDownRecords };
+            file.WriteResults(_chimeraBreakDownPath);
+            return file;
+        }
+
+
+
+
+
+
+
 
         public IEnumerator<MsPathFinderTIndividualFileResult> GetEnumerator()
         {

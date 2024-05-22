@@ -1,4 +1,5 @@
-﻿using Analyzer.SearchType;
+﻿using Analyzer.Interfaces;
+using Analyzer.SearchType;
 using Analyzer.Util;
 using Plotly.NET;
 using Plotly.NET.ImageExport;
@@ -124,20 +125,42 @@ public static class BulkResultPlots
         var smLabel = isTopDown ? "PrSM" : "PSM";
         var pepLabel = isTopDown ? "Proteoform" : "Peptide";
         var results = allResults.SelectMany(z => z.Results
-                .Where(p => p is MetaMorpheusResult && selector.Contains(p.Condition))
-                .SelectMany(p => ((MetaMorpheusResult)p).ChimeraBreakdownFile.Results))
+                .Where(p => p is IChimeraBreakdownCompatible && selector.Contains(p.Condition))
+                .SelectMany(p => ((IChimeraBreakdownCompatible)p).ChimeraBreakdownFile.Results))
             .ToList();
-        var psmChart =
-            results.GetChimeraBreakDownStackedColumn(ResultType.Psm, isTopDown, out int width);
+
+        var psmChart = results.GetChimeraBreakDownStackedColumn(ResultType.Psm, isTopDown, out int width);
         var psmOutPath = Path.Combine(allResults.GetFigureDirectory(),
             $"AllResults_{FileIdentifiers.ChimeraBreakdownComparisonFigure}{smLabel}s");
         psmChart.SavePNG(psmOutPath, null, width, GenericPlots.DefaultHeight);
 
-        var peptideChart =
-            results.GetChimeraBreakDownStackedColumn(ResultType.Peptide, isTopDown, out width);
+        var stackedAreaPsmChart = results.GetChimeraBreakDownStackedArea(ResultType.Psm, isTopDown, out width);
+        var stackedAreaPsmOutPath = Path.Combine(allResults.GetFigureDirectory(),
+                       $"AllResults_{FileIdentifiers.ChimeraBreakdownComparisonStackedAreaFigure}{smLabel}s_StackedArea");
+        stackedAreaPsmChart.SavePNG(stackedAreaPsmOutPath, null, width, GenericPlots.DefaultHeight);
+
+        var stackedAreaPercentPsmChart = results.GetChimeraBreakDownStackedArea(ResultType.Psm, isTopDown, out width, true);
+        var stackedAreaPercentPsmOutPath = Path.Combine(allResults.GetFigureDirectory(),
+                       $"AllResults_{FileIdentifiers.ChimeraBreakdownComparisonStackedAreaPercentFigure}{smLabel}s_StackedArea_Percent");
+        stackedAreaPercentPsmChart.SavePNG(stackedAreaPercentPsmOutPath, null, width, GenericPlots.DefaultHeight);
+
+        if (results.All(p => p.Type == ResultType.Psm))
+            return;
+
+        var peptideChart = results.GetChimeraBreakDownStackedColumn(ResultType.Peptide, isTopDown, out width);
         var peptideOutPath = Path.Combine(allResults.GetFigureDirectory(),
             $"AllResults_{FileIdentifiers.ChimeraBreakdownComparisonFigure}{pepLabel}s");
         peptideChart.SavePNG(peptideOutPath, null, width, GenericPlots.DefaultHeight);
+
+        var stackedAreaPeptideChart = results.GetChimeraBreakDownStackedArea(ResultType.Peptide, isTopDown, out width);
+        var stackedAreaPeptideOutPath = Path.Combine(allResults.GetFigureDirectory(),
+            $"AllResults_{FileIdentifiers.ChimeraBreakdownComparisonStackedAreaFigure}{pepLabel}s_StackedArea");
+        stackedAreaPeptideChart.SavePNG(stackedAreaPeptideOutPath, null, width, GenericPlots.DefaultHeight);
+
+        var stackedAreaPercentPeptideChart = results.GetChimeraBreakDownStackedArea(ResultType.Peptide, isTopDown, out width, true);
+        var stackedAreaPercentPeptideOutPath = Path.Combine(allResults.GetFigureDirectory(),
+                                             $"AllResults_{FileIdentifiers.ChimeraBreakdownComparisonStackedAreaPercentFigure}{pepLabel}s_StackedArea_Percent");
+        stackedAreaPercentPeptideChart.SavePNG(stackedAreaPercentPeptideOutPath, null, width, GenericPlots.DefaultHeight);
     }
 
     #region Retention Time

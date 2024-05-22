@@ -206,7 +206,8 @@ namespace Analyzer.Plotting
         /// <param name="isTopDown"></param>
         /// <param name="width"></param>
         /// <returns></returns>
-        internal static GenericChart.GenericChart GetChimeraBreakDownStackedColumn(this List<ChimeraBreakdownRecord> results, ResultType type, bool isTopDown, out int width)
+        internal static GenericChart.GenericChart GetChimeraBreakDownStackedColumn(this List<ChimeraBreakdownRecord> results,
+            ResultType type, bool isTopDown, out int width, string? extraTitle = null)
         {
             (int IdPerSpec, int Parent, int UniqueProtein, int UniqueForms, int Decoys)[] data = results.Where(p => p.Type == type)
                 .GroupBy(p => p.IdsPerSpectra)
@@ -246,10 +247,57 @@ namespace Analyzer.Plotting
             return chart;
         }
 
-        internal static GenericChart.GenericChart GetChimeraBreakDownStackedArea(List<ChimeraBreakdownRecord> results,
-            ResultType type, bool isTopDown, out int width)
+        internal static GenericChart.GenericChart GetChimeraBreakDownStackedArea(this List<ChimeraBreakdownRecord> results,
+            ResultType type, bool isTopDown, out int width, bool asPercent = false, string? extraTitle = null)
         {
+            (int IdPerSpec, double Parent, double UniqueProtein, double UniqueForms, double Decoys)[] data = results.Where(p => p.Type == type)
+                .GroupBy(p => p.IdsPerSpectra)
+                .OrderBy(p => p.Key)
+                .Select(p =>
+                    (
+                        p.Key,
+                        (double)p.Sum(m => m.Parent),
+                        (double)p.Sum(m => m.UniqueProteins),
+                        (double)p.Sum(m => m.UniqueForms),
+                        (double)p.Sum(m => m.DecoyCount))
+                )
+                .ToArray();
+            var keys = data.Select(p => p.IdPerSpec).ToArray();
+            width = Math.Max(600, 50 * data.Length);
+            var form = isTopDown ? "Proteoform" : "Peptidoform";
+            string title = isTopDown ? type == ResultType.Psm ? "PrSM" : "Proteoform" :
+                type == ResultType.Psm ? "PSM" : "Peptide";
+            var title2 = results.Select(p => p.Dataset).Distinct().Count() == 1 ? results.First().Dataset : "All Results";
 
+            if (asPercent) // convert each column to a percent
+            {
+                for (int i = 0; i < data.Length; i++)
+                {
+                    var total = data[i].Parent + data[i].UniqueProtein + data[i].UniqueForms + data[i].Decoys;
+                    data[i].Parent = data[i].Parent / total * 100;
+                    data[i].UniqueProtein = data[i].UniqueProtein / total * 100;
+                    data[i].UniqueForms = data[i].UniqueForms / total * 100;
+                    data[i].Decoys = data[i].Decoys / total * 100;
+                }
+            }
+
+            var chart = Chart.Combine(new []
+            {
+                Chart.StackedArea<int, double, string>( keys, data.Select(p => p.Parent), Name: "Isolated Species",
+                    MarkerColor: "Isolated Species".ConvertConditionToColor(), MultiText: data.Select(p => p.Parent.ToString()).ToArray()),
+                Chart.StackedArea<int, double, string>( keys,data.Select(p => p.Decoys), Name:"Decoys",
+                    MarkerColor: "Decoys".ConvertConditionToColor(), MultiText: data.Select(p => p.Decoys.ToString()).ToArray()),
+                Chart.StackedArea<int, double, string>( keys,data.Select(p => p.UniqueProtein),Name: $"Unique Protein",
+                    MarkerColor: "Unique Protein".ConvertConditionToColor(), MultiText: data.Select(p => p.UniqueProtein.ToString()).ToArray()),
+                Chart.StackedArea<int, double, string>( keys,data.Select(p => p.UniqueForms),Name: $"Unique {form}",
+                    MarkerColor: $"Unique {form}".ConvertConditionToColor(), MultiText: data.Select(p => p.UniqueForms.ToString()).ToArray()),
+            })
+            .WithLayout(DefaultLayoutWithLegend)
+            .WithTitle($"{title2} {title} Identifications per Spectra \n{extraTitle ?? ""}")
+            .WithXAxisStyle(Title.init("IDs per Spectrum"))
+            .WithYAxisStyle(Title.init( asPercent ? "Percent" :"Count"))
+            .WithSize(width, DefaultHeight);
+            return chart;
         }
 
         #region Target Decoy Exploration
@@ -378,7 +426,7 @@ namespace Analyzer.Plotting
         }
 
         /// <summary>
-        /// Plots targets and decoys as stacked bar plots as a function of the degree of chimericity for q value and pep filtered at both absolute and relative scales
+        /// Plots targets and decoys as stacked bar plots as a function of the degree of chimericity for q value and pep filtered at both asPercent and relative scales
         /// </summary>
         /// <param name="results"></param>
         /// <param name="outputDir"></param>

@@ -4,6 +4,7 @@ using Proteomics.PSM;
 namespace Analyzer.Util
 {
 
+
     public class CustomComparer<T> : IEqualityComparer<T>
     {
         private readonly Func<T, object>[] propertySelectors;
@@ -25,6 +26,11 @@ namespace Analyzer.Util
                 if (selector.Target is IEnumerable<double> enumerable)
                 {
                     if (!enumerable.SequenceEqual((IEnumerable<double>)selector(y)))
+                        return false;
+                }
+                if (selector.Target is IEnumerable<int> enumerableInt)
+                {
+                    if (!enumerableInt.SequenceEqual((IEnumerable<int>)selector(y)))
                         return false;
                 }
                 else if (!Equals(selector(x), selector(y)))

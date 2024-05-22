@@ -3,6 +3,7 @@ using Plotly.NET.ImageExport;
 using Readers;
 using Analyzer.Plotting;
 using Analyzer.SearchType;
+using Analyzer.Util;
 using Plotly.NET;
 using Plotly.NET.LayoutObjects;
 using UsefulProteomicsDatabases;
@@ -31,7 +32,7 @@ namespace Test
             {
                 foreach (var result in cellLine)
                 {
-                    result.IndividualFileComparison();
+                    result.GetIndividualFileComparison();
                     result.CountChimericPsms();
                     if (result is MsPathFinderTResults)
                         result.Override = true;
@@ -45,7 +46,7 @@ namespace Test
                 }
 
                 cellLine.Override = true;
-                cellLine.IndividualFileComparison();
+                cellLine.GetIndividualFileComparison();
                 cellLine.GetBulkResultCountComparisonFile();
                 cellLine.CountChimericPsms();
                 cellLine.CountChimericPeptides();
@@ -71,30 +72,26 @@ namespace Test
         [Test]
         public static void GenerateAllFigures()
         {
-            //foreach (CellLineResults cellLine in AllResults)
-            //{
-            //    cellLine.PlotIndividualFileResults();
-            //    cellLine.PlotCellLineSpectralSimilarity();
-            //    cellLine.PlotCellLineChimeraBreakdown();
-            //    cellLine.PlotCellLineChimeraBreakdown_TargetDecoy();
-            //    foreach (var individualResult in cellLine)
-            //    {
-            //        if (individualResult is not MetaMorpheusResult mm) continue;
-            //        //mm.ExportPepFeaturesPlots();
-            //        //mm.ExportCombinedChimeraTargetDecoyExploration(mm.FigureDirectory, mm.Condition);
-            //    }
+            foreach (CellLineResults cellLine in AllResults)
+            {
+                foreach (var individualResult in cellLine)
+                {
+                    if (individualResult is not MetaMorpheusResult mm) continue;
+                    //mm.ExportPepFeaturesPlots();
+                    //mm.ExportCombinedChimeraTargetDecoyExploration(mm.FigureDirectory, mm.Condition);
+                }
 
-            //    cellLine.PlotIndividualFileResults();
-            //    cellLine.PlotCellLineSpectralSimilarity();
-            //    cellLine.PlotCellLineChimeraBreakdown();
-            //    cellLine.PlotCellLineChimeraBreakdown_TargetDecoy();
-            //}
+                //cellLine.PlotIndividualFileResults();
+                //cellLine.PlotCellLineSpectralSimilarity();
+                cellLine.PlotCellLineChimeraBreakdown();
+                cellLine.PlotCellLineChimeraBreakdown_TargetDecoy();
+            }
 
-            //AllResults.PlotInternalMMComparison();
+            AllResults.PlotInternalMMComparison();
             AllResults.PlotBulkResultComparisons();
             AllResults.PlotStackedIndividualFileComparison();
-           // AllResults.PlotBulkResultChimeraBreakDown();
-           // AllResults.PlotBulkResultChimeraBreakDown_TargetDecoy();
+            AllResults.PlotBulkResultChimeraBreakDown();
+            AllResults.PlotBulkResultChimeraBreakDown_TargetDecoy();
         }
 
         [Test]
@@ -170,6 +167,8 @@ namespace Test
             results.ExportCombinedChimeraTargetDecoyExploration(outDir, selectedCondition.Value);
         }
 
+
+    
    
     }
 }

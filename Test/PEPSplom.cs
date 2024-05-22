@@ -43,7 +43,7 @@ namespace Test
                 result.CountChimericPsms();
                 result.CountChimericPeptides();
                 result.GetBulkResultCountComparisonFile();
-                result.IndividualFileComparison();
+                result.GetIndividualFileComparison();
                 //result.ExportPepFeaturesPlots();
                 //result.ExportCombinedChimeraTargetDecoyExploration(figPath,
                 //    new KeyValuePair<string, string>(result.Condition, result.Condition));
@@ -85,7 +85,7 @@ namespace Test
 
             };
 
-            results.ForEach(p => p.Item1.IndividualFileComparison());
+            results.ForEach(p => p.Item1.GetIndividualFileComparison());
             var temp = results.Select(p => p.Item1.IndividualFileComparisonFile).ToList();
             
             var chart = GenericPlots.IndividualFileResultBarChart(temp,
