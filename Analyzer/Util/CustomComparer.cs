@@ -56,48 +56,55 @@ namespace Analyzer.Util
 
         #region Custom Implementations
 
-        // chimeras
+        // MetaMorpheus
         public static CustomComparer<PsmFromTsv> ChimeraComparer =>
             new(psm => psm.PrecursorScanNum, psm => psm.Ms2ScanNumber,
                 psm => psm.FileNameWithoutExtension.Replace("-calib", "").Replace("-averaged", ""));
 
+        // MsFragger
         public static CustomComparer<MsFraggerPsm> MsFraggerChimeraComparer =>
             new(psm => psm.OneBasedScanNumber, psm => psm.FileNameWithoutExtension);
 
-
-        private static Func<MsFraggerPeptide, object>[] MsFraggerPeptideDistinctSelector =
-        {
-            peptide => peptide.BaseSequence,
-            peptide => peptide.ProteinAccession,
-            peptide => peptide.AssignedModifications.Length,
-            peptide => peptide.AssignedModifications.FirstOrDefault(),
-            peptide => peptide.AssignedModifications.LastOrDefault(),
-            peptide => peptide.NextAminoAcid,
-            peptide => peptide.PreviousAminoAcid,
-        };
-
         public static CustomComparer<MsFraggerPeptide> MsFraggerPeptideDistinctComparer =>
-            new(MsFraggerPeptideDistinctSelector);
+            new(peptide => peptide.BaseSequence,
+                peptide => peptide.ProteinAccession,
+                peptide => peptide.AssignedModifications.Length,
+                peptide => peptide.AssignedModifications.FirstOrDefault(),
+                peptide => peptide.AssignedModifications.LastOrDefault(),
+                peptide => peptide.NextAminoAcid,
+                peptide => peptide.PreviousAminoAcid);
 
-        public static CustomComparer<MsPathFinderTResult> MsPathFinderTChimeraComparer =>
-            new CustomComparer<MsPathFinderTResult>(
-                prsm => prsm.OneBasedScanNumber, 
-                prsm => prsm.FileNameWithoutExtension);
-
+        
+        // ProsightPD 
         public static CustomComparer<ProteomeDiscovererPsmRecord> PSPDPrSMChimeraComparer =>
             new CustomComparer<ProteomeDiscovererPsmRecord>(
                 prsm => prsm.FileID,
                 prsm => prsm.Ms2ScanNumber);
 
+
+        // MsPathFinderT
+        public static CustomComparer<MsPathFinderTResult> MsPathFinderTChimeraComparer =>
+            new CustomComparer<MsPathFinderTResult>(
+                prsm => prsm.OneBasedScanNumber,
+                prsm => prsm.FileNameWithoutExtension);
+
+        public static CustomComparer<MsPathFinderTResult> MsPathFinderTDistinctProteoformComparer =>
+            new CustomComparer<MsPathFinderTResult>(
+                prsm => prsm.BaseSequence,
+                prsm => prsm.Modifications);
+
+        public static CustomComparer<MsPathFinderTResult> MsPathFinderTDistinctProteinComparer =>
+            new CustomComparer<MsPathFinderTResult>(
+                prsm => prsm.Accession);
+
         public static CustomComparer<MsPathFinderTCrossTabResultRecord> MsPathFinderTCrossTabDistinctProteoformComparer =>
-        new CustomComparer<MsPathFinderTCrossTabResultRecord>(
-                       prsm => prsm.BaseSequence,
-                       prsm => string.Join('.', prsm.Modifications),
-                       prsm => prsm.StartResidue,
-                       prsm => prsm.EndResidue,
-                       prsm => prsm.ProteinAccession
-                       );
-  
+            new CustomComparer<MsPathFinderTCrossTabResultRecord>(
+                prsm => prsm.BaseSequence,
+                prsm => string.Join('.', prsm.Modifications),
+                prsm => prsm.StartResidue,
+                prsm => prsm.EndResidue,
+                prsm => prsm.ProteinAccession
+            );
 
         #endregion
 

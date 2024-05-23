@@ -23,3 +23,9 @@ public interface IChimeraBreakdownCompatible : IChimeraPaperResults
     ChimeraBreakdownFile ChimeraBreakdownFile { get; }
     ChimeraBreakdownFile GetChimeraBreakdownFile();
 }
+
+public interface IChimeraPeptideCounter : IChimeraPaperResults
+{
+    public ChimeraCountingFile ChimeraPeptideFile { get; }
+    ChimeraCountingFile CountChimericPeptides();
+}

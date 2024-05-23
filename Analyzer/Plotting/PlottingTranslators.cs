@@ -365,19 +365,19 @@ public static class PlottingTranslators
         { "MetaMorpheus_Rep2_WithLibrary", "MetaMorpheus\u2800" }, // temp until actual final is finished
         { "MetaMorpheusNoChimeras", "MetaMorpheus No Chimeras" },
 
-        { "MsPathFinderTWithModsNoChimeras", "MsPathFinderT No Chimeras" },
-        { "MsPathFinderTWithModsNoChimerasRep2", "MsPathFinderT No Chimeras" },
-        { "MsPathFinderTWithMods_7", "MsPathFinderT\u200B 7" },
-        { "MsPathFinderTWithMods_7Rep2", "MsPathFinderT\u200B 7" },
-        { "MsPathFinderTWithMods_15", "MsPathFinderT⠀15" },
-        { "MsPathFinderTWithMods_15Rep2", "MsPathFinderT⠀15" },
+        { "MsPathFinderTWithModsNoChimeras", "MsPathFinderT  No Chimeras" },
+        { "MsPathFinderTWithModsNoChimerasRep2", "MsPathFinderT  No Chimeras" },
+        { "MsPathFinderTWithMods_7", "MsPathFinderT \u28007" },
+        { "MsPathFinderTWithMods_7Rep2", "MsPathFinderT \u28007" },
+        { "MsPathFinderTWithMods_15", "MsPathFinderT\u280015" },
+        { "MsPathFinderTWithMods_15Rep2", "MsPathFinderT\u280015" },
 
-        {"ProsightPDNoChimeras", "ProsightPD No Chimeras"},
-        {"ProsightPDNoChimeras_Rep2", "ProsightPD No Chimeras"},
-        {"ProsightPDChimeras", "ProsightPD⠀⠀Chimeras"},
-        {"ProsightPDChimeras_Rep2", "ProsightPD⠀⠀Chimeras"},
-        {"ProsightPDChimeras_15", "ProsightPD⠀15 Chimeras"},
-        {"ProsightPDChimeras_Rep2_15", "ProsightPD⠀15 Chimeras"},
+        {"ProsightPDNoChimeras", "ProsightPD  No Chimeras"},
+        {"ProsightPDNoChimeras_Rep2", "ProsightPD  No Chimeras"},
+        {"ProsightPDChimeras", "ProsightPD \u28007 Chimeras"},
+        {"ProsightPDChimeras_Rep2", "ProsightPD \u28007 Chimeras"},
+        {"ProsightPDChimeras_15", "ProsightPD\u280015 Chimeras"},
+        {"ProsightPDChimeras_Rep2_15", "ProsightPD\u280015 Chimeras"},
     };
 
     #endregion

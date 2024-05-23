@@ -1,10 +1,11 @@
 ﻿using Analyzer.FileTypes.External;
 using Analyzer.FileTypes.Internal;
+using Analyzer.Interfaces;
 using Analyzer.Util;
 
 namespace Analyzer.SearchType
 {
-    public class MsFraggerResult : BulkResult
+    public class MsFraggerResult : BulkResult, IChimeraPaperResults
     {
         public List<MsFraggerIndividualFileResult> IndividualFileResults { get; set; }
 

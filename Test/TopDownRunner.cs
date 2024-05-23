@@ -1,4 +1,5 @@
 ﻿using Analyzer.FileTypes.Internal;
+using Analyzer.Interfaces;
 using Plotly.NET.ImageExport;
 using Readers;
 using Analyzer.Plotting;
@@ -32,16 +33,15 @@ namespace Test
             {
                 foreach (var result in cellLine)
                 {
-                    result.GetIndividualFileComparison();
                     result.CountChimericPsms();
                     if (result is MsPathFinderTResults)
                         result.Override = true;
                     result.GetBulkResultCountComparisonFile();
-                    if (result is MetaMorpheusResult mm)
-                    {
-                        // mm.GetChimeraBreakdownFile();
-                        mm.CountChimericPeptides();
-                    }
+                    result.GetIndividualFileComparison();
+                    if (result is IChimeraBreakdownCompatible cb)
+                        cb.GetChimeraBreakdownFile();
+                    if (result is IChimeraPeptideCounter pc)
+                        pc.CountChimericPeptides();
                     result.Override = false;
                 }
 
@@ -97,20 +97,22 @@ namespace Test
         [Test]
         public static void GenerateSpecificFigures()
         {
-            foreach (CellLineResults cellLine in AllResults.Skip(1))
-            {
-                //cellLine.PlotIndividualFileResults();
-                //cellLine.PlotCellLineSpectralSimilarity();
-                //cellLine.PlotCellLineChimeraBreakdown();
-                //cellLine.PlotCellLineChimeraBreakdown_TargetDecoy();
-                foreach (var individualResult in cellLine)
-                {
-                    if (individualResult is not MetaMorpheusResult {Condition: "MetaMorpheus_NewPEP_NoNormNoMult"} mm ) continue;
-                    mm.ExportPepFeaturesPlots();
-                    mm.ExportCombinedChimeraTargetDecoyExploration(mm.FigureDirectory, mm.Condition);
-                    mm.PlotTargetDecoyCurves();
-                }
-            }
+
+            AllResults.PlotBulkResultComparisons();
+            //foreach (CellLineResults cellLine in AllResults.Skip(1))
+            //{
+            //    //cellLine.PlotIndividualFileResults();
+            //    //cellLine.PlotCellLineSpectralSimilarity();
+            //    //cellLine.PlotCellLineChimeraBreakdown();
+            //    //cellLine.PlotCellLineChimeraBreakdown_TargetDecoy();
+            //    foreach (var individualResult in cellLine)
+            //    {
+            //        if (individualResult is not MetaMorpheusResult {Condition: "MetaMorpheus_NewPEP_NoNormNoMult"} mm ) continue;
+            //        mm.ExportPepFeaturesPlots();
+            //        mm.ExportCombinedChimeraTargetDecoyExploration(mm.FigureDirectory, mm.Condition);
+            //        mm.PlotTargetDecoyCurves();
+            //    }
+            //}
 
             //AllResults.PlotInternalMMComparison();
             //AllResults.PlotBulkResultComparisons();

@@ -65,6 +65,11 @@ namespace Analyzer.SearchType
             }
         }
 
+        /// <summary>
+        /// Uses each individual target results file to count PrSMs, Proteins, and Proteoforms
+        /// </summary>
+        /// <param name="path"></param>
+        /// <returns></returns>
         public override BulkResultCountComparisonFile GetIndividualFileComparison(string path = null)
         {
             if (!Override && File.Exists(_IndividualFilePath))
@@ -73,16 +78,28 @@ namespace Analyzer.SearchType
             var results = new List<BulkResultCountComparison>();
             foreach (var file in IndividualFileResults)
             {
-                var proteoformCount = file.TargetResults.Results.Count;
-                var onePercentProteoformCount = file.TargetResults.FilteredResults.Count;
+                var psmCount = file.TargetResults.Results.Count;
+                var onePercentPsmCount = file.TargetResults.FilteredResults.Count;
+                var proteoformCount = file.TargetResults.GroupBy(p => p,
+                    CustomComparer<MsPathFinderTResult>.MsPathFinderTDistinctProteoformComparer).Count();
+                var onePercentProteoformCount = file.TargetResults.FilteredResults.GroupBy(p => p,
+                    CustomComparer<MsPathFinderTResult>.MsPathFinderTDistinctProteoformComparer).Count();
+                var proteinCount = file.TargetResults.GroupBy(p => p,
+                    CustomComparer<MsPathFinderTResult>.MsPathFinderTDistinctProteinComparer).Count();
+                var onePercentProteinCount = file.TargetResults.FilteredResults.GroupBy(p => p,
+                    CustomComparer<MsPathFinderTResult>.MsPathFinderTDistinctProteinComparer).Count();
 
                 results.Add(new BulkResultCountComparison()
                 {
                     Condition = Condition,
                     DatasetName = DatasetName,
                     FileName = file.Name,
-                    OnePercentPsmCount = onePercentProteoformCount,
-                    PsmCount = proteoformCount,
+                    OnePercentPsmCount = onePercentPsmCount,
+                    PsmCount = psmCount,
+                    PeptideCount = proteoformCount,
+                    OnePercentPeptideCount = onePercentProteoformCount,
+                    ProteinGroupCount = proteinCount,
+                    OnePercentProteinGroupCount = onePercentProteinCount
                 });
             }
 
