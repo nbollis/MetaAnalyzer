@@ -201,7 +201,7 @@ namespace Analyzer.SearchType
                         Dataset = DatasetName,
                         FileName = IdToFileNameDictionary[chimeraGroup.First().FileID],
                         Condition = Condition,
-                        Ms2ScanNumber = chimeraGroup.First().FragmentationScans,
+                        Ms2ScanNumber = int.Parse(chimeraGroup.First().Ms2ScanNumber.Split(';')[0].Trim()),
                         Type = Util.ResultType.Psm,
                         IdsPerSpectra = chimeraGroup.Length,
                         TargetCount = chimeraGroup.Count(),
@@ -214,8 +214,7 @@ namespace Analyzer.SearchType
                         ProteomeDiscovererPsmRecord[] orderedChimeras;
                         if (useIsolation)
                         {
-                            int scanNum = int.Parse(chimeraGroup.First().Ms2ScanNumber.Split(';')[0]);
-                            var ms2Scan = dataFile.GetOneBasedScanFromDynamicConnection(scanNum);
+                            var ms2Scan = dataFile.GetOneBasedScanFromDynamicConnection(record.Ms2ScanNumber);
                             var isolationMz = ms2Scan?.IsolationMz ?? null;
                             if (isolationMz is null)
                                 orderedChimeras = chimeraGroup.OrderByDescending(p => p.NegativeLogEValue)
@@ -238,6 +237,8 @@ namespace Analyzer.SearchType
                         foreach (var chimericPsm in orderedChimeras)
                             if (parent is null)
                                 parent = chimericPsm;
+                            else if (parent.AnnotatedSequence == chimericPsm.AnnotatedSequence)
+                                record.DuplicateCount++;
                             else if (parent.ProteinAccessions == chimericPsm.ProteinAccessions)
                                 record.UniqueForms++;
                             else

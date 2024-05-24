@@ -31,6 +31,7 @@ namespace Analyzer.FileTypes.Internal
         public int UniqueProteins { get; set; }
         [Optional] public int TargetCount { get; set; }
         [Optional] public int DecoyCount { get; set; }
+        [Optional] public int DuplicateCount { get; set; }
 
         public ChimeraBreakdownRecord()
         {

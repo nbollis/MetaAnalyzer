@@ -8,6 +8,7 @@ using Analyzer.SearchType;
 using Analyzer.Util;
 using Plotly.NET;
 using Plotly.NET.LayoutObjects;
+using Proteomics.PSM;
 using UsefulProteomicsDatabases;
 using Chart = Plotly.NET.CSharp.Chart;
 
@@ -41,10 +42,9 @@ namespace Test
                     result.GetIndividualFileComparison();
                     if (result is IChimeraBreakdownCompatible cb)
                     {
-                        if (result is /*ProteomeDiscovererResult or*/ MsPathFinderTResults /*&& result.Condition.Contains("15")*/)
+                        if (result is ProteomeDiscovererResult /*or MsPathFinderTResults*/ && result.Condition.Contains("15"))
                             result.Override = true;
-                        result.GetBulkResultCountComparisonFile();
-                        //cb.GetChimeraBreakdownFile();
+                        cb.GetChimeraBreakdownFile();
                         result.Override = false;
                     }
                     if (result is IChimeraPeptideCounter pc)
@@ -60,9 +60,9 @@ namespace Test
                 cellLine.Override = false;
 
                 cellLine.PlotIndividualFileResults();
-                //cellLine.PlotCellLineSpectralSimilarity();
-                //cellLine.PlotCellLineChimeraBreakdown();
-                //cellLine.PlotCellLineChimeraBreakdown_TargetDecoy();
+                cellLine.PlotCellLineSpectralSimilarity();
+                cellLine.PlotCellLineChimeraBreakdown();
+                cellLine.PlotCellLineChimeraBreakdown_TargetDecoy();
             }
 
             AllResults.Override = true;
@@ -72,8 +72,8 @@ namespace Test
             AllResults.CountChimericPeptides();
             AllResults.PlotBulkResultComparisons();
             AllResults.PlotStackedIndividualFileComparison();
-            //AllResults.PlotBulkResultChimeraBreakDown();
-            //AllResults.PlotBulkResultChimeraBreakDown_TargetDecoy();
+            AllResults.PlotBulkResultChimeraBreakDown();
+            AllResults.PlotBulkResultChimeraBreakDown_TargetDecoy();
         }
 
         [Test]
@@ -141,43 +141,42 @@ namespace Test
 
 
         [Test]
-        public static void GenerateTargetDecoyByChimeraGroupPlots()
+        public static void ugh()
         {
+            string path =
+                @"B:\Users\Nic\Chimeras\TopDown_Analysis\Jurkat\SearchResults\MetaMorpheus\Task4-SearchTask\AllPSMs.psmtsv";
+            var psms = SpectrumMatchTsvReader.ReadPsmTsv(path, out _);
+            var count = psms.Count;
+            var distinctCount = psms.DistinctBy(p => p,
+                CustomComparer<PsmFromTsv>.MetaMorpheusDuplicatedPsmFromDifferentPrecursorPeaksComparer).Count();
+            var filteredCount = psms.Count(p => p.PEP_QValue <= 0.01);
+            var distinctFilteredCount = psms.Where(p => p.PEP_QValue <= 0.01).DistinctBy(p => p,
+                CustomComparer<PsmFromTsv>.MetaMorpheusDuplicatedPsmFromDifferentPrecursorPeaksComparer).Count();
 
-            Dictionary<string, string> conditionsAndOutHeader = new()
-            {
-                { "MetaMorpheus", "Original" },
-                { "MetaMorpheus_ChimeraInPEP_Negative", "PEP Negative" },
-                { "MetaMorpheus_ChimeraInPEP_Positive", "PEP Positive" },
-                { "MetaMorpheus_DeconScoreAndPeaksInPEP", "Decon Score And Peaks" },
-                { "MetaMorpheus_OneMissedMonoIsotopic", "OneMissedMono" },
-                { "MetaMorpheus_FullPEPChimeraIncorporation", "FullPEPIncorporation" },
-            };
-            //var selectedCondition = conditionsAndOutHeader.First();
-            //var condition = selectedCondition.Key;
+            var grouped = psms.GroupBy(p => p,
+                    CustomComparer<PsmFromTsv>.MetaMorpheusDuplicatedPsmFromDifferentPrecursorPeaksComparer)
+                .OrderByDescending(p => p.Count());
 
-            //var results = AllResults
-            //    .First(p => p.CellLine == "Jurkat")
-            //    .First(p => p.Condition == condition) as MetaMorpheusResult;
+            string path2 =
+                @"B:\Users\Nic\Chimeras\TopDown_Analysis\Jurkat\SearchResults\MetaMorpheus_Rep2_WithLibrary_NewPEP_NoNorm\Task4-SearchTask\AllPSMs.psmtsv";
+            var psms2 = SpectrumMatchTsvReader.ReadPsmTsv(path2, out _);
+            var count2 = psms2.Count;
+            var distinctCount2 = psms2.DistinctBy(p => p,
+                CustomComparer<PsmFromTsv>.MetaMorpheusDuplicatedPsmFromDifferentPrecursorPeaksComparer).Count();
+            var filteredCount2 = psms2.Count(p => p.PEP_QValue <= 0.01);
+            var distinctFilteredCount2 = psms2.Where(p => p.PEP_QValue <= 0.01).DistinctBy(p => p,
+                CustomComparer<PsmFromTsv>.MetaMorpheusDuplicatedPsmFromDifferentPrecursorPeaksComparer).Count();
 
-            //string outDir = @"B:\Users\Nic\Chimeras\TopDown_Analysis\Jurkat\SearchResults\MetaMorpheus\Figures";
-            //results.ExportCombinedChimeraTargetDecoyExploration(outDir, selectedCondition);
-
+            var grouped2 = psms2.GroupBy(p => p,
+                    CustomComparer<PsmFromTsv>.MetaMorpheusDuplicatedPsmFromDifferentPrecursorPeaksComparer)
+                .OrderByDescending(p => p.Count());
 
 
 
-            var selectedCondition = conditionsAndOutHeader.Skip(5).First();
-            var condition = selectedCondition.Key;
-            var results = AllResults
-                .First(p => p.CellLine == "Jurkat")
-                .First(p => p.Condition == condition) as MetaMorpheusResult;
-
-            var outDir = @"B:\Users\Nic\Chimeras\TopDown_Analysis\Jurkat\SearchResults\MetaMorpheus\Figures";
-            results.ExportCombinedChimeraTargetDecoyExploration(outDir, selectedCondition.Value);
         }
 
 
-    
-   
+
+
     }
 }

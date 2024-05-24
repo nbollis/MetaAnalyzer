@@ -61,6 +61,10 @@ namespace Analyzer.Util
             new(psm => psm.PrecursorScanNum, psm => psm.Ms2ScanNumber,
                 psm => psm.FileNameWithoutExtension.Replace("-calib", "").Replace("-averaged", ""));
 
+        public static CustomComparer<PsmFromTsv> MetaMorpheusDuplicatedPsmFromDifferentPrecursorPeaksComparer =>
+            new(psm => psm.FullSequence, psm => psm.Ms2ScanNumber, psm => psm.PrecursorScanNum,
+                psm => psm.FileNameWithoutExtension.Replace("-calib", "").Replace("-averaged", "")); 
+
         // MsFragger
         public static CustomComparer<MsFraggerPsm> MsFraggerChimeraComparer =>
             new(psm => psm.OneBasedScanNumber, psm => psm.FileNameWithoutExtension);
@@ -80,6 +84,18 @@ namespace Analyzer.Util
             new CustomComparer<ProteomeDiscovererPsmRecord>(
                 prsm => prsm.FileID,
                 prsm => prsm.Ms2ScanNumber);
+
+        public static CustomComparer<ProteomeDiscovererPsmRecord> PSPDPrSMDistinctProteoformComparer => 
+            new CustomComparer<ProteomeDiscovererPsmRecord>(
+                prsm => prsm.ProteinAccessions,
+                           prsm => prsm.Ms2ScanNumber,
+                           prsm => prsm.FileID,
+                           prsm => prsm.AnnotatedSequence);
+
+        public static CustomComparer<ProteomeDiscovererPsmRecord> PSPDPrSMDistinctProteinComparer => 
+        new CustomComparer<ProteomeDiscovererPsmRecord>(
+                           prsm => prsm.ProteinAccessions);
+
 
 
         // MsPathFinderT

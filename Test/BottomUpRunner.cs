@@ -28,6 +28,10 @@ namespace Test
         {
             foreach (CellLineResults cellLine in AllResults)
             {
+
+                // temp
+                var t = ((MsFraggerResult)cellLine.First(p => p is MsFraggerResult)).CombinedPeptides.Results;
+
                 foreach (var result in cellLine)
                 {
                     if (result is MetaMorpheusResult)

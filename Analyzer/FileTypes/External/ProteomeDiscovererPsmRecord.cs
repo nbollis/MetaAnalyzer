@@ -1,5 +1,7 @@
-﻿using Analyzer.SearchType;
+﻿using System.ComponentModel.DataAnnotations.Schema;
+using Analyzer.SearchType;
 using Analyzer.Util.TypeConverters;
+using Chemistry;
 using CsvHelper;
 using CsvHelper.Configuration;
 using CsvHelper.Configuration.Attributes;
@@ -197,6 +199,9 @@ namespace Analyzer.FileTypes.External
 
         [Name("# Protein Groups")]
         public int ProteinGroupCount { get; set; }
+
+        [NotMapped] private double? _calculatedMz;
+        [NotMapped] public double CalculatedMz => _calculatedMz ??= Mz.ToMz(Charge);
     }
 
     public class ProteomeDiscovererPsmFile : ResultFile<ProteomeDiscovererPsmRecord>, IResultFile

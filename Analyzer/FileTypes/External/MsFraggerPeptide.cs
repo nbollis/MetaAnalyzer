@@ -1,4 +1,5 @@
-﻿using System.Globalization;
+﻿using System.ComponentModel.DataAnnotations.Schema;
+using System.Globalization;
 using Analyzer.Util.TypeConverters;
 using CsvHelper.Configuration;
 using CsvHelper.Configuration.Attributes;
@@ -91,5 +92,20 @@ namespace Analyzer.FileTypes.External
         [Name("File Name")]
         [Optional]
         public string FileNameWithoutExtension { get; set; }
+
+
+        [NotMapped]
+        [Optional]
+        public Dictionary<string, int> FileToPsmCount { get; set; }
+
+        [NotMapped]
+        [Optional]
+        public Dictionary<string, double> IntensityByFile { get; set; }
+
+        public MsFraggerPeptide()
+        {
+            FileToPsmCount = new();
+            IntensityByFile = new();
+        }
     }
 }
