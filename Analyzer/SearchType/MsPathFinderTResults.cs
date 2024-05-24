@@ -11,7 +11,8 @@ using ThermoFisher.CommonCore.Data.Business;
 
 namespace Analyzer.SearchType
 {
-    public class MsPathFinderTResults : BulkResult, IEnumerable<MsPathFinderTIndividualFileResult>, IChimeraBreakdownCompatible
+    public class MsPathFinderTResults : BulkResult, IEnumerable<MsPathFinderTIndividualFileResult>, 
+        IChimeraBreakdownCompatible, IDisposable
     {
         private string _datasetInfoFilePath => Path.Combine(DirectoryPath, "DatasetInfoFile.tsv");
         private string _crossTabResultFilePath;
@@ -204,7 +205,7 @@ namespace Analyzer.SearchType
 
 
         private string _chimeraBreakDownPath => Path.Combine(DirectoryPath, $"{DatasetName}_{Condition}_{FileIdentifiers.ChimeraBreakdownComparison}");
-        private ChimeraBreakdownFile _chimeraBreakdownFile;
+        private ChimeraBreakdownFile? _chimeraBreakdownFile;
         public ChimeraBreakdownFile ChimeraBreakdownFile => _chimeraBreakdownFile ??= GetChimeraBreakdownFile();
 
         public ChimeraBreakdownFile GetChimeraBreakdownFile()
@@ -286,6 +287,8 @@ namespace Analyzer.SearchType
                         foreach (var chimera in orderedChimeras)
                             if (parent is null)
                                 parent = chimera;
+                            else if (parent.BaseSequence == chimera.BaseSequence && parent.Modifications == chimera.Modifications)
+                                record.DuplicateCount++;
                             else if (parent.Accession == chimera.Accession)
                                 record.UniqueForms++;
                             else
@@ -346,6 +349,8 @@ namespace Analyzer.SearchType
                         foreach (var chimera in orderedChimeras)
                             if (parent is null)
                                 parent = chimera;
+                            else if (parent.BaseSequence == chimera.BaseSequence && parent.Modifications == chimera.Modifications)
+                                record.DuplicateCount++;
                             else if (parent.Accession == chimera.Accession)
                                 record.UniqueForms++;
                             else
@@ -370,6 +375,12 @@ namespace Analyzer.SearchType
         IEnumerator IEnumerable.GetEnumerator()
         {
             return GetEnumerator();
+        }
+
+        public new void Dispose()
+        {
+            base.Dispose();
+            _chimeraBreakdownFile = null;
         }
     }
 

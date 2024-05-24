@@ -35,20 +35,21 @@ namespace Test
             {
                 foreach (var result in cellLine)
                 {
-                    //if (result is MsPathFinderTResults)
-                    //    result.Override = true;
+                    result.Override = true;
                     result.CountChimericPsms();
                     result.GetBulkResultCountComparisonFile();
                     result.GetIndividualFileComparison();
                     if (result is IChimeraBreakdownCompatible cb)
                     {
-                        if (result is ProteomeDiscovererResult /*or MsPathFinderTResults*/ && result.Condition.Contains("15"))
-                            result.Override = true;
                         cb.GetChimeraBreakdownFile();
-                        result.Override = false;
                     }
                     if (result is IChimeraPeptideCounter pc)
                         pc.CountChimericPeptides();
+                    if (result is MetaMorpheusResult mm)
+                    {
+                        mm.ExportPepFeaturesPlots();
+                        mm.ExportCombinedChimeraTargetDecoyExploration(mm.FigureDirectory, mm.Condition);
+                    }
                     result.Override = false;
                 }
 
@@ -63,6 +64,8 @@ namespace Test
                 cellLine.PlotCellLineSpectralSimilarity();
                 cellLine.PlotCellLineChimeraBreakdown();
                 cellLine.PlotCellLineChimeraBreakdown_TargetDecoy();
+
+                cellLine.Dispose();
             }
 
             AllResults.Override = true;
@@ -138,6 +141,34 @@ namespace Test
                 mspt.CreateDatasetInfoFile();
             }
         }
+
+
+
+        [Test]
+        public static void PlotBulkResults()
+        {
+            foreach (var cellLine in AllResults)
+            {
+                foreach (var result in cellLine)
+                {
+                    result.Override = true;
+
+                    if (result is not MetaMorpheusResult)
+                        result.GetBulkResultCountComparisonFile();
+
+                    result.Override = false;
+                }
+
+                cellLine.Override = true;
+                cellLine.GetBulkResultCountComparisonFile();
+                cellLine.Override = false;
+            }
+
+            AllResults.Override = true;
+            AllResults.GetBulkResultCountComparisonFile();
+            AllResults.PlotBulkResultComparisons();
+        }
+    
 
 
         [Test]

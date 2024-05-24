@@ -5,7 +5,7 @@ using CsvHelper;
 
 namespace Analyzer.SearchType
 {
-    public abstract class BulkResult : IChimeraPaperResults
+    public abstract class BulkResult : IChimeraPaperResults, IDisposable
     {
         public string DirectoryPath { get; set; }
         public string DatasetName { get; set; }
@@ -24,7 +24,7 @@ namespace Analyzer.SearchType
         protected string _IndividualFilePath => Path.Combine(DirectoryPath,
             $"{DatasetName}_{Condition}_{FileIdentifiers.IndividualFileComparison}");
 
-        protected BulkResultCountComparisonFile _individualFileComparison;
+        protected BulkResultCountComparisonFile? _individualFileComparison;
 
         public BulkResultCountComparisonFile IndividualFileComparisonFile =>
             _individualFileComparison ??= GetIndividualFileComparison();
@@ -32,13 +32,13 @@ namespace Analyzer.SearchType
         protected string _chimeraPsmPath => Path.Combine(DirectoryPath,
             $"{DatasetName}_{Condition}_PSM_{FileIdentifiers.ChimeraCountingFile}");
 
-        protected ChimeraCountingFile _chimeraPsmFile;
+        protected ChimeraCountingFile? _chimeraPsmFile;
         public ChimeraCountingFile ChimeraPsmFile => _chimeraPsmFile ??= CountChimericPsms();
 
         protected string _bulkResultCountComparisonPath => Path.Combine(DirectoryPath,
             $"{DatasetName}_{Condition}_{FileIdentifiers.BottomUpResultComparison}");
 
-        protected BulkResultCountComparisonFile _bulkResultCountComparisonFile;
+        protected BulkResultCountComparisonFile? _bulkResultCountComparisonFile;
 
         public BulkResultCountComparisonFile BulkResultCountComparisonFile =>
             _bulkResultCountComparisonFile ??= GetBulkResultCountComparisonFile();
@@ -94,6 +94,13 @@ namespace Analyzer.SearchType
         public override string ToString()
         {
             return $"{DatasetName}_{Condition}";
+        }
+
+        public void Dispose()
+        {
+            _individualFileComparison = null;
+            _chimeraPsmFile = null;
+            _bulkResultCountComparisonFile = null;
         }
     }
 }

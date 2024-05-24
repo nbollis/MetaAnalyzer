@@ -209,7 +209,7 @@ namespace Analyzer.Plotting
         internal static GenericChart.GenericChart GetChimeraBreakDownStackedColumn(this List<ChimeraBreakdownRecord> results,
             ResultType type, bool isTopDown, out int width, string? extraTitle = null)
         {
-            (int IdPerSpec, int Parent, int UniqueProtein, int UniqueForms, int Decoys)[] data = results.Where(p => p.Type == type)
+            (int IdPerSpec, int Parent, int UniqueProtein, int UniqueForms, int Decoys, int Duplicates)[] data = results.Where(p => p.Type == type)
                 .GroupBy(p => p.IdsPerSpectra)
                 .OrderBy(p => p.Key)
                 .Select(p =>
@@ -218,7 +218,8 @@ namespace Analyzer.Plotting
                         p.Sum(m => m.Parent),
                         p.Sum(m => m.UniqueProteins),
                         p.Sum(m => m.UniqueForms),
-                        p.Sum(m => m.DecoyCount))
+                        p.Sum(m => m.DecoyCount),
+                        p.Sum(m => m.DuplicateCount))
                     )
                 .ToArray();
             var keys = data.Select(p => p.IdPerSpec).ToArray();
@@ -227,17 +228,30 @@ namespace Analyzer.Plotting
             string title = isTopDown ? type == ResultType.Psm ? "PrSM" : "Proteoform" :
                 type == ResultType.Psm ? "PSM" : "Peptide";
             var title2 = results.Select(p => p.Dataset).Distinct().Count() == 1 ? results.First().Dataset : "All Results";
-            var chart = Chart.Combine(new[]
-                {
-                    Chart.StackedColumn<int, int, string>(data.Select(p => p.Parent), keys, "Isolated Species",
-                        MarkerColor: "Isolated Species".ConvertConditionToColor(), MultiText: data.Select(p => p.Parent.ToString()).ToArray()),
-                    Chart.StackedColumn<int, int, string>(data.Select(p => p.Decoys), keys, "Decoys",
-                        MarkerColor: "Decoys".ConvertConditionToColor(), MultiText: data.Select(p => p.Decoys.ToString()).ToArray()),
-                    Chart.StackedColumn<int, int, string>(data.Select(p => p.UniqueProtein), keys, $"Unique Protein",
-                        MarkerColor: "Unique Protein".ConvertConditionToColor(), MultiText: data.Select(p => p.UniqueProtein.ToString()).ToArray()),
-                    Chart.StackedColumn<int, int, string>(data.Select(p => p.UniqueForms), keys, $"Unique {form}",
-                        MarkerColor: $"Unique {form}".ConvertConditionToColor(), MultiText: data.Select(p => p.UniqueForms.ToString()).ToArray()),
-                })
+
+            var charts = new[]
+            {
+                Chart.StackedColumn<int, int, string>(data.Select(p => p.Parent), keys, "Isolated Species",
+                    MarkerColor: "Isolated Species".ConvertConditionToColor(),
+                    MultiText: data.Select(p => p.Parent.ToString()).ToArray()),
+                Chart.StackedColumn<int, int, string>(data.Select(p => p.Decoys), keys, "Decoys",
+                    MarkerColor: "Decoys".ConvertConditionToColor(),
+                    MultiText: data.Select(p => p.Decoys.ToString()).ToArray()),
+                Chart.StackedColumn<int, int, string>(data.Select(p => p.UniqueProtein), keys, $"Unique Protein",
+                    MarkerColor: "Unique Protein".ConvertConditionToColor(),
+                    MultiText: data.Select(p => p.UniqueProtein.ToString()).ToArray()),
+                Chart.StackedColumn<int, int, string>(data.Select(p => p.UniqueForms), keys, $"Unique {form}",
+                    MarkerColor: $"Unique {form}".ConvertConditionToColor(),
+                    MultiText: data.Select(p => p.UniqueForms.ToString()).ToArray()),
+            };
+
+            if (data.Any(p => p.Duplicates > 0))
+                charts = charts.Append(Chart.StackedColumn<int, int, string>(data.Select(p => p.Duplicates), keys,
+                    "Duplicates",
+                    MarkerColor: "Duplicates".ConvertConditionToColor(),
+                    MultiText: data.Select(p => p.Duplicates.ToString()).ToArray())).ToArray();
+
+            var chart = Chart.Combine(charts)
                 .WithLayout(DefaultLayoutWithLegend)
                 .WithTitle($"{title2} {title} Identifications per Spectra")
                 .WithXAxisStyle(Title.init("IDs per Spectrum"))
@@ -250,7 +264,7 @@ namespace Analyzer.Plotting
         internal static GenericChart.GenericChart GetChimeraBreakDownStackedArea(this List<ChimeraBreakdownRecord> results,
             ResultType type, bool isTopDown, out int width, bool asPercent = false, string? extraTitle = null)
         {
-            (int IdPerSpec, double Parent, double UniqueProtein, double UniqueForms, double Decoys)[] data = results.Where(p => p.Type == type)
+            (int IdPerSpec, double Parent, double UniqueProtein, double UniqueForms, double Decoys, double Duplicates)[] data = results.Where(p => p.Type == type)
                 .GroupBy(p => p.IdsPerSpectra)
                 .OrderBy(p => p.Key)
                 .Select(p =>
@@ -259,7 +273,8 @@ namespace Analyzer.Plotting
                         (double)p.Sum(m => m.Parent),
                         (double)p.Sum(m => m.UniqueProteins),
                         (double)p.Sum(m => m.UniqueForms),
-                        (double)p.Sum(m => m.DecoyCount))
+                        (double)p.Sum(m => m.DecoyCount),
+                        (double)p.Sum(m => m.DuplicateCount))
                 )
                 .ToArray();
             var keys = data.Select(p => p.IdPerSpec).ToArray();
@@ -273,7 +288,7 @@ namespace Analyzer.Plotting
             {
                 for (int i = 0; i < data.Length; i++)
                 {
-                    var total = data[i].Parent + data[i].UniqueProtein + data[i].UniqueForms + data[i].Decoys;
+                    var total = data[i].Parent + data[i].UniqueProtein + data[i].UniqueForms + data[i].Decoys + data[i].Duplicates;
                     data[i].Parent = data[i].Parent / total * 100;
                     data[i].UniqueProtein = data[i].UniqueProtein / total * 100;
                     data[i].UniqueForms = data[i].UniqueForms / total * 100;
@@ -281,22 +296,31 @@ namespace Analyzer.Plotting
                 }
             }
 
-            var chart = Chart.Combine(new []
+            var charts = new []
             {
-                Chart.StackedArea<int, double, string>( keys, data.Select(p => p.Parent), Name: "Isolated Species",
+                Chart.StackedArea<int, double, string>(keys, data.Select(p => p.Parent), Name: "Isolated Species",
                     MarkerColor: "Isolated Species".ConvertConditionToColor(), MultiText: data.Select(p => p.Parent.ToString()).ToArray()),
-                Chart.StackedArea<int, double, string>( keys,data.Select(p => p.Decoys), Name:"Decoys",
+
+                Chart.StackedArea<int, double, string>(keys, data.Select(p => p.Decoys), Name: "Decoys",
                     MarkerColor: "Decoys".ConvertConditionToColor(), MultiText: data.Select(p => p.Decoys.ToString()).ToArray()),
-                Chart.StackedArea<int, double, string>( keys,data.Select(p => p.UniqueProtein),Name: $"Unique Protein",
+
+                Chart.StackedArea<int, double, string>(keys, data.Select(p => p.UniqueProtein), Name: $"Unique Protein",
                     MarkerColor: "Unique Protein".ConvertConditionToColor(), MultiText: data.Select(p => p.UniqueProtein.ToString()).ToArray()),
-                Chart.StackedArea<int, double, string>( keys,data.Select(p => p.UniqueForms),Name: $"Unique {form}",
+
+                Chart.StackedArea<int, double, string>(keys, data.Select(p => p.UniqueForms), Name: $"Unique {form}",
                     MarkerColor: $"Unique {form}".ConvertConditionToColor(), MultiText: data.Select(p => p.UniqueForms.ToString()).ToArray()),
-            })
-            .WithLayout(DefaultLayoutWithLegend)
-            .WithTitle($"{title2} {title} Identifications per Spectra \n{extraTitle ?? ""}")
-            .WithXAxisStyle(Title.init("IDs per Spectrum"))
-            .WithYAxisStyle(Title.init( asPercent ? "Percent" :"Count"))
-            .WithSize(width, DefaultHeight);
+            };
+
+            if (data.Any(p => p.Duplicates > 0))
+                charts = charts.Append(Chart.StackedArea<int, double, string>(keys, data.Select(p => p.Duplicates), Name: "Duplicates",
+                    MarkerColor: "Duplicates".ConvertConditionToColor(), MultiText: data.Select(p => p.Duplicates.ToString()).ToArray())).ToArray();
+
+            var chart = Chart.Combine(charts)
+                .WithLayout(DefaultLayoutWithLegend)
+                .WithTitle($"{title2} {title} Identifications per Spectra \n{extraTitle ?? ""}")
+                .WithXAxisStyle(Title.init("IDs per Spectrum"))
+                .WithYAxisStyle(Title.init( asPercent ? "Percent" :"Count"))
+                .WithSize(width, DefaultHeight);
             return chart;
         }
 

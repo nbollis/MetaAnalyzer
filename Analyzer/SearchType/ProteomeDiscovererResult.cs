@@ -9,7 +9,7 @@ using Chemistry;
 
 namespace Analyzer.SearchType
 {
-    public class ProteomeDiscovererResult : BulkResult, IChimeraBreakdownCompatible
+    public class ProteomeDiscovererResult : BulkResult, IChimeraBreakdownCompatible, IDisposable
     {
         private ProteomeDiscovererPsmFile _psmFile;
         private ProteomeDiscovererProteoformFile _peptideFile;
@@ -128,7 +128,9 @@ namespace Analyzer.SearchType
             var proteoformCount = ProteoformFile.Count();
             var proteinCount = ProteinFile.Count();
 
-            var onePercentPsmCount = PrsmFile.Count(p => IsTopDown ? p.NegativeLogEValue >= 5 : p.QValue <= 0.01);
+            // TODO: Consider if this distinct comparer is necessary for the final results to be comparable
+            var onePercentPsmCount = PrsmFile.FilteredResults.DistinctBy(p => p, CustomComparer<ProteomeDiscovererPsmRecord>.PSPDPrSMDistinctProteoformComparer)
+                .Count(p => IsTopDown ? p.NegativeLogEValue >= 5 : p.QValue <= 0.01);
             var onePercentProteoformCount = ProteoformFile.Count(p => p.QValue <= 0.01);
             var onePercentProteinCount = ProteinFile.Count(p => p.QValue <= 0.01);
 
@@ -154,7 +156,7 @@ namespace Analyzer.SearchType
         }
 
         private string _chimeraBreakDownPath => Path.Combine(DirectoryPath, $"{DatasetName}_{Condition}_{FileIdentifiers.ChimeraBreakdownComparison}");
-        private ChimeraBreakdownFile _chimeraBreakdownFile;
+        private ChimeraBreakdownFile? _chimeraBreakdownFile;
         public ChimeraBreakdownFile ChimeraBreakdownFile => _chimeraBreakdownFile ??= GetChimeraBreakdownFile();
 
         /// <summary>
@@ -192,8 +194,10 @@ namespace Analyzer.SearchType
                     }
                 }
 
-                foreach (var chimeraGroup in fileGroup.GroupBy(p => p,
-                                 CustomComparer<ProteomeDiscovererPsmRecord>.PSPDPrSMChimeraComparer)
+                //TODO: Consider if this distinct comparer is necessary
+                foreach (var chimeraGroup in fileGroup
+                             .DistinctBy(p => p, CustomComparer<ProteomeDiscovererPsmRecord>.PSPDPrSMDistinctProteoformComparer)
+                             .GroupBy(p => p, CustomComparer<ProteomeDiscovererPsmRecord>.PSPDPrSMChimeraComparer)
                              .Select(p => p.ToArray()))
                 {
                     var record = new ChimeraBreakdownRecord()
@@ -244,17 +248,22 @@ namespace Analyzer.SearchType
                             else
                                 record.UniqueProteins++;
                     }
-
                     chimeraBreakDownRecords.Add(record);
                 }
 
-                if (useIsolation)
+                if (useIsolation && dataFile is not null)
                     dataFile.CloseDynamicConnection();
             }
 
             var file = new ChimeraBreakdownFile(_chimeraBreakDownPath) { Results = chimeraBreakDownRecords };
             file.WriteResults(_chimeraBreakDownPath);
             return file;
+        }
+
+        public new void Dispose()
+        {
+            base.Dispose();
+            _chimeraBreakdownFile = null;
         }
     }
 }

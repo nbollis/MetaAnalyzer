@@ -11,7 +11,7 @@ using Readers;
 
 namespace Analyzer.SearchType
 {
-    public class MetaMorpheusResult : BulkResult, IChimeraBreakdownCompatible, IChimeraPeptideCounter
+    public class MetaMorpheusResult : BulkResult, IChimeraBreakdownCompatible, IChimeraPeptideCounter, IDisposable
     {
         #region Results
 
@@ -136,7 +136,7 @@ namespace Analyzer.SearchType
         }
 
         private string _chimeraPeptidePath => Path.Combine(DirectoryPath, $"{DatasetName}_{Condition}_{ResultType}_{FileIdentifiers.ChimeraCountingFile}");
-        private ChimeraCountingFile _chimeraPeptideFile;
+        private ChimeraCountingFile? _chimeraPeptideFile;
         public ChimeraCountingFile ChimeraPeptideFile => _chimeraPeptideFile ??= CountChimericPeptides();
         public ChimeraCountingFile CountChimericPeptides()
         {
@@ -294,7 +294,7 @@ namespace Analyzer.SearchType
         }
 
         private string _chimeraBreakDownPath => Path.Combine(DirectoryPath, $"{DatasetName}_{Condition}_{FileIdentifiers.ChimeraBreakdownComparison}");
-        private ChimeraBreakdownFile _chimeraBreakdownFile;
+        private ChimeraBreakdownFile? _chimeraBreakdownFile;
         public ChimeraBreakdownFile ChimeraBreakdownFile => _chimeraBreakdownFile ??= GetChimeraBreakdownFile();
         public ChimeraBreakdownFile GetChimeraBreakdownFile()
         {
@@ -374,6 +374,8 @@ namespace Analyzer.SearchType
                         foreach (var chimericPsm in orderedChimeras)
                             if (parent is null)
                                 parent = chimericPsm;
+                            else if (parent.FullSequence == chimericPsm.FullSequence)
+                                record.DuplicateCount++;
                             else if (parent.Accession == chimericPsm.Accession)
                                 record.UniqueForms++;
                             else
@@ -454,7 +456,9 @@ namespace Analyzer.SearchType
                         foreach (var chimericPsm in orderedChimeras)
                             if (parent is null)
                                 parent = chimericPsm;
-                            else if (parent.BaseSeq == chimericPsm.BaseSeq)
+                            else if (parent.FullSequence == chimericPsm.FullSequence)
+                                record.DuplicateCount++;
+                            else if (parent.Accession == chimericPsm.Accession)
                                 record.UniqueForms++;
                             else
                                 record.UniqueProteins++;
@@ -549,7 +553,13 @@ namespace Analyzer.SearchType
 
         #endregion
 
-       
+
+        public new void Dispose()
+        {
+            base.Dispose();
+            _chimeraBreakdownFile = null;
+            _chimeraPeptideFile = null;
+        }
     }
 
     public static class Extensions

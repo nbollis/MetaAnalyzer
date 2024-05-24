@@ -1,13 +1,14 @@
 ﻿using System.Collections;
 using Analyzer.FileTypes.External;
 using Analyzer.FileTypes.Internal;
+using Analyzer.Interfaces;
 using Analyzer.Util;
 using Proteomics.PSM;
 using Readers;
 
 namespace Analyzer.SearchType;
 
-public class CellLineResults : IEnumerable<BulkResult>
+public class CellLineResults : IEnumerable<BulkResult>, IDisposable
 {
     public string DirectoryPath { get; set; }
     public bool Override { get; set; } = false;
@@ -85,7 +86,7 @@ public class CellLineResults : IEnumerable<BulkResult>
     }
 
     private string _chimeraCountingPath => Path.Combine(DirectoryPath, $"{CellLine}_PSM_{FileIdentifiers.ChimeraCountingFile}");
-    private ChimeraCountingFile _chimeraCountingFile;
+    private ChimeraCountingFile? _chimeraCountingFile;
     public ChimeraCountingFile ChimeraCountingFile => _chimeraCountingFile ??= CountChimericPsms();
 
     public ChimeraCountingFile CountChimericPsms()
@@ -109,7 +110,7 @@ public class CellLineResults : IEnumerable<BulkResult>
     }
 
     private string _chimeraPeptidePath => Path.Combine(DirectoryPath, $"{CellLine}_Peptide_{FileIdentifiers.ChimeraCountingFile}");
-    private ChimeraCountingFile _chimeraPeptideFile;
+    private ChimeraCountingFile? _chimeraPeptideFile;
     public ChimeraCountingFile ChimeraPeptideFile => _chimeraPeptideFile ??= CountChimericPeptides();
     public ChimeraCountingFile CountChimericPeptides()
     {
@@ -121,9 +122,9 @@ public class CellLineResults : IEnumerable<BulkResult>
         }
 
         List<ChimeraCountingResult> results = new List<ChimeraCountingResult>();
-        foreach (var bulkResult in Results.Where(p => p is MetaMorpheusResult))
+        foreach (var bulkResult in Results.Where(p => p is IChimeraPeptideCounter))
         {
-            var result = (MetaMorpheusResult)bulkResult;
+            var result = (IChimeraPeptideCounter)bulkResult;
             results.AddRange(result.ChimeraPeptideFile.Results);
         }
 
@@ -133,7 +134,7 @@ public class CellLineResults : IEnumerable<BulkResult>
     }
 
     private string _chimeraBreakdownFilePath => Path.Combine(DirectoryPath, $"{CellLine}_{FileIdentifiers.ChimeraBreakdownComparison}");
-    private ChimeraBreakdownFile _chimeraBreakdownFile;
+    private ChimeraBreakdownFile? _chimeraBreakdownFile;
     public ChimeraBreakdownFile ChimeraBreakdownFile => _chimeraBreakdownFile ??= GetChimeraBreakdownFile();
 
     public ChimeraBreakdownFile GetChimeraBreakdownFile()
@@ -162,7 +163,7 @@ public class CellLineResults : IEnumerable<BulkResult>
     }
 
     private string _bulkResultCountComparisonPath => Path.Combine(DirectoryPath, $"{CellLine}_{FileIdentifiers.BottomUpResultComparison}");
-    private BulkResultCountComparisonFile _bulkResultCountComparisonFile;
+    private BulkResultCountComparisonFile? _bulkResultCountComparisonFile;
     public BulkResultCountComparisonFile BulkResultCountComparisonFile => _bulkResultCountComparisonFile ??= GetBulkResultCountComparisonFile();
     public BulkResultCountComparisonFile GetBulkResultCountComparisonFile()
     {
@@ -185,7 +186,7 @@ public class CellLineResults : IEnumerable<BulkResult>
     }
 
     private string _individualFilePath => Path.Combine(DirectoryPath, $"{CellLine}_{FileIdentifiers.IndividualFileComparison}");
-    private BulkResultCountComparisonFile _individualFileComparison;
+    private BulkResultCountComparisonFile? _individualFileComparison;
     public BulkResultCountComparisonFile IndividualFileComparisonFile => _individualFileComparison ??= GetIndividualFileComparison();
     public BulkResultCountComparisonFile GetIndividualFileComparison()
     {
@@ -208,7 +209,7 @@ public class CellLineResults : IEnumerable<BulkResult>
     }
 
     private string _baseSeqIndividualFilePath => Path.Combine(DirectoryPath, $"{CellLine}_BaseSeq_{FileIdentifiers.IndividualFileComparison}");
-    private BulkResultCountComparisonFile _baseSeqIndividualFileComparison;
+    private BulkResultCountComparisonFile? _baseSeqIndividualFileComparison;
     public BulkResultCountComparisonFile BaseSeqIndividualFileComparisonFile => _baseSeqIndividualFileComparison ??= IndividualFileComparisonBaseSeq();
 
     public BulkResultCountComparisonFile IndividualFileComparisonBaseSeq()
@@ -233,10 +234,17 @@ public class CellLineResults : IEnumerable<BulkResult>
     }
 
 
-
-   
-
-
+    public void Dispose()
+    {
+        foreach (var result in Results)
+            result.Dispose();
+        _chimeraBreakdownFile = null;
+        _chimeraPeptideFile = null;
+        _chimeraCountingFile = null;
+        _individualFileComparison = null;
+        _bulkResultCountComparisonFile = null;
+        _baseSeqIndividualFileComparison = null;
+    }
 
     public void FileComparisonDifferentTypes(string outPath)
     {
