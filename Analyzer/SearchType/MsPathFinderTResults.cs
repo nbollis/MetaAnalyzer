@@ -2,12 +2,16 @@
 using System.Diagnostics;
 using Analyzer.FileTypes.External;
 using Analyzer.FileTypes.Internal;
+using Analyzer.Interfaces;
 using Analyzer.Util;
 using Easy.Common.Extensions;
+using MassSpectrometry;
+using Readers;
+using ThermoFisher.CommonCore.Data.Business;
 
 namespace Analyzer.SearchType
 {
-    public class MsPathFinderTResults : BulkResult, IEnumerable<MsPathFinderTIndividualFileResult>
+    public class MsPathFinderTResults : BulkResult, IEnumerable<MsPathFinderTIndividualFileResult>, IChimeraBreakdownCompatible
     {
         private string _datasetInfoFilePath => Path.Combine(DirectoryPath, "DatasetInfoFile.tsv");
         private string _crossTabResultFilePath;
@@ -192,7 +196,7 @@ namespace Analyzer.SearchType
             sw.WriteLine("Label\tRawFilePath\tMs1FtFilePath\tMsPathfinderIdFilePath");
             foreach (var individualFile in IndividualFileResults)
             {
-                sw.WriteLine($"{individualFile.Name}\t{individualFile.RawFilePath}\t{individualFile.Ms1FtFilePath}\t{individualFile.CombinedPath}");
+                sw.WriteLine($"{individualFile.Name}\t{individualFile.PbfFilePath}\t{individualFile.Ms1FtFilePath}\t{individualFile.CombinedPath}");
             }
             sw.Dispose();
         }
@@ -214,25 +218,149 @@ namespace Analyzer.SearchType
             // PrSMs
             foreach (var individualFileResult in IndividualFileResults)
             {
-                var tda = individualFileResult.CombinedResults.Results;
+                useIsolation = true;
+                MsDataFile dataFile = null;
+                var dataFilePath = individualFileResult.PbfFilePath;
+                if (dataFilePath is null)
+                    useIsolation = false;
+                else
+                {
+                    try
+                    {
+                        dataFile = MsDataFileReader.GetDataFile(dataFilePath);
+                        dataFile.InitiateDynamicConnection();
+                    }
+                    catch
+                    {
+                        useIsolation = false;
+                    }
+                }
 
+                // PrSMs
+                foreach (var chimeraGroup in individualFileResult.CombinedResults.FilteredResults.GroupBy(p => p,
+                             CustomComparer<MsPathFinderTResult>.MsPathFinderTChimeraComparer)
+                             .Select(p => p.ToArray()))
+                {
+                    var record = new ChimeraBreakdownRecord()
+                    {
+                        Dataset = DatasetName,
+                        FileName = chimeraGroup.First().FileNameWithoutExtension,
+                        Condition = Condition,
+                        Ms2ScanNumber = chimeraGroup.First().OneBasedScanNumber,
+                        Type = Util.ResultType.Psm,
+                        IdsPerSpectra = chimeraGroup.Length,
+                        TargetCount = chimeraGroup.Count(p => !p.IsDecoy),
+                        DecoyCount = chimeraGroup.Count(p => p.IsDecoy)
+                    };
 
+                    MsPathFinderTResult? parent = null;
+                    if (chimeraGroup.Length != 1)
+                    {
+                        MsPathFinderTResult[] orderedChimeras;
+                        if (useIsolation)
+                        {
+                            var ms2Scan =
+                                dataFile.GetOneBasedScanFromDynamicConnection(chimeraGroup.First().OneBasedScanNumber);
+                            var isolationMz = ms2Scan.IsolationMz;
+                            if (isolationMz is null)
+                                orderedChimeras = chimeraGroup.Where(p => !p.IsDecoy)
+                                    .OrderBy(p => p.EValue)
+                                    .ThenBy(p => p.Probability)
+                                    .ToArray();
+                            else 
+                                orderedChimeras = chimeraGroup.Where(p => !p.IsDecoy)
+                                    .OrderBy(p => Math.Abs(p.MostAbundantIsotopeMz - (double)isolationMz))
+                                    .ThenBy(p => p.EValue)
+                                    .ThenBy(p => p.Probability)
+                                    .ToArray();
+                            record.IsolationMz = isolationMz ?? -1;
+                        }
+                        else
+                        {
+                            orderedChimeras = chimeraGroup.Where(p => !p.IsDecoy)
+                                .OrderBy(p => p.EValue)
+                                .ThenBy(p => p.Probability)
+                                .ToArray();
+                        }
 
+                        foreach (var chimera in orderedChimeras)
+                            if (parent is null)
+                                parent = chimera;
+                            else if (parent.Accession == chimera.Accession)
+                                record.UniqueForms++;
+                            else
+                                record.UniqueProteins++;
+                    }
+                    chimeraBreakDownRecords.Add(record);
+                }
 
+                // unique proteoforms
+                foreach (var chimeraGroup in individualFileResult.CombinedResults.FilteredResults.GroupBy(p => p,
+                                 CustomComparer<MsPathFinderTResult>.MsPathFinderTDistinctProteoformComparer)
+                             .Select(p => p.OrderBy(m => m.EValue).ThenByDescending(m => m.Probability).First())
+                             .GroupBy(p => p, CustomComparer<MsPathFinderTResult>.MsPathFinderTChimeraComparer)
+                             .Select(p => p.ToArray()))
+                {
+                    var record = new ChimeraBreakdownRecord()
+                    {
+                        Dataset = DatasetName,
+                        FileName = chimeraGroup.First().FileNameWithoutExtension,
+                        Condition = Condition,
+                        Ms2ScanNumber = chimeraGroup.First().OneBasedScanNumber,
+                        Type = Util.ResultType.Peptide,
+                        IdsPerSpectra = chimeraGroup.Length,
+                        TargetCount = chimeraGroup.Count(p => !p.IsDecoy),
+                        DecoyCount = chimeraGroup.Count(p => p.IsDecoy)
+                    };
+
+                    MsPathFinderTResult? parent = null;
+                    if (chimeraGroup.Length != 1)
+                    {
+                        MsPathFinderTResult[] orderedChimeras;
+                        if (useIsolation)
+                        {
+                            var ms2Scan =
+                                dataFile.GetOneBasedScanFromDynamicConnection(chimeraGroup.First().OneBasedScanNumber);
+                            var isolationMz = ms2Scan.IsolationMz;
+                            if (isolationMz is null)
+                                orderedChimeras = chimeraGroup.Where(p => !p.IsDecoy)
+                                    .OrderBy(p => p.EValue)
+                                    .ThenBy(p => p.Probability)
+                                    .ToArray();
+                            else
+                                orderedChimeras = chimeraGroup.Where(p => !p.IsDecoy)
+                                    .OrderBy(p => Math.Abs(p.MostAbundantIsotopeMz - (double)isolationMz))
+                                    .ThenBy(p => p.EValue)
+                                    .ThenBy(p => p.Probability)
+                                    .ToArray();
+                            record.IsolationMz = isolationMz ?? -1;
+                        }
+                        else
+                        {
+                            orderedChimeras = chimeraGroup.Where(p => !p.IsDecoy)
+                                .OrderBy(p => p.EValue)
+                                .ThenBy(p => p.Probability)
+                                .ToArray();
+                        }
+
+                        foreach (var chimera in orderedChimeras)
+                            if (parent is null)
+                                parent = chimera;
+                            else if (parent.Accession == chimera.Accession)
+                                record.UniqueForms++;
+                            else
+                                record.UniqueProteins++;
+                    }
+                    chimeraBreakDownRecords.Add(record);
+                }
+                if (useIsolation)
+                    dataFile.CloseDynamicConnection();
             }
-
 
             var file = new ChimeraBreakdownFile(_chimeraBreakDownPath) { Results = chimeraBreakDownRecords };
             file.WriteResults(_chimeraBreakDownPath);
             return file;
         }
-
-
-
-
-
-
-
 
         public IEnumerator<MsPathFinderTIndividualFileResult> GetEnumerator()
         {
@@ -260,11 +388,13 @@ namespace Analyzer.SearchType
         private MsPathFinderTResultFile _combinedResults;
         public MsPathFinderTResultFile CombinedResults => _combinedResults ??= new MsPathFinderTResultFile(CombinedPath);
 
+
         public string Ms1FtFilePath { get; set; }
         public string ParamPath { get; set; }
+        public string PbfFilePath { get; set; }
         public string RawFilePath { get; set; }
 
-        public MsPathFinderTIndividualFileResult(string decoyPath, string targetPath, string combinedPath, string name, string ms1FtFilePath, string paramPath, string rawFilePath)
+        public MsPathFinderTIndividualFileResult(string decoyPath, string targetPath, string combinedPath, string name, string ms1FtFilePath, string paramPath, string pbfFilePath)
         {
             _decoyPath = decoyPath;
             _targetPath = targetPath;
@@ -272,7 +402,16 @@ namespace Analyzer.SearchType
             Name = name;
             Ms1FtFilePath = ms1FtFilePath;
             ParamPath = paramPath;
-            RawFilePath = rawFilePath;
+            PbfFilePath = pbfFilePath;
+
+            string rawFileDirPath = pbfFilePath.Contains("Ecoli") ?
+                @"B:\RawSpectraFiles\Ecoli_SEC_CZE" :
+                @"B:\Users\Nic\Chimeras\TopDown_Analysis\Jurkat\DataFiles";
+            string rawPath = Path.Combine(rawFileDirPath, Path.GetFileNameWithoutExtension(pbfFilePath)+".raw");
+            if (File.Exists(rawPath))
+                RawFilePath = rawPath;
+            else
+                RawFilePath = pbfFilePath;
         }
     }
 }

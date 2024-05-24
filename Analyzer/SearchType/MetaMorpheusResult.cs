@@ -374,7 +374,7 @@ namespace Analyzer.SearchType
                         foreach (var chimericPsm in orderedChimeras)
                             if (parent is null)
                                 parent = chimericPsm;
-                            else if (parent.BaseSeq == chimericPsm.BaseSeq)
+                            else if (parent.Accession == chimericPsm.Accession)
                                 record.UniqueForms++;
                             else
                                 record.UniqueProteins++;

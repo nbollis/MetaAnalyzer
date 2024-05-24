@@ -1,4 +1,5 @@
-﻿using Analyzer.FileTypes.Internal;
+﻿using System.Security.Cryptography;
+using Analyzer.FileTypes.Internal;
 using Analyzer.Interfaces;
 using Plotly.NET.ImageExport;
 using Readers;
@@ -29,17 +30,23 @@ namespace Test
         [Test]
         public static void RunAllParsing()
         {
-            foreach (var cellLine in AllResults)
+            foreach (var cellLine in AllResults.Skip(1))
             {
                 foreach (var result in cellLine)
                 {
+                    //if (result is MsPathFinderTResults)
+                    //    result.Override = true;
                     result.CountChimericPsms();
-                    if (result is MsPathFinderTResults)
-                        result.Override = true;
                     result.GetBulkResultCountComparisonFile();
                     result.GetIndividualFileComparison();
                     if (result is IChimeraBreakdownCompatible cb)
-                        cb.GetChimeraBreakdownFile();
+                    {
+                        if (result is /*ProteomeDiscovererResult or*/ MsPathFinderTResults /*&& result.Condition.Contains("15")*/)
+                            result.Override = true;
+                        result.GetBulkResultCountComparisonFile();
+                        //cb.GetChimeraBreakdownFile();
+                        result.Override = false;
+                    }
                     if (result is IChimeraPeptideCounter pc)
                         pc.CountChimericPeptides();
                     result.Override = false;
@@ -53,9 +60,9 @@ namespace Test
                 cellLine.Override = false;
 
                 cellLine.PlotIndividualFileResults();
-                cellLine.PlotCellLineSpectralSimilarity();
-                cellLine.PlotCellLineChimeraBreakdown();
-                cellLine.PlotCellLineChimeraBreakdown_TargetDecoy();
+                //cellLine.PlotCellLineSpectralSimilarity();
+                //cellLine.PlotCellLineChimeraBreakdown();
+                //cellLine.PlotCellLineChimeraBreakdown_TargetDecoy();
             }
 
             AllResults.Override = true;
@@ -63,10 +70,10 @@ namespace Test
             AllResults.GetBulkResultCountComparisonFile();
             AllResults.CountChimericPsms();
             AllResults.CountChimericPeptides();
-
-
             AllResults.PlotBulkResultComparisons();
             AllResults.PlotStackedIndividualFileComparison();
+            //AllResults.PlotBulkResultChimeraBreakDown();
+            //AllResults.PlotBulkResultChimeraBreakDown_TargetDecoy();
         }
 
         [Test]

@@ -170,27 +170,27 @@ public static class CellLinePlots
         var selector = isTopDown.ChimeraBreakdownSelector();
         var smLabel = GenericPlots.SpectralMatchLabel(isTopDown);
         var pepLabel = GenericPlots.ResultLabel(isTopDown);
+        string smOutName = $"{FileIdentifiers.ChimeraBreakdownTargetDecoy}_{smLabel}_{cellLine.CellLine}";
+        string pepOutName = $"{FileIdentifiers.ChimeraBreakdownTargetDecoy}_{pepLabel}_{cellLine.CellLine}";
+
 
         var results = cellLine.Results
             .Where(p => p is MetaMorpheusResult && selector.Contains(p.Condition))
             .SelectMany(p => ((MetaMorpheusResult)p).ChimeraBreakdownFile)
             .ToList();
+
         var psmChart =
             results.GetChimeraBreakDownStackedColumn_TargetDecoy(ResultType.Psm, cellLine.First().IsTopDown, absolute, out int width);
-        string psmOutPath = Path.Combine(cellLine.GetFigureDirectory(),
-            $"{FileIdentifiers.ChimeraBreakdownTargetDecoy}_{smLabel}_{cellLine.CellLine}");
+        string psmOutPath = Path.Combine(cellLine.GetFigureDirectory(), smOutName);
         psmChart.SavePNG(psmOutPath, null, width, GenericPlots.DefaultHeight);
-        psmOutPath = Path.Combine(cellLine.FigureDirectory,
-                       $"{FileIdentifiers.ChimeraBreakdownTargetDecoy}_{smLabel}_{cellLine.CellLine}");
+        psmOutPath = Path.Combine(cellLine.FigureDirectory, smOutName);
         psmChart.SavePNG(psmOutPath, null, width, GenericPlots.DefaultHeight);
 
         var peptideChart =
             results.GetChimeraBreakDownStackedColumn_TargetDecoy(ResultType.Peptide, cellLine.First().IsTopDown, absolute, out width);
-        string peptideOutPath = Path.Combine(cellLine.GetFigureDirectory(),
-            $"{FileIdentifiers.ChimeraBreakdownTargetDecoy}_{pepLabel}_{cellLine.CellLine}");
+        string peptideOutPath = Path.Combine(cellLine.GetFigureDirectory(), pepOutName);
         peptideChart.SavePNG(peptideOutPath, null, width, GenericPlots.DefaultHeight);
-        peptideOutPath = Path.Combine(cellLine.FigureDirectory,
-                                  $"{FileIdentifiers.ChimeraBreakdownTargetDecoy}_{pepLabel}_{cellLine.CellLine}");
+        peptideOutPath = Path.Combine(cellLine.FigureDirectory, pepOutName);
         peptideChart.SavePNG(peptideOutPath, null, width, GenericPlots.DefaultHeight);
     }
 
@@ -214,7 +214,7 @@ public static class CellLinePlots
         string pepAreaOutName = $"{FileIdentifiers.ChimeraBreakdownComparisonStackedAreaFigure}_{pepLabel}_{cellLine.CellLine}";
         string pepAreaRelativeName = $"{FileIdentifiers.ChimeraBreakdownComparisonStackedAreaPercentFigure}_{pepLabel}_{cellLine.CellLine}";
 
-        // plot aggregated cell line results
+        // plot aggregated cell line results for specific targeted file from the selector
         var results = cellLine.Where(p => p is IChimeraBreakdownCompatible && selector.Contains(p.Condition))
             .SelectMany(p => ((IChimeraBreakdownCompatible)p).ChimeraBreakdownFile.Results).ToList();
 
@@ -247,7 +247,7 @@ public static class CellLinePlots
 
 
         IndividualResults:
-        // plot individual results
+        // plot individual results for each IChimeraBreakdownCompatible file type
         var compatibleResults = cellLine.Where(m => m is IChimeraBreakdownCompatible)
             .Cast<IChimeraBreakdownCompatible>().ToList();
         foreach (var file in compatibleResults)
