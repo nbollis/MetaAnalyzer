@@ -36,7 +36,8 @@ namespace Analyzer.SearchType
             ProteinPath = Path.Combine(DirectoryPath, "combined_protein.tsv");
 
             IndividualFileResults = new List<MsFraggerIndividualFileResult>();
-            foreach (var directory in System.IO.Directory.GetDirectories(DirectoryPath).Where(p => !p.Contains("shepherd") && !p.Contains("meta")))
+            foreach (var directory in System.IO.Directory.GetDirectories(DirectoryPath)
+                         .Where(p => !p.Contains("shepherd") && !p.Contains("meta") && !p.Contains("Figures")))
             {
                 IndividualFileResults.Add(new MsFraggerIndividualFileResult(directory));
             }
@@ -125,28 +126,8 @@ namespace Analyzer.SearchType
                     : file.PeptideFile.Results.Count();
                 var uniquePsmsProb = file.PsmFile.Results.Count(p => p.PeptideProphetProbability >= 0.99);
 
-                int proteinCount;
-                int onePercentProteinCount;
-                using (var sr = new StreamReader(ProteinPath))
-                {
-                    var header = sr.ReadLine();
-                    var headerSplit = header.Split('\t');
-                    var qValueIndex = Array.IndexOf(headerSplit, "Protein Probability");
-                    int count = 0;
-                    int onePercentCount = 0;
-
-                    while (!sr.EndOfStream)
-                    {
-                        var line = sr.ReadLine();
-                        var values = line.Split('\t');
-                        count++;
-                        if (double.Parse(values[qValueIndex]) >= 0.99)
-                            onePercentCount++;
-                    }
-
-                    proteinCount = count;
-                    onePercentProteinCount = onePercentCount;
-                }
+                var uniqueProteins = file.ProteinFile.Results.GroupBy(p => p.Accession).Count();
+                var uniqueProteinsProb = file.ProteinFile.Results.Count(p => p.ProteinProbability >= 0.99);
 
                 bulkResultCountComparisonFiles.Add(new BulkResultCountComparison
                 {
@@ -155,10 +136,10 @@ namespace Analyzer.SearchType
                     FileName = fileName,
                     PsmCount = uniquePsms,
                     PeptideCount = uniquePeptides,
-                    ProteinGroupCount = proteinCount,
+                    ProteinGroupCount = uniqueProteins,
                     OnePercentPsmCount = uniquePsmsProb,
                     OnePercentPeptideCount = uniquePeptidesProb,
-                    OnePercentProteinGroupCount = onePercentProteinCount
+                    OnePercentProteinGroupCount = uniqueProteinsProb
                 });
             }
             

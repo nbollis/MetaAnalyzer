@@ -35,6 +35,16 @@ namespace Analyzer.FileTypes.Internal
         [Optional] public double ChronologerPrediction { get; set; }
         public string PeptideModSeq { get; set; }
 
+
+        [Ignore] private double? _percentHI;
+        [Ignore] public double PercentHI => _percentHI ??= 22.4 / 200 * RetentionTime + 1.6;
+
+        [Ignore] private double? _deltaChronologer;
+        [Ignore] public double DeltaChronologer => _deltaChronologer ??= ChronologerPrediction - PercentHI;
+
+        [Ignore] private double? _deltaSSRCalc;
+        [Ignore] public double DeltaSSRCalc => _deltaSSRCalc ??= SSRCalcPrediction - RetentionTime;
+
         public RetentionTimePredictionEntry(string fileNameWithoutExtension, double scanNumber,
             double precursorScanNumber, double retentionTime, string baseSequence, string fullSequence, string peptideModSeq,
             double qValue, double pepQValue, double pep, double spectralAngle, bool isChimeric)

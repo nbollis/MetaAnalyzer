@@ -250,6 +250,30 @@ public static class BulkResultPlots
         ssrCalc.SavePNG(outpath, null, 1000, 400 * results.Count());
     }
 
+    public static void PlotChronologerDeltaPlotKernalPDF(this AllResults allResults)
+    {
+        var results = allResults.SelectMany(p => p.Results
+                   .Where(p => p is MetaMorpheusResult && false.FdrPlotSelector().Contains(p.Condition))
+                   .SelectMany(p => ((MetaMorpheusResult)p).RetentionTimePredictionFile.Results.Where(m => m.ChronologerPrediction != 0 && m.PeptideModSeq != "")))
+                   .ToList();
+
+        var noChimeras = results.Where(p => !p.IsChimeric).ToList();
+        var chimeras = results.Where(p => p.IsChimeric).ToList();
+
+        var noChimerasKernel = GenericPlots.KernelDensityPlot(noChimeras.Select(p => p.DeltaChronologer).ToList(), "No Chimeras");
+        var chimerasKernel = GenericPlots.KernelDensityPlot(chimeras.Select(p => p.DeltaChronologer).ToList(), "Chimeras");
+
+        var chart = Chart.Combine(new[] { noChimerasKernel, chimerasKernel })
+            .WithTitle("Chronologer Delta Kernel Density")
+            .WithXAxisStyle(Title.init("Delta Chronologer"))
+            .WithYAxisStyle(Title.init("Density"))
+            .WithLayout(GenericPlots.DefaultLayoutWithLegend)
+            .WithSize(1000, 600);
+        string outpath = Path.Combine(allResults.GetFigureDirectory(), $"AllResults_{FileIdentifiers.ChronologerDeltaDistributionFigure}_KernelDensity");
+        chart.SavePNG(outpath, null, 1000, 600);
+    }
+    
+
     #endregion
 
     #region Spectral Similarity

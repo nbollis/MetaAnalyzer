@@ -20,7 +20,7 @@ namespace Analyzer.FileTypes.External
             var headers = File.ReadLines(FilePath).First().Split('\t');
 
             // If it is a consensus file with additional information 
-            if (headers.Any(p => p.Contains("Spectral Count")))
+            if (headers.Count(p => p.Contains("Spectral Count")) > 1)
             {
                 var spectraCount = headers.Where(p => p.Contains("Spectral Count"))
                     .ToDictionary(p => p, p => headers.IndexOf(p));

@@ -27,5 +27,31 @@ namespace Analyzer.Util
             // Logging to objectForLogRef
             return false;
         }
+
+        public static List<double> CalculateRollingAverage(this List<double> numbers, int windowSize)
+        {
+            var result = new List<double>();
+
+            for (int i = 0; i < numbers.Count - windowSize + 1; i++)
+            {
+                var window = numbers.Skip(i).Take(windowSize);
+                result.Add(window.Average());
+            }
+
+            return result;
+        }
+
+        public static List<double> CalculateRollingAverage(this List<int> numbers, int windowSize)
+        {
+            var result = new List<double>();
+
+            for (int i = 0; i < numbers.Count - windowSize + 1; i++)
+            {
+                var window = numbers.Skip(i).Take(windowSize);
+                result.Add(window.Average());
+            }
+
+            return result;
+        }
     }
 }

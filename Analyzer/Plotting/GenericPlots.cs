@@ -13,6 +13,8 @@ using Plotly.NET.TraceObjects;
 using Proteomics.PSM;
 using Analyzer.SearchType;
 using Easy.Common;
+using static Analyzer.Plotting.CellLinePlots;
+using MathNet.Numerics.Statistics;
 
 namespace Analyzer.Plotting
 {
@@ -627,7 +629,33 @@ namespace Analyzer.Plotting
 
         #endregion
 
+        internal static GenericChart.GenericChart KernelDensityPlot(List<double> values, string title,
+            string xTitle = "", string yTitle = "", double bandwidth = 0.2, Kernels kernel = Kernels.Gaussian)
+        {
+            List<(double, double)> data = new List<(double, double)>();
 
+            foreach (var sample in values)
+            {
+                var pdf = kernel switch
+                {
+                    Kernels.Gaussian => KernelDensity.EstimateGaussian(sample, bandwidth, values),
+                    Kernels.Epanechnikov => KernelDensity.EstimateEpanechnikov(sample, bandwidth, values),
+                    Kernels.Triangular => KernelDensity.EstimateTriangular(sample, bandwidth, values),
+                    Kernels.Uniform => KernelDensity.EstimateUniform(sample, bandwidth, values),
+                    _ => throw new ArgumentOutOfRangeException(nameof(kernel), kernel, null)
+                };
+                data.Add((sample, pdf));
+            }
+
+            var chart =
+                Chart.Line<double, double, string>(data.Select(p => p.Item1), data.Select(p => p.Item2), Name: title,
+                        LineColor: title.ConvertConditionToColor())
+                    .WithSize(400, 400)
+                    .WithXAxisStyle(Title.init(xTitle))
+                    .WithYAxisStyle(Title.init(yTitle))
+                    .WithLayout(DefaultLayoutWithLegend);
+            return chart;
+        }
     }
 
 }

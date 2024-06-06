@@ -31,7 +31,9 @@ public static class PlottingTranslators
 
         // General
         {"Chimeras", Color.fromKeyword(ColorKeyword.Purple) },
+        {"Chimeric", Color.fromKeyword(ColorKeyword.Purple) },
         {"No Chimeras", Color.fromKeyword(ColorKeyword.Plum) },
+        {"Non-Chimeric", Color.fromKeyword(ColorKeyword.Plum) },
 
         // Top Down
         {"MetaMorpheus", Color.fromKeyword(ColorKeyword.Purple) }, // ecoli
@@ -360,6 +362,7 @@ public static class PlottingTranslators
         { "ReviewdDatabaseNoPhospho_MsFragger", "MsFragger" },
         { "ReviewdDatabaseNoPhospho_MsFraggerDDA", "MsFragger" },
         { "ReviewdDatabaseNoPhospho_MsFraggerDDA+", "MsFraggerDDA+" },
+        { "Chimerys", "\u2800Chimerys"},
 
         // Top Down
         { "MetaMorpheus", "MetaMorpheus\u2800" },
@@ -451,7 +454,8 @@ public static class PlottingTranslators
 
                     "MsPathFinderTWithModsNoChimerasRep2", "MsPathFinderTWithMods_7Rep2", "MsPathFinderTWithMods_15Rep2",
 
-                    "ProsightPDChimeras_Rep2", "ProsightPDNoChimeras_Rep2", "ProsightPDNoChimeras_Rep2_15",
+                    "ProsightPDChimeras_Rep2", "ProsightPDNoChimeras_Rep2", "ProsightPDNoChimeras_Rep2_15", 
+                    "ProsightPdChimeras_Rep2_15_10ppm", "ProsightPDChimeras_Rep2_7_10ppm",
                 };
             }
             else if (cellLine.Contains("Ecoli"))
@@ -525,6 +529,7 @@ public static class PlottingTranslators
                     "MsPathFinderTWithModsNoChimerasRep2", "MsPathFinderTWithMods_7Rep2", "MsPathFinderTWithMods_15Rep2",
 
                     "ProsightPDChimeras_Rep2", "ProsightPDNoChimeras_Rep2","ProsightPDChimeras_Rep2_15",
+                    "ProsightPdChimeras_Rep2_15_10ppm", "ProsightPDChimeras_Rep2_7_10ppm",
                 };
             }
             else if (cellLine.Contains("Ecoli"))
@@ -553,6 +558,7 @@ public static class PlottingTranslators
         {
             "MetaMorpheusWithLibrary", "MetaMorpheusNoChimerasWithLibrary",
             "ReviewdDatabaseNoPhospho_MsFraggerDDA+", "ReviewdDatabaseNoPhospho_MsFragger",
+            "Chimerys"
         };
     }
 
@@ -562,7 +568,7 @@ public static class PlottingTranslators
         {
             return new[]
             {
-                "MetaMorpheus", "MetaMorpheus_FullPEPChimeraIncorporation"
+                "MetaMorpheus_Rep2_WithLibrary",
             };
         }
         return new[]

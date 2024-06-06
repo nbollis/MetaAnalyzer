@@ -6,6 +6,7 @@ using Readers;
 using Analyzer.Plotting;
 using Analyzer.SearchType;
 using Analyzer.Util;
+using NUnit.Framework.Constraints;
 using Plotly.NET;
 using Plotly.NET.LayoutObjects;
 using Proteomics.PSM;
@@ -27,33 +28,32 @@ namespace Test
         [OneTimeSetUp]
         public static void OneTimeSetup() { Loaders.LoadElements(); }
 
+      
 
         [Test]
         public static void RunAllParsing()
         {
-            foreach (var cellLine in AllResults.Skip(1))
+            foreach (var cellLine in AllResults)
             {
                 foreach (var result in cellLine)
                 {
-                    result.Override = true;
+                    //result.Override = true;
                     result.CountChimericPsms();
                     result.GetBulkResultCountComparisonFile();
                     result.GetIndividualFileComparison();
                     if (result is IChimeraBreakdownCompatible cb)
-                    {
                         cb.GetChimeraBreakdownFile();
-                    }
                     if (result is IChimeraPeptideCounter pc)
                         pc.CountChimericPeptides();
                     if (result is MetaMorpheusResult mm)
                     {
-                        mm.ExportPepFeaturesPlots();
-                        mm.ExportCombinedChimeraTargetDecoyExploration(mm.FigureDirectory, mm.Condition);
+                        //mm.ExportPepFeaturesPlots();
+                        //mm.ExportCombinedChimeraTargetDecoyExploration(mm.FigureDirectory, mm.Condition);
                     }
                     result.Override = false;
                 }
 
-                cellLine.Override = true;
+                //cellLine.Override = true;
                 cellLine.GetIndividualFileComparison();
                 cellLine.GetBulkResultCountComparisonFile();
                 cellLine.CountChimericPsms();
@@ -68,7 +68,7 @@ namespace Test
                 cellLine.Dispose();
             }
 
-            AllResults.Override = true;
+            //AllResults.Override = true;
             AllResults.IndividualFileComparison();
             AllResults.GetBulkResultCountComparisonFile();
             AllResults.CountChimericPsms();
@@ -82,26 +82,26 @@ namespace Test
         [Test]
         public static void GenerateAllFigures()
         {
-            foreach (CellLineResults cellLine in AllResults)
+            foreach (CellLineResults cellLine in AllResults.Skip(1))
             {
                 foreach (var individualResult in cellLine)
                 {
                     if (individualResult is not MetaMorpheusResult mm) continue;
-                    //mm.ExportPepFeaturesPlots();
+                    mm.ExportPepFeaturesPlots();
                     //mm.ExportCombinedChimeraTargetDecoyExploration(mm.FigureDirectory, mm.Condition);
                 }
 
                 //cellLine.PlotIndividualFileResults();
                 //cellLine.PlotCellLineSpectralSimilarity();
-                cellLine.PlotCellLineChimeraBreakdown();
-                cellLine.PlotCellLineChimeraBreakdown_TargetDecoy();
+                //cellLine.PlotCellLineChimeraBreakdown();
+                //cellLine.PlotCellLineChimeraBreakdown_TargetDecoy();
             }
 
-            AllResults.PlotInternalMMComparison();
-            AllResults.PlotBulkResultComparisons();
-            AllResults.PlotStackedIndividualFileComparison();
-            AllResults.PlotBulkResultChimeraBreakDown();
-            AllResults.PlotBulkResultChimeraBreakDown_TargetDecoy();
+            //AllResults.PlotInternalMMComparison();
+            //AllResults.PlotBulkResultComparisons();
+            //AllResults.PlotStackedIndividualFileComparison();
+            //AllResults.PlotBulkResultChimeraBreakDown();
+            //AllResults.PlotBulkResultChimeraBreakDown_TargetDecoy();
         }
 
         [Test]
@@ -206,7 +206,27 @@ namespace Test
 
         }
 
+        [Test]
+        public static void IsabellaData()
+        {
+            string path = @"B:\Users\AlexanderS_Bison\240515_DataFromITW";
+            var results = (from dirpath in Directory.GetDirectories(path)
+                    where !dirpath.Contains("Fig")
+                    where dirpath.Contains("Ecoli")
+                    select new MetaMorpheusResult(dirpath))
+                .Cast<BulkResult>()
+                .ToList();
 
+
+            var cellLine = new CellLineResults(path, results);
+            cellLine.Override = true;
+            cellLine.GetBulkResultCountComparisonFile();
+            cellLine.GetIndividualFileComparison();
+            cellLine.GetBulkResultCountComparisonMultipleFilteringTypesFile();
+            cellLine.PlotIndividualFileResults(ResultType.Psm, null, false);
+            cellLine.PlotIndividualFileResults(ResultType.Peptide, null, false);
+            cellLine.PlotIndividualFileResults(ResultType.Protein, null, false);
+        }
 
 
     }

@@ -1,8 +1,10 @@
 ﻿using System.Collections;
+using System.Diagnostics;
 using Analyzer.FileTypes.External;
 using Analyzer.FileTypes.Internal;
 using Analyzer.Interfaces;
 using Analyzer.Util;
+using pepXML.Generated;
 using Proteomics.PSM;
 using Readers;
 
@@ -53,14 +55,25 @@ public class CellLineResults : IEnumerable<BulkResult>, IDisposable
             if (Directory.GetFiles(directory, "*.psmtsv", SearchOption.AllDirectories).Any())
             {
                 var files = Directory.GetFiles(directory, "*.psmtsv", SearchOption.AllDirectories);
+                if (!files.Any(p => p.Contains("AllProteoforms") || p.Contains("AllPSMs")) && !files.Any(p => p.Contains("AllProteinGroups")))
+                    continue;
                 if (directory.Contains("Fragger") && Directory.GetDirectories(directory).Count(p => !p.Contains("Figures")) > 2)
                 {
                     var directories = Directory.GetDirectories(directory);
-                    Results.Add(new MetaMorpheusResult(directories.First(p => p.Contains("NoChimera"))) { DataFilePaths = _dataFilePaths });
-                    Results.Add(new MetaMorpheusResult(directories.First(p => p.Contains("WithChimera"))) { DataFilePaths = _dataFilePaths });
+                    foreach (var dir in directories.Where(p => !p.Contains("Figures")))
+                    {
+                        files = Directory.GetFiles(dir, "*.psmtsv", SearchOption.AllDirectories);
+                        if (!files.Any(p => p.Contains("AllProteoforms") || p.Contains("AllPSMs")) &&
+                            !files.Any(p => p.Contains("AllProteinGroups")))
+                            continue;
+                        if (dir.Contains("NoChimera"))
+                            Results.Add(new MetaMorpheusResult(dir) { DataFilePaths = _dataFilePaths });
+                        else if (dir.Contains("WithChimera"))
+                            Results.Add(new MetaMorpheusResult(dir) { DataFilePaths = _dataFilePaths });
+                        else
+                            Debugger.Break();
+                    }
                 }
-                else if (!files.Any(p => p.Contains("AllProteoforms") || p.Contains("AllPSMs")) && !files.Any(p => p.Contains("AllProteinGroups")))
-                    continue;
                 else
                     Results.Add(new MetaMorpheusResult(directory) { DataFilePaths = _dataFilePaths });
             }
@@ -83,6 +96,10 @@ public class CellLineResults : IEnumerable<BulkResult>, IDisposable
         SearchResultsDirectoryPath = Path.Combine(DirectoryPath);
         CellLine = Path.GetFileName(DirectoryPath);
         Results = results;
+
+        FigureDirectory = Path.Combine(DirectoryPath, "Figures");
+        if (!Directory.Exists(FigureDirectory))
+            Directory.CreateDirectory(FigureDirectory);
     }
 
     private string _chimeraCountingPath => Path.Combine(DirectoryPath, $"{CellLine}_PSM_{FileIdentifiers.ChimeraCountingFile}");
@@ -232,6 +249,70 @@ public class CellLineResults : IEnumerable<BulkResult>, IDisposable
         individualFileComparison.WriteResults(_baseSeqIndividualFilePath);
         return individualFileComparison;
     }
+
+    private string _bultResultCountingDifferentFilteringFilePath => Path.Combine(DirectoryPath, $"{CellLine}_{FileIdentifiers.BulkResultComparisonMultipleFilters}");
+    private BulkResultCountComparisonMultipleFilteringTypesFile _bulkResultCountComparisonMultipleFilteringTypesFile;
+
+    public BulkResultCountComparisonMultipleFilteringTypesFile BulkResultCountComparisonMultipleFilteringTypesFile =>
+        _bulkResultCountComparisonMultipleFilteringTypesFile ??= GetBulkResultCountComparisonMultipleFilteringTypesFile();
+
+    public BulkResultCountComparisonMultipleFilteringTypesFile GetBulkResultCountComparisonMultipleFilteringTypesFile()
+    {
+        if (!Override && File.Exists(_bultResultCountingDifferentFilteringFilePath))
+        {
+            var result = new BulkResultCountComparisonMultipleFilteringTypesFile(_bultResultCountingDifferentFilteringFilePath);
+            if (result.Results.DistinctBy(p => p.Condition).Count() == Results.Count)
+                return result;
+        }
+
+        List<BulkResultCountComparisonMultipleFilteringTypes> results = new List<BulkResultCountComparisonMultipleFilteringTypes>();
+        foreach (var bulkResult in Results.Where(p => p is IMultiFilterChecker))
+        {
+            var result = (IMultiFilterChecker)bulkResult;
+            results.AddRange(result.BulkResultCountComparisonMultipleFilteringTypesFile.Results);
+        }
+
+        var bulkResultCountComparisonFile = new BulkResultCountComparisonMultipleFilteringTypesFile(_bultResultCountingDifferentFilteringFilePath) { Results = results };
+        bulkResultCountComparisonFile.WriteResults(_bultResultCountingDifferentFilteringFilePath);
+        return bulkResultCountComparisonFile;
+    }
+
+
+    public void DetermineMaximumChimeras()
+    {
+        var deconDirectory = Directory.GetDirectories(DirectoryPath).FirstOrDefault(p => p.Contains("Decon"));
+        if (deconDirectory is null)
+            return;
+
+        List<string> rawFiles = new List<string>();
+        List<(string, string)> rawFileDeconFile = new List<(string, string)>();
+        if (Results.First().IsTopDown)
+        {
+            return;
+        }
+        else
+        {
+            rawFiles = Directory.GetFiles(Path.Combine(@"B:\RawSpectraFiles\Mann_11cell_lines", CellLine), "*.raw",
+                SearchOption.AllDirectories).ToList();
+            if (rawFiles.Count != 18)
+                throw new Exception("Not all raw files found");
+
+            var deconFiles = Directory.GetFiles(Path.Combine(deconDirectory, "FlashDeconv"), "*ms1.feature", SearchOption.AllDirectories);
+            foreach (var deconFile in deconFiles)
+            {
+                var rawFile = rawFiles.FirstOrDefault(p => deconFile.Contains(Path.GetFileNameWithoutExtension(p)));
+                if (rawFile is null)
+                    continue;
+                rawFileDeconFile.Add((rawFile, deconFile));
+            }
+
+        }
+
+
+
+
+    }
+
 
 
     public void Dispose()

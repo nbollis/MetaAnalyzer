@@ -47,10 +47,13 @@ namespace Analyzer.Plotting
             {
                 if (datum.Bins.Count == 0)
                     continue;
+                //var chart = Chart.Scatter<double, double, string>(datum.Bins.Select(p => p.x),
+                //    datum.Bins.Select(p => p.y), StyleParam.Mode.Markers)
                 var chart = Chart.Bubble<double, double, string>(datum.Bins.Select(p => p.x),
                         datum.Bins.Select(p => p.y), datum.Bins.Select(p => (int)Math.Max(p.size, 1)),
                         datum.Label, false)
-                    .WithXAxisStyle(Title.init(datum.Label));
+                    .WithXAxisStyle(Title.init(datum.Label))
+                    .WithYAxisStyle(Title.init("Target Ratio", Standoff: 2));
                 scatters.Add(chart);
             }
 
@@ -143,7 +146,7 @@ namespace Analyzer.Plotting
         public void CreateBins(List<PepAnalysis> test)
         {
             var propertyData = test.Select(p => ((double)p.GetType().GetProperty(Label).GetValue(p), p.IsDecoy)).ToList();
-            int numberOfSizes = 10;
+            int numberOfSizes = 20;
             int sizeScaler = 5;
 
 

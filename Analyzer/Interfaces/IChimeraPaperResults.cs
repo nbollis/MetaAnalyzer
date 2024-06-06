@@ -29,3 +29,9 @@ public interface IChimeraPeptideCounter : IChimeraPaperResults
     public ChimeraCountingFile ChimeraPeptideFile { get; }
     ChimeraCountingFile CountChimericPeptides();
 }
+
+public interface IMultiFilterChecker : IChimeraPaperResults
+{
+    BulkResultCountComparisonMultipleFilteringTypesFile BulkResultCountComparisonMultipleFilteringTypesFile { get; }
+    BulkResultCountComparisonMultipleFilteringTypesFile GetBulkResultCountComparisonMultipleFilteringTypesFile();
+}

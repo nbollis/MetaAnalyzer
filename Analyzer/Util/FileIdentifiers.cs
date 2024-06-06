@@ -15,6 +15,7 @@
         public static string IndividualFileComparison => "IndividualFileComparison.csv";
         public static string IndividualFileComparisonFigure => "IndividualFileComparison";
         public static string BottomUpResultComparison => "BottomUpResultComparison.csv";
+        public static string BulkResultComparisonMultipleFilters => "ResultComparisonManyFilters.csv";
         public static string ChimeraBreakdownComparison => "ChimeraBreakdownComparison.csv";
         public static string ChimeraBreakdownComparisonFigure => "ChimeraBreakdown_1%";
         public static string ChimeraBreakdownComparisonStackedAreaFigure => "ChimeraBreakdownStackedArea_1%";
@@ -33,6 +34,7 @@
         public static string ChoronologerResults => "ChronologerOut.tsv";
         public static string SSRCalcFigure => "RetentionTimeVsSSRCalc3";
         public static string ChronologerFigure => "RetentionTimeVsChronologer";
+        public static string ChronologerDeltaDistributionFigure => "ChronologerDeltaDistribution";
         public static string SpectralAngleFigure => "SpectralAngleComparison";
         public static string PepGridChartFigure => "PepFeatureAnalysis";
 

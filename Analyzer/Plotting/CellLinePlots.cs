@@ -1,10 +1,20 @@
-﻿using Analyzer.Interfaces;
+﻿using System.Dynamic;
+using System.Security.Cryptography.X509Certificates;
+using Analyzer.Interfaces;
 using Analyzer.SearchType;
 using Analyzer.Util;
+using CsvHelper.Expressions;
+using Easy.Common.Extensions;
+using MathNet.Numerics;
+using MathNet.Numerics.Statistics;
+using Microsoft.FSharp.Core;
 using Plotly.NET;
+using Plotly.NET.CSharp;
 using Plotly.NET.ImageExport;
+using Plotly.NET.LayoutObjects;
 using Proteomics.PSM;
 using Chart = Plotly.NET.CSharp.Chart;
+using GenericChartExtensions = Plotly.NET.CSharp.GenericChartExtensions;
 
 namespace Analyzer.Plotting;
 
@@ -13,14 +23,14 @@ public static class CellLinePlots
     #region Individual File Results
 
     public static void PlotIndividualFileResults(this CellLineResults cellLine, ResultType? resultType = null,
-        string? outputDirectory = null)
+        string? outputDirectory = null, bool filterByCondition = true)
     {
         bool isTopDown = cellLine.First().IsTopDown;
         resultType ??= isTopDown ? ResultType.Psm : ResultType.Peptide;
         outputDirectory ??= cellLine.GetFigureDirectory();
 
         string outPath = Path.Combine(outputDirectory, $"{FileIdentifiers.IndividualFileComparisonFigure}_{resultType}_{cellLine.CellLine}");
-        var chart = cellLine.GetIndividualFileResultsBarChart(out int width, out int height, resultType.Value);
+        var chart = cellLine.GetIndividualFileResultsBarChart(out int width, out int height, resultType.Value, filterByCondition);
         chart.SavePNG(outPath, null, width, height);
 
         outPath = Path.Combine(cellLine.FigureDirectory, $"{FileIdentifiers.IndividualFileComparisonFigure}_{resultType}_{cellLine.CellLine}");
@@ -67,39 +77,89 @@ public static class CellLinePlots
             .Select(p => ((MetaMorpheusResult)p).RetentionTimePredictionFile)
             .ToList();
         var chronologer = individualFiles
-            .SelectMany(p => p.Where(m => m.ChronologerPrediction != 0 && m.PeptideModSeq != ""))
+            .SelectMany(p => p.Where(m => m.ChronologerPrediction != 0 && m.PeptideModSeq != "" ))
+            .Select(p => (p.ChronologerPrediction, p.RetentionTime, p.IsChimeric))
             .ToList();
-        var ssrCalc = individualFiles
-            .SelectMany(p => p.Where(m => m.SSRCalcPrediction is not 0 or double.NaN or -1))
-            .ToList();
+        
+        var chronologerInterceptSlope = Fit.Line(chronologer.Select(p => p.RetentionTime).ToArray(),
+            chronologer.Select(p => p.ChronologerPrediction).ToArray());
+        var chimeraR2 = GoodnessOfFit.CoefficientOfDetermination(
+            chronologer.Where(p => p.IsChimeric)
+                .Select(p => p.RetentionTime * chronologerInterceptSlope.B + chronologerInterceptSlope.A),
+            chronologer.Where(p => p.IsChimeric)
+                .Select(p => p.ChronologerPrediction)).Round(4);
+        var nonChimericR2 = GoodnessOfFit.CoefficientOfDetermination(
+            chronologer.Where(p => !p.IsChimeric)
+                .Select(p => p.RetentionTime * chronologerInterceptSlope.B + chronologerInterceptSlope.A),
+            chronologer.Where(p => !p.IsChimeric)
+                .Select(p => p.ChronologerPrediction)).Round(4);
 
+        (double RT, double Prediction)[] line = new[]
+        {
+            (chronologer.Min(p => p.RetentionTime), chronologerInterceptSlope.A + chronologerInterceptSlope.B * chronologer.Min(p => p.RetentionTime)),
+            (chronologer.Max(p => p.RetentionTime), chronologerInterceptSlope.A + chronologerInterceptSlope.B * chronologer.Max(p => p.RetentionTime))
+        };
         var chronologerPlot = Chart.Combine(new[]
             {
                 Chart2D.Chart.Scatter<double, double, string>(
                     chronologer.Where(p => !p.IsChimeric).Select(p => p.RetentionTime),
                     chronologer.Where(p => !p.IsChimeric).Select(p => p.ChronologerPrediction), StyleParam.Mode.Markers,
-                    "No Chimeras", MarkerColor: "No Chimeras".ConvertConditionToColor()),
+                    $"No Chimeras - R^2={nonChimericR2}", MarkerColor: "No Chimeras".ConvertConditionToColor()),
                 Chart2D.Chart.Scatter<double, double, string>(
                     chronologer.Where(p => p.IsChimeric).Select(p => p.RetentionTime),
                     chronologer.Where(p => p.IsChimeric).Select(p => p.ChronologerPrediction), StyleParam.Mode.Markers,
-                    "Chimeras", MarkerColor: "Chimeras".ConvertConditionToColor())
+                    $"Chimeras - R^2={chimeraR2}", MarkerColor: "Chimeras".ConvertConditionToColor()),
+                Chart.Line<double, double, string>(line.Select(p => p.RT), line.Select(p => p.Prediction))
+                    .WithLegend(false)
             })
             .WithTitle($"{cellLine.CellLine} Chronologer Predicted HI vs Retention Time (1% Peptides)")
             .WithXAxisStyle(Title.init("Retention Time"))
             .WithYAxisStyle(Title.init("Chronologer Prediction"))
-            .WithLayout(GenericPlots.DefaultLayoutWithLegend)
+            .WithLayout(Layout.init<string>(PaperBGColor: Color.fromKeyword(ColorKeyword.White),
+                PlotBGColor: Color.fromKeyword(ColorKeyword.White),
+                ShowLegend: true,
+                Legend: Legend.init(X: 0.5, Y: -0.2, Orientation: StyleParam.Orientation.Horizontal, EntryWidth: 0,
+                    VerticalAlign: StyleParam.VerticalAlign.Bottom,
+                    XAnchor: StyleParam.XAnchorPosition.Center,
+                    YAnchor: StyleParam.YAnchorPosition.Top
+                )))
             .WithSize(1000, GenericPlots.DefaultHeight);
+
+        var ssrCalc = individualFiles
+            .SelectMany(p => p.Where(m => m.SSRCalcPrediction is not 0 or double.NaN or -1 ))
+            .Select(p => (p.SSRCalcPrediction, p.RetentionTime, p.IsChimeric))
+            .ToList();
+        var ssrCalcInterceptSlope = Fit.Line(ssrCalc.Select(p => p.RetentionTime).ToArray(),
+            ssrCalc.Select(p => p.SSRCalcPrediction).ToArray());
+
+        chimeraR2 = GoodnessOfFit.CoefficientOfDetermination(
+            ssrCalc.Where(p => p.IsChimeric)
+                .Select(p => p.RetentionTime * ssrCalcInterceptSlope.B + ssrCalcInterceptSlope.A),
+            ssrCalc.Where(p => p.IsChimeric)
+                .Select(p => p.SSRCalcPrediction)).Round(4);
+        nonChimericR2 = GoodnessOfFit.CoefficientOfDetermination(
+            ssrCalc.Where(p => !p.IsChimeric)
+                .Select(p => p.RetentionTime * ssrCalcInterceptSlope.B + ssrCalcInterceptSlope.A),
+            ssrCalc.Where(p => !p.IsChimeric)
+                .Select(p => p.SSRCalcPrediction)).Round(4);
+
+        line = new[]
+        {
+            (ssrCalc.Min(p => p.RetentionTime), ssrCalcInterceptSlope.A + ssrCalcInterceptSlope.B * ssrCalc.Min(p => p.RetentionTime)),
+            (ssrCalc.Max(p => p.RetentionTime), ssrCalcInterceptSlope.A + ssrCalcInterceptSlope.B * ssrCalc.Max(p => p.RetentionTime))
+        };
 
         var ssrCalcPlot = Chart.Combine(new[]
             {
                 Chart2D.Chart.Scatter<double, double, string>(
                     ssrCalc.Where(p => !p.IsChimeric).Select(p => p.RetentionTime),
                     ssrCalc.Where(p => !p.IsChimeric).Select(p => p.SSRCalcPrediction), StyleParam.Mode.Markers,
-                    "No Chimeras", MarkerColor: "No Chimeras".ConvertConditionToColor()),
+                    $"No Chimeras - R^2={nonChimericR2}", MarkerColor: "No Chimeras".ConvertConditionToColor()),
                 Chart2D.Chart.Scatter<double, double, string>(
                     ssrCalc.Where(p => p.IsChimeric).Select(p => p.RetentionTime),
                     ssrCalc.Where(p => p.IsChimeric).Select(p => p.SSRCalcPrediction), StyleParam.Mode.Markers,
-                    "Chimeras", MarkerColor: "Chimeras".ConvertConditionToColor())
+                    $"Chimeras - R^2={chimeraR2}", MarkerColor: "Chimeras".ConvertConditionToColor()),
+                Chart.Line<double, double, string>(line.Select(p => p.RT), line.Select(p => p.Prediction))
             })
             .WithTitle($"{cellLine.CellLine} SSRCalc3 Predicted HI vs Retention Time (1% Peptides)")
             .WithXAxisStyle(Title.init("Retention Time"))
@@ -107,6 +167,80 @@ public static class CellLinePlots
             .WithLayout(GenericPlots.DefaultLayoutWithLegend)
             .WithSize(1000, GenericPlots.DefaultHeight);
         return (chronologerPlot, ssrCalcPlot);
+    }
+
+    public enum Kernels
+    {
+        Gaussian,
+        Epanechnikov,
+        Triangular,
+        Uniform
+    }
+
+    public static GenericChart.GenericChart GetChronologerDeltaPlotKernelPDF(this CellLineResults cellLine, Kernels kernel = Kernels.Gaussian)
+    {
+        var individualFiles = cellLine.Results
+            .Where(p => false.FdrPlotSelector().Contains(p.Condition))
+            .OrderBy(p => ((MetaMorpheusResult)p).RetentionTimePredictionFile.First())
+            .Select(p => ((MetaMorpheusResult)p).RetentionTimePredictionFile)
+            .ToList();
+        var chronologer = individualFiles
+            .SelectMany(p => p.Where(m => m.ChronologerPrediction != 0 && m.PeptideModSeq != ""))
+            .Select(p => (p.ChronologerPrediction, p.PercentHI, p.IsChimeric, p.DeltaChronologer))
+            .ToList();
+
+        
+        //List<(double, double)> chimericDistribution = new();
+        //List<(double, double)> nonChimericDistribution = new();
+        var chimericSamples = chronologer.Where(p => p.IsChimeric)
+            .Select(p => p.DeltaChronologer)
+            .ToList();
+        var nonChimericSamples = chronologer.Where(p => !p.IsChimeric)
+            .Select(p => p.DeltaChronologer)
+            .ToList();
+
+        //double smoothing = 0.2;
+        //foreach (var sample in chronologer)
+        //{
+        //    var samples = sample.IsChimeric ? chimericSamples : nonChimericSamples;
+
+
+        //    var pdf = kernel switch
+        //    {
+        //        Kernels.Gaussian => KernelDensity.EstimateGaussian(sample.DeltaChronologer, smoothing, samples),
+        //        Kernels.Epanechnikov => KernelDensity.EstimateEpanechnikov(sample.DeltaChronologer, smoothing, samples),
+        //        Kernels.Triangular => KernelDensity.EstimateTriangular(sample.DeltaChronologer, smoothing, samples),
+        //        Kernels.Uniform => KernelDensity.EstimateUniform(sample.DeltaChronologer, smoothing, samples),
+        //        _ => throw new ArgumentOutOfRangeException(nameof(kernel), kernel, null)
+        //    };
+
+        //    if (sample.IsChimeric)
+        //        chimericDistribution.Add((sample.DeltaChronologer, pdf));
+        //    else
+        //        nonChimericDistribution.Add((sample.DeltaChronologer, pdf));
+        //}
+
+        nonChimericSamples = nonChimericSamples.OrderBy(p => p).ToList();
+        chimericSamples = chimericSamples.OrderBy(p => p).ToList();
+        var chart = Chart.Combine(new[]
+            {
+                GenericPlots.KernelDensityPlot(chimericSamples, "Chimeric", "Delta %ACN", "Probability"),
+                GenericPlots.KernelDensityPlot(nonChimericSamples, "Non-Chimeric", "Delta %ACN", "Probability")
+            })
+            .WithTitle($" {cellLine.CellLine} Chronologer Delta Kernel Density")
+            .WithSize(400, 400)
+            .WithXAxisStyle(Title.init("Delta Chronologer"))
+            .WithYAxisStyle(Title.init("Density"))
+            .WithLayout(GenericPlots.DefaultLayoutWithLegend);
+
+        string outPath = Path.Combine(cellLine.GetFigureDirectory(),
+            $"{FileIdentifiers.ChronologerDeltaDistributionFigure}_{cellLine.CellLine}");
+        string outPath2 = Path.Combine(cellLine.FigureDirectory,
+                       $"{FileIdentifiers.ChronologerDeltaDistributionFigure}_{cellLine.CellLine}");
+        chart.SavePNG(outPath, null, 600, 600);
+        chart.SavePNG(outPath2, null, 600, 600);
+
+        return chart;
     }
 
     #endregion
