@@ -177,6 +177,76 @@ public static class CellLinePlots
         Uniform
     }
 
+    public static void PlotChronologerVsPercentHi(this CellLineResults cellLine)
+    {
+        var plot = cellLine.GetChronologerHIScatterPlot();
+        string outPath = Path.Combine(cellLine.GetFigureDirectory(),
+                       $"{FileIdentifiers.ChronologerFigureACN}_{cellLine.CellLine}");
+        plot.SavePNG(outPath, null, 1000, GenericPlots.DefaultHeight);
+        outPath = Path.Combine(cellLine.FigureDirectory,
+                       $"{FileIdentifiers.ChronologerFigureACN}_{cellLine.CellLine}");
+        plot.SavePNG(outPath, null, 1000, GenericPlots.DefaultHeight);
+    }
+
+    internal static GenericChart.GenericChart GetChronologerHIScatterPlot(this CellLineResults cellLine)
+    {
+        var individualFiles = cellLine.Results
+            .Where(p => false.FdrPlotSelector().Contains(p.Condition))
+            .OrderBy(p => ((MetaMorpheusResult)p).RetentionTimePredictionFile.First())
+            .Select(p => ((MetaMorpheusResult)p).RetentionTimePredictionFile)
+            .ToList();
+        var chronologer = individualFiles
+            .SelectMany(p => p.Where(m => m.ChronologerPrediction != 0 && m.PeptideModSeq != ""))
+            .Select(p => (p.ChronologerPrediction, p.PercentHI, p.IsChimeric))
+            .ToList();
+
+        var chronologerInterceptSlope = Fit.Line(chronologer.Select(p => p.PercentHI).ToArray(),
+            chronologer.Select(p => p.ChronologerPrediction).ToArray());
+        var chimeraR2 = GoodnessOfFit.CoefficientOfDetermination(
+            chronologer.Where(p => p.IsChimeric)
+                .Select(p => p.PercentHI * chronologerInterceptSlope.B + chronologerInterceptSlope.A),
+            chronologer.Where(p => p.IsChimeric)
+                .Select(p => p.ChronologerPrediction)).Round(4);
+        var nonChimericR2 = GoodnessOfFit.CoefficientOfDetermination(
+            chronologer.Where(p => !p.IsChimeric)
+                .Select(p => p.PercentHI * chronologerInterceptSlope.B + chronologerInterceptSlope.A),
+            chronologer.Where(p => !p.IsChimeric)
+                .Select(p => p.ChronologerPrediction)).Round(4);
+
+        (double RT, double Prediction)[] line = new[]
+        {
+            (chronologer.Min(p => p.PercentHI), chronologerInterceptSlope.A + chronologerInterceptSlope.B * chronologer.Min(p => p.PercentHI)),
+            (chronologer.Max(p => p.PercentHI), chronologerInterceptSlope.A + chronologerInterceptSlope.B * chronologer.Max(p => p.PercentHI))
+        };
+        var chronologerPlot = Chart.Combine(new[]
+            {
+                Chart2D.Chart.Scatter<double, double, string>(
+                    chronologer.Where(p => !p.IsChimeric).Select(p => p.PercentHI),
+                    chronologer.Where(p => !p.IsChimeric).Select(p => p.ChronologerPrediction), StyleParam.Mode.Markers,
+                    $"No Chimeras - R^2={nonChimericR2}", MarkerColor: "No Chimeras".ConvertConditionToColor()),
+                Chart2D.Chart.Scatter<double, double, string>(
+                    chronologer.Where(p => p.IsChimeric).Select(p => p.PercentHI),
+                    chronologer.Where(p => p.IsChimeric).Select(p => p.ChronologerPrediction), StyleParam.Mode.Markers,
+                    $"Chimeras - R^2={chimeraR2}", MarkerColor: "Chimeras".ConvertConditionToColor()),
+                Chart.Line<double, double, string>(line.Select(p => p.RT), line.Select(p => p.Prediction))
+                    .WithLegend(false)
+            })
+            .WithTitle($"{cellLine.CellLine} Chronologer Predicted HI vs Retention Time (1% Peptides)")
+            .WithXAxisStyle(Title.init("Percent ACN"))
+            .WithYAxisStyle(Title.init("Chronologer Prediction"))
+            .WithLayout(Layout.init<string>(PaperBGColor: Color.fromKeyword(ColorKeyword.White),
+                PlotBGColor: Color.fromKeyword(ColorKeyword.White),
+                ShowLegend: true,
+                Legend: Legend.init(X: 0.5, Y: -0.2, Orientation: StyleParam.Orientation.Horizontal, EntryWidth: 0,
+                    VerticalAlign: StyleParam.VerticalAlign.Bottom,
+                    XAnchor: StyleParam.XAnchorPosition.Center,
+                    YAnchor: StyleParam.YAnchorPosition.Top
+                )))
+            .WithSize(1000, GenericPlots.DefaultHeight);
+        return chronologerPlot;
+    }
+
+
     public static GenericChart.GenericChart GetChronologerDeltaPlotKernelPDF(this CellLineResults cellLine, Kernels kernel = Kernels.Gaussian)
     {
         var individualFiles = cellLine.Results

@@ -3,10 +3,16 @@ using System.Diagnostics;
 using Analyzer.FileTypes.External;
 using Analyzer.FileTypes.Internal;
 using Analyzer.Interfaces;
+using Analyzer.Plotting;
 using Analyzer.Util;
+using Chemistry;
+using Easy.Common.Extensions;
+using MassSpectrometry;
 using pepXML.Generated;
 using Proteomics.PSM;
 using Readers;
+using Ms1Feature = Analyzer.FileTypes.External.Ms1Feature;
+using Ms1FeatureFile = Analyzer.FileTypes.External.Ms1FeatureFile;
 
 namespace Analyzer.SearchType;
 
@@ -17,6 +23,8 @@ public class CellLineResults : IEnumerable<BulkResult>, IDisposable
     public string SearchResultsDirectoryPath { get; set; }
     public string CellLine { get; set; }
     public List<BulkResult> Results { get; set; }
+
+    public BulkResult this[int index] => Results[index];
     public string DatasetName { get; set; }
 
     private string[] _dataFilePaths;
@@ -251,7 +259,7 @@ public class CellLineResults : IEnumerable<BulkResult>, IDisposable
     }
 
     private string _bultResultCountingDifferentFilteringFilePath => Path.Combine(DirectoryPath, $"{CellLine}_{FileIdentifiers.BulkResultComparisonMultipleFilters}");
-    private BulkResultCountComparisonMultipleFilteringTypesFile _bulkResultCountComparisonMultipleFilteringTypesFile;
+    private BulkResultCountComparisonMultipleFilteringTypesFile? _bulkResultCountComparisonMultipleFilteringTypesFile;
 
     public BulkResultCountComparisonMultipleFilteringTypesFile BulkResultCountComparisonMultipleFilteringTypesFile =>
         _bulkResultCountComparisonMultipleFilteringTypesFile ??= GetBulkResultCountComparisonMultipleFilteringTypesFile();
@@ -284,7 +292,8 @@ public class CellLineResults : IEnumerable<BulkResult>, IDisposable
         if (deconDirectory is null)
             return;
 
-        List<string> rawFiles = new List<string>();
+        string metaMorpheusCondition;
+        string otherCondition;
         List<(string, string)> rawFileDeconFile = new List<(string, string)>();
         if (Results.First().IsTopDown)
         {
@@ -292,7 +301,7 @@ public class CellLineResults : IEnumerable<BulkResult>, IDisposable
         }
         else
         {
-            rawFiles = Directory.GetFiles(Path.Combine(@"B:\RawSpectraFiles\Mann_11cell_lines", CellLine), "*.raw",
+            var rawFiles = Directory.GetFiles(Path.Combine(@"B:\RawSpectraFiles\Mann_11cell_lines", CellLine), "*.raw",
                 SearchOption.AllDirectories).ToList();
             if (rawFiles.Count != 18)
                 throw new Exception("Not all raw files found");
@@ -304,6 +313,55 @@ public class CellLineResults : IEnumerable<BulkResult>, IDisposable
                 if (rawFile is null)
                     continue;
                 rawFileDeconFile.Add((rawFile, deconFile));
+            }
+
+            metaMorpheusCondition = "MetaMorpheusWithLibrary";
+            otherCondition = "ReviewdDatabaseNoPhospho_MsFraggerDDA+";
+        }
+
+        var mmRun = Results.First(p => p.Condition == metaMorpheusCondition) as MetaMorpheusResult;
+        var fragRun = Results.First(p => p.Condition == otherCondition) as MsFraggerResult;
+
+
+        List<MaximumChimeraEstimation> results = new List<MaximumChimeraEstimation>();
+        foreach (var deconRun in rawFileDeconFile)
+        {
+            Ms1FeatureFile deconFile = new Ms1FeatureFile(deconRun.Item2);
+            MsDataFile dataFile =
+                FileReader.ReadFile<MsDataFileToResultFileAdapter>(deconRun.Item1).LoadAllStaticData();
+            string fileName = Path.GetFileNameWithoutExtension(dataFile.FilePath).ConvertFileName();
+
+            deconFile.ForEach(p =>
+            {
+                p.RetentionTimeBegin /= 60;
+                p.RetentionTimeEnd /=60;
+            });
+
+            foreach (var scan in dataFile.Scans)
+            {
+                if (scan.MsnOrder is 1 or > 2)
+                    continue;
+
+                var isolationRange = scan.IsolationRange;
+                if (isolationRange is null)
+                {
+                    Debugger.Break();
+                    continue;
+                }
+
+                var result = new MaximumChimeraEstimation()
+                {
+                    CellLine = CellLine,
+                    FileName = fileName,
+                    Ms2ScanNumber = scan.OneBasedScanNumber
+                };
+
+                foreach (var rtMatchingFeature in deconFile.Where(feature => feature.RetentionTimeBegin <= scan.RetentionTime && feature.RetentionTimeEnd >= scan.RetentionTime))
+                    for (int i = rtMatchingFeature.ChargeStateMin; i < rtMatchingFeature.ChargeStateMax; i++)
+                        if (isolationRange.Contains(rtMatchingFeature.Mass.ToMz(i)))
+                            result.PossibleFeatureCount++;
+                if (result.PossibleFeatureCount == 0) continue;
+                results.Add(result);
             }
 
         }

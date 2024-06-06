@@ -34,6 +34,7 @@
         public static string ChoronologerResults => "ChronologerOut.tsv";
         public static string SSRCalcFigure => "RetentionTimeVsSSRCalc3";
         public static string ChronologerFigure => "RetentionTimeVsChronologer";
+        public static string ChronologerFigureACN => "PercentACNVsChronologer";
         public static string ChronologerDeltaDistributionFigure => "ChronologerDeltaDistribution";
         public static string SpectralAngleFigure => "SpectralAngleComparison";
         public static string PepGridChartFigure => "PepFeatureAnalysis";

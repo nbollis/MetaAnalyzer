@@ -1,10 +1,14 @@
 ﻿using Analyzer.Interfaces;
 using Analyzer.SearchType;
 using Analyzer.Util;
+using MathNet.Numerics;
 using Plotly.NET;
 using Plotly.NET.ImageExport;
+using Plotly.NET.LayoutObjects;
 using Plotly.NET.TraceObjects;
+using Proteomics.RetentionTimePrediction;
 using Chart = Plotly.NET.CSharp.Chart;
+using GenericChartExtensions = Plotly.NET.GenericChartExtensions;
 
 namespace Analyzer.Plotting;
 
@@ -199,8 +203,7 @@ public static class BulkResultPlots
             .WithSize(1000, 600);
 
 
-        PuppeteerSharpRendererOptions.launchOptions.Timeout = 0;
-        string outpath = Path.Combine(allResults.GetFigureDirectory(), $"AllResults_{FileIdentifiers.ChronologerFigure}_Aggregated");
+        string outpath = Path.Combine(allResults.GetFigureDirectory(), $"AllResults_{FileIdentifiers.ChronologerFigure}_Aggregated"); 
         chronologerPlot.SavePNG(outpath, ExportEngine.PuppeteerSharp, 1000, 600);
 
         var ssrCalcPlot = Chart.Combine(new[]
@@ -248,6 +251,75 @@ public static class BulkResultPlots
             .WithLayout(GenericPlots.DefaultLayoutWithLegend);
         outpath = Path.Combine(allResults.GetFigureDirectory(), $"AllResults_{FileIdentifiers.SSRCalcFigure}_Stacked");
         ssrCalc.SavePNG(outpath, null, 1000, 400 * results.Count());
+    }
+
+
+    public static void PlotChronologerVsPercentHi(this AllResults allResults)
+    {
+        var results = allResults.SelectMany(p => p.Results
+                .Where(p => p is MetaMorpheusResult && false.FdrPlotSelector().Contains(p.Condition))
+                .SelectMany(p => ((MetaMorpheusResult)p).RetentionTimePredictionFile.Results.Where(m => m.ChronologerPrediction != 0 && m.PeptideModSeq != "")))
+            .ToList();
+        var chronologer = results
+                .Where(m => m.ChronologerPrediction != 0 && m.PeptideModSeq != "")
+                .Select(p => (p.ChronologerPrediction, p.RetentionTime, p.IsChimeric))
+                .ToList();
+
+        var noChimeras = chronologer.Where(p => !p.IsChimeric)
+            .ToList();
+        var chimeras = chronologer.Where(p => p.IsChimeric)
+            .ToList();
+
+        var chronologerInterceptSlope = Fit.Line(chronologer.Select(p => p.RetentionTime).ToArray(),
+            chronologer.Select(p => p.ChronologerPrediction).ToArray());
+        var chimeraR2 = GoodnessOfFit.CoefficientOfDetermination(chimeras
+                .Select(p => p.RetentionTime * chronologerInterceptSlope.B + chronologerInterceptSlope.A),
+            chronologer.Where(p => p.IsChimeric)
+                .Select(p => p.ChronologerPrediction)).Round(4);
+        var nonChimericR2 = GoodnessOfFit.CoefficientOfDetermination(noChimeras
+                .Select(p => p.RetentionTime * chronologerInterceptSlope.B + chronologerInterceptSlope.A),
+            chronologer.Where(p => !p.IsChimeric)
+                .Select(p => p.ChronologerPrediction)).Round(4);
+
+        (double RT, double Prediction)[] line = new[]
+        {
+            (chronologer.Min(p => p.RetentionTime), chronologerInterceptSlope.A + chronologerInterceptSlope.B * chronologer.Min(p => p.RetentionTime)),
+            (chronologer.Max(p => p.RetentionTime), chronologerInterceptSlope.A + chronologerInterceptSlope.B * chronologer.Max(p => p.RetentionTime))
+        };
+
+        var distinctNoChimeras = noChimeras.DistinctBy(p => (p.RetentionTime.Round(2), p.ChronologerPrediction.Round(2)))
+            .ToList();
+        var distinctChimeras = chimeras.DistinctBy(p => (p.RetentionTime.Round(2), p.ChronologerPrediction.Round(2)))
+            .ToList();
+
+        var chronologerPlot = Chart.Combine(new[]
+            {
+                Chart2D.Chart.Scatter<double, double, string>(
+                    distinctNoChimeras.Select(p => p.RetentionTime),
+                    distinctNoChimeras.Select(p => p.ChronologerPrediction), StyleParam.Mode.Markers,
+                    $"No Chimeras - R^2={nonChimericR2}", MarkerColor: "No Chimeras".ConvertConditionToColor()),
+                Chart2D.Chart.Scatter<double, double, string>(
+                    distinctChimeras.Select(p => p.RetentionTime),
+                    distinctChimeras.Select(p => p.ChronologerPrediction), StyleParam.Mode.Markers,
+                    $"Chimeras - R^2={chimeraR2}", MarkerColor: "Chimeras".ConvertConditionToColor()),
+                Chart.Line<double, double, string>(line.Select(p => p.RT), line.Select(p => p.Prediction))
+                    .WithLegend(false)
+            })
+            .WithTitle($"Chronologer Predicted HI vs Percent ACN (1% Peptides)")
+            .WithXAxisStyle(Title.init("Percent ACN"))
+            .WithYAxisStyle(Title.init("Chronologer Prediction"))
+            .WithLayout(Layout.init<string>(PaperBGColor: Color.fromKeyword(ColorKeyword.White),
+                PlotBGColor: Color.fromKeyword(ColorKeyword.White),
+                ShowLegend: true,
+                Legend: Legend.init(X: 0.5, Y: -0.2, Orientation: StyleParam.Orientation.Horizontal, EntryWidth: 0,
+                    VerticalAlign: StyleParam.VerticalAlign.Bottom,
+                    XAnchor: StyleParam.XAnchorPosition.Center,
+                    YAnchor: StyleParam.YAnchorPosition.Top
+                )))
+            .WithSize(1000, GenericPlots.DefaultHeight);
+        GenericChartExtensions.Show(chronologerPlot);
+        var outpath = Path.Combine(allResults.GetFigureDirectory(), $"AllResults_{FileIdentifiers.ChronologerFigureACN}");
+        chronologerPlot.SavePNG(outpath, null, 1000, 400);
     }
 
     public static void PlotChronologerDeltaPlotKernalPDF(this AllResults allResults)

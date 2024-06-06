@@ -144,29 +144,75 @@ namespace Test
 
 
 
+        /// <summary>
+        /// Overnight I will:
+        /// Rerun all individual file results for MM due to the unique by base sequence issue
+        /// Replot all individual file results
+        /// </summary>
         [Test]
-        public static void PlotBulkResults()
+        public static void OvernightRunner()
         {
-            foreach (var cellLine in AllResults)
+            foreach (var cellLine in BottomUpRunner.AllResults)
             {
-                foreach (var result in cellLine)
+                try
                 {
-                    result.Override = true;
+                    cellLine.PlotChronologerVsPercentHi();
+                }
+                catch (Exception e)
+                {
+                    Console.WriteLine(e);
+                }
 
-                    if (result is not MetaMorpheusResult)
-                        result.GetBulkResultCountComparisonFile();
+                try
+                {
+                    cellLine.GetChronologerDeltaPlotKernelPDF();
+                }
+                catch (Exception e)
+                {
+                    Console.WriteLine(e);
+                }
 
-                    result.Override = false;
+                foreach (var cellLineResult in cellLine)
+                {
+                    if (cellLineResult is MetaMorpheusResult mm)
+                    {
+                        cellLineResult.Override = true;
+                        cellLineResult.GetIndividualFileComparison();
+                        cellLineResult.Override = false;
+                    }
                 }
 
                 cellLine.Override = true;
-                cellLine.GetBulkResultCountComparisonFile();
+                cellLine.GetIndividualFileComparison();
+                cellLine.PlotIndividualFileResults();
                 cellLine.Override = false;
             }
+            BottomUpRunner.AllResults.Override = true;
+            BottomUpRunner.AllResults.IndividualFileComparison();
+            BottomUpRunner.AllResults.PlotStackedIndividualFileComparison();
+            BottomUpRunner.AllResults.Override = false;
 
+            foreach (var cellLine in AllResults)
+            {
+                foreach (var cellLineResult in cellLine)
+                {
+                    if (cellLineResult is MetaMorpheusResult mm)
+                    {
+                        cellLineResult.Override = true;
+                        cellLineResult.GetIndividualFileComparison();
+                        cellLineResult.Override = false;
+                    }
+                }
+
+                cellLine.Override = true;
+                cellLine.GetIndividualFileComparison();
+                cellLine.PlotIndividualFileResults();
+                cellLine.Override = false;
+            }
             AllResults.Override = true;
-            AllResults.GetBulkResultCountComparisonFile();
-            AllResults.PlotBulkResultComparisons();
+            AllResults.IndividualFileComparison();
+            AllResults.PlotStackedIndividualFileComparison();
+            AllResults.Override = false;
         }
     
 

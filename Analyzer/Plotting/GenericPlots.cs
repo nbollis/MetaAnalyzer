@@ -13,6 +13,7 @@ using Plotly.NET.TraceObjects;
 using Proteomics.PSM;
 using Analyzer.SearchType;
 using Easy.Common;
+using MathNet.Numerics;
 using static Analyzer.Plotting.CellLinePlots;
 using MathNet.Numerics.Statistics;
 
@@ -634,7 +635,7 @@ namespace Analyzer.Plotting
         {
             List<(double, double)> data = new List<(double, double)>();
 
-            foreach (var sample in values)
+            foreach (var sample in values.DistinctBy(p => p.Round(3)))
             {
                 var pdf = kernel switch
                 {

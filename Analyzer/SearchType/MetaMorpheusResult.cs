@@ -18,8 +18,13 @@ namespace Analyzer.SearchType
         private List<PsmFromTsv>? allPsms;
         public List<PsmFromTsv> AllPsms => allPsms ??= SpectrumMatchTsvReader.ReadPsmTsv(PsmPath, out _);
 
+        
         private List<PsmFromTsv>? allPeptides;
         public List<PsmFromTsv> AllPeptides => allPeptides ??= SpectrumMatchTsvReader.ReadPsmTsv(PeptidePath, out _);
+
+
+        public List<MetaMorpheusIndividualFileResult> IndividualFileResults { get; set; }
+
 
         private string _searchResultsTextPath;
 
@@ -46,25 +51,13 @@ namespace Analyzer.SearchType
             _searchResultsTextPath = Directory.GetFiles(searchDir, "results.txt", SearchOption.AllDirectories).FirstOrDefault();
             _individualFileComparison = null;
             _chimeraPsmFile = null;
-        }
 
-        public override BulkResultCountComparisonFile GetIndividualFileComparison(string path = null)
-        {
-            path ??= _IndividualFilePath;
-            if (!Override && File.Exists(path))
-                return new BulkResultCountComparisonFile(path);
 
-            var indFileDir =
-                Directory.GetDirectories(DirectoryPath, "Individual File Results", SearchOption.AllDirectories);
-            if (indFileDir.Length == 0)
-                return null;
-            var indFileDirectory = indFileDir.First();
-
-            var fileNames = Directory.GetFiles(indFileDirectory, "*tsv")
-                .Where(p => !p.Contains("Percolator") && !p.Contains("Quantified"))
-                .ToArray();
-            List<BulkResultCountComparison> results = new List<BulkResultCountComparison>();
-            foreach (var individualFile in fileNames.GroupBy(p =>
+            IndividualFileResults = new();
+            var indFileDir = Directory.GetDirectories(DirectoryPath, "Individual File Results", SearchOption.AllDirectories);
+            if (indFileDir.Length == 0) return;
+            foreach (var individualFile in Directory.GetFiles(indFileDir.First(), "*tsv")
+                         .Where(p => !p.Contains("Percolator") && !p.Contains("Quantified")).GroupBy(p =>
                              Path.GetFileNameWithoutExtension(p).Replace("-calib", "").Replace("-averaged", "")
                                  .Replace("_Peptides", "").Replace("_PSMs", "").Replace("_ProteinGroups", "")
                                  .Replace("_Proteoforms", ""))
@@ -74,17 +67,30 @@ namespace Analyzer.SearchType
                 string peptide = individualFile.Value.First(p => p.Contains("Peptide") || p.Contains("Proteoform"));
                 string? protein = individualFile.Value.FirstOrDefault(p => p.Contains("Protein"));
 
-                var spectralmatches = SpectrumMatchTsvReader.ReadPsmTsv(psm, out _).Where(p => p.DecoyContamTarget == "T").ToList();
-                var peptides = SpectrumMatchTsvReader.ReadPsmTsv(peptide, out _)
+                IndividualFileResults.Add(new MetaMorpheusIndividualFileResult(individualFile.Key, psm, peptide, protein));
+            }
+        }
+
+        public override BulkResultCountComparisonFile GetIndividualFileComparison(string path = null)
+        {
+            path ??= _IndividualFilePath;
+            if (!Override && File.Exists(path))
+                return new BulkResultCountComparisonFile(path);
+
+            var results = new List<BulkResultCountComparison>();
+            foreach (var individualFile in IndividualFileResults)
+            {
+                var spectralmatches = individualFile.AllPsms.Where(p => p.DecoyContamTarget == "T").ToList();
+                var peptides = individualFile.AllPeptides
                     .Where(p => p.DecoyContamTarget == "T")
-                    .DistinctBy(p => p.BaseSeq).ToList();
+                    .ToList();
 
                 int count = 0;
                 int onePercentCount = 0;
 
-                if (protein is not null)
+                if (individualFile._proteinPath is not null)
                 {
-                    using (var sw = new StreamReader(File.OpenRead(protein)))
+                    using (var sw = new StreamReader(File.OpenRead(individualFile._proteinPath)))
                     {
                         var header = sw.ReadLine();
                         var headerSplit = header.Split('\t');
@@ -111,7 +117,7 @@ namespace Analyzer.SearchType
                 {
                     DatasetName = DatasetName,
                     Condition = Condition,
-                    FileName = individualFile.Key,
+                    FileName = individualFile.FileName,
                     PsmCount = psmCount,
                     PeptideCount = peptideCount,
                     ProteinGroupCount = count,
@@ -725,6 +731,32 @@ namespace Analyzer.SearchType
             });
 
             return output.Contains("-1") ? "" : output;
+        }
+    }
+
+
+    public class MetaMorpheusIndividualFileResult
+    {
+        public string FileName { get; }
+        private string _psmPath;
+        private string _peptidePath;
+        public string? _proteinPath;
+
+        private List<PsmFromTsv>? _allPsms;
+        public List<PsmFromTsv> AllPsms => _allPsms ??= SpectrumMatchTsvReader.ReadPsmTsv(_psmPath, out _);
+
+        private List<PsmFromTsv>? _filteredPsms;
+        public List<PsmFromTsv> FilteredPsms => _filteredPsms ??= AllPsms.Where(p => p is { DecoyContamTarget: "T", PEP_QValue: <= 0.01 }).ToList();
+
+        private List<PsmFromTsv>? _allPeptides;
+        public List<PsmFromTsv> AllPeptides => _allPeptides ??= SpectrumMatchTsvReader.ReadPsmTsv(_peptidePath, out _);
+
+        public MetaMorpheusIndividualFileResult(string fileName, string psmPath, string peptidePath, string? proteinPath)
+        {
+            FileName = fileName;
+            _psmPath = psmPath;
+            _peptidePath = peptidePath;
+            _proteinPath = proteinPath;
         }
     }
 }
