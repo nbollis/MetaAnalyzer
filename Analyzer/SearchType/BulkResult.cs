@@ -26,7 +26,7 @@ namespace Analyzer.SearchType
 
         protected BulkResultCountComparisonFile? _individualFileComparison;
 
-        public BulkResultCountComparisonFile IndividualFileComparisonFile =>
+        public BulkResultCountComparisonFile? IndividualFileComparisonFile =>
             _individualFileComparison ??= GetIndividualFileComparison();
 
         protected string _chimeraPsmPath => Path.Combine(DirectoryPath,
@@ -86,7 +86,7 @@ namespace Analyzer.SearchType
             }
         }
 
-        public abstract BulkResultCountComparisonFile GetIndividualFileComparison(string path = null);
+        public abstract BulkResultCountComparisonFile? GetIndividualFileComparison(string path = null);
         public abstract ChimeraCountingFile CountChimericPsms();
         public abstract BulkResultCountComparisonFile GetBulkResultCountComparisonFile(string path = null);
         

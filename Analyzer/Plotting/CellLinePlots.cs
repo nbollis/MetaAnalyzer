@@ -1,5 +1,6 @@
 ﻿using System.Dynamic;
 using System.Security.Cryptography.X509Certificates;
+using Analyzer.FileTypes.Internal;
 using Analyzer.Interfaces;
 using Analyzer.SearchType;
 using Analyzer.Util;
@@ -13,6 +14,8 @@ using Plotly.NET.CSharp;
 using Plotly.NET.ImageExport;
 using Plotly.NET.LayoutObjects;
 using Proteomics.PSM;
+using Readers;
+using TopDownProteomics.IO.PsiMod;
 using Chart = Plotly.NET.CSharp.Chart;
 using GenericChartExtensions = Plotly.NET.CSharp.GenericChartExtensions;
 
@@ -42,7 +45,7 @@ public static class CellLinePlots
     {
         bool isTopDown = cellLine.First().IsTopDown;
         var fileResults = (filterByCondition ? cellLine.Select(p => p.IndividualFileComparisonFile)
-                    .Where(p => p != null && isTopDown.IndividualFileComparisonSelector(cellLine.CellLine).Contains(p.First().Condition))
+                    .Where(p => p != null && p.Any() && isTopDown.IndividualFileComparisonSelector(cellLine.CellLine).Contains(p.First().Condition))
                 : cellLine.Select(p => p.IndividualFileComparisonFile))
             .OrderBy(p => p.First().Condition.ConvertConditionName())
             .ToList();
@@ -247,7 +250,18 @@ public static class CellLinePlots
     }
 
 
-    public static GenericChart.GenericChart GetChronologerDeltaPlotKernelPDF(this CellLineResults cellLine, Kernels kernel = Kernels.Gaussian)
+    public static void PlotChronologerDeltaKernelPDF(this CellLineResults cellLine, Kernels kernel = Kernels.Gaussian)
+    {
+        var chart = cellLine.GetChronologerDeltaPlotKernelPDF(kernel);
+        string outPath = Path.Combine(cellLine.GetFigureDirectory(),
+            $"{FileIdentifiers.ChronologerDeltaDistributionFigure}_{cellLine.CellLine}");
+        string outPath2 = Path.Combine(cellLine.FigureDirectory,
+            $"{FileIdentifiers.ChronologerDeltaDistributionFigure}_{cellLine.CellLine}");
+        chart.SavePNG(outPath, null, 600, 600);
+        chart.SavePNG(outPath2, null, 600, 600);
+    }
+
+    internal static GenericChart.GenericChart GetChronologerDeltaPlotKernelPDF(this CellLineResults cellLine, Kernels kernel = Kernels.Gaussian)
     {
         var individualFiles = cellLine.Results
             .Where(p => false.FdrPlotSelector().Contains(p.Condition))
@@ -260,8 +274,6 @@ public static class CellLinePlots
             .ToList();
 
         
-        //List<(double, double)> chimericDistribution = new();
-        //List<(double, double)> nonChimericDistribution = new();
         var chimericSamples = chronologer.Where(p => p.IsChimeric)
             .Select(p => p.DeltaChronologer)
             .ToList();
@@ -269,33 +281,17 @@ public static class CellLinePlots
             .Select(p => p.DeltaChronologer)
             .ToList();
 
-        //double smoothing = 0.2;
-        //foreach (var sample in chronologer)
-        //{
-        //    var samples = sample.IsChimeric ? chimericSamples : nonChimericSamples;
-
-
-        //    var pdf = kernel switch
-        //    {
-        //        Kernels.Gaussian => KernelDensity.EstimateGaussian(sample.DeltaChronologer, smoothing, samples),
-        //        Kernels.Epanechnikov => KernelDensity.EstimateEpanechnikov(sample.DeltaChronologer, smoothing, samples),
-        //        Kernels.Triangular => KernelDensity.EstimateTriangular(sample.DeltaChronologer, smoothing, samples),
-        //        Kernels.Uniform => KernelDensity.EstimateUniform(sample.DeltaChronologer, smoothing, samples),
-        //        _ => throw new ArgumentOutOfRangeException(nameof(kernel), kernel, null)
-        //    };
-
-        //    if (sample.IsChimeric)
-        //        chimericDistribution.Add((sample.DeltaChronologer, pdf));
-        //    else
-        //        nonChimericDistribution.Add((sample.DeltaChronologer, pdf));
-        //}
 
         nonChimericSamples = nonChimericSamples.OrderBy(p => p).ToList();
         chimericSamples = chimericSamples.OrderBy(p => p).ToList();
         var chart = Chart.Combine(new[]
             {
                 GenericPlots.KernelDensityPlot(chimericSamples, "Chimeric", "Delta %ACN", "Probability"),
-                GenericPlots.KernelDensityPlot(nonChimericSamples, "Non-Chimeric", "Delta %ACN", "Probability")
+                GenericPlots.KernelDensityPlot(nonChimericSamples, "Non-Chimeric", "Delta %ACN", "Probability"),
+                Chart.Line<double, double, string>(new [] {0.0, 0},
+                    new [] {0.0, 0.35},
+                    LineColor: new Optional<Color>(Color.fromKeyword(ColorKeyword.DarkGray), true), 
+                    LineDash: StyleParam.DrawingStyle.Dash, Opacity:0.5)
             })
             .WithTitle($" {cellLine.CellLine} Chronologer Delta Kernel Density")
             .WithSize(400, 400)
@@ -303,14 +299,197 @@ public static class CellLinePlots
             .WithYAxisStyle(Title.init("Density"))
             .WithLayout(GenericPlots.DefaultLayoutWithLegend);
 
-        string outPath = Path.Combine(cellLine.GetFigureDirectory(),
-            $"{FileIdentifiers.ChronologerDeltaDistributionFigure}_{cellLine.CellLine}");
-        string outPath2 = Path.Combine(cellLine.FigureDirectory,
-                       $"{FileIdentifiers.ChronologerDeltaDistributionFigure}_{cellLine.CellLine}");
-        chart.SavePNG(outPath, null, 600, 600);
-        chart.SavePNG(outPath2, null, 600, 600);
-
         return chart;
+    }
+
+
+    public static void PlotAverageRetentionTimeShiftPlotKernelPDF(this CellLineResults cellLine,
+        Kernels kernel = Kernels.Gaussian)
+    {
+        var file = cellLine.MaximumChimeraEstimationFile;
+        if (file is null)
+            return;
+
+        var mmPsm = file.GetAverageRetentionTimeShiftPlotKernelPDF(Software.MetaMorpheus, ResultType.Psm, false);
+        string outPath = Path.Combine(cellLine.GetFigureDirectory(), $"{FileIdentifiers.RetentionTimeShift_MM}_{cellLine.CellLine}_Psms");
+        string outPath2 = Path.Combine(cellLine.FigureDirectory, $"{FileIdentifiers.RetentionTimeShift_MM}_{cellLine.CellLine}_Psms");
+        mmPsm.SavePNG(outPath, null, 600, 600);
+        mmPsm.SavePNG(outPath2, null, 600, 600);
+
+        var mmOnePercentPsm = file.GetAverageRetentionTimeShiftPlotKernelPDF(Software.MetaMorpheus, ResultType.Psm, true);
+        outPath = Path.Combine(cellLine.GetFigureDirectory(), $"{FileIdentifiers.RetentionTimeShift_MM}_{cellLine.CellLine}_1%Psms");
+        outPath2 = Path.Combine(cellLine.FigureDirectory, $"{FileIdentifiers.RetentionTimeShift_MM}_{cellLine.CellLine}_1%Psms");
+        mmOnePercentPsm.SavePNG(outPath, null, 600, 600);
+        mmOnePercentPsm.SavePNG(outPath2, null, 600, 600);
+
+        var mmPep = file.GetAverageRetentionTimeShiftPlotKernelPDF(Software.MetaMorpheus, ResultType.Peptide, false);
+        outPath = Path.Combine(cellLine.GetFigureDirectory(), $"{FileIdentifiers.RetentionTimeShift_MM}_{cellLine.CellLine}_Peptides");
+        outPath2 = Path.Combine(cellLine.FigureDirectory, $"{FileIdentifiers.RetentionTimeShift_MM}_{cellLine.CellLine}_Peptides");
+        mmPep.SavePNG(outPath, null, 600, 600);
+        mmPep.SavePNG(outPath2, null, 600, 600);
+
+        var mmOnePercentPep = file.GetAverageRetentionTimeShiftPlotKernelPDF(Software.MetaMorpheus, ResultType.Peptide, true);
+        outPath = Path.Combine(cellLine.GetFigureDirectory(), $"{FileIdentifiers.RetentionTimeShift_MM}_{cellLine.CellLine}_1%Peptides");
+        outPath2 = Path.Combine(cellLine.FigureDirectory, $"{FileIdentifiers.RetentionTimeShift_MM}_{cellLine.CellLine}_1%Peptides");
+        mmOnePercentPep.SavePNG(outPath, null, 600, 600);
+        mmOnePercentPep.SavePNG(outPath2, null, 600, 600);
+
+        var fragPsm = file.GetAverageRetentionTimeShiftPlotKernelPDF(Software.Unspecified, ResultType.Psm, false);
+        outPath = Path.Combine(cellLine.GetFigureDirectory(), $"{FileIdentifiers.RetentionTimeShift_Fragger}_{cellLine.CellLine}_Psms");
+        outPath2 = Path.Combine(cellLine.FigureDirectory, $"{FileIdentifiers.RetentionTimeShift_Fragger}_{cellLine.CellLine}_Psms");
+        fragPsm.SavePNG(outPath, null, 600, 600);
+        fragPsm.SavePNG(outPath2, null, 600, 600);
+
+        var fragOnePercentPsm = file.GetAverageRetentionTimeShiftPlotKernelPDF(Software.Unspecified, ResultType.Psm, true);
+        outPath = Path.Combine(cellLine.GetFigureDirectory(), $"{FileIdentifiers.RetentionTimeShift_Fragger}_{cellLine.CellLine}_1%Psms");
+        outPath2 = Path.Combine(cellLine.FigureDirectory, $"{FileIdentifiers.RetentionTimeShift_Fragger}_{cellLine.CellLine}_1%Psms");
+        fragOnePercentPsm.SavePNG(outPath, null, 600, 600);
+        fragOnePercentPsm.SavePNG(outPath2, null, 600, 600);
+
+    }
+
+    public static GenericChart.GenericChart? GetAverageRetentionTimeShiftPlotKernelPDF(this MaximumChimeraEstimationFile file, Software software = Software.MetaMorpheus,
+        ResultType resultType = ResultType.Psm, bool onePercent = true, Kernels kernel = Kernels.Gaussian)
+    {
+        List<double> chimeric;
+        List<double> nonChimeric;
+        string chimericLabel;
+        string nonChimericLabel;
+        string titleLabel;
+        string softwareLabel = software == Software.MetaMorpheus ? "MetaMorpheus" : "MsFraggerDDA+";
+        switch (resultType)
+        {
+            case ResultType.Psm:
+                if (software == Software.MetaMorpheus)
+                {
+                    var trimmedSamples = file.Where(p => p.PsmCount_MetaMorpheus != 0).ToList();
+                    if (onePercent)
+                    {
+                        chimeric = trimmedSamples.Where(p => p.OnePercentRetentionTimeShift_MetaMorpheus_PSMs.Any() && p.IsChimeric)
+                            .SelectMany(p => p.OnePercentRetentionTimeShift_MetaMorpheus_PSMs)
+                            .OrderBy(p => p).ToList();
+                        nonChimeric = trimmedSamples.Where(p => p.OnePercentRetentionTimeShift_MetaMorpheus_PSMs.Any() && !p.IsChimeric)
+                            .SelectMany(p => p.OnePercentRetentionTimeShift_MetaMorpheus_PSMs)
+                            .OrderBy(p => p).ToList();
+                        chimericLabel = "Chimeric 1% Psms";
+                        nonChimericLabel = "Non-Chimeric 1% Psms";
+                        titleLabel = "1% Psms";
+                    }
+                    else
+                    {
+                        chimeric = trimmedSamples.Where(p => p.RetentionTimeShift_MetaMorpheus_PSMs.Any() && p.IsChimeric)
+                            .SelectMany(p => p.RetentionTimeShift_MetaMorpheus_PSMs)
+                            .OrderBy(p => p).ToList();
+                        nonChimeric = trimmedSamples.Where(p => p.RetentionTimeShift_MetaMorpheus_PSMs.Any() && !p.IsChimeric)
+                            .SelectMany(p => p.RetentionTimeShift_MetaMorpheus_PSMs)
+                            .OrderBy(p => p).ToList();
+                        chimericLabel = "Chimeric All Psms";
+                        nonChimericLabel = "Non-Chimeric All Psms";
+                        titleLabel = "All Psms";
+                    }
+                }
+                else
+                {
+                    var trimmedSamples = file.Where(p => p.PsmCount_Fragger != 0).ToList();
+                    if (onePercent)
+                    {
+                        chimeric = trimmedSamples.Where(p => p.OnePercentRetentionTimeShift_Fragger_PSMs.Any() && p.IsChimeric)
+                            .SelectMany(p => p.OnePercentRetentionTimeShift_Fragger_PSMs)
+                            .OrderBy(p => p).ToList();
+                        nonChimeric = trimmedSamples.Where(p => p.OnePercentRetentionTimeShift_Fragger_PSMs.Any() && !p.IsChimeric)
+                            .SelectMany(p => p.OnePercentRetentionTimeShift_Fragger_PSMs)
+                            .OrderBy(p => p).ToList();
+                        chimericLabel = "Chimeric 1% Psms";
+                        nonChimericLabel = "Non-Chimeric 1% Psms";
+                        titleLabel = "1% Psms";
+                    }
+                    else
+                    {
+                        chimeric = trimmedSamples.Where(p => p.RetentionTimeShift_Fragger_PSMs.Any() && p.IsChimeric)
+                            .SelectMany(p => p.RetentionTimeShift_Fragger_PSMs)
+                            .OrderBy(p => p).ToList();
+                        nonChimeric = trimmedSamples.Where(p => p.RetentionTimeShift_Fragger_PSMs.Any() && !p.IsChimeric)
+                            .SelectMany(p => p.RetentionTimeShift_Fragger_PSMs)
+                            .OrderBy(p => p).ToList();
+                        chimericLabel = "Chimeric All Psms";
+                        nonChimericLabel = "Non-Chimeric All Psms";
+                        titleLabel = "All Psms";
+                    }
+                }
+                break;
+            case ResultType.Peptide:
+                if (software == Software.MetaMorpheus)
+                {
+                    var trimmedSamples = file.Where(p => p.PeptideCount_MetaMorpheus != 0).ToList();
+                    if (onePercent)
+                    {
+                        chimeric = trimmedSamples.Where(p =>
+                                p.OnePercentRetentionTimeShift_MetaMorpheus_Peptides.Any() && p.IsChimeric)
+                            .SelectMany(p => p.OnePercentRetentionTimeShift_MetaMorpheus_Peptides)
+                            .OrderBy(p => p).ToList();
+                        nonChimeric = trimmedSamples.Where(p =>
+                                p.OnePercentRetentionTimeShift_MetaMorpheus_Peptides.Any() && !p.IsChimeric)
+                            .SelectMany(p => p.OnePercentRetentionTimeShift_MetaMorpheus_Peptides)
+                            .OrderBy(p => p).ToList();
+                        chimericLabel = "Chimeric 1% Peptides";
+                        nonChimericLabel = "Non-Chimeric 1% Peptides";
+                        titleLabel = "1% Peptides";
+                    }
+                    else
+                    {
+                        chimeric = trimmedSamples.Where(p =>
+                                p.RetentionTimeShift_MetaMorpheus_Peptides.Any() && p.IsChimeric)
+                            .SelectMany(p => p.RetentionTimeShift_MetaMorpheus_Peptides)
+                            .OrderBy(p => p).ToList();
+                        nonChimeric = trimmedSamples.Where(p =>
+                                p.RetentionTimeShift_MetaMorpheus_Peptides.Any() && !p.IsChimeric)
+                            .SelectMany(p => p.RetentionTimeShift_MetaMorpheus_Peptides)
+                            .OrderBy(p => p).ToList();
+                        chimericLabel = "Chimeric All Peptides";
+                        nonChimericLabel = "Non-Chimeric All Peptides";
+                        titleLabel = "All Peptides";
+                    }
+                }
+                else
+                    return null;
+                break;
+            case ResultType.Protein:
+            default:
+                return null;
+        }
+
+        var hist = Chart.Combine(new[]
+            {
+                Chart.Histogram<double, double, string>(chimeric,
+                    MarkerColor: chimericLabel.ConvertConditionToColor()),
+                Chart.Histogram<double, double, string>(nonChimeric,
+                    MarkerColor: nonChimericLabel.ConvertConditionToColor())
+
+            }).WithTitle($"{softwareLabel} {file.First().CellLine} Average {titleLabel} RT Shift")
+            .WithSize(800, 800)
+            .WithXAxisStyle(Title.init("RT Shift"))
+            .WithYAxisStyle(Title.init("Count"))
+            .WithLayout(GenericPlots.DefaultLayoutWithLegend);
+
+        var kernelPlot = Chart.Combine(new[]
+            {
+                GenericPlots.KernelDensityPlot(chimeric, chimericLabel, "RT Shift", "Density", 0.01, kernel),
+                GenericPlots.KernelDensityPlot(nonChimeric, nonChimericLabel, "RT Shift", "Density", 0.01, kernel),
+                Chart.Line<double, double, string>(new[] { 0.0, 0 }, new[] { 0.0, 0.35 },
+                    LineColor: new Optional<Color>(Color.fromKeyword(ColorKeyword.DarkGray), true),
+                    LineDash: StyleParam.DrawingStyle.Dash, Opacity: 0.5)
+            })
+            .WithTitle($"{softwareLabel} {file.First().CellLine} Average {titleLabel} RT Shift")
+            .WithSize(800, 800)
+            .WithXAxisStyle(Title.init("RT Shift"))
+            .WithYAxisStyle(Title.init("Density"))
+            .WithLayout(GenericPlots.DefaultLayoutWithLegend);
+
+        var plot = Chart.Grid(new[] { hist, kernelPlot }, 1, 2)
+            .WithSize(1200, 600)
+            .WithTitle($"{softwareLabel} {file.First().CellLine} Average {titleLabel} RT Shift");
+
+        return plot;
     }
 
     #endregion

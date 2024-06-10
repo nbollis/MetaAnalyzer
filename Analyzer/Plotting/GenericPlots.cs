@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Analyzer.FileTypes.Internal;
+﻿using Analyzer.FileTypes.Internal;
 using Analyzer.Util;
 using Chart = Plotly.NET.CSharp.Chart;
 using Plotly.NET;
@@ -12,10 +7,10 @@ using Plotly.NET.LayoutObjects;
 using Plotly.NET.TraceObjects;
 using Proteomics.PSM;
 using Analyzer.SearchType;
-using Easy.Common;
 using MathNet.Numerics;
 using static Analyzer.Plotting.CellLinePlots;
 using MathNet.Numerics.Statistics;
+using Microsoft.FSharp.Core;
 
 namespace Analyzer.Plotting
 {
@@ -652,11 +647,15 @@ namespace Analyzer.Plotting
                 Chart.Line<double, double, string>(data.Select(p => p.Item1), data.Select(p => p.Item2), Name: title,
                         LineColor: title.ConvertConditionToColor())
                     .WithSize(400, 400)
-                    .WithXAxisStyle(Title.init(xTitle))
+                    .WithXAxisStyle(Title.init(xTitle), new FSharpOption<Tuple<IConvertible, IConvertible>>(new Tuple<IConvertible, IConvertible>(-15, 15)))
                     .WithYAxisStyle(Title.init(yTitle))
                     .WithLayout(DefaultLayoutWithLegend);
             return chart;
         }
+
+
+
+        
     }
 
 }

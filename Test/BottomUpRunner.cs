@@ -69,29 +69,29 @@ namespace Test
         [Test]
         public static void PlotAllFigures()
         {
-            
 
-            //AllResults.PlotInternalMMComparison();
-            //AllResults.PlotBulkResultComparisons();
-            //AllResults.PlotStackedIndividualFileComparison();
-            //AllResults.PlotBulkResultChimeraBreakDown();
-            //AllResults.PlotStackedSpectralSimilarity();
-            //AllResults.PlotAggregatedSpectralSimilarity();
-            //AllResults.PlotBulkResultChimeraBreakDown();
-            //AllResults.PlotBulkResultChimeraBreakDown_TargetDecoy();
+            AllResults.PlotInternalMMComparison();
+            AllResults.PlotBulkResultComparisons();
+            AllResults.PlotStackedIndividualFileComparison();
+            AllResults.PlotBulkResultChimeraBreakDown();
+            AllResults.PlotStackedSpectralSimilarity();
+            AllResults.PlotAggregatedSpectralSimilarity();
+            AllResults.PlotBulkResultChimeraBreakDown();
+            AllResults.PlotBulkResultChimeraBreakDown_TargetDecoy();
             AllResults.PlotChronologerVsPercentHi();
-            AllResults.PlotChronologerDeltaPlotKernalPDF();
+            AllResults.PlotBulkChronologerDeltaPlotKernalPDF();
+            AllResults.PlotGridChronologerDeltaPlotKernalPDF();
 
             foreach (CellLineResults cellLine in AllResults)
             {
-                //cellLine.PlotIndividualFileResults(ResultType.Psm);
-                //cellLine.PlotIndividualFileResults(ResultType.Peptide);
-                //cellLine.PlotIndividualFileResults(ResultType.Protein);
-                //cellLine.PlotCellLineRetentionTimePredictions();
-                //cellLine.PlotCellLineSpectralSimilarity();
-                //cellLine.PlotCellLineChimeraBreakdown();
-                //cellLine.PlotCellLineChimeraBreakdown_TargetDecoy();
-                //cellLine.GetChronologerDeltaPlotKernelPDF();
+                cellLine.PlotIndividualFileResults(ResultType.Psm);
+                cellLine.PlotIndividualFileResults(ResultType.Peptide);
+                cellLine.PlotIndividualFileResults(ResultType.Protein);
+                cellLine.PlotCellLineRetentionTimePredictions();
+                cellLine.PlotCellLineSpectralSimilarity();
+                cellLine.PlotCellLineChimeraBreakdown();
+                cellLine.PlotCellLineChimeraBreakdown_TargetDecoy();
+                cellLine.PlotChronologerDeltaKernelPDF();
                 cellLine.PlotChronologerVsPercentHi();
                 foreach (var individualResult in cellLine)
                 {
@@ -100,7 +100,7 @@ namespace Test
                     //mm.PlotTargetDecoyCurves();
                     //mm.ExportCombinedChimeraTargetDecoyExploration(mm.FigureDirectory, mm.Condition);
                 }
-                //cellLine.Dispose(); 
+                cellLine.Dispose(); 
             }
         }
 
@@ -112,16 +112,15 @@ namespace Test
             string cellLineString = "A549";
             //var cellLine = AllResults.First(p => p.CellLine == cellLineString);
             var cellLine = new CellLineResults(Path.Combine(DirectoryPath, "A549"));
-            var chimerys = cellLine.First(p => p.Condition.Contains("Chimerys"));
-
-          
+            
+            AllResults.PlotBulkChronologerDeltaPlotKernalPDF();
             //cellLine.PlotIndividualFileResults();
             //cellLine.PlotIndividualFileResults(ResultType.Psm);
             //cellLine.PlotIndividualFileResults(ResultType.Protein);
             //cellLine.PlotCellLineChimeraBreakdown();
             //cellLine.PlotCellLineRetentionTimePredictions();
             //cellLine.GetChronologerDeltaPlotKernelPDF();
-            //cellLine.DetermineMaximumChimeras();
+            //cellLine.GetMaximumChimeraEstimationFile();
             //cellLine.GetChronologerDeltaHistogram();
             //cellLine.PlotCellLineSpectralSimilarity();
             //cellLine.PlotCellLineChimeraBreakdown();

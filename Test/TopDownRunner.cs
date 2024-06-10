@@ -7,6 +7,7 @@ using Analyzer.Plotting;
 using Analyzer.SearchType;
 using Analyzer.Util;
 using NUnit.Framework.Constraints;
+using NUnit.Framework.Internal.Commands;
 using Plotly.NET;
 using Plotly.NET.LayoutObjects;
 using Proteomics.PSM;
@@ -82,26 +83,26 @@ namespace Test
         [Test]
         public static void GenerateAllFigures()
         {
-            foreach (CellLineResults cellLine in AllResults.Skip(1))
+            foreach (CellLineResults cellLine in AllResults.SkipLast(1))
             {
                 foreach (var individualResult in cellLine)
                 {
                     if (individualResult is not MetaMorpheusResult mm) continue;
-                    mm.ExportPepFeaturesPlots();
+                    //mm.ExportPepFeaturesPlots();
                     //mm.ExportCombinedChimeraTargetDecoyExploration(mm.FigureDirectory, mm.Condition);
                 }
 
-                //cellLine.PlotIndividualFileResults();
-                //cellLine.PlotCellLineSpectralSimilarity();
-                //cellLine.PlotCellLineChimeraBreakdown();
-                //cellLine.PlotCellLineChimeraBreakdown_TargetDecoy();
+                cellLine.PlotIndividualFileResults();
+                cellLine.PlotCellLineSpectralSimilarity();
+                cellLine.PlotCellLineChimeraBreakdown();
+                cellLine.PlotCellLineChimeraBreakdown_TargetDecoy();
             }
 
-            //AllResults.PlotInternalMMComparison();
-            //AllResults.PlotBulkResultComparisons();
-            //AllResults.PlotStackedIndividualFileComparison();
-            //AllResults.PlotBulkResultChimeraBreakDown();
-            //AllResults.PlotBulkResultChimeraBreakDown_TargetDecoy();
+            AllResults.PlotInternalMMComparison();
+            AllResults.PlotBulkResultComparisons();
+            AllResults.PlotStackedIndividualFileComparison();
+            AllResults.PlotBulkResultChimeraBreakDown();
+            AllResults.PlotBulkResultChimeraBreakDown_TargetDecoy();
         }
 
         [Test]
@@ -148,109 +149,31 @@ namespace Test
         /// Overnight I will:
         /// Rerun all individual file results for MM due to the unique by base sequence issue
         /// Replot all individual file results
+        ///
+        /// Run get maximum chimera estimation file
+        /// rerun every plot with new selectors
         /// </summary>
         [Test]
         public static void OvernightRunner()
         {
-            foreach (var cellLine in BottomUpRunner.AllResults)
+            GenerateAllFigures();
+            foreach (var cellLine in BottomUpRunner.AllResults.Skip(1))
             {
-                try
-                {
-                    cellLine.PlotChronologerVsPercentHi();
-                }
-                catch (Exception e)
-                {
-                    Console.WriteLine(e);
-                }
-
-                try
-                {
-                    cellLine.GetChronologerDeltaPlotKernelPDF();
-                }
-                catch (Exception e)
-                {
-                    Console.WriteLine(e);
-                }
-
-                foreach (var cellLineResult in cellLine)
-                {
-                    if (cellLineResult is MetaMorpheusResult mm)
-                    {
-                        cellLineResult.Override = true;
-                        cellLineResult.GetIndividualFileComparison();
-                        cellLineResult.Override = false;
-                    }
-                }
-
-                cellLine.Override = true;
-                cellLine.GetIndividualFileComparison();
-                cellLine.PlotIndividualFileResults();
-                cellLine.Override = false;
+                //cellLine.Override = true;
+                cellLine.GetMaximumChimeraEstimationFile();
+                cellLine.PlotAverageRetentionTimeShiftPlotKernelPDF();
+                //cellLine.Override = false;
+                cellLine.Dispose();
             }
-            BottomUpRunner.AllResults.Override = true;
-            BottomUpRunner.AllResults.IndividualFileComparison();
-            BottomUpRunner.AllResults.PlotStackedIndividualFileComparison();
-            BottomUpRunner.AllResults.Override = false;
+            BottomUpRunner.PlotAllFigures();
 
-            foreach (var cellLine in AllResults)
-            {
-                foreach (var cellLineResult in cellLine)
-                {
-                    if (cellLineResult is MetaMorpheusResult mm)
-                    {
-                        cellLineResult.Override = true;
-                        cellLineResult.GetIndividualFileComparison();
-                        cellLineResult.Override = false;
-                    }
-                }
 
-                cellLine.Override = true;
-                cellLine.GetIndividualFileComparison();
-                cellLine.PlotIndividualFileResults();
-                cellLine.Override = false;
-            }
-            AllResults.Override = true;
-            AllResults.IndividualFileComparison();
-            AllResults.PlotStackedIndividualFileComparison();
-            AllResults.Override = false;
+            
         }
     
 
 
-        [Test]
-        public static void ugh()
-        {
-            string path =
-                @"B:\Users\Nic\Chimeras\TopDown_Analysis\Jurkat\SearchResults\MetaMorpheus\Task4-SearchTask\AllPSMs.psmtsv";
-            var psms = SpectrumMatchTsvReader.ReadPsmTsv(path, out _);
-            var count = psms.Count;
-            var distinctCount = psms.DistinctBy(p => p,
-                CustomComparer<PsmFromTsv>.MetaMorpheusDuplicatedPsmFromDifferentPrecursorPeaksComparer).Count();
-            var filteredCount = psms.Count(p => p.PEP_QValue <= 0.01);
-            var distinctFilteredCount = psms.Where(p => p.PEP_QValue <= 0.01).DistinctBy(p => p,
-                CustomComparer<PsmFromTsv>.MetaMorpheusDuplicatedPsmFromDifferentPrecursorPeaksComparer).Count();
-
-            var grouped = psms.GroupBy(p => p,
-                    CustomComparer<PsmFromTsv>.MetaMorpheusDuplicatedPsmFromDifferentPrecursorPeaksComparer)
-                .OrderByDescending(p => p.Count());
-
-            string path2 =
-                @"B:\Users\Nic\Chimeras\TopDown_Analysis\Jurkat\SearchResults\MetaMorpheus_Rep2_WithLibrary_NewPEP_NoNorm\Task4-SearchTask\AllPSMs.psmtsv";
-            var psms2 = SpectrumMatchTsvReader.ReadPsmTsv(path2, out _);
-            var count2 = psms2.Count;
-            var distinctCount2 = psms2.DistinctBy(p => p,
-                CustomComparer<PsmFromTsv>.MetaMorpheusDuplicatedPsmFromDifferentPrecursorPeaksComparer).Count();
-            var filteredCount2 = psms2.Count(p => p.PEP_QValue <= 0.01);
-            var distinctFilteredCount2 = psms2.Where(p => p.PEP_QValue <= 0.01).DistinctBy(p => p,
-                CustomComparer<PsmFromTsv>.MetaMorpheusDuplicatedPsmFromDifferentPrecursorPeaksComparer).Count();
-
-            var grouped2 = psms2.GroupBy(p => p,
-                    CustomComparer<PsmFromTsv>.MetaMorpheusDuplicatedPsmFromDifferentPrecursorPeaksComparer)
-                .OrderByDescending(p => p.Count());
-
-
-
-        }
+    
 
         [Test]
         public static void IsabellaData()

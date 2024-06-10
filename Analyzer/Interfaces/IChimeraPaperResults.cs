@@ -11,9 +11,9 @@ public interface IChimeraPaperResults
     bool IsTopDown { get; }
     BulkResultCountComparisonFile BulkResultCountComparisonFile { get; }
     ChimeraCountingFile ChimeraPsmFile { get; }
-    BulkResultCountComparisonFile IndividualFileComparisonFile { get; }
+    BulkResultCountComparisonFile? IndividualFileComparisonFile { get; }
 
-    BulkResultCountComparisonFile GetIndividualFileComparison(string path = null);
+    BulkResultCountComparisonFile? GetIndividualFileComparison(string path = null);
     ChimeraCountingFile CountChimericPsms();
     BulkResultCountComparisonFile GetBulkResultCountComparisonFile(string path = null);
 }

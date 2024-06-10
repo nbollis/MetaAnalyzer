@@ -22,6 +22,8 @@ public static class PlottingTranslators
         // Bottom Up
         {"MetaMorpheusWithLibrary", Color.fromKeyword(ColorKeyword.Purple) },
         {"MetaMorpheusNoChimerasWithLibrary", Color.fromKeyword(ColorKeyword.Plum) },
+        { "MetaMorpheusFraggerEquivalent_IndividualFilesFraggerEquivalentWithChimeras", Color.fromKeyword(ColorKeyword.Purple) },
+        { "MetaMorpheusFraggerEquivalent_IndividualFilesFraggerEquivalentNoChimeras", Color.fromKeyword(ColorKeyword.Plum)  },
         //{"MsFragger", Color.fromKeyword(ColorKeyword.LightAkyBlue) }, // Old fragger params
         //{"MsFraggerDDA+", Color.fromKeyword(ColorKeyword.RoyalBlue) },
         {"ReviewdDatabaseNoPhospho_MsFraggerDDA", Color.fromKeyword(ColorKeyword.LightAkyBlue) },
@@ -34,6 +36,16 @@ public static class PlottingTranslators
         {"Chimeric", Color.fromKeyword(ColorKeyword.Purple) },
         {"No Chimeras", Color.fromKeyword(ColorKeyword.Plum) },
         {"Non-Chimeric", Color.fromKeyword(ColorKeyword.Plum) },
+
+        // RT shift plot
+        {"Chimeric All Psms", Color.fromKeyword(ColorKeyword.Purple) },
+        {"Chimeric 1% Psms", Color.fromKeyword(ColorKeyword.Red) },
+        {"Chimeric All Peptides", Color.fromKeyword(ColorKeyword.Blue) },
+        {"Chimeric 1% Peptides", Color.fromKeyword(ColorKeyword.Green) },
+        {"Non-Chimeric All Psms", Color.fromKeyword(ColorKeyword.Plum) },
+        {"Non-Chimeric 1% Psms", Color.fromKeyword(ColorKeyword.PaleVioletRed) },
+        {"Non-Chimeric All Peptides", Color.fromKeyword(ColorKeyword.DeepSkyBlue) },
+        {"Non-Chimeric 1% Peptides", Color.fromKeyword(ColorKeyword.Lime) },
 
         // Top Down
         {"MetaMorpheus", Color.fromKeyword(ColorKeyword.Purple) }, // ecoli
@@ -50,10 +62,14 @@ public static class PlottingTranslators
         
         {"ProsightPDNoChimeras", Color.fromKeyword(ColorKeyword.PaleVioletRed)}, // ecoli
         {"ProsightPDChimeras", Color.fromKeyword(ColorKeyword.IndianRed)},
+        {"ProsightPDChimeras_7", Color.fromKeyword(ColorKeyword.Red)},
         {"ProsightPDChimeras_15", Color.fromKeyword(ColorKeyword.Red)},
         {"ProsightPDNoChimeras_Rep2", Color.fromKeyword(ColorKeyword.PaleVioletRed)}, // jurkat
         {"ProsightPDChimeras_Rep2", Color.fromKeyword(ColorKeyword.IndianRed)},
-        {"ProsightPDChimeras_Rep2_15", Color.fromKeyword(ColorKeyword.Red)},
+        {"ProsightPDChimeras_Rep2_7", Color.fromKeyword(ColorKeyword.IndianRed)},
+        {"ProsightPDChimeras_Rep2_7_10ppm", Color.fromKeyword(ColorKeyword.IndianRed)},
+        {"ProsightPDChimeras_Rep2_15", Color.fromKeyword(ColorKeyword.DarkRed)},
+        {"ProsightPDChimeras_Rep2_15_10ppm", Color.fromKeyword(ColorKeyword.DarkRed)},
 
 
 
@@ -357,8 +373,10 @@ public static class PlottingTranslators
     private static Dictionary<string, string> ConditionNameConversionDictionary = new()
     {
         // Bottom up
-        { "MetaMorpheusWithLibrary", "MetaMorpheus⠀" },
-        { "MetaMorpheusNoChimerasWithLibrary", "MetaMorpheus No Chimeras" },
+        { "MetaMorpheusWithLibrary", "MetaMorpheus⠀" }, // old
+        { "MetaMorpheusNoChimerasWithLibrary", "MetaMorpheus No Chimeras" }, // old
+        //{ "MetaMorpheusFraggerEquivalent_IndividualFilesFraggerEquivalentWithChimeras", "MetaMorpheus⠀" },
+        //{ "MetaMorpheusFraggerEquivalent_IndividualFilesFraggerEquivalentNoChimeras", "MetaMorpheus No Chimeras" },
         { "ReviewdDatabaseNoPhospho_MsFragger", "MsFragger" },
         { "ReviewdDatabaseNoPhospho_MsFraggerDDA", "MsFragger" },
         { "ReviewdDatabaseNoPhospho_MsFraggerDDA+", "MsFraggerDDA+" },
@@ -446,15 +464,13 @@ public static class PlottingTranslators
             {
                 return new[]
                 {
-                    "MetaMorpheusNoChimeras", "MetaMorpheus_FullPEPChimeraIncorporation",
+                    "MetaMorpheusNoChimeras", 
                     "MetaMorpheus_Rep2_WithLibrary", // metamorpheus rep2 with library and old pep
-                    "MetaMorpheus_NewPEP_NoNormNoMult",
-                    "MetaMorpheus_NewPEP_NoNorm",
-
+                    "MetaMorpheus_Rep2_WithLibrary_NewPEP_NoNorm",
 
                     "MsPathFinderTWithModsNoChimerasRep2", "MsPathFinderTWithMods_7Rep2", "MsPathFinderTWithMods_15Rep2",
 
-                    "ProsightPDChimeras_Rep2", "ProsightPDNoChimeras_Rep2", "ProsightPDNoChimeras_Rep2_15", 
+                    "ProsightPDChimeras_Rep2", "ProsightPDNoChimeras_Rep2", 
                     "ProsightPdChimeras_Rep2_15_10ppm", "ProsightPDChimeras_Rep2_7_10ppm",
                 };
             }
@@ -464,11 +480,11 @@ public static class PlottingTranslators
                 {
                     "MetaMorpheus", "MetaMorpheusNoChimeras",
                     "MetaMorpheus_NewPEP_NoNorm", // ecoli ran with new pep
-                    "MetaMorpheus_NewPEP_NoNormNoMult", // ecoli ran with new pep no mult
+                    //"MetaMorpheus_NewPEP_NoNormNoMult", // ecoli ran with new pep no mult
 
                     "MsPathFinderTWithModsNoChimeras", "MsPathFinderTWithMods_7", "MsPathFinderTWithMods_15",
 
-                    "ProsightPDChimeras", "ProsightPDNoChimeras", "ProsightPDChimeras_15"
+                    "ProsightPDChimeras", "ProsightPDNoChimeras", "ProsightPDChimeras_7", "ProsightPDChimeras_15"
                 };
             }
 
@@ -488,22 +504,35 @@ public static class PlottingTranslators
 
         return new[]
         {
-            "MetaMorpheusWithLibrary", "MetaMorpheusNoChimerasWithLibrary", "MetaMorpheus_NoNormalization",
+            //"MetaMorpheusWithLibrary", "MetaMorpheusNoChimerasWithLibrary", "MetaMorpheus_NoNormalization",
 
             "MetaMorpheusFraggerEquivalentChimeras_IndividualFiles",
+            "MetaMorpheusFraggerEquivalent_IndividualFilesFraggerEquivalentNoChimeras",
+            "MetaMorpheusFraggerEquivalent_IndividualFilesFraggerEquivalentWithChimeras",
 
             "ReviewdDatabaseNoPhospho_MsFraggerDDA", "ReviewdDatabaseNoPhospho_MsFraggerDDA+", "ReviewdDatabaseNoPhospho_MsFragger",
-            "Chimerys"
+            //"Chimerys"
         };
     }
 
-    public static string[] InternalMMComparisonSelector(this bool isTopDown)
+    public static string[] InternalMMComparisonSelector(this bool isTopDown, string cellLine = "")
     {
         if (isTopDown)
         {
+            if (cellLine.Contains("Jurkat"))
+                return new[]
+                {
+                    "MetaMorpheusNoChimeras", "MetaMorpheus_Rep2_WithLibrary_NewPEP_NoNorm"
+                };
+            else if (cellLine.Contains("Ecoli"))
+                return new[]
+                {
+                    "MetaMorpheus",
+                    "MetaMorpheusNoChimeras",
+                };
             return new[]
             {
-                "MetaMorpheus", "MetaMorpheusNoChimeras", "MetaMorpheus_FullPEPChimeraIncorporation"
+                /*"MetaMorpheus",*/ "MetaMorpheusNoChimeras", "MetaMorpheus_Rep2_WithLibrary_NewPEP_NoNorm"
             };
         }
         return new[]
@@ -556,9 +585,10 @@ public static class PlottingTranslators
         }
         return new[]
         {
-            "MetaMorpheusWithLibrary", "MetaMorpheusNoChimerasWithLibrary",
+            "MetaMorpheusFraggerEquivalent_IndividualFilesFraggerEquivalentNoChimeras",
+            "MetaMorpheusFraggerEquivalent_IndividualFilesFraggerEquivalentWithChimeras",
             "ReviewdDatabaseNoPhospho_MsFraggerDDA+", "ReviewdDatabaseNoPhospho_MsFragger",
-            "Chimerys"
+            //"Chimerys"
         };
     }
 
@@ -583,7 +613,7 @@ public static class PlottingTranslators
         {
             return new[]
             {
-                "MetaMorpheus_Rep2_WithLibrary"
+                "MetaMorpheus_Rep2_WithLibrary_NewPEP_NoNorm"
             };
         }
         return new[]

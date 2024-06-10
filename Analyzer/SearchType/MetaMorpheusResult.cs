@@ -1,4 +1,5 @@
 ﻿using System.IO;
+using System.Reflection.Metadata.Ecma335;
 using System.Text.RegularExpressions;
 using Analyzer.FileTypes.Internal;
 using Analyzer.Interfaces;
@@ -71,11 +72,19 @@ namespace Analyzer.SearchType
             }
         }
 
-        public override BulkResultCountComparisonFile GetIndividualFileComparison(string path = null)
+        public override BulkResultCountComparisonFile? GetIndividualFileComparison(string path = null)
         {
             path ??= _IndividualFilePath;
             if (!Override && File.Exists(path))
                 return new BulkResultCountComparisonFile(path);
+            switch (IndividualFileResults.Count)
+            {
+                case 0 when File.Exists(path):
+                    return new BulkResultCountComparisonFile(path);
+                case 0:
+                    return null;
+            }
+
 
             var results = new List<BulkResultCountComparison>();
             foreach (var individualFile in IndividualFileResults)

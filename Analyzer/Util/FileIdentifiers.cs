@@ -17,6 +17,7 @@
         public static string BottomUpResultComparison => "BottomUpResultComparison.csv";
         public static string BulkResultComparisonMultipleFilters => "ResultComparisonManyFilters.csv";
         public static string ChimeraBreakdownComparison => "ChimeraBreakdownComparison.csv";
+        public static string MaximumChimeraEstimate => "MaximumChimeraEstimate.csv";
         public static string ChimeraBreakdownComparisonFigure => "ChimeraBreakdown_1%";
         public static string ChimeraBreakdownComparisonStackedAreaFigure => "ChimeraBreakdownStackedArea_1%";
         public static string ChimeraBreakdownComparisonStackedAreaPercentFigure => "ChimeraBreakdownStackedAreaPercent_1%";
@@ -38,6 +39,8 @@
         public static string ChronologerDeltaDistributionFigure => "ChronologerDeltaDistribution";
         public static string SpectralAngleFigure => "SpectralAngleComparison";
         public static string PepGridChartFigure => "PepFeatureAnalysis";
+        public static string RetentionTimeShift_MM => "RetentionTimeShift_MetaMorpheus";
+        public static string RetentionTimeShift_Fragger => "RetentionTimeShift_Fragger";
 
     }
 }

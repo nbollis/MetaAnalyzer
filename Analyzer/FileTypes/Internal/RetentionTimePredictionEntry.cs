@@ -40,7 +40,7 @@ namespace Analyzer.FileTypes.Internal
         [Ignore] public double PercentHI => _percentHI ??= 22.4 / 200 * RetentionTime + 1.6;
 
         [Ignore] private double? _deltaChronologer;
-        [Ignore] public double DeltaChronologer => _deltaChronologer ??= ChronologerPrediction - PercentHI;
+        [Ignore] public double DeltaChronologer => _deltaChronologer ??= PercentHI - ChronologerPrediction;
 
         [Ignore] private double? _deltaSSRCalc;
         [Ignore] public double DeltaSSRCalc => _deltaSSRCalc ??= SSRCalcPrediction - RetentionTime;

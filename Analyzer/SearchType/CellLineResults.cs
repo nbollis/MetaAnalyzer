@@ -1,5 +1,6 @@
 ﻿using System.Collections;
 using System.Diagnostics;
+using System.Drawing;
 using Analyzer.FileTypes.External;
 using Analyzer.FileTypes.Internal;
 using Analyzer.Interfaces;
@@ -285,19 +286,30 @@ public class CellLineResults : IEnumerable<BulkResult>, IDisposable
         return bulkResultCountComparisonFile;
     }
 
+    private string _maximumChimeraEstimateFilePath =>
+        Path.Combine(DirectoryPath, $"{CellLine}_{FileIdentifiers.MaximumChimeraEstimate}");
+    private MaximumChimeraEstimationFile? _maximumChimeraEstimationFile;
+    public MaximumChimeraEstimationFile? MaximumChimeraEstimationFile => _maximumChimeraEstimationFile ??= GetMaximumChimeraEstimationFile();
 
-    public void DetermineMaximumChimeras()
+    public MaximumChimeraEstimationFile? GetMaximumChimeraEstimationFile()
     {
+        if (!Override && File.Exists(_maximumChimeraEstimateFilePath))
+        {
+            var result = new MaximumChimeraEstimationFile(_maximumChimeraEstimateFilePath);
+            return result.Results.Count > 0 ? result : null;
+        }
+
+
         var deconDirectory = Directory.GetDirectories(DirectoryPath).FirstOrDefault(p => p.Contains("Decon"));
         if (deconDirectory is null)
-            return;
+            return null;
 
         string metaMorpheusCondition;
         string otherCondition;
         List<(string, string)> rawFileDeconFile = new List<(string, string)>();
         if (Results.First().IsTopDown)
         {
-            return;
+            return null;
         }
         else
         {
@@ -307,6 +319,8 @@ public class CellLineResults : IEnumerable<BulkResult>, IDisposable
                 throw new Exception("Not all raw files found");
 
             var deconFiles = Directory.GetFiles(Path.Combine(deconDirectory, "FlashDeconv"), "*ms1.feature", SearchOption.AllDirectories);
+            if (deconFiles.Length != 18)
+                return null;
             foreach (var deconFile in deconFiles)
             {
                 var rawFile = rawFiles.FirstOrDefault(p => deconFile.Contains(Path.GetFileNameWithoutExtension(p)));
@@ -323,18 +337,24 @@ public class CellLineResults : IEnumerable<BulkResult>, IDisposable
         var fragRun = Results.First(p => p.Condition == otherCondition) as MsFraggerResult;
 
 
+        List<(Ms1Feature, double Mz)> features = new();
         List<MaximumChimeraEstimation> results = new List<MaximumChimeraEstimation>();
         foreach (var deconRun in rawFileDeconFile)
         {
             Ms1FeatureFile deconFile = new Ms1FeatureFile(deconRun.Item2);
-            MsDataFile dataFile =
-                FileReader.ReadFile<MsDataFileToResultFileAdapter>(deconRun.Item1).LoadAllStaticData();
+            MsDataFile dataFile = FileReader.ReadFile<MsDataFileToResultFileAdapter>(deconRun.Item1).LoadAllStaticData();
             string fileName = Path.GetFileNameWithoutExtension(dataFile.FilePath).ConvertFileName();
+            MetaMorpheusIndividualFileResult? mmResult = mmRun?.IndividualFileResults.FirstOrDefault(p => p.FileName.Contains(Path.GetFileNameWithoutExtension(dataFile.FilePath))) ?? null;
+            MsFraggerIndividualFileResult? fragResult = fragRun?.IndividualFileResults.FirstOrDefault(p => p.DirectoryPath.Contains(fileName)) ?? null;
+
+            if (mmResult is null && fragResult is null)
+                continue;
 
             deconFile.ForEach(p =>
             {
                 p.RetentionTimeBegin /= 60;
                 p.RetentionTimeEnd /=60;
+                p.RetentionTimeApex /=60;
             });
 
             foreach (var scan in dataFile.Scans)
@@ -344,10 +364,7 @@ public class CellLineResults : IEnumerable<BulkResult>, IDisposable
 
                 var isolationRange = scan.IsolationRange;
                 if (isolationRange is null)
-                {
-                    Debugger.Break();
                     continue;
-                }
 
                 var result = new MaximumChimeraEstimation()
                 {
@@ -356,19 +373,100 @@ public class CellLineResults : IEnumerable<BulkResult>, IDisposable
                     Ms2ScanNumber = scan.OneBasedScanNumber
                 };
 
+                features.Clear();
                 foreach (var rtMatchingFeature in deconFile.Where(feature => feature.RetentionTimeBegin <= scan.RetentionTime && feature.RetentionTimeEnd >= scan.RetentionTime))
                     for (int i = rtMatchingFeature.ChargeStateMin; i < rtMatchingFeature.ChargeStateMax; i++)
                         if (isolationRange.Contains(rtMatchingFeature.Mass.ToMz(i)))
+                        {
                             result.PossibleFeatureCount++;
+                            features.Add((rtMatchingFeature, rtMatchingFeature.Mass.ToMz(i)));
+                        }
                 if (result.PossibleFeatureCount == 0) continue;
+
+                // Find RT of the precursor scan, if that fails, use the ms2 scan
+                double retentionTime;
+                if (scan.OneBasedPrecursorScanNumber is null)
+                    retentionTime = scan.RetentionTime;
+                else
+                {
+                    var precursorScan = dataFile.GetOneBasedScan(scan.OneBasedPrecursorScanNumber.Value);
+                    retentionTime = precursorScan.RetentionTime;
+                }
+
+                if (mmResult is not null)
+                {
+                    var mmPsms = mmResult.AllPsms.Where(p => !p.IsDecoy() && p.Ms2ScanNumber == scan.OneBasedScanNumber)
+                        .ToArray();
+                    var mmPeps = mmResult.AllPeptides.Where(p => !p.IsDecoy() && p.Ms2ScanNumber == scan.OneBasedScanNumber)
+                        .ToArray();
+
+
+                    // find the feature which has the closest m/z to each mmResult. If it is within 50 ppm, then add that to the result.RetentionTimeShift
+                    List<double> shifts = new();
+                    List<double> onePercentShifts = new();
+                    foreach (var psm in mmPsms)
+                    {
+                        // we know they are all targets due to above where statement
+                        var feature = features.MinBy(p => Math.Abs(p.Item2 - psm.PrecursorMz));
+                        if (!(Math.Abs((feature.Item2 - psm.PrecursorMz) / psm.PrecursorMz * 1e6) <= 50)) continue;
+                        var shift = retentionTime - feature.Item1.RetentionTimeApex;
+                        shifts.Add(shift);
+                        if (psm.PEP_QValue <= 0.01)
+                            onePercentShifts.Add(shift);
+                    }
+
+                    result.PsmCount_MetaMorpheus = mmPsms.Length;
+                    result.OnePercentPsmCount_MetaMorpheus = mmPsms.Count(p => p.PEP_QValue <= 0.01);
+                    result.RetentionTimeShift_MetaMorpheus_PSMs = shifts.ToArray();
+                    result.OnePercentRetentionTimeShift_MetaMorpheus_PSMs = onePercentShifts.ToArray();
+
+                    shifts = new();
+                    onePercentShifts = new();
+                    foreach (var pep in mmPeps)
+                    {
+                        var feature = features.MinBy(p => Math.Abs(p.Item2 - pep.PrecursorMz));
+                        if (!(Math.Abs((feature.Item2 - pep.PrecursorMz) / pep.PrecursorMz * 1e6) <= 50)) continue;
+                        var shift = retentionTime - feature.Item1.RetentionTimeApex;
+                        shifts.Add(shift);
+                        if (pep.PEP_QValue <= 0.01)
+                            onePercentShifts.Add(shift);
+                    }
+
+                    result.PeptideCount_MetaMorpheus = mmPeps.Length;
+                    result.OnePercentPeptideCount_MetaMorpheus = mmPeps.Count(p => p.PEP_QValue <= 0.01);
+                    result.RetentionTimeShift_MetaMorpheus_Peptides = shifts.ToArray();
+                    result.OnePercentRetentionTimeShift_MetaMorpheus_Peptides = onePercentShifts.ToArray();
+                }
+
+                if (fragResult is not null)
+                {
+                    var fraggerResults = fragResult.PsmFile.Where(p => p.OneBasedScanNumber == scan.OneBasedScanNumber )
+                        .ToArray();
+                    List<double> fraggerShifts = new();
+                    List<double> onePercentFragShifts = new();
+                    foreach (var frag in fraggerResults)
+                    {
+                        var feature = features.MinBy(p => Math.Abs(p.Item2 - frag.CalculatedMz));
+                        if (!(Math.Abs((feature.Item2 - frag.CalculatedMz) / frag.CalculatedMz * 1e6) <= 50)) continue;
+                        var shift = retentionTime - feature.Item1.RetentionTimeApex;
+                        fraggerShifts.Add(shift);
+                        if (frag.PeptideProphetProbability >= 0.99)
+                            onePercentFragShifts.Add(shift);
+                    }
+
+                    result.PsmCount_Fragger = fraggerResults.Length;
+                    result.OnePercentPsmCount_Fragger = fraggerResults.Count(p => p.PeptideProphetProbability >= 0.99);
+                    result.RetentionTimeShift_Fragger_PSMs = fraggerShifts.ToArray();
+                    result.OnePercentRetentionTimeShift_Fragger_PSMs = onePercentFragShifts.ToArray();
+                }
+
                 results.Add(result);
             }
-
         }
 
-
-
-
+        var maxChimeraEstimationFile = new MaximumChimeraEstimationFile(_maximumChimeraEstimateFilePath) { Results = results };
+        maxChimeraEstimationFile.WriteResults(_maximumChimeraEstimateFilePath);
+        return maxChimeraEstimationFile;
     }
 
 

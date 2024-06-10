@@ -28,7 +28,8 @@ public static class BulkResultPlots
                 allResults.Count(), 1, Pattern: StyleParam.LayoutGridPattern.Independent, YGap: 0.2)
             .WithTitle($"Individual File Comparison 1% {title}")
             .WithSize(width, (int)(height * allResults.Count() / heightScaler))
-            .WithLayout(GenericPlots.DefaultLayoutWithLegend);
+            .WithLayout(GenericPlots.DefaultLayoutWithLegend)
+            .WithLegend(false);
         string outpath = Path.Combine(allResults.GetFigureDirectory(), $"AllResults_{FileIdentifiers.IndividualFileComparisonFigure}_Stacked");
         chart.SavePNG(outpath, null, width, (int)(height * allResults.Count() / heightScaler));
     }
@@ -37,12 +38,12 @@ public static class BulkResultPlots
     {
         bool isTopDown = allResults.First().First().IsTopDown;
         var results = allResults.SelectMany(p => p.BulkResultCountComparisonFile.Results)
-            .Where(p => isTopDown.InternalMMComparisonSelector().Contains(p.Condition))
+            .Where(p => isTopDown.InternalMMComparisonSelector(p.Condition).Contains(p.Condition))
             .ToList();
         var labels = results.Select(p => p.DatasetName).Distinct().ConvertConditionNames().ToList();
 
         var noChimeras = results.Where(p => p.Condition.Contains("NoChimeras")).ToList();
-        var withChimeras = results.Where(p => !p.Condition.Contains("NoChimeras") && !p.Condition.Contains("PEP")).ToList();
+        var withChimeras = results.Where(p => !p.Condition.Contains("NoChimeras")).ToList();
 
         var psmChart = Chart.Combine(new[]
         {
@@ -319,10 +320,20 @@ public static class BulkResultPlots
             .WithSize(1000, GenericPlots.DefaultHeight);
         GenericChartExtensions.Show(chronologerPlot);
         var outpath = Path.Combine(allResults.GetFigureDirectory(), $"AllResults_{FileIdentifiers.ChronologerFigureACN}");
-        chronologerPlot.SavePNG(outpath, null, 1000, 400);
+        try
+        {
+            chronologerPlot.SavePNG(outpath, null, 1000, 400);
+        }
+        catch (TimeoutException)
+        {
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine(e);
+        }
     }
 
-    public static void PlotChronologerDeltaPlotKernalPDF(this AllResults allResults)
+    public static void PlotBulkChronologerDeltaPlotKernalPDF(this AllResults allResults)
     {
         var results = allResults.SelectMany(p => p.Results
                    .Where(p => p is MetaMorpheusResult && false.FdrPlotSelector().Contains(p.Condition))
@@ -332,8 +343,8 @@ public static class BulkResultPlots
         var noChimeras = results.Where(p => !p.IsChimeric).ToList();
         var chimeras = results.Where(p => p.IsChimeric).ToList();
 
-        var noChimerasKernel = GenericPlots.KernelDensityPlot(noChimeras.Select(p => p.DeltaChronologer).ToList(), "No Chimeras");
-        var chimerasKernel = GenericPlots.KernelDensityPlot(chimeras.Select(p => p.DeltaChronologer).ToList(), "Chimeras");
+        var noChimerasKernel = GenericPlots.KernelDensityPlot(noChimeras.Select(p => p.DeltaChronologer).OrderBy(p => p).ToList(), "No Chimeras");
+        var chimerasKernel = GenericPlots.KernelDensityPlot(chimeras.Select(p => p.DeltaChronologer).OrderBy(p => p).ToList(), "Chimeras");
 
         var chart = Chart.Combine(new[] { noChimerasKernel, chimerasKernel })
             .WithTitle("Chronologer Delta Kernel Density")
@@ -344,6 +355,23 @@ public static class BulkResultPlots
         string outpath = Path.Combine(allResults.GetFigureDirectory(), $"AllResults_{FileIdentifiers.ChronologerDeltaDistributionFigure}_KernelDensity");
         chart.SavePNG(outpath, null, 1000, 600);
     }
+
+    public static void PlotGridChronologerDeltaPlotKernalPDF(this AllResults allResults)
+    {
+        bool isTopDown = allResults.First().First().IsTopDown;
+        var charts = allResults.Select(p => p.GetChronologerDeltaPlotKernelPDF()).ToList();
+        var chart = Chart.Grid(
+                allResults.Select(p => p.GetChronologerDeltaPlotKernelPDF().WithYAxisStyle(Title.init(p.CellLine))),
+                4, 3,
+                Pattern: StyleParam.LayoutGridPattern.Independent, YGap: 0.2)
+            .WithTitle($"Chronologer Delta Kernel Density (1% {GenericPlots.ResultLabel(isTopDown)})")
+            .WithSize(1000, 800)
+            .WithLayout(GenericPlots.DefaultLayout)
+            .WithLegend(false);
+        string outpath = Path.Combine(allResults.GetFigureDirectory(), $"AllResults_{FileIdentifiers.ChronologerDeltaDistributionFigure}_Grid");
+        chart.SavePNG(outpath, null, 1000, 1000);
+    }
+    
     
 
     #endregion
