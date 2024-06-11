@@ -18,6 +18,7 @@
         public static string BulkResultComparisonMultipleFilters => "ResultComparisonManyFilters.csv";
         public static string ChimeraBreakdownComparison => "ChimeraBreakdownComparison.csv";
         public static string MaximumChimeraEstimate => "MaximumChimeraEstimate.csv";
+        public static string MaximumChimeraEstimateCalibAveraged => "MaximumChimeraEstimateCalibAveragedHybrid.csv";
         public static string ChimeraBreakdownComparisonFigure => "ChimeraBreakdown_1%";
         public static string ChimeraBreakdownComparisonStackedAreaFigure => "ChimeraBreakdownStackedArea_1%";
         public static string ChimeraBreakdownComparisonStackedAreaPercentFigure => "ChimeraBreakdownStackedAreaPercent_1%";
@@ -40,7 +41,12 @@
         public static string SpectralAngleFigure => "SpectralAngleComparison";
         public static string PepGridChartFigure => "PepFeatureAnalysis";
         public static string RetentionTimeShift_MM => "RetentionTimeShift_MetaMorpheus";
+        public static string RetentionTimeShiftHistogram_MM => "RetentionTimeShiftHistogram_MetaMorpheus";
         public static string RetentionTimeShift_Fragger => "RetentionTimeShift_Fragger";
+        public static string RetentionTimeShiftHistogram_Fragger => "RetentionTimeShiftHistogram_Fragger";
+        public static string RetentionTimeShift_Stacked => "RetentionTimeShift_Stacked";
+        public static string RetentionTimeShiftHistogram_Stacked => "RetentionTimeShiftHistogram_Stacked";
+        public static string RetentionTimeShiftFullGrid_Stacked => "RetentionTimeShiftFullGrid_Stacked";
 
     }
 }

@@ -1,4 +1,5 @@
-﻿using System.Dynamic;
+﻿using System.Collections.Generic;
+using System.Dynamic;
 using System.Security.Cryptography.X509Certificates;
 using Analyzer.FileTypes.Internal;
 using Analyzer.Interfaces;
@@ -303,54 +304,58 @@ public static class CellLinePlots
     }
 
 
-    public static void PlotAverageRetentionTimeShiftPlotKernelPDF(this CellLineResults cellLine,
+    public static void PlotAverageRetentionTimeShiftPlotKernelPdf(this CellLineResults cellLine, bool useRawFiles = true,
         Kernels kernel = Kernels.Gaussian)
     {
-        var file = cellLine.MaximumChimeraEstimationFile;
+        var file = useRawFiles ? cellLine.MaximumChimeraEstimationFile : cellLine.MaximumChimeraEstimationCalibAveragedFile;
+        string suffix = useRawFiles ? "" : "_Hybrid";
         if (file is null)
             return;
 
-        var mmPsm = file.GetAverageRetentionTimeShiftPlotKernelPDF(Software.MetaMorpheus, ResultType.Psm, false);
-        string outPath = Path.Combine(cellLine.GetFigureDirectory(), $"{FileIdentifiers.RetentionTimeShift_MM}_{cellLine.CellLine}_Psms");
-        string outPath2 = Path.Combine(cellLine.FigureDirectory, $"{FileIdentifiers.RetentionTimeShift_MM}_{cellLine.CellLine}_Psms");
-        mmPsm.SavePNG(outPath, null, 600, 600);
-        mmPsm.SavePNG(outPath2, null, 600, 600);
 
-        var mmOnePercentPsm = file.GetAverageRetentionTimeShiftPlotKernelPDF(Software.MetaMorpheus, ResultType.Psm, true);
-        outPath = Path.Combine(cellLine.GetFigureDirectory(), $"{FileIdentifiers.RetentionTimeShift_MM}_{cellLine.CellLine}_1%Psms");
-        outPath2 = Path.Combine(cellLine.FigureDirectory, $"{FileIdentifiers.RetentionTimeShift_MM}_{cellLine.CellLine}_1%Psms");
-        mmOnePercentPsm.SavePNG(outPath, null, 600, 600);
-        mmOnePercentPsm.SavePNG(outPath2, null, 600, 600);
+        var mmPsm = file.GetAverageRetentionTimeShiftPlotKernelPdf(Software.MetaMorpheus, ResultType.Psm, false);
+        string exportName = $"{FileIdentifiers.RetentionTimeShift_MM}_{cellLine.CellLine}_Psms{suffix}";
+        mmPsm?.SaveInCellLineOnly(cellLine, exportName, 600, 600);
 
-        var mmPep = file.GetAverageRetentionTimeShiftPlotKernelPDF(Software.MetaMorpheus, ResultType.Peptide, false);
-        outPath = Path.Combine(cellLine.GetFigureDirectory(), $"{FileIdentifiers.RetentionTimeShift_MM}_{cellLine.CellLine}_Peptides");
-        outPath2 = Path.Combine(cellLine.FigureDirectory, $"{FileIdentifiers.RetentionTimeShift_MM}_{cellLine.CellLine}_Peptides");
-        mmPep.SavePNG(outPath, null, 600, 600);
-        mmPep.SavePNG(outPath2, null, 600, 600);
+        var mmOnePercentPsm = file.GetAverageRetentionTimeShiftPlotKernelPdf(Software.MetaMorpheus, ResultType.Psm, true);
+        exportName = $"{FileIdentifiers.RetentionTimeShift_MM}_{cellLine.CellLine}_1%Psms{suffix}";
+        mmOnePercentPsm?.SaveInCellLineOnly(cellLine, exportName, 600, 600);
 
-        var mmOnePercentPep = file.GetAverageRetentionTimeShiftPlotKernelPDF(Software.MetaMorpheus, ResultType.Peptide, true);
-        outPath = Path.Combine(cellLine.GetFigureDirectory(), $"{FileIdentifiers.RetentionTimeShift_MM}_{cellLine.CellLine}_1%Peptides");
-        outPath2 = Path.Combine(cellLine.FigureDirectory, $"{FileIdentifiers.RetentionTimeShift_MM}_{cellLine.CellLine}_1%Peptides");
-        mmOnePercentPep.SavePNG(outPath, null, 600, 600);
-        mmOnePercentPep.SavePNG(outPath2, null, 600, 600);
 
-        var fragPsm = file.GetAverageRetentionTimeShiftPlotKernelPDF(Software.Unspecified, ResultType.Psm, false);
-        outPath = Path.Combine(cellLine.GetFigureDirectory(), $"{FileIdentifiers.RetentionTimeShift_Fragger}_{cellLine.CellLine}_Psms");
-        outPath2 = Path.Combine(cellLine.FigureDirectory, $"{FileIdentifiers.RetentionTimeShift_Fragger}_{cellLine.CellLine}_Psms");
-        fragPsm.SavePNG(outPath, null, 600, 600);
-        fragPsm.SavePNG(outPath2, null, 600, 600);
+        var mmPep = file.GetAverageRetentionTimeShiftPlotKernelPdf(Software.MetaMorpheus, ResultType.Peptide, false);
+        exportName = $"{FileIdentifiers.RetentionTimeShift_MM}_{cellLine.CellLine}_Peptides{suffix}";
+        mmPep?.SaveInCellLineOnly(cellLine, exportName, 600, 600);
 
-        var fragOnePercentPsm = file.GetAverageRetentionTimeShiftPlotKernelPDF(Software.Unspecified, ResultType.Psm, true);
-        outPath = Path.Combine(cellLine.GetFigureDirectory(), $"{FileIdentifiers.RetentionTimeShift_Fragger}_{cellLine.CellLine}_1%Psms");
-        outPath2 = Path.Combine(cellLine.FigureDirectory, $"{FileIdentifiers.RetentionTimeShift_Fragger}_{cellLine.CellLine}_1%Psms");
-        fragOnePercentPsm.SavePNG(outPath, null, 600, 600);
-        fragOnePercentPsm.SavePNG(outPath2, null, 600, 600);
+        var mmOnePercentPep = file.GetAverageRetentionTimeShiftPlotKernelPdf(Software.MetaMorpheus, ResultType.Peptide, true);
+        exportName = $"{FileIdentifiers.RetentionTimeShift_MM}_{cellLine.CellLine}_1%Peptides{suffix}";
+        mmOnePercentPep?.SaveInCellLineOnly(cellLine, exportName, 600, 600);
 
+
+        var fragPsm = file.GetAverageRetentionTimeShiftPlotKernelPdf(Software.Unspecified, ResultType.Psm, false);
+        exportName = $"{FileIdentifiers.RetentionTimeShift_Fragger}_{cellLine.CellLine}_Psms{suffix}";
+        fragPsm?.SaveInCellLineOnly(cellLine, exportName, 600, 600);
+
+        var fragOnePercentPsm = file.GetAverageRetentionTimeShiftPlotKernelPdf(Software.Unspecified, ResultType.Psm, true);
+        exportName = $"{FileIdentifiers.RetentionTimeShift_Fragger}_{cellLine.CellLine}_1%Psms{suffix}";
+        fragOnePercentPsm?.SaveInCellLineOnly(cellLine, exportName, 600, 600);
+
+
+        var stacked = Chart.Grid(new []
+        {
+            mmPsm, mmOnePercentPsm, mmPep, mmOnePercentPep, fragPsm, fragOnePercentPsm
+        }, 3, 2)
+        .WithSize(1200, 600 * 3)
+            .WithTitle($"{cellLine.CellLine} Average Retention Time Shift Kernel Density")
+            .WithLayout(GenericPlots.DefaultLayoutWithLegend);
+        exportName = $"AllResults_{FileIdentifiers.RetentionTimeShift_Stacked}_{cellLine.CellLine}{suffix}";
+        stacked.SaveInCellLineAndMann11Directories(cellLine, exportName, 1200, 600 * 3);
     }
 
-    public static GenericChart.GenericChart? GetAverageRetentionTimeShiftPlotKernelPDF(this MaximumChimeraEstimationFile file, Software software = Software.MetaMorpheus,
+    internal static GenericChart.GenericChart? GetAverageRetentionTimeShiftPlotKernelPdf(this MaximumChimeraEstimationFile file, Software software = Software.MetaMorpheus,
         ResultType resultType = ResultType.Psm, bool onePercent = true, Kernels kernel = Kernels.Gaussian)
     {
+        int min = -2;
+        int max = 2;
         List<double> chimeric;
         List<double> nonChimeric;
         string chimericLabel;
@@ -458,38 +463,236 @@ public static class CellLinePlots
                 return null;
         }
 
-        var hist = Chart.Combine(new[]
-            {
-                Chart.Histogram<double, double, string>(chimeric,
-                    MarkerColor: chimericLabel.ConvertConditionToColor()),
-                Chart.Histogram<double, double, string>(nonChimeric,
-                    MarkerColor: nonChimericLabel.ConvertConditionToColor())
-
-            }).WithTitle($"{softwareLabel} {file.First().CellLine} Average {titleLabel} RT Shift")
-            .WithSize(800, 800)
-            .WithXAxisStyle(Title.init("RT Shift"))
-            .WithYAxisStyle(Title.init("Count"))
-            .WithLayout(GenericPlots.DefaultLayoutWithLegend);
-
+        chimeric = chimeric.Where(p => p >= min && p <= max).ToList();
+        nonChimeric = nonChimeric.Where(p => p >= min && p <= max).ToList();
         var kernelPlot = Chart.Combine(new[]
             {
-                GenericPlots.KernelDensityPlot(chimeric, chimericLabel, "RT Shift", "Density", 0.01, kernel),
-                GenericPlots.KernelDensityPlot(nonChimeric, nonChimericLabel, "RT Shift", "Density", 0.01, kernel),
+                GenericPlots.KernelDensityPlot(nonChimeric, nonChimericLabel, "RT Shift", "Density", 0.05, kernel),
+                GenericPlots.KernelDensityPlot(chimeric, chimericLabel, "RT Shift", "Density", 0.05, kernel),
                 Chart.Line<double, double, string>(new[] { 0.0, 0 }, new[] { 0.0, 0.35 },
                     LineColor: new Optional<Color>(Color.fromKeyword(ColorKeyword.DarkGray), true),
                     LineDash: StyleParam.DrawingStyle.Dash, Opacity: 0.5)
             })
             .WithTitle($"{softwareLabel} {file.First().CellLine} Average {titleLabel} RT Shift")
             .WithSize(800, 800)
-            .WithXAxisStyle(Title.init("RT Shift"))
+            .WithXAxisStyle(Title.init("RT Shift"), MinMax: new FSharpOption<Tuple<IConvertible, IConvertible>>(new Tuple<IConvertible, IConvertible>(-5, 5)))
             .WithYAxisStyle(Title.init("Density"))
             .WithLayout(GenericPlots.DefaultLayoutWithLegend);
 
-        var plot = Chart.Grid(new[] { hist, kernelPlot }, 1, 2)
-            .WithSize(1200, 600)
-            .WithTitle($"{softwareLabel} {file.First().CellLine} Average {titleLabel} RT Shift");
+        return kernelPlot;
+    }
 
-        return plot;
+    public static void PlotAverageRetentionTimeShiftPlotHistogram(this CellLineResults cellLine, bool useRawFiles = true)
+    {
+        var file = useRawFiles ? cellLine.MaximumChimeraEstimationFile : cellLine.MaximumChimeraEstimationCalibAveragedFile;
+        string suffix = useRawFiles ? "" : "_Hybrid";
+        if (file is null)
+            return;
+
+        var mmPsmHist = file.GetAverageRetentionTimeShiftHistogram(Software.MetaMorpheus, ResultType.Psm, false);
+        string exportName = $"{FileIdentifiers.RetentionTimeShiftHistogram_MM}_{cellLine.CellLine}_Psms{suffix}";
+        mmPsmHist?.SaveInCellLineOnly(cellLine, exportName, 600, 600);
+
+        var mmOnePercentPsmHist = file.GetAverageRetentionTimeShiftHistogram(Software.MetaMorpheus, ResultType.Psm, true);
+        exportName = $"{FileIdentifiers.RetentionTimeShiftHistogram_MM}_{cellLine.CellLine}_1%Psms{suffix}";
+        mmOnePercentPsmHist?.SaveInCellLineOnly(cellLine, exportName, 600, 600);
+
+
+        var mmPepHist = file.GetAverageRetentionTimeShiftHistogram(Software.MetaMorpheus, ResultType.Peptide, false);
+        exportName = $"{FileIdentifiers.RetentionTimeShiftHistogram_MM}_{cellLine.CellLine}_Peptides{suffix}";
+        mmPepHist?.SaveInCellLineOnly(cellLine, exportName, 600, 600);
+
+        var mmOnePercentPepHist = file.GetAverageRetentionTimeShiftHistogram(Software.MetaMorpheus, ResultType.Peptide, true);
+        exportName = $"{FileIdentifiers.RetentionTimeShiftHistogram_MM}_{cellLine.CellLine}_1%Peptides{suffix}";
+        mmOnePercentPepHist?.SaveInCellLineOnly(cellLine, exportName, 600, 600);
+
+
+        var fragPsmHist = file.GetAverageRetentionTimeShiftHistogram(Software.Unspecified, ResultType.Psm, false);
+        exportName = $"{FileIdentifiers.RetentionTimeShiftHistogram_Fragger}_{cellLine.CellLine}_Psms{suffix}";
+        fragPsmHist?.SaveInCellLineOnly(cellLine, exportName, 600, 600);
+
+        var fragOnePercentPsmHist = file.GetAverageRetentionTimeShiftHistogram(Software.Unspecified, ResultType.Psm, true);
+        exportName = $"{FileIdentifiers.RetentionTimeShiftHistogram_Fragger}_{cellLine.CellLine}_1%Psms{suffix}";
+        fragOnePercentPsmHist?.SaveInCellLineOnly(cellLine, exportName, 600, 600);
+
+
+        var stacked = Chart.Grid(new[]
+        {
+            mmPsmHist, mmOnePercentPsmHist, mmPepHist, mmOnePercentPepHist, fragPsmHist, fragOnePercentPsmHist
+        }, 3, 2)
+        .WithSize(1200, 1800)
+            .WithTitle($"{cellLine.CellLine} Average Retention Time Shift Histogram")
+            .WithLayout(GenericPlots.DefaultLayoutWithLegend);
+        exportName = $"AllResults_{FileIdentifiers.RetentionTimeShiftHistogram_Stacked}_{cellLine.CellLine}{suffix}";
+        stacked.SaveInCellLineAndMann11Directories(cellLine, exportName, 1200, 600 * 3);
+    }
+
+    internal static GenericChart.GenericChart? GetAverageRetentionTimeShiftHistogram(
+        this MaximumChimeraEstimationFile file, Software software = Software.MetaMorpheus,
+        ResultType resultType = ResultType.Psm, bool onePercent = true, Kernels kernel = Kernels.Gaussian)
+    {
+        int min = -2;
+        int max = 2;
+        List<double> chimeric;
+        List<double> nonChimeric;
+        string chimericLabel;
+        string nonChimericLabel;
+        string titleLabel;
+        string softwareLabel = software == Software.MetaMorpheus ? "MetaMorpheus" : "MsFraggerDDA+";
+        switch (resultType)
+        {
+            case ResultType.Psm:
+                if (software == Software.MetaMorpheus)
+                {
+                    var trimmedSamples = file.Where(p => p.PsmCount_MetaMorpheus != 0).ToList();
+                    if (onePercent)
+                    {
+                        chimeric = trimmedSamples.Where(p => p.OnePercentRetentionTimeShift_MetaMorpheus_PSMs.Any() && p.IsChimeric)
+                            .SelectMany(p => p.OnePercentRetentionTimeShift_MetaMorpheus_PSMs)
+                            .OrderBy(p => p).ToList();
+                        nonChimeric = trimmedSamples.Where(p => p.OnePercentRetentionTimeShift_MetaMorpheus_PSMs.Any() && !p.IsChimeric)
+                            .SelectMany(p => p.OnePercentRetentionTimeShift_MetaMorpheus_PSMs)
+                            .OrderBy(p => p).ToList();
+                        chimericLabel = "Chimeric 1% Psms";
+                        nonChimericLabel = "Non-Chimeric 1% Psms";
+                        titleLabel = "1% Psms";
+                    }
+                    else
+                    {
+                        chimeric = trimmedSamples.Where(p => p.RetentionTimeShift_MetaMorpheus_PSMs.Any() && p.IsChimeric)
+                            .SelectMany(p => p.RetentionTimeShift_MetaMorpheus_PSMs)
+                            .OrderBy(p => p).ToList();
+                        nonChimeric = trimmedSamples.Where(p => p.RetentionTimeShift_MetaMorpheus_PSMs.Any() && !p.IsChimeric)
+                            .SelectMany(p => p.RetentionTimeShift_MetaMorpheus_PSMs)
+                            .OrderBy(p => p).ToList();
+                        chimericLabel = "Chimeric All Psms";
+                        nonChimericLabel = "Non-Chimeric All Psms";
+                        titleLabel = "All Psms";
+                    }
+                }
+                else
+                {
+                    var trimmedSamples = file.Where(p => p.PsmCount_Fragger != 0).ToList();
+                    if (onePercent)
+                    {
+                        chimeric = trimmedSamples.Where(p => p.OnePercentRetentionTimeShift_Fragger_PSMs.Any() && p.IsChimeric)
+                            .SelectMany(p => p.OnePercentRetentionTimeShift_Fragger_PSMs)
+                            .OrderBy(p => p).ToList();
+                        nonChimeric = trimmedSamples.Where(p => p.OnePercentRetentionTimeShift_Fragger_PSMs.Any() && !p.IsChimeric)
+                            .SelectMany(p => p.OnePercentRetentionTimeShift_Fragger_PSMs)
+                            .OrderBy(p => p).ToList();
+                        chimericLabel = "Chimeric 1% Psms";
+                        nonChimericLabel = "Non-Chimeric 1% Psms";
+                        titleLabel = "1% Psms";
+                    }
+                    else
+                    {
+                        chimeric = trimmedSamples.Where(p => p.RetentionTimeShift_Fragger_PSMs.Any() && p.IsChimeric)
+                            .SelectMany(p => p.RetentionTimeShift_Fragger_PSMs)
+                            .OrderBy(p => p).ToList();
+                        nonChimeric = trimmedSamples.Where(p => p.RetentionTimeShift_Fragger_PSMs.Any() && !p.IsChimeric)
+                            .SelectMany(p => p.RetentionTimeShift_Fragger_PSMs)
+                            .OrderBy(p => p).ToList();
+                        chimericLabel = "Chimeric All Psms";
+                        nonChimericLabel = "Non-Chimeric All Psms";
+                        titleLabel = "All Psms";
+                    }
+                }
+                break;
+            case ResultType.Peptide:
+                if (software == Software.MetaMorpheus)
+                {
+                    var trimmedSamples = file.Where(p => p.PeptideCount_MetaMorpheus != 0).ToList();
+                    if (onePercent)
+                    {
+                        chimeric = trimmedSamples.Where(p =>
+                                p.OnePercentRetentionTimeShift_MetaMorpheus_Peptides.Any() && p.IsChimeric)
+                            .SelectMany(p => p.OnePercentRetentionTimeShift_MetaMorpheus_Peptides)
+                            .OrderBy(p => p).ToList();
+                        nonChimeric = trimmedSamples.Where(p =>
+                                p.OnePercentRetentionTimeShift_MetaMorpheus_Peptides.Any() && !p.IsChimeric)
+                            .SelectMany(p => p.OnePercentRetentionTimeShift_MetaMorpheus_Peptides)
+                            .OrderBy(p => p).ToList();
+                        chimericLabel = "Chimeric 1% Peptides";
+                        nonChimericLabel = "Non-Chimeric 1% Peptides";
+                        titleLabel = "1% Peptides";
+                    }
+                    else
+                    {
+                        chimeric = trimmedSamples.Where(p =>
+                                p.RetentionTimeShift_MetaMorpheus_Peptides.Any() && p.IsChimeric)
+                            .SelectMany(p => p.RetentionTimeShift_MetaMorpheus_Peptides)
+                            .OrderBy(p => p).ToList();
+                        nonChimeric = trimmedSamples.Where(p =>
+                                p.RetentionTimeShift_MetaMorpheus_Peptides.Any() && !p.IsChimeric)
+                            .SelectMany(p => p.RetentionTimeShift_MetaMorpheus_Peptides)
+                            .OrderBy(p => p).ToList();
+                        chimericLabel = "Chimeric All Peptides";
+                        nonChimericLabel = "Non-Chimeric All Peptides";
+                        titleLabel = "All Peptides";
+                    }
+                }
+                else
+                    return null;
+                break;
+            case ResultType.Protein:
+            default:
+                return null;
+        }
+
+        chimeric = chimeric.Where(p => p >= min && p <= max).ToList();
+        nonChimeric = nonChimeric.Where(p => p >= min && p <= max).ToList();
+        var hist = Chart.Combine(new[]
+            {
+                Chart.Histogram<double, double, string>(chimeric, 
+                    MarkerColor: chimericLabel.ConvertConditionToColor()),
+                Chart.Histogram<double, double, string>(nonChimeric,
+                    MarkerColor: nonChimericLabel.ConvertConditionToColor())
+
+            }).WithTitle($"{softwareLabel} {file.First().CellLine} Average {titleLabel} RT Shift")
+            .WithSize(600, 600)
+            .WithXAxisStyle(Title.init("RT Shift"), MinMax: new FSharpOption<Tuple<IConvertible, IConvertible>>(new Tuple<IConvertible, IConvertible>(-3, 3)))
+            .WithYAxisStyle(Title.init("Count"))
+            .WithLayout(GenericPlots.DefaultLayoutWithLegend);
+
+        return hist;
+    }
+
+
+    public static void PlotAllRetentionTimeShiftPlots(this CellLineResults cellLine, bool useRawFiles = true, Kernels kernel = Kernels.Gaussian)
+    {
+        var file = useRawFiles ? cellLine.MaximumChimeraEstimationFile : cellLine.MaximumChimeraEstimationCalibAveragedFile;
+        string suffix = useRawFiles ? "" : "_Hybrid";
+        if (file is null)
+            return;
+
+        var mmPsmHist = file.GetAverageRetentionTimeShiftHistogram(Software.MetaMorpheus, ResultType.Psm, false);
+        var mmOnePercentPsmHist = file.GetAverageRetentionTimeShiftHistogram(Software.MetaMorpheus, ResultType.Psm, true);
+        var mmPepHist = file.GetAverageRetentionTimeShiftHistogram(Software.MetaMorpheus, ResultType.Peptide, false);
+        var mmOnePercentPepHist = file.GetAverageRetentionTimeShiftHistogram(Software.MetaMorpheus, ResultType.Peptide, true);
+        var fragPsmHist = file.GetAverageRetentionTimeShiftHistogram(Software.Unspecified, ResultType.Psm, false);
+        var fragOnePercentPsmHist = file.GetAverageRetentionTimeShiftHistogram(Software.Unspecified, ResultType.Psm, true);
+        var mmPsm = file.GetAverageRetentionTimeShiftPlotKernelPdf(Software.MetaMorpheus, ResultType.Psm, false);
+        var mmOnePercentPsm = file.GetAverageRetentionTimeShiftPlotKernelPdf(Software.MetaMorpheus, ResultType.Psm, true);
+        var mmPep = file.GetAverageRetentionTimeShiftPlotKernelPdf(Software.MetaMorpheus, ResultType.Peptide, false);
+        var mmOnePercentPep = file.GetAverageRetentionTimeShiftPlotKernelPdf(Software.MetaMorpheus, ResultType.Peptide, true);
+        var fragPsm = file.GetAverageRetentionTimeShiftPlotKernelPdf(Software.Unspecified, ResultType.Psm, false);
+        var fragOnePercentPsm = file.GetAverageRetentionTimeShiftPlotKernelPdf(Software.Unspecified, ResultType.Psm, true);
+
+        var stacked = Chart.Grid(new[]
+        {
+            mmPsmHist, mmPsm,
+            mmOnePercentPsmHist,  mmOnePercentPsm,
+            mmPepHist,mmPep,
+            mmOnePercentPepHist,  mmOnePercentPep,
+            fragPsmHist, fragPsm,
+            fragOnePercentPsmHist, fragOnePercentPsm
+        }, 6, 2)
+            .WithSize(1200, 600 * 6)
+            .WithTitle($"{cellLine.CellLine} Average Retention Time Shift")
+            .WithLayout(GenericPlots.DefaultLayoutWithLegend);
+        string exportName = $"AllResults_{FileIdentifiers.RetentionTimeShiftFullGrid_Stacked}_{cellLine.CellLine}{suffix}";
+        stacked.SaveInCellLineAndMann11Directories(cellLine, exportName, 1200, 600 * 6);
     }
 
     #endregion

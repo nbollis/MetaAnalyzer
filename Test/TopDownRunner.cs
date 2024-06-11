@@ -156,19 +156,25 @@ namespace Test
         [Test]
         public static void OvernightRunner()
         {
-            GenerateAllFigures();
-            foreach (var cellLine in BottomUpRunner.AllResults.Skip(1))
+            foreach (var cellLine in BottomUpRunner.AllResults)
             {
+             
                 //cellLine.Override = true;
-                cellLine.GetMaximumChimeraEstimationFile();
-                cellLine.PlotAverageRetentionTimeShiftPlotKernelPDF();
+                //cellLine.GetMaximumChimeraEstimationFile();
+                //cellLine.GetMaximumChimeraEstimationFile(false);
+                cellLine.PlotAverageRetentionTimeShiftPlotKernelPdf(false);
+                cellLine.PlotAverageRetentionTimeShiftPlotHistogram(false);
+                cellLine.PlotAllRetentionTimeShiftPlots(false);
                 //cellLine.Override = false;
                 cellLine.Dispose();
             }
-            BottomUpRunner.PlotAllFigures();
 
 
-            
+            //BottomUpRunner.PlotAllFigures();
+            //GenerateAllFigures();
+
+
+
         }
     
 

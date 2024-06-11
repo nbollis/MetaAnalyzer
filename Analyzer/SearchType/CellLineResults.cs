@@ -56,7 +56,7 @@ public class CellLineResults : IEnumerable<BulkResult>, IDisposable
             _dataFilePaths = Directory.GetFiles(caliAvgDirectory, "*.mzML", SearchOption.AllDirectories);
         }
         
-        foreach (var directory in Directory.GetDirectories(SearchResultsDirectoryPath).Where(p => !p.Contains("maxquant")))
+        foreach (var directory in Directory.GetDirectories(SearchResultsDirectoryPath).Where(p => !p.Contains("maxquant") && !p.StartsWith("XX")))
         {
             if (Directory.GetFiles(directory, "meta.bin", SearchOption.AllDirectories).Any()
                 && !Directory.GetFiles(directory, "combined_peptide.tsv").Any())
@@ -291,14 +291,29 @@ public class CellLineResults : IEnumerable<BulkResult>, IDisposable
     private MaximumChimeraEstimationFile? _maximumChimeraEstimationFile;
     public MaximumChimeraEstimationFile? MaximumChimeraEstimationFile => _maximumChimeraEstimationFile ??= GetMaximumChimeraEstimationFile();
 
-    public MaximumChimeraEstimationFile? GetMaximumChimeraEstimationFile()
-    {
-        if (!Override && File.Exists(_maximumChimeraEstimateFilePath))
-        {
-            var result = new MaximumChimeraEstimationFile(_maximumChimeraEstimateFilePath);
-            return result.Results.Count > 0 ? result : null;
-        }
+    private string _maximumChimeraEstimateCalibAveragedFilePath =>
+        Path.Combine(DirectoryPath, $"{CellLine}_{FileIdentifiers.MaximumChimeraEstimateCalibAveraged}");
+    private MaximumChimeraEstimationFile? _maximumChimeraEstimationCalibAveragedFile;
+    public MaximumChimeraEstimationFile? MaximumChimeraEstimationCalibAveragedFile => _maximumChimeraEstimationCalibAveragedFile ??= GetMaximumChimeraEstimationFile(false);
 
+    public MaximumChimeraEstimationFile? GetMaximumChimeraEstimationFile(bool useRawFiles = true)
+    {
+        if (!Override)
+        {
+            switch (useRawFiles)
+            {
+                case true when File.Exists(_maximumChimeraEstimateFilePath):
+                {
+                    var result = new MaximumChimeraEstimationFile(_maximumChimeraEstimateFilePath);
+                    return result.Results.Count > 0 ? result : null;
+                }
+                case false when File.Exists(_maximumChimeraEstimateCalibAveragedFilePath):
+                {
+                    var result = new MaximumChimeraEstimationFile(_maximumChimeraEstimateCalibAveragedFilePath);
+                    return result.Results.Count > 0 ? result : null;
+                }
+            }
+        }
 
         var deconDirectory = Directory.GetDirectories(DirectoryPath).FirstOrDefault(p => p.Contains("Decon"));
         if (deconDirectory is null)
@@ -313,20 +328,29 @@ public class CellLineResults : IEnumerable<BulkResult>, IDisposable
         }
         else
         {
-            var rawFiles = Directory.GetFiles(Path.Combine(@"B:\RawSpectraFiles\Mann_11cell_lines", CellLine), "*.raw",
-                SearchOption.AllDirectories).ToList();
-            if (rawFiles.Count != 18)
+            List<string> massSpecFiles = useRawFiles
+                ? Directory.GetFiles(Path.Combine(@"B:\RawSpectraFiles\Mann_11cell_lines", CellLine), "*.raw",
+                    SearchOption.AllDirectories).ToList()
+                : Directory.GetFiles(
+                    Path.Combine(@"B:\RawSpectraFiles\Mann_11cell_lines", CellLine, "CalibratedAveraged"), "*.mzML",
+                    SearchOption.AllDirectories).ToList();
+
+
+            if (massSpecFiles.Count != 18)
                 throw new Exception("Not all raw files found");
 
-            var deconFiles = Directory.GetFiles(Path.Combine(deconDirectory, "FlashDeconv"), "*ms1.feature", SearchOption.AllDirectories);
+            string deconDir = /*useRawFiles ? */"FlashDeconv" /*: "CalibAveragedFlashDeconv"*/;
+            var deconFiles = Directory.GetFiles(Path.Combine(deconDirectory, deconDir), "*ms1.feature", SearchOption.AllDirectories);
             if (deconFiles.Length != 18)
                 return null;
             foreach (var deconFile in deconFiles)
             {
-                var rawFile = rawFiles.FirstOrDefault(p => deconFile.Contains(Path.GetFileNameWithoutExtension(p)));
-                if (rawFile is null)
+                var massSpecFile = massSpecFiles.FirstOrDefault(p =>
+                    deconFile.Contains(
+                        Path.GetFileNameWithoutExtension(p.Replace("-calib", "").Replace("-averaged", ""))));
+                if (massSpecFile is null)
                     continue;
-                rawFileDeconFile.Add((rawFile, deconFile));
+                rawFileDeconFile.Add((massSpecFile, deconFile));
             }
 
             metaMorpheusCondition = "MetaMorpheusWithLibrary";
@@ -464,8 +488,9 @@ public class CellLineResults : IEnumerable<BulkResult>, IDisposable
             }
         }
 
-        var maxChimeraEstimationFile = new MaximumChimeraEstimationFile(_maximumChimeraEstimateFilePath) { Results = results };
-        maxChimeraEstimationFile.WriteResults(_maximumChimeraEstimateFilePath);
+        string outPath = useRawFiles ? _maximumChimeraEstimateFilePath : _maximumChimeraEstimateCalibAveragedFilePath;
+        var maxChimeraEstimationFile = new MaximumChimeraEstimationFile(outPath) { Results = results };
+        maxChimeraEstimationFile.WriteResults(outPath);
         return maxChimeraEstimationFile;
     }
 

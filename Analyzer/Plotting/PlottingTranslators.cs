@@ -1,5 +1,6 @@
 ﻿using Analyzer.SearchType;
 using Plotly.NET;
+using Plotly.NET.ImageExport;
 using Plotly.NET.LayoutObjects;
 using Plotly.NET.TraceObjects;
 
@@ -652,6 +653,31 @@ public static class PlottingTranslators
         if (!Directory.Exists(directory))
             Directory.CreateDirectory(directory);
         return directory;
+    }
+
+    #endregion
+
+    #region Export Methods
+
+    public static void SaveInCellLineAndMann11Directories(this GenericChart.GenericChart chart, CellLineResults cellLine, string exportName,
+        int? width = null, int? height = null)
+    {
+        chart.SaveInCellLineOnly(cellLine, exportName, width, height);
+        chart.SaveInMan11Only(cellLine, exportName, width, height);
+    }
+
+    public static void SaveInCellLineOnly(this GenericChart.GenericChart chart, CellLineResults cellLine,
+        string exportName, int? width = null, int? height = null)
+    {
+        var cellLineDirectory = cellLine.FigureDirectory;
+        chart.SavePNG(Path.Combine(cellLineDirectory, exportName),null, width, height);
+    }
+
+    public static void SaveInMan11Only(this GenericChart.GenericChart chart, CellLineResults cellLine,
+        string exportName, int? width = null, int? height = null)
+    {
+        var mann11Directory = cellLine.GetFigureDirectory();
+        chart.SavePNG(Path.Combine(mann11Directory, exportName),null, width, height);
     }
 
     #endregion

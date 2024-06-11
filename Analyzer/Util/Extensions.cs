@@ -1,10 +1,17 @@
-﻿using CsvHelper;
+﻿using Analyzer.SearchType;
+using CsvHelper;
+using Plotly.NET;
 using Proteomics.PSM;
 
 namespace Analyzer.Util
 {
     public static class Extensions
     {
+        /// <summary>
+        /// Determine if a PSM is a decoy
+        /// </summary>
+        /// <param name="psm"></param>
+        /// <returns></returns>
         public static bool IsDecoy(this PsmFromTsv psm) => psm.DecoyContamTarget == "D";
 
         public static bool ValidateMyColumn(this IReaderRow row)
@@ -28,6 +35,12 @@ namespace Analyzer.Util
             return false;
         }
 
+        /// <summary>
+        /// Calculate the rolling average of a list of doubles
+        /// </summary>
+        /// <param name="numbers"></param>
+        /// <param name="windowSize"></param>
+        /// <returns></returns>
         public static List<double> CalculateRollingAverage(this List<double> numbers, int windowSize)
         {
             var result = new List<double>();
@@ -41,6 +54,12 @@ namespace Analyzer.Util
             return result;
         }
 
+        /// <summary>
+        /// Calculate the rolling average of a list of integers
+        /// </summary>
+        /// <param name="numbers"></param>
+        /// <param name="windowSize"></param>
+        /// <returns></returns>
         public static List<double> CalculateRollingAverage(this List<int> numbers, int windowSize)
         {
             var result = new List<double>();
@@ -53,5 +72,9 @@ namespace Analyzer.Util
 
             return result;
         }
+
+
+       
+
     }
 }
