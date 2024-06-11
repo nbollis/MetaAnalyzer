@@ -6,6 +6,7 @@ using Readers;
 using System.Linq;
 using Analyzer.Interfaces;
 using Chemistry;
+using Easy.Common.Extensions;
 
 namespace Analyzer.SearchType
 {
@@ -168,7 +169,14 @@ namespace Analyzer.SearchType
         public ChimeraBreakdownFile GetChimeraBreakdownFile()
         {
             if (!Override && File.Exists(_chimeraBreakDownPath))
-                return new ChimeraBreakdownFile(_chimeraBreakDownPath);
+            {
+                var breakdownFile = new ChimeraBreakdownFile(_chimeraBreakDownPath);
+                if (breakdownFile.Any(p => p.PsmCharges.IsNotNullOrEmpty()))
+                    return breakdownFile;
+                AppendChargesAndMassesToBreakdownFile(breakdownFile);
+                breakdownFile.WriteResults(_chimeraBreakDownPath);
+                return breakdownFile;
+            }
 
             bool useIsolation = false;
             List<ChimeraBreakdownRecord> chimeraBreakDownRecords = new();
@@ -260,6 +268,25 @@ namespace Analyzer.SearchType
             var file = new ChimeraBreakdownFile(_chimeraBreakDownPath) { Results = chimeraBreakDownRecords };
             file.WriteResults(_chimeraBreakDownPath);
             return file;
+        }
+
+        private void AppendChargesAndMassesToBreakdownFile(ChimeraBreakdownFile file)
+        {
+            var psms = PrsmFile.FilteredResults.GroupBy(p => IdToFileNameDictionary[p.FileID])
+                .ToDictionary(p => p.Key, p => p.ToArray());
+            foreach (var fileSpecificRecords in file.GroupBy(p => p.FileName))
+            {
+                var fileSpecificPsms = psms[fileSpecificRecords.Key];
+                foreach (var record in fileSpecificRecords)
+                {
+                    if (record.Type == Util.ResultType.Psm)
+                    {
+                        var psm = fileSpecificPsms.Where(p => p.FragmentationScans == record.Ms2ScanNumber).ToArray();
+                        record.PsmCharges = psm.Select(p => p.Charge).ToArray();
+                        record.PsmMasses = psm.Select(p => p.PrecursorMass).ToArray();
+                    }
+                }
+            }
         }
 
         public new void Dispose()

@@ -853,7 +853,7 @@ public static class CellLinePlots
     public static void PlotCellLineChimeraBreakdown_TargetDecoy(this CellLineResults cellLine, bool absolute = false)
     {
         bool isTopDown = cellLine.First().IsTopDown;
-        var selector = isTopDown.ChimeraBreakdownSelector();
+        var selector = isTopDown.ChimeraBreakdownSelector(cellLine.CellLine);
         var smLabel = GenericPlots.SpectralMatchLabel(isTopDown);
         var pepLabel = GenericPlots.ResultLabel(isTopDown);
         string smOutName = $"{FileIdentifiers.ChimeraBreakdownTargetDecoy}_{smLabel}_{cellLine.CellLine}";
@@ -890,7 +890,7 @@ public static class CellLinePlots
     public static void PlotCellLineChimeraBreakdown(this CellLineResults cellLine)
     {
         bool isTopDown = cellLine.First().IsTopDown;
-        var selector = isTopDown.ChimeraBreakdownSelector();
+        var selector = isTopDown.ChimeraBreakdownSelector(cellLine.CellLine);
         var smLabel = GenericPlots.SpectralMatchLabel(isTopDown);
         var pepLabel = GenericPlots.ResultLabel(isTopDown);
         string smOutName = $"{FileIdentifiers.ChimeraBreakdownComparisonFigure}_{smLabel}_{cellLine.CellLine}";
@@ -973,7 +973,7 @@ public static class CellLinePlots
     }
 
 
-    public static void PlotChimeraBreakdownByMassAndChargeBoxAndWhisker(this CellLineResults cellLine)
+    public static void PlotChimeraBreakdownByMassAndCharge(this CellLineResults cellLine)
     {
         var (chargePlot, massPlot) = cellLine.GetChimeraBreakdownByMassAndCharge(ResultType.Psm);
         chargePlot.SaveInCellLineOnly(cellLine, $"{FileIdentifiers.ChimeraBreakdownByChargeStateFigure}_{cellLine.CellLine}_{ResultType.Psm}", 600, 600);
@@ -987,7 +987,7 @@ public static class CellLinePlots
     internal static (GenericChart.GenericChart Charge, GenericChart.GenericChart Mass) GetChimeraBreakdownByMassAndCharge(this CellLineResults cellLine, ResultType resultType = ResultType.Psm)
     {
         bool isTopDown = cellLine.First().IsTopDown;
-        var selector = isTopDown.ChimeraBreakdownSelector();
+        var selector = isTopDown.ChimeraBreakdownSelector(cellLine.CellLine);
         var smLabel = GenericPlots.SpectralMatchLabel(isTopDown);
         var pepLabel = GenericPlots.ResultLabel(isTopDown);
         var label = resultType == ResultType.Psm ? smLabel : pepLabel;
@@ -1020,8 +1020,7 @@ public static class CellLinePlots
                 .WithTitle($"1% {label} Charge vs Degree of Chimerism");
 
         var massPlot =
-            Chart.Violin<int, double, string>(xValues, yValuesMass,
-                MeanLine: MeanLine.init(true), ShowLegend: false)
+            Chart.BoxPlot<int, double, string>(xValues, yValuesMass)
                 .WithXAxisStyle(Title.init("Degree of Chimerism"))
                 .WithYAxisStyle(Title.init("Precursor Mass"))
                 .WithTitle($"1% {label} Mass vs Degree of Chimerism");
@@ -1029,6 +1028,4 @@ public static class CellLinePlots
         return (chargePlot, massPlot);
     }
 
-
-    
 }

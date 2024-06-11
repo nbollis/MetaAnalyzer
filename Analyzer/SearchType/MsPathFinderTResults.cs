@@ -211,7 +211,14 @@ namespace Analyzer.SearchType
         public ChimeraBreakdownFile GetChimeraBreakdownFile()
         {
             if (!Override && File.Exists(_chimeraBreakDownPath))
-                return new ChimeraBreakdownFile(_chimeraBreakDownPath);
+            {
+                var breakdownFile = new ChimeraBreakdownFile(_chimeraBreakDownPath);
+                if (breakdownFile.Any(p => p.PsmCharges.IsNotNullOrEmpty()))
+                    return breakdownFile;
+                AppendChargesAndMassesToBreakdownFile(breakdownFile);
+                breakdownFile.WriteResults(_chimeraBreakDownPath);
+                return breakdownFile;
+            }
 
             bool useIsolation;
             List<ChimeraBreakdownRecord> chimeraBreakDownRecords = new();
@@ -369,6 +376,38 @@ namespace Analyzer.SearchType
             var file = new ChimeraBreakdownFile(_chimeraBreakDownPath) { Results = chimeraBreakDownRecords };
             file.WriteResults(_chimeraBreakDownPath);
             return file;
+        }
+
+        private void AppendChargesAndMassesToBreakdownFile(ChimeraBreakdownFile file)
+        {
+            var psms = IndividualFileResults.ToDictionary(p => p.Name, p => p.TargetResults.Results);
+            var peptides = IndividualFileResults.ToDictionary(p => p.Name, p => p.TargetResults.Results);
+            foreach (var fileSpecificRecords in file.GroupBy(p => p.FileName))
+            {
+                var fileSpecificPsms = psms[fileSpecificRecords.Key];
+                var fileSpecificPeptides = peptides[fileSpecificRecords.Key];
+                foreach (var record in fileSpecificRecords)
+                {
+                    switch (record.Type)
+                    {
+                        case Util.ResultType.Psm:
+                        {
+                            var psm = fileSpecificPsms.Where(p => p.OneBasedScanNumber == record.Ms2ScanNumber).ToArray();
+                            record.PsmCharges = psm.Select(p => p.Charge).ToArray();
+                            record.PsmMasses = psm.Select(p => p.MonoisotopicMass).ToArray();
+                            break;
+                        }
+                        case Util.ResultType.Peptide:
+                        {
+                            var peptide = fileSpecificPeptides.Where(p => p.OneBasedScanNumber == record.Ms2ScanNumber).ToArray();
+                            record.PeptideCharges = peptide.Select(p => p.Charge).ToArray();
+                            record.PeptideMasses = peptide.Select(p => p.MonoisotopicMass).ToArray();
+                            break;
+                        }
+                    }
+
+                }
+            }
         }
 
         public IEnumerator<MsPathFinderTIndividualFileResult> GetEnumerator()

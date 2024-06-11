@@ -22,9 +22,7 @@ namespace Test
         internal static bool RunOnAll = true;
         internal static bool Override = false;
         private static AllResults? _allResults;
-        internal static AllResults AllResults => _allResults ??= new AllResults(DirectoryPath, Directory.GetDirectories(DirectoryPath)
-            .Where(p => !p.Contains("Figures") && RunOnAll || p.Contains("Jurkat"))
-            .Select(datasetDirectory => new CellLineResults(datasetDirectory)).ToList());
+        internal static AllResults AllResults => _allResults ??= new AllResults(DirectoryPath);
 
         [OneTimeSetUp]
         public static void OneTimeSetup() { Loaders.LoadElements(); }
@@ -156,32 +154,30 @@ namespace Test
         [Test]
         public static void OvernightRunner()
         {
-            //foreach (var cellLine in AllResults)
-            //{
-            //    foreach (var result in cellLine.Where(p => true.ChimeraBreakdownSelector().Contains(p.Condition)))
-            //    {
-            //        (result as MetaMorpheusResult)?.GetChimeraBreakdownFile();
-            //    }
-            //    // These require the masses and charges
-            //    //cellLine.PlotChimeraBreakdownByMassAndChargeBoxAndWhisker(ResultType.Psm);
-            //    //cellLine.PlotChimeraBreakdownByMassAndChargeBoxAndWhisker(ResultType.Peptide);
-            //    cellLine.Dispose();
-            //}
+            foreach (var cellLine in AllResults)
+            {
+                foreach (var result in cellLine.Where(p => true.ChimeraBreakdownSelector(cellLine.CellLine).Contains(p.Condition)))
+                {
+                    (result as MetaMorpheusResult)?.GetChimeraBreakdownFile();
+                }
+                // These require the masses and charges
+                cellLine.PlotChimeraBreakdownByMassAndCharge();
+                cellLine.Dispose();
+            }
 
             foreach (var cellLine in BottomUpRunner.AllResults)
             {
                 cellLine.PlotChronologerDeltaPlotBoxAndWhisker();
                 cellLine.PlotChronologerDeltaRangePlot();
 
-                foreach (var result in cellLine.Where(p => false.ChimeraBreakdownSelector().Contains(p.Condition)))
+                foreach (var result in cellLine.Where(p => false.ChimeraBreakdownSelector(cellLine.CellLine).Contains(p.Condition)))
                 {
                     (result as MetaMorpheusResult)?.GetChimeraBreakdownFile();
                 }
                 // These require the masses and charges
-                //cellLine.PlotChimeraBreakdownByMassAndChargeBoxAndWhisker(ResultType.Psm);
-                //cellLine.PlotChimeraBreakdownByMassAndChargeBoxAndWhisker(ResultType.Peptide);
+                cellLine.PlotChimeraBreakdownByMassAndCharge();
 
-                
+
                 cellLine.GetMaximumChimeraEstimationFile();
                 //cellLine.Override = true;
                 //cellLine.GetMaximumChimeraEstimationFile(false);
@@ -194,8 +190,21 @@ namespace Test
             BottomUpRunner.AllResults.PlotBulkChronologerDeltaPlotKernalPDF();
             BottomUpRunner.AllResults.PlotGridChronologerDeltaPlotKernalPDF();
 
+            foreach (var cellLine in AllResults)
+            {
+                foreach (var result in cellLine)
+                    if (result is IChimeraBreakdownCompatible cbc)
+                        cbc?.GetChimeraBreakdownFile();
+                cellLine.Dispose();
+            }
 
-            
+            foreach (var cellLine in BottomUpRunner.AllResults)
+            {
+                foreach (var result in cellLine)
+                    if (result is IChimeraBreakdownCompatible cbc)
+                        cbc?.GetChimeraBreakdownFile();
+                cellLine.Dispose();
+            }
         }
     
 

@@ -593,13 +593,27 @@ public static class PlottingTranslators
         };
     }
 
-    public static string[] ChimeraBreakdownSelector(this bool isTopDown)
+    public static string[] ChimeraBreakdownSelector(this bool isTopDown, string cellLine = "")
     {
         if (isTopDown)
         {
+            if (cellLine.Contains("Jurkat"))
+            {
+                return new[]
+                {
+                    "MetaMorpheus_Rep2_WithLibrary_NewPEP_NoNorm",
+                };
+            }
+            else if (cellLine.Contains("Ecoli"))
+            {
+                return new[]
+                {
+                    "MetaMorpheus_NewPEP_NoNormNoMult"
+                };
+            }
             return new[]
             {
-                "MetaMorpheus_Rep2_WithLibrary",
+                "MetaMorpheus_Rep2_WithLibrary_NewPEP_NoNorm",
             };
         }
         return new[]
