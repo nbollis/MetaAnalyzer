@@ -343,12 +343,12 @@ public static class BulkResultPlots
         var noChimeras = results.Where(p => !p.IsChimeric).ToList();
         var chimeras = results.Where(p => p.IsChimeric).ToList();
 
-        var noChimerasKernel = GenericPlots.KernelDensityPlot(noChimeras.Select(p => p.DeltaChronologer).OrderBy(p => p).ToList(), "No Chimeras");
-        var chimerasKernel = GenericPlots.KernelDensityPlot(chimeras.Select(p => p.DeltaChronologer).OrderBy(p => p).ToList(), "Chimeras");
+        var noChimerasKernel = GenericPlots.KernelDensityPlot(noChimeras.Select(p => p.DeltaChronologerHI).OrderBy(p => p).ToList(), "No Chimeras");
+        var chimerasKernel = GenericPlots.KernelDensityPlot(chimeras.Select(p => p.DeltaChronologerHI).OrderBy(p => p).ToList(), "Chimeras");
 
         var chart = Chart.Combine(new[] { noChimerasKernel, chimerasKernel })
             .WithTitle("Chronologer Delta Kernel Density")
-            .WithXAxisStyle(Title.init("Delta Chronologer"))
+            .WithXAxisStyle(Title.init("Delta Chronologer RT"))
             .WithYAxisStyle(Title.init("Density"))
             .WithLayout(GenericPlots.DefaultLayoutWithLegend)
             .WithSize(1000, 600);

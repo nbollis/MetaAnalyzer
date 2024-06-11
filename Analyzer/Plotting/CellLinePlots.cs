@@ -173,6 +173,10 @@ public static class CellLinePlots
         return (chronologerPlot, ssrCalcPlot);
     }
 
+    #region Chronologer Exploration
+
+    
+
     public enum Kernels
     {
         Gaussian,
@@ -271,15 +275,15 @@ public static class CellLinePlots
             .ToList();
         var chronologer = individualFiles
             .SelectMany(p => p.Where(m => m.ChronologerPrediction != 0 && m.PeptideModSeq != ""))
-            .Select(p => (p.ChronologerPrediction, p.PercentHI, p.IsChimeric, p.DeltaChronologer))
+            .Select(p => (p.ChronologerPrediction, p.PercentHI, p.IsChimeric, p.DeltaChronologerHI))
             .ToList();
 
         
         var chimericSamples = chronologer.Where(p => p.IsChimeric)
-            .Select(p => p.DeltaChronologer)
+            .Select(p => p.DeltaChronologerHI)
             .ToList();
         var nonChimericSamples = chronologer.Where(p => !p.IsChimeric)
-            .Select(p => p.DeltaChronologer)
+            .Select(p => p.DeltaChronologerHI)
             .ToList();
 
 
@@ -303,6 +307,9 @@ public static class CellLinePlots
         return chart;
     }
 
+    #endregion
+
+    #region From Deconv Results
 
     public static void PlotAverageRetentionTimeShiftPlotKernelPdf(this CellLineResults cellLine, bool useRawFiles = true,
         Kernels kernel = Kernels.Gaussian)
@@ -340,7 +347,7 @@ public static class CellLinePlots
         fragOnePercentPsm?.SaveInCellLineOnly(cellLine, exportName, 600, 600);
 
 
-        var stacked = Chart.Grid(new []
+        var stacked = Chart.Grid(new[]
         {
             mmPsm, mmOnePercentPsm, mmPep, mmOnePercentPep, fragPsm, fragOnePercentPsm
         }, 3, 2)
@@ -644,7 +651,7 @@ public static class CellLinePlots
         nonChimeric = nonChimeric.Where(p => p >= min && p <= max).ToList();
         var hist = Chart.Combine(new[]
             {
-                Chart.Histogram<double, double, string>(chimeric, 
+                Chart.Histogram<double, double, string>(chimeric,
                     MarkerColor: chimericLabel.ConvertConditionToColor()),
                 Chart.Histogram<double, double, string>(nonChimeric,
                     MarkerColor: nonChimericLabel.ConvertConditionToColor())
@@ -694,6 +701,8 @@ public static class CellLinePlots
         string exportName = $"AllResults_{FileIdentifiers.RetentionTimeShiftFullGrid_Stacked}_{cellLine.CellLine}{suffix}";
         stacked.SaveInCellLineAndMann11Directories(cellLine, exportName, 1200, 600 * 6);
     }
+
+    #endregion
 
     #endregion
 

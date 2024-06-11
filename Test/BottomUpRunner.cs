@@ -70,27 +70,27 @@ namespace Test
         public static void PlotAllFigures()
         {
 
-            AllResults.PlotInternalMMComparison();
-            AllResults.PlotBulkResultComparisons();
-            AllResults.PlotStackedIndividualFileComparison();
-            AllResults.PlotBulkResultChimeraBreakDown();
-            AllResults.PlotStackedSpectralSimilarity();
-            AllResults.PlotAggregatedSpectralSimilarity();
-            AllResults.PlotBulkResultChimeraBreakDown();
-            AllResults.PlotBulkResultChimeraBreakDown_TargetDecoy();
-            AllResults.PlotChronologerVsPercentHi();
+            //AllResults.PlotInternalMMComparison();
+            //AllResults.PlotBulkResultComparisons();
+            //AllResults.PlotStackedIndividualFileComparison();
+            //AllResults.PlotBulkResultChimeraBreakDown();
+            //AllResults.PlotStackedSpectralSimilarity();
+            //AllResults.PlotAggregatedSpectralSimilarity();
+            //AllResults.PlotBulkResultChimeraBreakDown();
+            //AllResults.PlotBulkResultChimeraBreakDown_TargetDecoy();
+            //AllResults.PlotChronologerVsPercentHi();
             AllResults.PlotBulkChronologerDeltaPlotKernalPDF();
             AllResults.PlotGridChronologerDeltaPlotKernalPDF();
 
             foreach (CellLineResults cellLine in AllResults)
             {
-                cellLine.PlotIndividualFileResults(ResultType.Psm);
-                cellLine.PlotIndividualFileResults(ResultType.Peptide);
-                cellLine.PlotIndividualFileResults(ResultType.Protein);
-                cellLine.PlotCellLineRetentionTimePredictions();
-                cellLine.PlotCellLineSpectralSimilarity();
-                cellLine.PlotCellLineChimeraBreakdown();
-                cellLine.PlotCellLineChimeraBreakdown_TargetDecoy();
+                //cellLine.PlotIndividualFileResults(ResultType.Psm);
+                //cellLine.PlotIndividualFileResults(ResultType.Peptide);
+                //cellLine.PlotIndividualFileResults(ResultType.Protein);
+                //cellLine.PlotCellLineRetentionTimePredictions();
+                //cellLine.PlotCellLineSpectralSimilarity();
+                //cellLine.PlotCellLineChimeraBreakdown();
+                //cellLine.PlotCellLineChimeraBreakdown_TargetDecoy();
                 cellLine.PlotChronologerDeltaKernelPDF();
                 cellLine.PlotChronologerVsPercentHi();
                 foreach (var individualResult in cellLine)

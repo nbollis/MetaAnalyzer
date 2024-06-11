@@ -37,10 +37,34 @@ namespace Analyzer.FileTypes.Internal
 
 
         [Ignore] private double? _percentHI;
-        [Ignore] public double PercentHI => _percentHI ??= 22.4 / 200 * RetentionTime + 1.6;
+        /// <summary>
+        /// The Percent ACN as translated by the linear gradient from the elution time of the identification
+        /// </summary>
+        [Ignore] public double PercentHI => _percentHI ??= 22.4 / 200.0 * RetentionTime + 1.8;
 
         [Ignore] private double? _deltaChronologer;
-        [Ignore] public double DeltaChronologer => _deltaChronologer ??= PercentHI - ChronologerPrediction;
+        /// <summary>
+        /// Difference between the predicted elution ACN from Chronologer and the actual elution ACN
+        /// </summary>
+        [Ignore] public double DeltaChronologerHI => _deltaChronologer ??= PercentHI - ChronologerPrediction;
+
+
+        [Ignore] private double? _chronologerToRetentionTime;
+
+        /// <summary>
+        /// The difference between the Chronologer prediction translated to RT and the actual retention time
+        /// </summary>
+        [Ignore] public double ChronologerToRetentionTime =>
+            _chronologerToRetentionTime ??= (ChronologerPrediction - 1.8) * 200 / 22.4;
+
+        [Ignore] private double? _deltaChronologerRT;
+
+        /// <summary>
+        /// The difference between the Chronologer prediction translated to RT and the actual retention time
+        /// </summary>
+        [Ignore] public double DeltaChronologerRT => _deltaChronologerRT ??= RetentionTime - ChronologerToRetentionTime;
+
+
 
         [Ignore] private double? _deltaSSRCalc;
         [Ignore] public double DeltaSSRCalc => _deltaSSRCalc ??= SSRCalcPrediction - RetentionTime;
