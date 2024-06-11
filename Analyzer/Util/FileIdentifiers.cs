@@ -22,6 +22,8 @@
         public static string ChimeraBreakdownComparisonFigure => "ChimeraBreakdown_1%";
         public static string ChimeraBreakdownComparisonStackedAreaFigure => "ChimeraBreakdownStackedArea_1%";
         public static string ChimeraBreakdownComparisonStackedAreaPercentFigure => "ChimeraBreakdownStackedAreaPercent_1%";
+        public static string ChimeraBreakdownByChargeStateFigure => "ChimeraBreakdownByChargeState";
+        public static string ChimeraBreakdownByMassFigure => "ChimeraBreakdownByPrecursorMass";
         public static string ChimeraBreakdownTargetDecoy => "ChimeraBreakdown_TargetDecoy";
         public static string TargetDecoyCurve => "TargetDecoyCurve";
 
@@ -37,7 +39,9 @@
         public static string SSRCalcFigure => "RetentionTimeVsSSRCalc3";
         public static string ChronologerFigure => "RetentionTimeVsChronologer";
         public static string ChronologerFigureACN => "PercentACNVsChronologer";
-        public static string ChronologerDeltaDistributionFigure => "ChronologerDeltaDistribution";
+        public static string ChronologerDeltaKdeFigure => "ChronologerDeltaDistribution_KDE";
+        public static string ChronologerDeltaBoxAndWhiskers => "ChronologerDeltaDistribution_BoxAndWhisker";
+        public static string ChronologerDeltaRange => "ChronologerDeltaDistribution_Range";
         public static string SpectralAngleFigure => "SpectralAngleComparison";
         public static string PepGridChartFigure => "PepFeatureAnalysis";
         public static string RetentionTimeShift_MM => "RetentionTimeShift_MetaMorpheus";

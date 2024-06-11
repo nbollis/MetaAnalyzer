@@ -209,7 +209,9 @@ namespace Analyzer.SearchType
                         Type = Util.ResultType.Psm,
                         IdsPerSpectra = chimeraGroup.Length,
                         TargetCount = chimeraGroup.Count(),
-                        DecoyCount = 0
+                        DecoyCount = 0,
+                        PsmCharges = chimeraGroup.Select(p => p.Charge).ToArray(),
+                        PsmMasses = chimeraGroup.Select(p => p.PrecursorMass).ToArray()
                     };
 
                     ProteomeDiscovererPsmRecord parent = null;

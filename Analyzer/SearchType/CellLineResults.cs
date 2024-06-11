@@ -339,7 +339,7 @@ public class CellLineResults : IEnumerable<BulkResult>, IDisposable
             if (massSpecFiles.Count != 18)
                 throw new Exception("Not all raw files found");
 
-            string deconDir = /*useRawFiles ? */"FlashDeconv" /*: "CalibAveragedFlashDeconv"*/;
+            string deconDir = useRawFiles ? "FlashDeconv" : "CalibAveragedFlashDeconv";
             var deconFiles = Directory.GetFiles(Path.Combine(deconDirectory, deconDir), "*ms1.feature", SearchOption.AllDirectories);
             if (deconFiles.Length != 18)
                 return null;
@@ -368,8 +368,11 @@ public class CellLineResults : IEnumerable<BulkResult>, IDisposable
             Ms1FeatureFile deconFile = new Ms1FeatureFile(deconRun.Item2);
             MsDataFile dataFile = FileReader.ReadFile<MsDataFileToResultFileAdapter>(deconRun.Item1).LoadAllStaticData();
             string fileName = Path.GetFileNameWithoutExtension(dataFile.FilePath).ConvertFileName();
-            MetaMorpheusIndividualFileResult? mmResult = mmRun?.IndividualFileResults.FirstOrDefault(p => p.FileName.Contains(Path.GetFileNameWithoutExtension(dataFile.FilePath))) ?? null;
-            MsFraggerIndividualFileResult? fragResult = fragRun?.IndividualFileResults.FirstOrDefault(p => p.DirectoryPath.Contains(fileName)) ?? null;
+            MetaMorpheusIndividualFileResult? mmResult = mmRun?.IndividualFileResults.FirstOrDefault(p =>
+                p.FileName.Contains(Path.GetFileNameWithoutExtension(dataFile.FilePath).Replace("-calib", "")
+                    .Replace("-averaged", ""))) ?? null;
+            MsFraggerIndividualFileResult? fragResult =
+                fragRun?.IndividualFileResults.FirstOrDefault(p => p.DirectoryPath.Contains(fileName)) ?? null;
 
             if (mmResult is null && fragResult is null)
                 continue;

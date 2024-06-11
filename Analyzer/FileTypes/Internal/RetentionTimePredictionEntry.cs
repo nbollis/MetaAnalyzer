@@ -40,7 +40,7 @@ namespace Analyzer.FileTypes.Internal
         /// <summary>
         /// The Percent ACN as translated by the linear gradient from the elution time of the identification
         /// </summary>
-        [Ignore] public double PercentHI => _percentHI ??= 22.4 / 200.0 * RetentionTime + 1.8;
+        [Ignore] public double PercentHI => _percentHI ??= GetPercentHIFromRetentionTimeForMann11(RetentionTime);
 
         [Ignore] private double? _deltaChronologer;
         /// <summary>
@@ -54,8 +54,10 @@ namespace Analyzer.FileTypes.Internal
         /// <summary>
         /// The difference between the Chronologer prediction translated to RT and the actual retention time
         /// </summary>
-        [Ignore] public double ChronologerToRetentionTime =>
-            _chronologerToRetentionTime ??= (ChronologerPrediction - 1.8) * 200 / 22.4;
+        [Ignore]
+        public double ChronologerToRetentionTime =>
+            _chronologerToRetentionTime ??=
+                GetRetentionTimeFromMann11ChronologerPredictions(ChronologerPrediction);
 
         [Ignore] private double? _deltaChronologerRT;
 
@@ -69,6 +71,9 @@ namespace Analyzer.FileTypes.Internal
         [Ignore] private double? _deltaSSRCalc;
         [Ignore] public double DeltaSSRCalc => _deltaSSRCalc ??= SSRCalcPrediction - RetentionTime;
 
+        public static double GetRetentionTimeFromMann11ChronologerPredictions(double prediction) => (prediction - 1.8) * 200 / 22.4;
+
+        public static double GetPercentHIFromRetentionTimeForMann11(double retentionTime) => 22.4 / 200.0 * retentionTime + 1.8;
         public RetentionTimePredictionEntry(string fileNameWithoutExtension, double scanNumber,
             double precursorScanNumber, double retentionTime, string baseSequence, string fullSequence, string peptideModSeq,
             double qValue, double pepQValue, double pep, double spectralAngle, bool isChimeric)

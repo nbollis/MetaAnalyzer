@@ -14,6 +14,7 @@ using Plotly.NET;
 using Plotly.NET.CSharp;
 using Plotly.NET.ImageExport;
 using Plotly.NET.LayoutObjects;
+using Plotly.NET.TraceObjects;
 using Proteomics.PSM;
 using Readers;
 using TopDownProteomics.IO.PsiMod;
@@ -187,13 +188,8 @@ public static class CellLinePlots
 
     public static void PlotChronologerVsPercentHi(this CellLineResults cellLine)
     {
-        var plot = cellLine.GetChronologerHIScatterPlot();
-        string outPath = Path.Combine(cellLine.GetFigureDirectory(),
-                       $"{FileIdentifiers.ChronologerFigureACN}_{cellLine.CellLine}");
-        plot.SavePNG(outPath, null, 1000, GenericPlots.DefaultHeight);
-        outPath = Path.Combine(cellLine.FigureDirectory,
-                       $"{FileIdentifiers.ChronologerFigureACN}_{cellLine.CellLine}");
-        plot.SavePNG(outPath, null, 1000, GenericPlots.DefaultHeight);
+        cellLine.GetChronologerHIScatterPlot()
+            .SaveInCellLineOnly(cellLine, $"{FileIdentifiers.ChronologerFigureACN}_{cellLine.CellLine}", 1000, GenericPlots.DefaultHeight);
     }
 
     internal static GenericChart.GenericChart GetChronologerHIScatterPlot(this CellLineResults cellLine)
@@ -257,13 +253,8 @@ public static class CellLinePlots
 
     public static void PlotChronologerDeltaKernelPDF(this CellLineResults cellLine, Kernels kernel = Kernels.Gaussian)
     {
-        var chart = cellLine.GetChronologerDeltaPlotKernelPDF(kernel);
-        string outPath = Path.Combine(cellLine.GetFigureDirectory(),
-            $"{FileIdentifiers.ChronologerDeltaDistributionFigure}_{cellLine.CellLine}");
-        string outPath2 = Path.Combine(cellLine.FigureDirectory,
-            $"{FileIdentifiers.ChronologerDeltaDistributionFigure}_{cellLine.CellLine}");
-        chart.SavePNG(outPath, null, 600, 600);
-        chart.SavePNG(outPath2, null, 600, 600);
+        cellLine.GetChronologerDeltaPlotKernelPDF(kernel)
+            .SaveInCellLineAndMann11Directories(cellLine, $"{FileIdentifiers.ChronologerDeltaKdeFigure}_{cellLine.CellLine}", 600, 600);
     }
 
     internal static GenericChart.GenericChart GetChronologerDeltaPlotKernelPDF(this CellLineResults cellLine, Kernels kernel = Kernels.Gaussian)
@@ -275,15 +266,15 @@ public static class CellLinePlots
             .ToList();
         var chronologer = individualFiles
             .SelectMany(p => p.Where(m => m.ChronologerPrediction != 0 && m.PeptideModSeq != ""))
-            .Select(p => (p.ChronologerPrediction, p.PercentHI, p.IsChimeric, p.DeltaChronologerHI))
+            .Select(p => (p.ChronologerPrediction, p.PercentHI, p.IsChimeric, p.DeltaChronologerRT))
             .ToList();
 
         
         var chimericSamples = chronologer.Where(p => p.IsChimeric)
-            .Select(p => p.DeltaChronologerHI)
+            .Select(p => p.DeltaChronologerRT)
             .ToList();
         var nonChimericSamples = chronologer.Where(p => !p.IsChimeric)
-            .Select(p => p.DeltaChronologerHI)
+            .Select(p => p.DeltaChronologerRT)
             .ToList();
 
 
@@ -291,12 +282,12 @@ public static class CellLinePlots
         chimericSamples = chimericSamples.OrderBy(p => p).ToList();
         var chart = Chart.Combine(new[]
             {
-                GenericPlots.KernelDensityPlot(chimericSamples, "Chimeric", "Delta %ACN", "Probability"),
-                GenericPlots.KernelDensityPlot(nonChimericSamples, "Non-Chimeric", "Delta %ACN", "Probability"),
-                Chart.Line<double, double, string>(new [] {0.0, 0},
-                    new [] {0.0, 0.35},
-                    LineColor: new Optional<Color>(Color.fromKeyword(ColorKeyword.DarkGray), true), 
-                    LineDash: StyleParam.DrawingStyle.Dash, Opacity:0.5)
+                GenericPlots.KernelDensityPlot(chimericSamples, "Chimeric", "Delta RT", "Probability", 0.3),
+                GenericPlots.KernelDensityPlot(nonChimericSamples, "Non-Chimeric", "Delta RT", "Probability", 0.3),
+                //Chart.Line<double, double, string>(new [] {0.0, 0},
+                //    new [] {0.0, 0.35},
+                //    LineColor: new Optional<Color>(Color.fromKeyword(ColorKeyword.DarkGray), true), 
+                //    LineDash: StyleParam.DrawingStyle.Dash, Opacity:0.5)
             })
             .WithTitle($" {cellLine.CellLine} Chronologer Delta Kernel Density")
             .WithSize(400, 400)
@@ -306,6 +297,106 @@ public static class CellLinePlots
 
         return chart;
     }
+
+    public static void PlotChronologerDeltaRangePlot(this CellLineResults cellLine)
+    {
+        cellLine.GetChronologerDeltaRangePlot()
+            .SaveInCellLineOnly(cellLine, $"{FileIdentifiers.ChronologerDeltaRange}_{cellLine.CellLine}", 1200, 800);
+    }
+
+    internal static GenericChart.GenericChart GetChronologerDeltaRangePlot(this CellLineResults cellLine)
+    {
+        // Nested dictionary where first is split on chimeric or not and second is split by RT rounded to 0.1 minute
+        var chronologerResults = cellLine.Results
+            .Where(p => false.FdrPlotSelector().Contains(p.Condition))
+            .OrderBy(p => ((MetaMorpheusResult)p).RetentionTimePredictionFile.First())
+            .Select(p => ((MetaMorpheusResult)p).RetentionTimePredictionFile)
+            .SelectMany(p => p.Where(m => m.ChronologerPrediction != 0 && m.PeptideModSeq != ""))
+            .GroupBy(p => p.IsChimeric)
+            .ToDictionary(p => p.Key, p => p.GroupBy(m => m.RetentionTime.Round(1))
+                .OrderBy(n => n.Key)
+                .ToDictionary(n => n.Key, n => n.ToArray()));
+
+        List<(double RT, double Mean, double Lower, double Upper)> chimericResults =
+            (from kvp in chronologerResults[true]
+                let meanStd = kvp.Value.Select(p => p.ChronologerPrediction).MeanStandardDeviation()
+                select (kvp.Key, meanStd.Mean, double.IsNaN(meanStd.StandardDeviation) ? 0 : meanStd.Mean - meanStd.StandardDeviation, double.IsNaN(meanStd.StandardDeviation) ? 0 : meanStd.Mean + meanStd.StandardDeviation))
+            .ToList();
+
+        List<(double RT, double Mean, double Lower, double Upper)> nonChimericResults =
+            (from kvp in chronologerResults[false]
+                let meanStd = kvp.Value.Select(p => p.ChronologerPrediction).MeanStandardDeviation()
+                select (kvp.Key, meanStd.Mean, double.IsNaN(meanStd.StandardDeviation) ? 0 : meanStd.Mean - meanStd.StandardDeviation, double.IsNaN(meanStd.StandardDeviation) ? 0 : meanStd.Mean + meanStd.StandardDeviation))
+            .ToList();
+
+
+        int averageStep = 21;
+        var chart = Chart.Combine(new[]
+        {
+            Chart.Range<double, double, string>(chimericResults.Select(p => p.RT).MovingAverageZeroFill(averageStep), chimericResults.Select(p => p.Mean).MovingAverageZeroFill(averageStep),
+                chimericResults.Select(p => p.Upper).MovingAverageZeroFill(averageStep), chimericResults.Select(p => p.Lower).MovingAverageZeroFill(averageStep),
+                StyleParam.Mode.Lines, LineWidth:4, RangeColor: Color.fromString("rgba(120, 0, 128, 0.6)"), LineColor: "Chimeric".ConvertConditionToColor(), 
+                LowerLine: Line.init(Color: Color.fromString("rgba(120, 0, 128, 0.4)"), Width: 2),
+                UpperLine:Line.init(Color: Color.fromString("rgba(120, 0, 128, 0.4)"), Width: 2)),
+            Chart.Range<double, double, string>(nonChimericResults.Select(p => p.RT).MovingAverageZeroFill(averageStep), nonChimericResults.Select(p => p.Mean).MovingAverageZeroFill(averageStep),
+                nonChimericResults.Select(p => p.Upper).MovingAverageZeroFill(averageStep), nonChimericResults.Select(p => p.Lower).MovingAverageZeroFill(averageStep),
+                StyleParam.Mode.Lines, LineWidth:4, RangeColor: Color.fromString("rgba(221, 160, 221, 0.6)"), LineColor: "Non-Chimeric".ConvertConditionToColor(),
+                LowerLine: Line.init(Color: Color.fromString("rgba(221, 160, 221, 0.4)"), Width: 2),
+                UpperLine:Line.init(Color: Color.fromString("rgba(221, 160, 221, 0.4)"), Width: 2)),
+        })
+            .WithTitle($"{cellLine.CellLine} Chronologer Delta Range")
+            .WithXAxisStyle(Title.init("Retention Time"))
+            .WithYAxisStyle(Title.init("Chronologer Prediction"))
+            .WithLayout(GenericPlots.DefaultLayoutWithLegend)
+            .WithSize(1200, 1000);
+
+        return chart;
+    }
+
+    public static void PlotChronologerDeltaPlotBoxAndWhisker(this CellLineResults cellLine)
+    {
+        cellLine.GetChronologerDeltaPlotBoxAndWhisker()
+            .SaveInCellLineOnly(cellLine, $"{FileIdentifiers.ChronologerDeltaBoxAndWhiskers}_{cellLine.CellLine}", 1200, 800);
+    }
+
+    internal static GenericChart.GenericChart GetChronologerDeltaPlotBoxAndWhisker(this CellLineResults cellLine)
+    {
+        var chronologerResults = cellLine.Results
+            .Where(p => false.FdrPlotSelector().Contains(p.Condition))
+            .OrderBy(p => ((MetaMorpheusResult)p).RetentionTimePredictionFile.First())
+            .Select(p => ((MetaMorpheusResult)p).RetentionTimePredictionFile)
+            .SelectMany(p => p.Where(m => m.ChronologerPrediction != 0 && m.PeptideModSeq != ""))
+            .ToList();
+
+        List<int> retentionTimes = new();
+        List<double> chimericYValues = new();
+        List<double> nonChimericYValues = new();
+
+        foreach (var result in chronologerResults)
+        {
+            retentionTimes.Add((int)result.RetentionTime.Round(-1));
+            if (result.IsChimeric)
+                chimericYValues.Add(result.ChronologerPrediction);
+            else
+                nonChimericYValues.Add(result.ChronologerPrediction);
+        }
+
+        var chart = Chart.Combine(new[]
+            {
+                Chart.BoxPlot<int, double, string>(retentionTimes, chimericYValues,
+                    "Chimeric", MarkerColor:"Chimeric".ConvertConditionToColor() ),
+                Chart.BoxPlot<int, double, string>(retentionTimes.Select(p => p+5).ToArray(), nonChimericYValues,
+                    "Non-Chimeric", MarkerColor: "Non-Chimeric".ConvertConditionToColor())
+            })
+            .WithTitle($"{cellLine.CellLine} Chronologer Predicted HI vs Retention Time (1% Peptides)")
+            .WithXAxisStyle(Title.init("Retention Time"))
+            .WithYAxisStyle(Title.init("Chronologer Prediction"))
+            .WithLayout(GenericPlots.DefaultLayoutWithLegend)
+            .WithSize(1200, 1000);
+        return chart;
+    }
+
+   
 
     #endregion
 
@@ -793,7 +884,7 @@ public static class CellLinePlots
 
 
     /// <summary>
-    /// Stacked column: Plots the type of chimeric identifications as a function of the degree of chimericity
+    /// Stacked column: Plots the resultType of chimeric identifications as a function of the degree of chimericity
     /// </summary>
     /// <param name="cellLine"></param>
     public static void PlotCellLineChimeraBreakdown(this CellLineResults cellLine)
@@ -842,7 +933,7 @@ public static class CellLinePlots
 
 
         IndividualResults:
-        // plot individual results for each IChimeraBreakdownCompatible file type
+        // plot individual results for each IChimeraBreakdownCompatible file resultType
         var compatibleResults = cellLine.Where(m => m is IChimeraBreakdownCompatible)
             .Cast<IChimeraBreakdownCompatible>().ToList();
         foreach (var file in compatibleResults)
@@ -881,4 +972,63 @@ public static class CellLinePlots
         }
     }
 
+
+    public static void PlotChimeraBreakdownByMassAndChargeBoxAndWhisker(this CellLineResults cellLine)
+    {
+        var (chargePlot, massPlot) = cellLine.GetChimeraBreakdownByMassAndCharge(ResultType.Psm);
+        chargePlot.SaveInCellLineOnly(cellLine, $"{FileIdentifiers.ChimeraBreakdownByChargeStateFigure}_{cellLine.CellLine}_{ResultType.Psm}", 600, 600);
+        massPlot.SaveInCellLineOnly(cellLine, $"{FileIdentifiers.ChimeraBreakdownByMassFigure}_{cellLine.CellLine}_{ResultType.Psm}", 600, 600);
+
+        (chargePlot, massPlot) = cellLine.GetChimeraBreakdownByMassAndCharge(ResultType.Peptide);
+        chargePlot.SaveInCellLineOnly(cellLine, $"{FileIdentifiers.ChimeraBreakdownByChargeStateFigure}_{cellLine.CellLine}_{ResultType.Peptide}", 600, 600);
+        massPlot.SaveInCellLineOnly(cellLine, $"{FileIdentifiers.ChimeraBreakdownByMassFigure}_{cellLine.CellLine}_{ResultType.Peptide}", 600, 600);
+    }
+
+    internal static (GenericChart.GenericChart Charge, GenericChart.GenericChart Mass) GetChimeraBreakdownByMassAndCharge(this CellLineResults cellLine, ResultType resultType = ResultType.Psm)
+    {
+        bool isTopDown = cellLine.First().IsTopDown;
+        var selector = isTopDown.ChimeraBreakdownSelector();
+        var smLabel = GenericPlots.SpectralMatchLabel(isTopDown);
+        var pepLabel = GenericPlots.ResultLabel(isTopDown);
+        var label = resultType == ResultType.Psm ? smLabel : pepLabel;
+
+        List<double> yValuesMass = new();
+        List<int> yValuesCharge = new();
+        List<int> xValues = new();
+        foreach (var result in cellLine.Where(p => p is IChimeraBreakdownCompatible && selector.Contains(p.Condition))
+                     .SelectMany(p => ((IChimeraBreakdownCompatible)p).ChimeraBreakdownFile.Results)
+                     .Where(p => p.Type == resultType))
+        {
+            if (resultType == ResultType.Psm)
+            {
+                yValuesMass.AddRange(result.PsmMasses);
+                yValuesCharge.AddRange(result.PsmCharges);
+                xValues.AddRange(Enumerable.Repeat(result.IdsPerSpectra, result.PsmMasses.Length));
+            }
+            else
+            {
+                yValuesMass.AddRange(result.PeptideMasses);
+                yValuesCharge.AddRange(result.PeptideCharges);
+                xValues.AddRange(Enumerable.Repeat(result.IdsPerSpectra, result.PeptideMasses.Length));
+            }
+        }
+
+        var chargePlot =
+            Chart.BoxPlot<int, int, string>(xValues, yValuesCharge)
+                .WithXAxisStyle(Title.init("Degree of Chimerism"))
+                .WithYAxisStyle(Title.init("Precursor Charge State"))
+                .WithTitle($"1% {label} Charge vs Degree of Chimerism");
+
+        var massPlot =
+            Chart.Violin<int, double, string>(xValues, yValuesMass,
+                MeanLine: MeanLine.init(true), ShowLegend: false)
+                .WithXAxisStyle(Title.init("Degree of Chimerism"))
+                .WithYAxisStyle(Title.init("Precursor Mass"))
+                .WithTitle($"1% {label} Mass vs Degree of Chimerism");
+
+        return (chargePlot, massPlot);
+    }
+
+
+    
 }

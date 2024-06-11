@@ -6,6 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 using CsvHelper;
 using CsvHelper.Configuration;
+using Easy.Common.Extensions;
 
 namespace Analyzer.Util.TypeConverters
 {
@@ -13,6 +14,8 @@ namespace Analyzer.Util.TypeConverters
     {
         public override object ConvertFromString(string text, IReaderRow row, MemberMapData memberMapData)
         {
+            if (text.IsNullOrEmpty())
+                return Array.Empty<double>();
             var splits = text.Split(';');
             var toReturn = splits.Where(p => p != "");
             return toReturn.Select(double.Parse).ToArray();
@@ -20,6 +23,8 @@ namespace Analyzer.Util.TypeConverters
 
         public override string ConvertToString(object value, IWriterRow row, MemberMapData memberMapData)
         {
+            if (value is null)
+                return "";
             var list = value as IEnumerable<double> ?? throw new MzLibUtil.MzLibException("Cannot convert input to IEnumerable<double>");
             return string.Join(';', list);
         }
@@ -28,6 +33,8 @@ namespace Analyzer.Util.TypeConverters
         {
             public override object ConvertFromString(string text, IReaderRow row, MemberMapData memberMapData)
             {
+                if (text.IsNullOrEmpty())
+                    return Array.Empty<int>();
                 var splits = text.Split(';');
                 var toReturn = splits.Where(p => p != "");
                 return toReturn.Select(int.Parse).ToArray();
@@ -35,6 +42,8 @@ namespace Analyzer.Util.TypeConverters
 
             public override string ConvertToString(object value, IWriterRow row, MemberMapData memberMapData)
             {
+                if (value is null)
+                    return "";
                 var list = value as IEnumerable<int> ?? throw new MzLibUtil.MzLibException("Cannot convert input to IEnumerable<double>");
                 return string.Join(';', list);
             }

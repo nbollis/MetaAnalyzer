@@ -647,15 +647,20 @@ namespace Analyzer.Plotting
                 Chart.Line<double, double, string>(data.Select(p => p.Item1), data.Select(p => p.Item2), Name: title,
                         LineColor: title.ConvertConditionToColor())
                     .WithSize(400, 400)
-                    .WithXAxisStyle(Title.init(xTitle), new FSharpOption<Tuple<IConvertible, IConvertible>>(new Tuple<IConvertible, IConvertible>(-15, 15)))
+                    .WithXAxisStyle(Title.init(xTitle)/*, new FSharpOption<Tuple<IConvertible, IConvertible>>(new Tuple<IConvertible, IConvertible>(-15, 15))*/)
                     .WithYAxisStyle(Title.init(yTitle))
                     .WithLayout(DefaultLayoutWithLegend);
             return chart;
         }
 
+        //internal static void GetBoxAndWhisker<T, U>(T[] xValues, U[] yValues, string title, string xlabel = "", string yLabel = "") where T : IConvertible where U : IConvertible
+        //{
+        //    Chart.BoxPlot<T, U, string>(xValues, yValues, title)
+        //        .WithXAxisStyle(Title.init(xlabel))
+        //        .WithYAxisStyle(Title.init(yLabel));
+        //}
 
 
-        
     }
 
 }

@@ -4,11 +4,13 @@ using System.Text.RegularExpressions;
 using Analyzer.FileTypes.Internal;
 using Analyzer.Interfaces;
 using Analyzer.Util;
+using Easy.Common.Extensions;
 using MassSpectrometry;
 using Proteomics.ProteolyticDigestion;
 using Proteomics.PSM;
 using Proteomics.RetentionTimePrediction;
 using Readers;
+using ThermoFisher.CommonCore.Data;
 
 namespace Analyzer.SearchType
 {
@@ -326,7 +328,14 @@ namespace Analyzer.SearchType
         public ChimeraBreakdownFile GetChimeraBreakdownFile()
         {
             if (!Override && File.Exists(_chimeraBreakDownPath))
-                return new ChimeraBreakdownFile(_chimeraBreakDownPath);
+            {
+                var breakdownFile = new ChimeraBreakdownFile(_chimeraBreakDownPath);
+                if (breakdownFile.Any(p => p.PsmCharges.IsNotNullOrEmpty()))
+                    return breakdownFile;
+                AppendChargesAndMassesToBreakdownFile(breakdownFile);
+                breakdownFile.WriteResults(_chimeraBreakDownPath);
+                return breakdownFile;
+            }
 
             bool useIsolation;
             List<ChimeraBreakdownRecord> chimeraBreakDownRecords = new();
@@ -364,7 +373,9 @@ namespace Analyzer.SearchType
                         Type = Util.ResultType.Psm,
                         IdsPerSpectra = chimeraGroup.Length,
                         TargetCount = chimeraGroup.Count(p => p.DecoyContamTarget == "T"),
-                        DecoyCount = chimeraGroup.Count(p => p.DecoyContamTarget == "D")
+                        DecoyCount = chimeraGroup.Count(p => p.DecoyContamTarget == "D"),
+                        PsmCharges = chimeraGroup.Select(p => p.PrecursorCharge).ToArray(),
+                        PsmMasses = chimeraGroup.Select(p => p.PrecursorMass).ToArray()
                     };
 
                     PsmFromTsv parent = null;
@@ -449,7 +460,9 @@ namespace Analyzer.SearchType
                         Type = Util.ResultType.Peptide,
                         IdsPerSpectra = chimeraGroup.Length,
                         TargetCount = chimeraGroup.Count(p => p.DecoyContamTarget == "T"),
-                        DecoyCount = chimeraGroup.Count(p => p.DecoyContamTarget == "D")
+                        DecoyCount = chimeraGroup.Count(p => p.DecoyContamTarget == "D"),
+                        PeptideCharges = chimeraGroup.Select(p => p.PrecursorCharge).ToArray(),
+                        PeptideMasses = chimeraGroup.Select(p => p.PrecursorMass).ToArray()
                     };
 
                     PsmFromTsv parent = null;
@@ -499,6 +512,42 @@ namespace Analyzer.SearchType
             var file = new ChimeraBreakdownFile(_chimeraBreakDownPath) { Results = chimeraBreakDownRecords };
             file.WriteResults(_chimeraBreakDownPath);
             return file;
+        }
+
+        private void AppendChargesAndMassesToBreakdownFile(ChimeraBreakdownFile file)
+        {
+            var psms = AllPsms.Where(p => p.PEP_QValue <= 0.01)
+                .GroupBy(p => p.FileNameWithoutExtension.Replace("-calib", "").Replace("-averaged", ""))
+                .ToDictionary(p => p.Key, p => p.ToArray());
+            var peptides = AllPeptides.Where(p => p.PEP_QValue <= 0.01)
+                .GroupBy(p => p.FileNameWithoutExtension.Replace("-calib", "").Replace("-averaged", ""))
+                .ToDictionary(p => p.Key, p => p.ToArray());
+            foreach (var fileSpecificRecords in file.GroupBy(p => p.FileName))
+            {
+                var fileSpecificPsms = psms[fileSpecificRecords.Key];
+                var fileSpecificPeptides = peptides[fileSpecificRecords.Key];
+                foreach (var record in fileSpecificRecords)
+                {
+                    switch (record.Type)
+                    {
+                        case Util.ResultType.Psm:
+                        {
+                            var psm = fileSpecificPsms.Where(p =>p.Ms2ScanNumber == record.Ms2ScanNumber).ToArray();
+                            record.PsmCharges = psm.Select(p => p.PrecursorCharge).ToArray();
+                            record.PsmMasses = psm.Select(p => p.PrecursorMass).ToArray();
+                            break;
+                        }
+                        case Util.ResultType.Peptide:
+                        {
+                            var peptide = fileSpecificPeptides.Where(p => p.Ms2ScanNumber == record.Ms2ScanNumber).ToArray();
+                            record.PeptideCharges = peptide.Select(p => p.PrecursorCharge).ToArray();
+                            record.PeptideMasses = peptide.Select(p => p.PrecursorMass).ToArray();
+                            break;
+                        }
+                    }
+
+                }
+            }
         }
 
         #region Retention Time Predictions

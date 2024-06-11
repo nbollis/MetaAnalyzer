@@ -41,14 +41,42 @@ namespace Analyzer.Util
         /// <param name="numbers"></param>
         /// <param name="windowSize"></param>
         /// <returns></returns>
-        public static List<double> CalculateRollingAverage(this List<double> numbers, int windowSize)
+        public static List<double> MovingAverage(this IEnumerable<double> numbers, int windowSize)
         {
             var result = new List<double>();
 
-            for (int i = 0; i < numbers.Count - windowSize + 1; i++)
+            for (int i = 0; i < numbers.Count() - windowSize + 1; i++)
             {
                 var window = numbers.Skip(i).Take(windowSize);
                 result.Add(window.Average());
+            }
+
+            return result;
+        }
+
+        /// <summary>
+        /// Calculates a moving average and skips zeros, then replaces teh zero value with the moving average of teh window around it
+        /// </summary>
+        /// <param name="numbers"></param>
+        /// <param name="windowSize"></param>
+        /// <returns></returns>
+        public static List<double> MovingAverageZeroFill(this IEnumerable<double> numbers, int windowSize)
+        {
+            var result = new List<double>();
+
+            var enumerable = numbers as double[] ?? numbers.ToArray();
+            for (int i = 0; i < enumerable.Count() - windowSize + 1; i++)
+            {
+                var window = enumerable.Skip(i).Take(windowSize).ToList();
+                if (window.Contains(0))
+                {
+                    var average = window.Where(p => p != 0).Average();
+                    result.Add(average);
+                }
+                else
+                {
+                    result.Add(window.Average());
+                }
             }
 
             return result;

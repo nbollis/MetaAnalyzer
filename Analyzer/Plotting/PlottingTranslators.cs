@@ -33,8 +33,8 @@ public static class PlottingTranslators
         {"Chimerys", Color.fromKeyword(ColorKeyword.Green) },
 
         // General
-        {"Chimeras", Color.fromKeyword(ColorKeyword.Purple) },
-        {"Chimeric", Color.fromKeyword(ColorKeyword.Purple) },
+        {"Chimeras", Color.fromKeyword(ColorKeyword.Purple) }, // (128,0,128)
+        {"Chimeric", Color.fromKeyword(ColorKeyword.Purple) }, //  	(221,160,221)
         {"No Chimeras", Color.fromKeyword(ColorKeyword.Plum) },
         {"Non-Chimeric", Color.fromKeyword(ColorKeyword.Plum) },
 

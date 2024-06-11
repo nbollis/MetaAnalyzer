@@ -343,8 +343,8 @@ public static class BulkResultPlots
         var noChimeras = results.Where(p => !p.IsChimeric).ToList();
         var chimeras = results.Where(p => p.IsChimeric).ToList();
 
-        var noChimerasKernel = GenericPlots.KernelDensityPlot(noChimeras.Select(p => p.DeltaChronologerHI).OrderBy(p => p).ToList(), "No Chimeras");
-        var chimerasKernel = GenericPlots.KernelDensityPlot(chimeras.Select(p => p.DeltaChronologerHI).OrderBy(p => p).ToList(), "Chimeras");
+        var noChimerasKernel = GenericPlots.KernelDensityPlot(noChimeras.Select(p => p.DeltaChronologerRT).OrderBy(p => p).ToList(), "No Chimeras");
+        var chimerasKernel = GenericPlots.KernelDensityPlot(chimeras.Select(p => p.DeltaChronologerRT).OrderBy(p => p).ToList(), "Chimeras");
 
         var chart = Chart.Combine(new[] { noChimerasKernel, chimerasKernel })
             .WithTitle("Chronologer Delta Kernel Density")
@@ -352,7 +352,7 @@ public static class BulkResultPlots
             .WithYAxisStyle(Title.init("Density"))
             .WithLayout(GenericPlots.DefaultLayoutWithLegend)
             .WithSize(1000, 600);
-        string outpath = Path.Combine(allResults.GetFigureDirectory(), $"AllResults_{FileIdentifiers.ChronologerDeltaDistributionFigure}_KernelDensity");
+        string outpath = Path.Combine(allResults.GetFigureDirectory(), $"AllResults_{FileIdentifiers.ChronologerDeltaKdeFigure}_KernelDensity_RT");
         chart.SavePNG(outpath, null, 1000, 600);
     }
 
@@ -368,7 +368,7 @@ public static class BulkResultPlots
             .WithSize(1000, 800)
             .WithLayout(GenericPlots.DefaultLayout)
             .WithLegend(false);
-        string outpath = Path.Combine(allResults.GetFigureDirectory(), $"AllResults_{FileIdentifiers.ChronologerDeltaDistributionFigure}_Grid");
+        string outpath = Path.Combine(allResults.GetFigureDirectory(), $"AllResults_{FileIdentifiers.ChronologerDeltaKdeFigure}_Grid_RT");
         chart.SavePNG(outpath, null, 1000, 1000);
     }
     

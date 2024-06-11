@@ -251,7 +251,9 @@ namespace Analyzer.SearchType
                         Type = Util.ResultType.Psm,
                         IdsPerSpectra = chimeraGroup.Length,
                         TargetCount = chimeraGroup.Count(p => !p.IsDecoy),
-                        DecoyCount = chimeraGroup.Count(p => p.IsDecoy)
+                        DecoyCount = chimeraGroup.Count(p => p.IsDecoy),
+                        PsmCharges = chimeraGroup.Select(p => p.Charge).ToArray(),
+                        PsmMasses = chimeraGroup.Select(p => p.MonoisotopicMass).ToArray()
                     };
 
                     MsPathFinderTResult? parent = null;
@@ -313,7 +315,9 @@ namespace Analyzer.SearchType
                         Type = Util.ResultType.Peptide,
                         IdsPerSpectra = chimeraGroup.Length,
                         TargetCount = chimeraGroup.Count(p => !p.IsDecoy),
-                        DecoyCount = chimeraGroup.Count(p => p.IsDecoy)
+                        DecoyCount = chimeraGroup.Count(p => p.IsDecoy),
+                        PeptideCharges = chimeraGroup.Select(p => p.Charge).ToArray(),
+                        PeptideMasses = chimeraGroup.Select(p => p.MonoisotopicMass).ToArray()
                     };
 
                     MsPathFinderTResult? parent = null;

@@ -156,25 +156,46 @@ namespace Test
         [Test]
         public static void OvernightRunner()
         {
+            //foreach (var cellLine in AllResults)
+            //{
+            //    foreach (var result in cellLine.Where(p => true.ChimeraBreakdownSelector().Contains(p.Condition)))
+            //    {
+            //        (result as MetaMorpheusResult)?.GetChimeraBreakdownFile();
+            //    }
+            //    // These require the masses and charges
+            //    //cellLine.PlotChimeraBreakdownByMassAndChargeBoxAndWhisker(ResultType.Psm);
+            //    //cellLine.PlotChimeraBreakdownByMassAndChargeBoxAndWhisker(ResultType.Peptide);
+            //    cellLine.Dispose();
+            //}
+
             foreach (var cellLine in BottomUpRunner.AllResults)
             {
-             
+                cellLine.PlotChronologerDeltaPlotBoxAndWhisker();
+                cellLine.PlotChronologerDeltaRangePlot();
+
+                foreach (var result in cellLine.Where(p => false.ChimeraBreakdownSelector().Contains(p.Condition)))
+                {
+                    (result as MetaMorpheusResult)?.GetChimeraBreakdownFile();
+                }
+                // These require the masses and charges
+                //cellLine.PlotChimeraBreakdownByMassAndChargeBoxAndWhisker(ResultType.Psm);
+                //cellLine.PlotChimeraBreakdownByMassAndChargeBoxAndWhisker(ResultType.Peptide);
+
+                
+                cellLine.GetMaximumChimeraEstimationFile();
                 //cellLine.Override = true;
-                //cellLine.GetMaximumChimeraEstimationFile();
                 //cellLine.GetMaximumChimeraEstimationFile(false);
-                cellLine.PlotAverageRetentionTimeShiftPlotKernelPdf(false);
-                cellLine.PlotAverageRetentionTimeShiftPlotHistogram(false);
-                cellLine.PlotAllRetentionTimeShiftPlots(false);
                 //cellLine.Override = false;
+                //cellLine.PlotAverageRetentionTimeShiftPlotKernelPdf(false);
+                //cellLine.PlotAverageRetentionTimeShiftPlotHistogram(false);
+                //cellLine.PlotAllRetentionTimeShiftPlots(false);
                 cellLine.Dispose();
             }
+            BottomUpRunner.AllResults.PlotBulkChronologerDeltaPlotKernalPDF();
+            BottomUpRunner.AllResults.PlotGridChronologerDeltaPlotKernalPDF();
 
 
-            //BottomUpRunner.PlotAllFigures();
-            //GenerateAllFigures();
-
-
-
+            
         }
     
 
