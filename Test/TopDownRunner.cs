@@ -46,13 +46,13 @@ namespace Test
                         pc.CountChimericPeptides();
                     if (result is MetaMorpheusResult mm)
                     {
-                        //mm.ExportPepFeaturesPlots();
-                        //mm.ExportCombinedChimeraTargetDecoyExploration(mm.FigureDirectory, mm.Condition);
+                        mm.ExportPepFeaturesPlots();
+                        mm.ExportCombinedChimeraTargetDecoyExploration(mm.FigureDirectory, mm.Condition);
                     }
                     result.Override = false;
                 }
 
-                //cellLine.Override = true;
+                cellLine.Override = true;
                 cellLine.GetIndividualFileComparison();
                 cellLine.GetBulkResultCountComparisonFile();
                 cellLine.CountChimericPsms();
@@ -67,27 +67,24 @@ namespace Test
                 cellLine.Dispose();
             }
 
-            //AllResults.Override = true;
+            AllResults.Override = true;
             AllResults.IndividualFileComparison();
             AllResults.GetBulkResultCountComparisonFile();
             AllResults.CountChimericPsms();
             AllResults.CountChimericPeptides();
-            AllResults.PlotBulkResultComparisons();
-            AllResults.PlotStackedIndividualFileComparison();
-            AllResults.PlotBulkResultChimeraBreakDown();
-            AllResults.PlotBulkResultChimeraBreakDown_TargetDecoy();
+
         }
 
         [Test]
         public static void GenerateAllFigures()
         {
-            foreach (CellLineResults cellLine in AllResults.SkipLast(1))
+            foreach (CellLineResults cellLine in AllResults)
             {
                 foreach (var individualResult in cellLine)
                 {
                     if (individualResult is not MetaMorpheusResult mm) continue;
-                    //mm.ExportPepFeaturesPlots();
-                    //mm.ExportCombinedChimeraTargetDecoyExploration(mm.FigureDirectory, mm.Condition);
+                    mm.ExportPepFeaturesPlots();
+                    mm.ExportCombinedChimeraTargetDecoyExploration(mm.FigureDirectory, mm.Condition);
                 }
 
                 cellLine.PlotIndividualFileResults();
@@ -106,28 +103,10 @@ namespace Test
         [Test]
         public static void GenerateSpecificFigures()
         {
-
-            AllResults.PlotBulkResultComparisons();
-            //foreach (CellLineResults cellLine in AllResults.Skip(1))
-            //{
-            //    //cellLine.PlotIndividualFileResults();
-            //    //cellLine.PlotCellLineSpectralSimilarity();
-            //    //cellLine.PlotCellLineChimeraBreakdown();
-            //    //cellLine.PlotCellLineChimeraBreakdown_TargetDecoy();
-            //    foreach (var individualResult in cellLine)
-            //    {
-            //        if (individualResult is not MetaMorpheusResult {Condition: "MetaMorpheus_NewPEP_NoNormNoMult"} mm ) continue;
-            //        mm.ExportPepFeaturesPlots();
-            //        mm.ExportCombinedChimeraTargetDecoyExploration(mm.FigureDirectory, mm.Condition);
-            //        mm.PlotTargetDecoyCurves();
-            //    }
-            //}
-
-            //AllResults.PlotInternalMMComparison();
-            //AllResults.PlotBulkResultComparisons();
-            //AllResults.PlotStackedIndividualFileComparison();
-            //AllResults.PlotBulkResultChimeraBreakDown();
-            //AllResults.PlotBulkResultChimeraBreakDown_TargetDecoy();
+            var a549 = BottomUpRunner.AllResults.First();
+            a549.PlotModificationDistribution(ResultType.Peptide);
+            //a549.PlotAccuracyByModificationType();
+            //a549.PlotChronologerDeltaKernelPDF();
         }
 
 
@@ -154,57 +133,57 @@ namespace Test
         [Test]
         public static void OvernightRunner()
         {
-            foreach (var cellLine in AllResults)
-            {
-                foreach (var result in cellLine.Where(p => true.ChimeraBreakdownSelector(cellLine.CellLine).Contains(p.Condition)))
-                {
-                    (result as MetaMorpheusResult)?.GetChimeraBreakdownFile();
-                }
-                // These require the masses and charges
-                cellLine.PlotChimeraBreakdownByMassAndCharge();
-                cellLine.Dispose();
-            }
-
+            BottomUpRunner.RunAllParsing();
+            TopDownRunner.RunAllParsing();
             foreach (var cellLine in BottomUpRunner.AllResults)
             {
-                cellLine.PlotChronologerDeltaPlotBoxAndWhisker();
-                cellLine.PlotChronologerDeltaRangePlot();
+                //cellLine.PlotAccuracyByModificationType();
+                //foreach (var result in cellLine)
+                //    if (result is IChimeraBreakdownCompatible cbc)
+                //        cbc?.GetChimeraBreakdownFile();
 
-                foreach (var result in cellLine.Where(p => false.ChimeraBreakdownSelector(cellLine.CellLine).Contains(p.Condition)))
-                {
-                    (result as MetaMorpheusResult)?.GetChimeraBreakdownFile();
-                }
-                // These require the masses and charges
-                cellLine.PlotChimeraBreakdownByMassAndCharge();
-
-
-                cellLine.GetMaximumChimeraEstimationFile();
-                //cellLine.Override = true;
-                //cellLine.GetMaximumChimeraEstimationFile(false);
-                //cellLine.Override = false;
-                //cellLine.PlotAverageRetentionTimeShiftPlotKernelPdf(false);
-                //cellLine.PlotAverageRetentionTimeShiftPlotHistogram(false);
-                //cellLine.PlotAllRetentionTimeShiftPlots(false);
-                cellLine.Dispose();
-            }
-            BottomUpRunner.AllResults.PlotBulkChronologerDeltaPlotKernalPDF();
-            BottomUpRunner.AllResults.PlotGridChronologerDeltaPlotKernalPDF();
-
-            foreach (var cellLine in AllResults)
-            {
-                foreach (var result in cellLine)
-                    if (result is IChimeraBreakdownCompatible cbc)
-                        cbc?.GetChimeraBreakdownFile();
-                cellLine.Dispose();
+                //cellLine.GetMaximumChimeraEstimationFile();
+                //cellLine.Dispose();
             }
 
-            foreach (var cellLine in BottomUpRunner.AllResults)
-            {
-                foreach (var result in cellLine)
-                    if (result is IChimeraBreakdownCompatible cbc)
-                        cbc?.GetChimeraBreakdownFile();
-                cellLine.Dispose();
-            }
+            //foreach (var cellLine in AllResults)
+            //{
+            //    foreach (var result in cellLine.Where(p => true.ChimeraBreakdownSelector(cellLine.CellLine).Contains(p.Condition)))
+            //    {
+            //        (result as MetaMorpheusResult)?.GetChimeraBreakdownFile();
+            //    }
+            //    // These require the masses and charges
+            //    //cellLine.PlotChimeraBreakdownByMassAndCharge();
+            //    cellLine.Dispose();
+            //}
+
+
+
+            //foreach (var cellLine in BottomUpRunner.AllResults)
+            //{
+            //    //cellLine.PlotChronologerDeltaPlotBoxAndWhisker();
+            //    //cellLine.PlotChronologerDeltaRangePlot();
+
+            //    foreach (var result in cellLine.Where(p => false.ChimeraBreakdownSelector(cellLine.CellLine).Contains(p.Condition)))
+            //    {
+            //        (result as MetaMorpheusResult)?.GetChimeraBreakdownFile();
+            //    }
+            //    // These require the masses and charges
+            //    cellLine.PlotChimeraBreakdownByMassAndCharge();
+
+
+            //    //cellLine.Override = true;
+            //    //cellLine.GetMaximumChimeraEstimationFile(false);
+            //    //cellLine.Override = false;
+            //    //cellLine.PlotAverageRetentionTimeShiftPlotKernelPdf(false);
+            //    //cellLine.PlotAverageRetentionTimeShiftPlotHistogram(false);
+            //    //cellLine.PlotAllRetentionTimeShiftPlots(false);
+            //    cellLine.Dispose();
+            //}
+            ////BottomUpRunner.AllResults.PlotBulkChronologerDeltaPlotKernalPDF();
+            ////BottomUpRunner.AllResults.PlotGridChronologerDeltaPlotKernalPDF();
+
+
         }
     
 

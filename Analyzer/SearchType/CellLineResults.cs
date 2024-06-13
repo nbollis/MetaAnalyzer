@@ -353,7 +353,7 @@ public class CellLineResults : IEnumerable<BulkResult>, IDisposable
                 rawFileDeconFile.Add((massSpecFile, deconFile));
             }
 
-            metaMorpheusCondition = "MetaMorpheusWithLibrary";
+            metaMorpheusCondition = false.FdrPlotSelector().First();
             otherCondition = "ReviewdDatabaseNoPhospho_MsFraggerDDA+";
         }
 

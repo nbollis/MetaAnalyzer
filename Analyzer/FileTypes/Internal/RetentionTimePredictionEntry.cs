@@ -1,7 +1,9 @@
-﻿using CsvHelper;
+﻿using System.Text.RegularExpressions;
+using CsvHelper;
 using CsvHelper.Configuration;
 using CsvHelper.Configuration.Attributes;
 using Readers;
+using TopDownProteomics;
 
 namespace Analyzer.FileTypes.Internal
 {
@@ -70,6 +72,23 @@ namespace Analyzer.FileTypes.Internal
 
         [Ignore] private double? _deltaSSRCalc;
         [Ignore] public double DeltaSSRCalc => _deltaSSRCalc ??= SSRCalcPrediction - RetentionTime;
+
+        [Ignore] private string[]? _modifications;
+
+        [Ignore]
+        public string[] Modifications
+        {
+            get
+            {
+                if (_modifications is not null) return _modifications;
+                var matches = Regex.Matches(PeptideModSeq, @"\[(.*?)\]");
+                _modifications = new string[matches.Count];
+                for (var i = 0; i < matches.Count; i++)
+                    _modifications[i] = matches[i].Groups[1].Value;
+                
+                return _modifications;
+            }
+        }
 
         public static double GetRetentionTimeFromMann11ChronologerPredictions(double prediction) => (prediction - 1.8) * 200 / 22.4;
 

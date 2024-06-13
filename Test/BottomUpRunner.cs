@@ -46,12 +46,15 @@ namespace Test
                     //result.Override = false;
                 }
 
+
+                cellLine.GetMaximumChimeraEstimationFile();
+                cellLine.GetChimeraBreakdownFile();
+
                 cellLine.Override = true;
                 cellLine.GetIndividualFileComparison();
                 cellLine.GetBulkResultCountComparisonFile();
                 cellLine.CountChimericPsms();
                 cellLine.CountChimericPeptides();
-                cellLine.GetChimeraBreakdownFile();
                 cellLine.Override = false;
                 cellLine.Dispose();
             }

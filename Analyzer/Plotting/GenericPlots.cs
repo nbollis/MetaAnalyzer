@@ -1,4 +1,6 @@
-﻿using Analyzer.FileTypes.Internal;
+﻿using System.Runtime.InteropServices.WindowsRuntime;
+using System.Text.RegularExpressions;
+using Analyzer.FileTypes.Internal;
 using Analyzer.Util;
 using Chart = Plotly.NET.CSharp.Chart;
 using Plotly.NET;
@@ -11,6 +13,9 @@ using MathNet.Numerics;
 using static Analyzer.Plotting.CellLinePlots;
 using MathNet.Numerics.Statistics;
 using Microsoft.FSharp.Core;
+using Omics.Modifications;
+using Omics.SpectrumMatch;
+using Readers;
 
 namespace Analyzer.Plotting
 {
@@ -653,12 +658,83 @@ namespace Analyzer.Plotting
             return chart;
         }
 
-        //internal static void GetBoxAndWhisker<T, U>(T[] xValues, U[] yValues, string title, string xlabel = "", string yLabel = "") where T : IConvertible where U : IConvertible
-        //{
-        //    Chart.BoxPlot<T, U, string>(xValues, yValues, title)
-        //        .WithXAxisStyle(Title.init(xlabel))
-        //        .WithYAxisStyle(Title.init(yLabel));
-        //}
+        internal static GenericChart.GenericChart Histogram2D<T>(List<T> xValues, List<double> yValues, string title,
+            string xTitle = "", string yTitle = "", bool normalizeColumns = false ) where T : IConvertible
+        {
+            var zValues = default(Plotly.NET.CSharp.Optional<IEnumerable<IEnumerable<double>>>);
+            if (normalizeColumns)
+            {
+                if (xValues.Count != yValues.Count)
+                    goto NoNorm;
+
+                // combine values and keys
+                var combined = new (T, double)[xValues.Count];
+                for (int i = 0; i < xValues.Count; i++)
+                    combined[i] = (xValues[i], yValues[i]);
+
+                // group by keys and adjust values to be a percentage of total in group
+                zValues = new Plotly.NET.CSharp.Optional<IEnumerable<IEnumerable<double>>>( combined.GroupBy(p => p.Item1)
+                    .Select(group =>
+                        group.Select(p => Math.Sign(p.Item2) * (Math.Abs(p.Item2) / group.Max(m => Math.Abs(m.Item2))))), true);
+                
+            }
+
+
+            NoNorm:
+            var chart = Chart.Histogram2DContour<T, double, double>(xValues, yValues, Z: zValues, YBins: Bins.init(null, null, 0.1) 
+                    /*HistNorm: StyleParam.HistNorm.Percent*//*, HistFunc: StyleParam.HistFunc.Avg*/)
+            //var chart = Chart.BoxPlot<T, double, string>(xValues, yValues, Name: title, MarkerColor: title.ConvertConditionToColor()
+                //BoxWidth: 4, MeanLine: MeanLine.init(true, title.ConvertConditionToColor()), Points: StyleParam.BoxPoints.False)
+                .WithSize(400, 400)
+                .WithTitle(title)
+                .WithXAxisStyle(Title.init(xTitle))
+                .WithYAxisStyle(Title.init(yTitle))
+                .WithLayout(DefaultLayoutWithLegend)
+                .WithSize(800, 800);
+            return chart;
+        }
+
+        internal static GenericChart.GenericChart ModificationDistribution(List<string> fullSequences, string title,
+            string xTitle = "", string yTitle = "", bool displayCarbamimidoMethyl = false, bool displayRelative = true)
+        {
+            var modDict = new Dictionary<string, double>();
+            foreach (var mod in fullSequences.SelectMany(p =>
+                         SpectrumMatchFromTsv.ParseModifications(p).SelectMany(m => m.Value)
+                             .Select(mod => mod.Split(":")[1])))
+            {
+                if (!modDict.TryAdd(mod, 1))
+                {
+                    modDict[mod]++;
+                }
+            }
+
+            if (!displayCarbamimidoMethyl)
+            {
+                modDict.Remove("Carbamidomethyl on C");
+                modDict.Remove("Carbamidomethyl on U");
+            }
+
+            if (displayRelative)
+            {
+                var modCount = modDict.Sum(p => p.Value);
+                foreach (var keyValuePair in modDict)
+                {
+                    modDict[keyValuePair.Key] = keyValuePair.Value / modCount * 100.0;
+                }
+            }
+
+            // remove anything where the mod is less than 1% of total modifications
+            modDict = modDict.Where(p => p.Value > 1)
+                .ToDictionary(p => p.Key, p => p.Value);
+
+            var chart = Chart.Column<double, string, string>(modDict.Values, modDict.Keys, title, MarkerColor: title.ConvertConditionToColor())
+                .WithSize(400, 400)
+                .WithTitle(title)
+                .WithXAxisStyle(Title.init(xTitle))
+                .WithYAxisStyle(Title.init(yTitle))
+                .WithLayout(DefaultLayout);
+            return chart;
+        }
 
 
     }

@@ -524,8 +524,11 @@ namespace Analyzer.SearchType
                 .ToDictionary(p => p.Key, p => p.ToArray());
             foreach (var fileSpecificRecords in file.GroupBy(p => p.FileName))
             {
-                var fileSpecificPsms = psms[fileSpecificRecords.Key];
-                var fileSpecificPeptides = peptides[fileSpecificRecords.Key];
+                if (!psms.TryGetValue(fileSpecificRecords.Key, out var fileSpecificPsms))
+                    continue;
+                if (!peptides.TryGetValue(fileSpecificRecords.Key, out var fileSpecificPeptides))
+                    continue;
+
                 foreach (var record in fileSpecificRecords)
                 {
                     switch (record.Type)

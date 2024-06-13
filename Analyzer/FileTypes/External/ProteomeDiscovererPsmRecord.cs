@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations.Schema;
+using System.Runtime.CompilerServices;
 using Analyzer.SearchType;
 using Analyzer.Util.TypeConverters;
 using Chemistry;
@@ -217,7 +218,7 @@ namespace Analyzer.FileTypes.External
         public override Software Software { get; set; }
 
         private List<ProteomeDiscovererPsmRecord>? _filteredResults;
-        public List<ProteomeDiscovererPsmRecord> FilteredResults => _filteredResults ??= Results.Where(p => p is { QValue: <= 0.01, NegativeLogEValue: >= 5 }).ToList();
+        public List<ProteomeDiscovererPsmRecord> FilteredResults => _filteredResults ??= Results.Where(p => p.QValue <= 0.01 && (p.NegativeLogEValue >= 5 || FilePath.Contains("Chimerys"))).ToList();
         public override void LoadResults()
         {
             using var csv = new CsvReader(new StreamReader(FilePath), ProteomeDiscovererPsmRecord.CsvConfiguration);
