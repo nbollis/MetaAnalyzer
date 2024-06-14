@@ -179,22 +179,22 @@ namespace Analyzer.Plotting.Util
         }
 
         // From Cell Line
-        public static string[] GetIndividualFileComparisonSelector(this DatasetResults results)
+        public static string[] GetIndividualFileComparisonSelector(this CellLineResults results)
         {
             return results.First().IsTopDown.GetIndividualFileComparisonSelector(results.CellLine);
         }
 
-        public static string[] GetInternalMetaMorpheusFileComparisonSelector(this DatasetResults results)
+        public static string[] GetInternalMetaMorpheusFileComparisonSelector(this CellLineResults results)
         {
             return results.First().IsTopDown.GetInternalMetaMorpheusFileComparisonSelector(results.CellLine);
         }
 
-        public static string[] GetBulkResultComparisonSelector(this DatasetResults results)
+        public static string[] GetBulkResultComparisonSelector(this CellLineResults results)
         {
             return results.First().IsTopDown.GetBulkResultComparisonSelector(results.CellLine);
         }
 
-        public static string[] GetSingleResultSelector(this DatasetResults results)
+        public static string[] GetSingleResultSelector(this CellLineResults results)
         {
             return results.First().IsTopDown.GetSingleResultSelector(results.CellLine);
         }

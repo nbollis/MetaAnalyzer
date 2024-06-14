@@ -12,7 +12,7 @@ namespace Analyzer.Plotting.AggregatePlots
     public static class DatasetAggregatePlots
     {
 
-        public static void PlotCellLineSpectralSimilarity(this DatasetResults cellLine)
+        public static void PlotCellLineSpectralSimilarity(this CellLineResults cellLine)
         {
 
             string outpath = Path.Combine(cellLine.GetChimeraPaperFigureDirectory(), $"{FileIdentifiers.SpectralAngleFigure}_{cellLine.CellLine}");
@@ -22,7 +22,7 @@ namespace Analyzer.Plotting.AggregatePlots
             cellLine.GetCellLineSpectralSimilarity().SavePNG(outpath);
         }
 
-        internal static GenericChart.GenericChart GetCellLineSpectralSimilarity(this DatasetResults cellLine)
+        internal static GenericChart.GenericChart GetCellLineSpectralSimilarity(this CellLineResults cellLine)
         {
             bool isTopDown = cellLine.First().IsTopDown;
             double[] chimeraAngles;
@@ -62,7 +62,7 @@ namespace Analyzer.Plotting.AggregatePlots
         /// </summary>
         /// <param name="cellLine"></param>
         /// <param name="absolute"></param>
-        public static void PlotCellLineChimeraBreakdown_TargetDecoy(this DatasetResults cellLine, bool absolute = false)
+        public static void PlotCellLineChimeraBreakdown_TargetDecoy(this CellLineResults cellLine, bool absolute = false)
         {
             bool isTopDown = cellLine.First().IsTopDown;
             var selector = isTopDown.GetSingleResultSelector(cellLine.CellLine);
@@ -99,7 +99,7 @@ namespace Analyzer.Plotting.AggregatePlots
         /// Stacked column: Plots the resultType of chimeric identifications as a function of the degree of chimericity
         /// </summary>
         /// <param name="cellLine"></param>
-        public static void PlotCellLineChimeraBreakdown(this DatasetResults cellLine)
+        public static void PlotCellLineChimeraBreakdown(this CellLineResults cellLine)
         {
             bool isTopDown = cellLine.First().IsTopDown;
             var selector = isTopDown.GetSingleResultSelector(cellLine.CellLine);

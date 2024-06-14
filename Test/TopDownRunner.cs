@@ -70,7 +70,7 @@ namespace Test
         [Test]
         public static void GenerateAllFigures()
         {
-            //foreach (DatasetResults cellLine in AllResults)
+            //foreach (CellLineResults cellLine in AllResults)
             //{
             //    foreach (var individualResult in cellLine)
             //    {
@@ -198,7 +198,7 @@ namespace Test
                 .ToList();
 
 
-            var cellLine = new DatasetResults(path, results);
+            var cellLine = new CellLineResults(path, results);
             cellLine.Override = true;
             cellLine.GetBulkResultCountComparisonFile();
             cellLine.GetIndividualFileComparison();

@@ -45,7 +45,7 @@ namespace Analyzer.Plotting.IndividualRunPlots
         /// Plots the output of SSRCalc3 and Chronologer vs the actual retention time
         /// </summary>
         /// <param name="cellLine"></param>
-        public static void PlotCellLineRetentionTimePredictions(this DatasetResults cellLine)
+        public static void PlotCellLineRetentionTimePredictions(this CellLineResults cellLine)
         {
             var plots = cellLine.GetCellLineRetentionTimePredictions();
             
@@ -55,7 +55,7 @@ namespace Analyzer.Plotting.IndividualRunPlots
             plots.SSRCalc3.SaveInCellLineOnly(cellLine, ssrCalcOutName, 1000, PlotlyBase.DefaultHeight);
         }
 
-        internal static (GenericChart.GenericChart Chronologer, GenericChart.GenericChart SSRCalc3) GetCellLineRetentionTimePredictions(this DatasetResults cellLine)
+        internal static (GenericChart.GenericChart Chronologer, GenericChart.GenericChart SSRCalc3) GetCellLineRetentionTimePredictions(this CellLineResults cellLine)
         {
             var individualFiles = cellLine.Results
                 .Where(p => false.GetSingleResultSelector(cellLine.CellLine).Contains(p.Condition))
@@ -160,13 +160,13 @@ namespace Analyzer.Plotting.IndividualRunPlots
         /// Plots the output of Chronologer vs the actual retention time converted to %Hydrophobic
         /// </summary>
         /// <param name="cellLine"></param>
-        public static void PlotChronologerVsPercentHi(this DatasetResults cellLine)
+        public static void PlotChronologerVsPercentHi(this CellLineResults cellLine)
         {
             cellLine.GetChronologerHIScatterPlot()
                 .SaveInCellLineOnly(cellLine, $"{FileIdentifiers.ChronologerFigureACN}_{cellLine.CellLine}", 1000, PlotlyBase.DefaultHeight);
         }
 
-        internal static GenericChart.GenericChart GetChronologerHIScatterPlot(this DatasetResults cellLine)
+        internal static GenericChart.GenericChart GetChronologerHIScatterPlot(this CellLineResults cellLine)
         {
             var individualFiles = cellLine.Results
                 .Where(p => false.GetSingleResultSelector(cellLine.CellLine).Contains(p.Condition))
@@ -225,14 +225,14 @@ namespace Analyzer.Plotting.IndividualRunPlots
         }
 
 
-        public static void PlotChronologerDeltaKernelPDF(this DatasetResults cellLine, Kernels kernel = Kernels.Gaussian)
+        public static void PlotChronologerDeltaKernelPDF(this CellLineResults cellLine, Kernels kernel = Kernels.Gaussian)
         {
             var chart = cellLine.GetChronologerDeltaPlotKernelPDF(kernel);
             //GenericChartExtensions.Show(chart);
             chart.SaveInCellLineOnly(cellLine, $"{FileIdentifiers.ChronologerDeltaKdeFigure}_{cellLine.CellLine}", 600, 600);
         }
 
-        internal static GenericChart.GenericChart GetChronologerDeltaPlotKernelPDF(this DatasetResults cellLine, Kernels kernel = Kernels.Gaussian)
+        internal static GenericChart.GenericChart GetChronologerDeltaPlotKernelPDF(this CellLineResults cellLine, Kernels kernel = Kernels.Gaussian)
         {
             var individualFiles = cellLine.Results
                 .Where(p => false.GetSingleResultSelector(cellLine.CellLine).Contains(p.Condition))
@@ -273,14 +273,14 @@ namespace Analyzer.Plotting.IndividualRunPlots
             return chart;
         }
 
-        public static void PlotChronologerDeltaRangePlot(this DatasetResults cellLine)
+        public static void PlotChronologerDeltaRangePlot(this CellLineResults cellLine)
         {
             var chart = cellLine.GetChronologerDeltaRangePlot();
             //GenericChartExtensions.Show(chart);
             chart.SaveInCellLineOnly(cellLine, $"{FileIdentifiers.ChronologerDeltaRange}_{cellLine.CellLine}", 1200, 800);
         }
 
-        internal static GenericChart.GenericChart GetChronologerDeltaRangePlot(this DatasetResults cellLine)
+        internal static GenericChart.GenericChart GetChronologerDeltaRangePlot(this CellLineResults cellLine)
         {
             // Nested dictionary where first is split on chimeric or not and second is split by RT rounded to 0.1 minute
             var chronologerResults = cellLine.Results
@@ -329,13 +329,13 @@ namespace Analyzer.Plotting.IndividualRunPlots
             return chart;
         }
 
-        public static void PlotChronologerDeltaPlotBoxAndWhisker(this DatasetResults cellLine)
+        public static void PlotChronologerDeltaPlotBoxAndWhisker(this CellLineResults cellLine)
         {
             cellLine.GetChronologerDeltaPlotBoxAndWhisker()
                 .SaveInCellLineOnly(cellLine, $"{FileIdentifiers.ChronologerDeltaBoxAndWhiskers}_{cellLine.CellLine}", 1200, 800);
         }
 
-        internal static GenericChart.GenericChart GetChronologerDeltaPlotBoxAndWhisker(this DatasetResults cellLine)
+        internal static GenericChart.GenericChart GetChronologerDeltaPlotBoxAndWhisker(this CellLineResults cellLine)
         {
             var chronologerResults = cellLine.Results
                 .Where(p => false.GetSingleResultSelector(cellLine.CellLine).Contains(p.Condition))
@@ -376,7 +376,7 @@ namespace Analyzer.Plotting.IndividualRunPlots
 
         #region Comparison with Feature Finding
 
-        public static void PlotAverageRetentionTimeShiftPlotKernelPdf(this DatasetResults cellLine, bool useRawFiles = true,
+        public static void PlotAverageRetentionTimeShiftPlotKernelPdf(this CellLineResults cellLine, bool useRawFiles = true,
         Kernels kernel = Kernels.Gaussian)
         {
             var file = useRawFiles ? cellLine.MaximumChimeraEstimationFile : cellLine.MaximumChimeraEstimationCalibAveragedFile;
@@ -554,7 +554,7 @@ namespace Analyzer.Plotting.IndividualRunPlots
             return kernelPlot;
         }
 
-        public static void PlotAverageRetentionTimeShiftPlotHistogram(this DatasetResults cellLine, bool useRawFiles = true)
+        public static void PlotAverageRetentionTimeShiftPlotHistogram(this CellLineResults cellLine, bool useRawFiles = true)
         {
             var file = useRawFiles ? cellLine.MaximumChimeraEstimationFile : cellLine.MaximumChimeraEstimationCalibAveragedFile;
             string suffix = useRawFiles ? "" : "_Hybrid";
@@ -731,7 +731,7 @@ namespace Analyzer.Plotting.IndividualRunPlots
         }
 
 
-        public static void PlotAllRetentionTimeShiftPlots(this DatasetResults cellLine, bool useRawFiles = true, Kernels kernel = Kernels.Gaussian)
+        public static void PlotAllRetentionTimeShiftPlots(this CellLineResults cellLine, bool useRawFiles = true, Kernels kernel = Kernels.Gaussian)
         {
             var file = useRawFiles ? cellLine.MaximumChimeraEstimationFile : cellLine.MaximumChimeraEstimationCalibAveragedFile;
             string suffix = useRawFiles ? "" : "_Hybrid";

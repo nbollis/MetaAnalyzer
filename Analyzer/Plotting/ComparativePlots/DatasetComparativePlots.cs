@@ -8,7 +8,7 @@ namespace Analyzer.Plotting.ComparativePlots
 {
     public static class DatasetComparativePlots
     {
-        public static void PlotIndividualFileResults(this DatasetResults cellLine, ResultType? resultType = null,
+        public static void PlotIndividualFileResults(this CellLineResults cellLine, ResultType? resultType = null,
             string? outputDirectory = null, bool filterByCondition = true)
         {
             bool isTopDown = cellLine.First().IsTopDown;
@@ -20,7 +20,7 @@ namespace Analyzer.Plotting.ComparativePlots
             chart.SaveInCellLineOnly(cellLine, outPath, width, height);
         }
 
-        public static GenericChart.GenericChart GetIndividualFileResultsBarChart(this DatasetResults cellLine, out int width,
+        public static GenericChart.GenericChart GetIndividualFileResultsBarChart(this CellLineResults cellLine, out int width,
             out int height, ResultType resultType = ResultType.Psm, bool filterByCondition = true)
         {
             bool isTopDown = cellLine.First().IsTopDown;

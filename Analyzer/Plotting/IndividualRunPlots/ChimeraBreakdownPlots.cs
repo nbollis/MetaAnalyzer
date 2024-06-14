@@ -339,7 +339,7 @@ namespace Analyzer.Plotting.IndividualRunPlots
             return chart;
         }
 
-        public static void PlotChimeraBreakdownByMassAndCharge(this DatasetResults cellLine)
+        public static void PlotChimeraBreakdownByMassAndCharge(this CellLineResults cellLine)
         {
             bool isTopDown = cellLine.First().IsTopDown;
             var selector = cellLine.GetSingleResultSelector();

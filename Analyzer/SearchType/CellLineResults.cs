@@ -15,7 +15,7 @@ using Ms1FeatureFile = Analyzer.FileTypes.External.Ms1FeatureFile;
 
 namespace Analyzer.SearchType;
 
-public class DatasetResults : IEnumerable<SingleRunResults>, IDisposable
+public class CellLineResults : IEnumerable<SingleRunResults>, IDisposable
 {
     public string DirectoryPath { get; set; }
     public bool Override { get; set; } = false;
@@ -30,7 +30,7 @@ public class DatasetResults : IEnumerable<SingleRunResults>, IDisposable
 
     public string FigureDirectory { get; }
 
-    public DatasetResults(string directoryPath)
+    public CellLineResults(string directoryPath)
     {
         DirectoryPath = directoryPath;
         SearchResultsDirectoryPath = Path.Combine(DirectoryPath, "SearchResults"); /*directoryPath*/;
@@ -97,7 +97,7 @@ public class DatasetResults : IEnumerable<SingleRunResults>, IDisposable
         }
     }
 
-    public DatasetResults(string directorypath, List<SingleRunResults> results)
+    public CellLineResults(string directorypath, List<SingleRunResults> results)
     {
         DirectoryPath = directorypath;
         SearchResultsDirectoryPath = Path.Combine(DirectoryPath);

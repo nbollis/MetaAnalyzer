@@ -15,7 +15,7 @@ namespace Test
         {
             get
             {
-                List<DatasetResults> differentRunResults = new();
+                List<CellLineResults> differentRunResults = new();
                 var searchResultsDir = Directory.GetDirectories(DirectoryPath).First(p => p.Contains("Search"));
                 foreach (var specificRunDirectory in Directory.GetDirectories(searchResultsDir))
                 {
@@ -27,7 +27,7 @@ namespace Test
 
                     var first = new MetaMorpheusResult(firstSearch);
                     var second = new MetaMorpheusResult(postGptmd);
-                    differentRunResults.Add(new DatasetResults(specificRunDirectory, new List<SingleRunResults>() { first, second }));
+                    differentRunResults.Add(new CellLineResults(specificRunDirectory, new List<SingleRunResults>() { first, second }));
                 }
 
                 var results = new AllResults(DirectoryPath, differentRunResults);

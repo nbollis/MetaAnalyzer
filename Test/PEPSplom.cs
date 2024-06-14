@@ -34,7 +34,7 @@ namespace Test
         {
             string dirPath = @"B:\Users\Nic\Chimeras\PEPTesting";
             string figPath = @"B:\Users\Nic\Chimeras\PEPTesting\Figures";
-            var cellLine = new DatasetResults(dirPath);
+            var cellLine = new CellLineResults(dirPath);
             foreach (MetaMorpheusResult result in cellLine)
             {
                 result.CountChimericPsms();
