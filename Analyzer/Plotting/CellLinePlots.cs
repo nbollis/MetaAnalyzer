@@ -33,7 +33,7 @@ public static class CellLinePlots
     {
         bool isTopDown = cellLine.First().IsTopDown;
         resultType ??= isTopDown ? ResultType.Psm : ResultType.Peptide;
-        outputDirectory ??= cellLine.GetFigureDirectory();
+        outputDirectory ??= cellLine.GetChimeraPaperFigureDirectory();
 
         string outPath = Path.Combine(outputDirectory, $"{FileIdentifiers.IndividualFileComparisonFigure}_{resultType}_{cellLine.CellLine}");
         var chart = cellLine.GetIndividualFileResultsBarChart(out int width, out int height, resultType.Value, filterByCondition);
@@ -119,12 +119,12 @@ public static class CellLinePlots
     public static void PlotCellLineRetentionTimePredictions(this CellLineResults cellLine)
     {
         var plots = cellLine.GetCellLineRetentionTimePredictions();
-        string outPath = Path.Combine(cellLine.GetFigureDirectory(), $"{FileIdentifiers.ChronologerFigure}_{cellLine.CellLine}");
+        string outPath = Path.Combine(cellLine.GetChimeraPaperFigureDirectory(), $"{FileIdentifiers.ChronologerFigure}_{cellLine.CellLine}");
         plots.Chronologer.SavePNG(outPath, null, 1000, GenericPlots.DefaultHeight);
         outPath = Path.Combine(cellLine.FigureDirectory, $"{FileIdentifiers.ChronologerFigure}_{cellLine.CellLine}");
         plots.Chronologer.SavePNG(outPath, null, 1000, GenericPlots.DefaultHeight);
 
-        outPath = Path.Combine(cellLine.GetFigureDirectory(), $"{FileIdentifiers.SSRCalcFigure}_{cellLine.CellLine}");
+        outPath = Path.Combine(cellLine.GetChimeraPaperFigureDirectory(), $"{FileIdentifiers.SSRCalcFigure}_{cellLine.CellLine}");
         plots.SSRCalc3.SavePNG(outPath, null, 1000, GenericPlots.DefaultHeight);
         outPath = Path.Combine(cellLine.FigureDirectory, $"{FileIdentifiers.SSRCalcFigure}_{cellLine.CellLine}");
         plots.SSRCalc3.SavePNG(outPath, null, 1000, GenericPlots.DefaultHeight);
@@ -1064,7 +1064,7 @@ public static class CellLinePlots
     public static void PlotCellLineSpectralSimilarity(this CellLineResults cellLine)
     {
 
-        string outpath = Path.Combine(cellLine.GetFigureDirectory(), $"{FileIdentifiers.SpectralAngleFigure}_{cellLine.CellLine}");
+        string outpath = Path.Combine(cellLine.GetChimeraPaperFigureDirectory(), $"{FileIdentifiers.SpectralAngleFigure}_{cellLine.CellLine}");
         var chart = cellLine.GetCellLineSpectralSimilarity();
         chart.SavePNG(outpath);
         outpath = Path.Combine(cellLine.FigureDirectory, $"{FileIdentifiers.SpectralAngleFigure}_{cellLine.CellLine}");
@@ -1129,14 +1129,14 @@ public static class CellLinePlots
 
         var psmChart =
             results.GetChimeraBreakDownStackedColumn_TargetDecoy(ResultType.Psm, cellLine.First().IsTopDown, absolute, out int width);
-        string psmOutPath = Path.Combine(cellLine.GetFigureDirectory(), smOutName);
+        string psmOutPath = Path.Combine(cellLine.GetChimeraPaperFigureDirectory(), smOutName);
         psmChart.SavePNG(psmOutPath, null, width, GenericPlots.DefaultHeight);
         psmOutPath = Path.Combine(cellLine.FigureDirectory, smOutName);
         psmChart.SavePNG(psmOutPath, null, width, GenericPlots.DefaultHeight);
 
         var peptideChart =
             results.GetChimeraBreakDownStackedColumn_TargetDecoy(ResultType.Peptide, cellLine.First().IsTopDown, absolute, out width);
-        string peptideOutPath = Path.Combine(cellLine.GetFigureDirectory(), pepOutName);
+        string peptideOutPath = Path.Combine(cellLine.GetChimeraPaperFigureDirectory(), pepOutName);
         peptideChart.SavePNG(peptideOutPath, null, width, GenericPlots.DefaultHeight);
         peptideOutPath = Path.Combine(cellLine.FigureDirectory, pepOutName);
         peptideChart.SavePNG(peptideOutPath, null, width, GenericPlots.DefaultHeight);
@@ -1167,30 +1167,30 @@ public static class CellLinePlots
             .SelectMany(p => ((IChimeraBreakdownCompatible)p).ChimeraBreakdownFile.Results).ToList();
 
         var psmChart = results.GetChimeraBreakDownStackedColumn(ResultType.Psm, cellLine.First().IsTopDown, out int width); 
-        string psmOutPath = Path.Combine(cellLine.GetFigureDirectory(), smOutName);
+        string psmOutPath = Path.Combine(cellLine.GetChimeraPaperFigureDirectory(), smOutName);
         psmChart.SavePNG(psmOutPath, null, width, GenericPlots.DefaultHeight);
 
         var stackedAreaPsmChart = results.GetChimeraBreakDownStackedArea(ResultType.Psm, cellLine.First().IsTopDown, out width);
-        string stackedAreaPsmOutPath = Path.Combine(cellLine.GetFigureDirectory(), smAreaOutName);
+        string stackedAreaPsmOutPath = Path.Combine(cellLine.GetChimeraPaperFigureDirectory(), smAreaOutName);
         stackedAreaPsmChart.SavePNG(stackedAreaPsmOutPath, null, width, GenericPlots.DefaultHeight);
 
         var statckedAreaPsmChartRelative = results.GetChimeraBreakDownStackedArea(ResultType.Psm, cellLine.First().IsTopDown, out width, true);
-        string stackedAreaPsmRelativeOutPath = Path.Combine(cellLine.GetFigureDirectory(), smAreaRelativeName);
+        string stackedAreaPsmRelativeOutPath = Path.Combine(cellLine.GetChimeraPaperFigureDirectory(), smAreaRelativeName);
         statckedAreaPsmChartRelative.SavePNG(stackedAreaPsmRelativeOutPath, null, width, GenericPlots.DefaultHeight);
 
         if (results.All(p => p.Type == ResultType.Psm))
             goto IndividualResults;
 
         var peptideChart = results.GetChimeraBreakDownStackedColumn(ResultType.Peptide, cellLine.First().IsTopDown, out width);
-        string peptideOutPath = Path.Combine(cellLine.GetFigureDirectory(), pepOutName);
+        string peptideOutPath = Path.Combine(cellLine.GetChimeraPaperFigureDirectory(), pepOutName);
         peptideChart.SavePNG(peptideOutPath, null, width, GenericPlots.DefaultHeight);
 
         var stackedAreaPeptideChart = results.GetChimeraBreakDownStackedArea(ResultType.Peptide, cellLine.First().IsTopDown, out width);
-        string stackedAreaPeptideOutPath = Path.Combine(cellLine.GetFigureDirectory(), pepAreaOutName);
+        string stackedAreaPeptideOutPath = Path.Combine(cellLine.GetChimeraPaperFigureDirectory(), pepAreaOutName);
         stackedAreaPeptideChart.SavePNG(stackedAreaPeptideOutPath, null, width, GenericPlots.DefaultHeight);
 
         var stackedAreaPeptideChartRelative = results.GetChimeraBreakDownStackedArea(ResultType.Peptide, cellLine.First().IsTopDown, out width, true);
-        string stackedAreaPeptideRelativeOutPath = Path.Combine(cellLine.GetFigureDirectory(), pepAreaRelativeName);
+        string stackedAreaPeptideRelativeOutPath = Path.Combine(cellLine.GetChimeraPaperFigureDirectory(), pepAreaRelativeName);
         stackedAreaPeptideChartRelative.SavePNG(stackedAreaPeptideRelativeOutPath, null, width, GenericPlots.DefaultHeight);
 
 

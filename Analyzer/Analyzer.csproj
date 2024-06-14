@@ -33,4 +33,10 @@
 	  </None>
 	</ItemGroup>
 
+	<ItemGroup>
+	  <Folder Include="Plotting\ComparativePlots\" />
+	  <Folder Include="Plotting\IndividualRunPlots\" />
+	  <Folder Include="Plotting\AggregatePlots\" />
+	</ItemGroup>
+
 </Project>

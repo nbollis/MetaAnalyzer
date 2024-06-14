@@ -524,7 +524,7 @@ namespace Analyzer.Plotting
         public static void ExportPepFeaturesPlots(this MetaMorpheusResult results, string? condition = null)
         {
             string pepForPercolatorPath = Directory.GetFiles(results.DirectoryPath, "*.tab", SearchOption.AllDirectories).First();
-            string exportPath = Path.Combine(results.GetFigureDirectory(),
+            string exportPath = Path.Combine(results.GetChimeraPaperFigureDirectory(),
                 $"{FileIdentifiers.PepGridChartFigure}_{results.DatasetName}_{condition ?? results.Condition}");
             var plot = new PepEvaluationPlot(pepForPercolatorPath);
             plot.Export(exportPath);
