@@ -13,8 +13,6 @@ namespace Analyzer.Util
     {
         public static string SpectralAngleFigure => "SpectralAngleComparison";
         public static string PepGridChartFigure => "PepFeatureAnalysis";
-        public static string ChimeraBreakdownByMassFigure => "ChimeraBreakdownByPrecursorMass";
-        public static string ChimeraBreakdownTargetDecoy => "ChimeraBreakdown_TargetDecoy";
         public static string TargetDecoyCurve => "TargetDecoyCurve";
     }
 }
@@ -133,6 +131,48 @@ namespace Analyzer.Plotting.IndividualRunPlots
             string pepForPercolatorPath = Directory.GetFiles(results.DirectoryPath, "*.tab", SearchOption.AllDirectories).First();
             var plot = new PepEvaluationPlot(pepForPercolatorPath).PepChart;
             return plot;
+        }
+
+        public static void PlotCellLineSpectralSimilarity(this CellLineResults cellLine)
+        {
+
+            string outpath = Path.Combine(cellLine.GetChimeraPaperFigureDirectory(), $"{FileIdentifiers.SpectralAngleFigure}_{cellLine.CellLine}");
+            var chart = cellLine.GetCellLineSpectralSimilarity();
+            chart.SavePNG(outpath);
+            outpath = Path.Combine(cellLine.FigureDirectory, $"{FileIdentifiers.SpectralAngleFigure}_{cellLine.CellLine}");
+            cellLine.GetCellLineSpectralSimilarity().SavePNG(outpath);
+        }
+
+        internal static GenericChart.GenericChart GetCellLineSpectralSimilarity(this CellLineResults cellLine)
+        {
+            bool isTopDown = cellLine.First().IsTopDown;
+            double[] chimeraAngles;
+            double[] nonChimeraAngles;
+            if (isTopDown)
+            {
+                var angles = cellLine.Results
+                    .Where(p => isTopDown.GetSingleResultSelector(cellLine.CellLine).Contains(p.Condition))
+                    .SelectMany(p => ((MetaMorpheusResult)p).AllPeptides.Where(m => m.SpectralAngle is not -1 or double.NaN))
+                    .GroupBy(p => p, CustomComparer<PsmFromTsv>.ChimeraComparer)
+                    .SelectMany(chimeraGroup =>
+                        chimeraGroup.Select(prsm => (prsm.SpectralAngle ?? -1, chimeraGroup.Count() > 1)))
+                    .ToList();
+                chimeraAngles = angles.Where(p => p.Item2).Select(p => p.Item1).ToArray();
+                nonChimeraAngles = angles.Where(p => !p.Item2).Select(p => p.Item1).ToArray();
+            }
+            else
+            {
+                var angles = cellLine.Results
+                    .Where(p => isTopDown.GetSingleResultSelector(cellLine.CellLine).Contains(p.Condition))
+                    .OrderBy(p => ((MetaMorpheusResult)p).RetentionTimePredictionFile.First())
+                    .Select(p => ((MetaMorpheusResult)p).RetentionTimePredictionFile)
+                    .SelectMany(p => p.Where(m => m.SpectralAngle is not -1 or double.NaN))
+                    .ToList();
+                chimeraAngles = angles.Where(p => p.IsChimeric).Select(p => p.SpectralAngle).ToArray();
+                nonChimeraAngles = angles.Where(p => !p.IsChimeric).Select(p => p.SpectralAngle).ToArray();
+            }
+
+            return GenericPlots.SpectralAngleChimeraComparisonViolinPlot(chimeraAngles, nonChimeraAngles, cellLine.CellLine, isTopDown);
         }
     }
 }

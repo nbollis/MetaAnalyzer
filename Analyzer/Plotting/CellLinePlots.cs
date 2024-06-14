@@ -50,7 +50,7 @@ public static class CellLinePlots
     {
         bool isTopDown = cellLine.First().IsTopDown;
         var fileResults = (filterByCondition ? cellLine.Select(p => p.IndividualFileComparisonFile)
-                    .Where(p => p != null && p.Any() && isTopDown.IndividualFileComparisonSelector(cellLine.CellLine).Contains(p.First().Condition))
+                    .Where(p => p != null && p.Any() && isTopDown.GetIndividualFileComparisonSelector(cellLine.CellLine).Contains(p.First().Condition))
                 : cellLine.Select(p => p.IndividualFileComparisonFile))
             .OrderBy(p => p.First().Condition.ConvertConditionName())
             .ToList();
@@ -65,7 +65,7 @@ public static class CellLinePlots
     {
         bool isTopDown = cellLine.First().IsTopDown;
         var fileResults = (filterByCondition ? cellLine.Select(p => p)
-                    .Where(p => isTopDown.FdrPlotSelector().Contains(p.Condition))
+                    .Where(p => isTopDown.GetSingleResultSelector(cellLine.CellLine).Contains(p.Condition))
                 : cellLine.Select(p => p))
             .OrderBy(p => p.Condition.ConvertConditionName())
             .ToList();
@@ -116,7 +116,7 @@ public static class CellLinePlots
 
     #endregion
 
-    #region Retention Time
+ 
 
     
 
@@ -137,7 +137,7 @@ public static class CellLinePlots
     internal static GenericChart.GenericChart GetAccuracyByModTypePlot(this CellLineResults cellLine)
     {
         var chronologerResults = cellLine.Results
-            .Where(p => false.FdrPlotSelector().Contains(p.Condition))
+            .Where(p => false.GetSingleResultSelector(cellLine.CellLine).Contains(p.Condition))
             .OrderBy(p => ((MetaMorpheusResult)p).RetentionTimePredictionFile.First())
             .Select(p => ((MetaMorpheusResult)p).RetentionTimePredictionFile)
             .SelectMany(p => p.Where(m => m.ChronologerPrediction != 0 && m.PeptideModSeq != ""))
@@ -187,7 +187,7 @@ public static class CellLinePlots
     internal static GenericChart.GenericChart GetAccuracyByModTypePlot_2(this CellLineResults cellLine)
     {
         var resultFiles = cellLine.Results
-            .Where(p => false.FdrPlotSelector().Contains(p.Condition))
+            .Where(p => false.GetSingleResultSelector(cellLine.CellLine).Contains(p.Condition))
             .OrderBy(p => ((MetaMorpheusResult)p).RetentionTimePredictionFile.First())
             .Select(p => (((MetaMorpheusResult)p).RetentionTimePredictionFile, cellLine.MaximumChimeraEstimationFile,
                 ((MetaMorpheusResult)p).ChimeraBreakdownFile))
@@ -337,53 +337,7 @@ public static class CellLinePlots
 
 
 
-    #endregion
-
-    #region Spectral Similarity
-
-    public static void PlotCellLineSpectralSimilarity(this CellLineResults cellLine)
-    {
-
-        string outpath = Path.Combine(cellLine.GetChimeraPaperFigureDirectory(), $"{FileIdentifiers.SpectralAngleFigure}_{cellLine.CellLine}");
-        var chart = cellLine.GetCellLineSpectralSimilarity();
-        chart.SavePNG(outpath);
-        outpath = Path.Combine(cellLine.FigureDirectory, $"{FileIdentifiers.SpectralAngleFigure}_{cellLine.CellLine}");
-        cellLine.GetCellLineSpectralSimilarity().SavePNG(outpath);
-    }
-
-    internal static GenericChart.GenericChart GetCellLineSpectralSimilarity(this CellLineResults cellLine)
-    {
-        bool isTopDown = cellLine.First().IsTopDown;
-        double[] chimeraAngles;
-        double[] nonChimeraAngles;
-        if (isTopDown)
-        {
-            var angles = cellLine.Results
-                .Where(p => isTopDown.FdrPlotSelector().Contains(p.Condition))
-                .SelectMany(p => ((MetaMorpheusResult)p).AllPeptides.Where(m => m.SpectralAngle is not -1 or double.NaN))
-                .GroupBy(p => p, CustomComparer<PsmFromTsv>.ChimeraComparer)
-                .SelectMany(chimeraGroup =>
-                    chimeraGroup.Select(prsm => (prsm.SpectralAngle ?? -1, chimeraGroup.Count() > 1)))
-                .ToList();
-            chimeraAngles = angles.Where(p => p.Item2).Select(p => p.Item1).ToArray();
-            nonChimeraAngles = angles.Where(p => !p.Item2).Select(p => p.Item1).ToArray();
-        }
-        else
-        {
-            var angles = cellLine.Results
-                .Where(p => isTopDown.FdrPlotSelector().Contains(p.Condition))
-                .OrderBy(p => ((MetaMorpheusResult)p).RetentionTimePredictionFile.First())
-                .Select(p => ((MetaMorpheusResult)p).RetentionTimePredictionFile)
-                .SelectMany(p => p.Where(m => m.SpectralAngle is not -1 or double.NaN))
-                .ToList();
-            chimeraAngles = angles.Where(p => p.IsChimeric).Select(p => p.SpectralAngle).ToArray();
-            nonChimeraAngles = angles.Where(p => !p.IsChimeric).Select(p => p.SpectralAngle).ToArray();
-        }
-
-        return GenericPlots.SpectralAngleChimeraComparisonViolinPlot(chimeraAngles, nonChimeraAngles, cellLine.CellLine, isTopDown);
-    }
-
-    #endregion
+   
 
     #region Target Decoy
 
@@ -395,7 +349,7 @@ public static class CellLinePlots
     public static void PlotCellLineChimeraBreakdown_TargetDecoy(this CellLineResults cellLine, bool absolute = false)
     {
         bool isTopDown = cellLine.First().IsTopDown;
-        var selector = isTopDown.ChimeraBreakdownSelector(cellLine.CellLine);
+        var selector = isTopDown.GetSingleResultSelector(cellLine.CellLine);
         var smLabel = Labels.GetSpectrumMatchLabel(isTopDown);
         var pepLabel = Labels.GetPeptideLabel(isTopDown);
         string smOutName = $"{FileIdentifiers.ChimeraBreakdownTargetDecoy}_{smLabel}_{cellLine.CellLine}";
@@ -432,7 +386,7 @@ public static class CellLinePlots
     public static void PlotCellLineChimeraBreakdown(this CellLineResults cellLine)
     {
         bool isTopDown = cellLine.First().IsTopDown;
-        var selector = isTopDown.ChimeraBreakdownSelector(cellLine.CellLine);
+        var selector = isTopDown.GetSingleResultSelector(cellLine.CellLine);
         var smLabel = Labels.GetSpectrumMatchLabel(isTopDown);
         var pepLabel = Labels.GetPeptideLabel(isTopDown);
         string smOutName = $"{FileIdentifiers.ChimeraBreakdownComparisonFigure}_{smLabel}_{cellLine.CellLine}";
@@ -515,59 +469,6 @@ public static class CellLinePlots
     }
 
 
-    public static void PlotChimeraBreakdownByMassAndCharge(this CellLineResults cellLine)
-    {
-        var (chargePlot, massPlot) = cellLine.GetChimeraBreakdownByMassAndCharge(ResultType.Psm);
-        chargePlot.SaveInCellLineOnly(cellLine, $"{FileIdentifiers.ChimeraBreakdownByChargeStateFigure}_{cellLine.CellLine}_{ResultType.Psm}", 600, 600);
-        massPlot.SaveInCellLineOnly(cellLine, $"{FileIdentifiers.ChimeraBreakdownByMassFigure}_{cellLine.CellLine}_{ResultType.Psm}", 600, 600);
-
-        (chargePlot, massPlot) = cellLine.GetChimeraBreakdownByMassAndCharge(ResultType.Peptide);
-        chargePlot.SaveInCellLineOnly(cellLine, $"{FileIdentifiers.ChimeraBreakdownByChargeStateFigure}_{cellLine.CellLine}_{ResultType.Peptide}", 600, 600);
-        massPlot.SaveInCellLineOnly(cellLine, $"{FileIdentifiers.ChimeraBreakdownByMassFigure}_{cellLine.CellLine}_{ResultType.Peptide}", 600, 600);
-    }
-
-    internal static (GenericChart.GenericChart Charge, GenericChart.GenericChart Mass) GetChimeraBreakdownByMassAndCharge(this CellLineResults cellLine, ResultType resultType = ResultType.Psm)
-    {
-        bool isTopDown = cellLine.First().IsTopDown;
-        var selector = isTopDown.ChimeraBreakdownSelector(cellLine.CellLine);
-        var smLabel = Labels.GetSpectrumMatchLabel(isTopDown);
-        var pepLabel = Labels.GetPeptideLabel(isTopDown);
-        var label = resultType == ResultType.Psm ? smLabel : pepLabel;
-
-        List<double> yValuesMass = new();
-        List<int> yValuesCharge = new();
-        List<int> xValues = new();
-        foreach (var result in cellLine.Where(p => p is IChimeraBreakdownCompatible && selector.Contains(p.Condition))
-                     .SelectMany(p => ((IChimeraBreakdownCompatible)p).ChimeraBreakdownFile.Results)
-                     .Where(p => p.Type == resultType))
-        {
-            if (resultType == ResultType.Psm)
-            {
-                yValuesMass.AddRange(result.PsmMasses);
-                yValuesCharge.AddRange(result.PsmCharges);
-                xValues.AddRange(Enumerable.Repeat(result.IdsPerSpectra, result.PsmMasses.Length));
-            }
-            else
-            {
-                yValuesMass.AddRange(result.PeptideMasses);
-                yValuesCharge.AddRange(result.PeptideCharges);
-                xValues.AddRange(Enumerable.Repeat(result.IdsPerSpectra, result.PeptideMasses.Length));
-            }
-        }
-
-        var chargePlot =
-            Chart.BoxPlot<int, int, string>(xValues, yValuesCharge)
-                .WithXAxisStyle(Title.init("Degree of Chimerism"))
-                .WithYAxisStyle(Title.init("Precursor Charge State"))
-                .WithTitle($"1% {label} Charge vs Degree of Chimerism");
-
-        var massPlot =
-            Chart.BoxPlot<int, double, string>(xValues, yValuesMass)
-                .WithXAxisStyle(Title.init("Degree of Chimerism"))
-                .WithYAxisStyle(Title.init("Precursor Mass"))
-                .WithTitle($"1% {label} Mass vs Degree of Chimerism");
-
-        return (chargePlot, massPlot);
-    }
+    
 
 }

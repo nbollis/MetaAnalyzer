@@ -66,7 +66,7 @@ namespace Analyzer.Plotting.IndividualRunPlots
         internal static (GenericChart.GenericChart Chronologer, GenericChart.GenericChart SSRCalc3) GetCellLineRetentionTimePredictions(this CellLineResults cellLine)
         {
             var individualFiles = cellLine.Results
-                .Where(p => false.FdrPlotSelector().Contains(p.Condition))
+                .Where(p => false.GetSingleResultSelector(cellLine.CellLine).Contains(p.Condition))
                 .OrderBy(p => ((MetaMorpheusResult)p).RetentionTimePredictionFile.First())
                 .Select(p => ((MetaMorpheusResult)p).RetentionTimePredictionFile)
                 .ToList();
@@ -174,7 +174,7 @@ namespace Analyzer.Plotting.IndividualRunPlots
         internal static GenericChart.GenericChart GetChronologerHIScatterPlot(this CellLineResults cellLine)
         {
             var individualFiles = cellLine.Results
-                .Where(p => false.FdrPlotSelector().Contains(p.Condition))
+                .Where(p => false.GetSingleResultSelector(cellLine.CellLine).Contains(p.Condition))
                 .OrderBy(p => ((MetaMorpheusResult)p).RetentionTimePredictionFile.First())
                 .Select(p => ((MetaMorpheusResult)p).RetentionTimePredictionFile)
                 .ToList();
@@ -240,7 +240,7 @@ namespace Analyzer.Plotting.IndividualRunPlots
         internal static GenericChart.GenericChart GetChronologerDeltaPlotKernelPDF(this CellLineResults cellLine, Kernels kernel = Kernels.Gaussian)
         {
             var individualFiles = cellLine.Results
-                .Where(p => false.FdrPlotSelector().Contains(p.Condition))
+                .Where(p => false.GetSingleResultSelector(cellLine.CellLine).Contains(p.Condition))
                 .OrderBy(p => ((MetaMorpheusResult)p).RetentionTimePredictionFile.First())
                 .Select(p => ((MetaMorpheusResult)p).RetentionTimePredictionFile)
                 .ToList();
@@ -289,7 +289,7 @@ namespace Analyzer.Plotting.IndividualRunPlots
         {
             // Nested dictionary where first is split on chimeric or not and second is split by RT rounded to 0.1 minute
             var chronologerResults = cellLine.Results
-                .Where(p => false.FdrPlotSelector().Contains(p.Condition))
+                .Where(p => false.GetSingleResultSelector(cellLine.CellLine).Contains(p.Condition))
                 .OrderBy(p => ((MetaMorpheusResult)p).RetentionTimePredictionFile.First())
                 .Select(p => ((MetaMorpheusResult)p).RetentionTimePredictionFile)
                 .SelectMany(p => p.Where(m => m.ChronologerPrediction != 0 && m.PeptideModSeq != ""))
@@ -343,7 +343,7 @@ namespace Analyzer.Plotting.IndividualRunPlots
         internal static GenericChart.GenericChart GetChronologerDeltaPlotBoxAndWhisker(this CellLineResults cellLine)
         {
             var chronologerResults = cellLine.Results
-                .Where(p => false.FdrPlotSelector().Contains(p.Condition))
+                .Where(p => false.GetSingleResultSelector(cellLine.CellLine).Contains(p.Condition))
                 .OrderBy(p => ((MetaMorpheusResult)p).RetentionTimePredictionFile.First())
                 .Select(p => ((MetaMorpheusResult)p).RetentionTimePredictionFile)
                 .SelectMany(p => p.Where(m => m.ChronologerPrediction != 0 && m.PeptideModSeq != ""))
