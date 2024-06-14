@@ -1,27 +1,9 @@
-﻿using System.Collections.Generic;
-using System.Dynamic;
-using System.Linq;
-using System.Security.Cryptography.X509Certificates;
-using Analyzer.FileTypes.Internal;
-using Analyzer.Interfaces;
-using Analyzer.Plotting.ComparativePlots;
-using Analyzer.Plotting.IndividualRunPlots;
+﻿using Analyzer.FileTypes.Internal;
 using Analyzer.Plotting.Util;
 using Analyzer.SearchType;
 using Analyzer.Util;
-using CsvHelper.Expressions;
 using Easy.Common.Extensions;
-using MathNet.Numerics;
-using MathNet.Numerics.Statistics;
-using Microsoft.FSharp.Core;
 using Plotly.NET;
-using Plotly.NET.CSharp;
-using Plotly.NET.ImageExport;
-using Plotly.NET.LayoutObjects;
-using Plotly.NET.TraceObjects;
-using Proteomics.PSM;
-using Readers;
-using TopDownProteomics.IO.PsiMod;
 using Chart = Plotly.NET.CSharp.Chart;
 using GenericChartExtensions = Plotly.NET.CSharp.GenericChartExtensions;
 

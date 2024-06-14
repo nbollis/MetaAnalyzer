@@ -1,8 +1,4 @@
-﻿using Analyzer.SearchType;
-using Plotly.NET;
-using Plotly.NET.ImageExport;
-using Plotly.NET.LayoutObjects;
-using Plotly.NET.TraceObjects;
+﻿using Plotly.NET;
 
 namespace Analyzer.Plotting.Util;
 

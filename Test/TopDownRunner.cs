@@ -1,20 +1,10 @@
-﻿using System.Security.Cryptography;
-using Analyzer.FileTypes.Internal;
-using Analyzer.Interfaces;
-using Plotly.NET.ImageExport;
-using Readers;
-using Analyzer.Plotting;
+﻿using Analyzer.Interfaces;
+using Analyzer.Plotting.AggregatePlots;
 using Analyzer.Plotting.ComparativePlots;
 using Analyzer.Plotting.IndividualRunPlots;
 using Analyzer.SearchType;
 using Analyzer.Util;
-using NUnit.Framework.Constraints;
-using NUnit.Framework.Internal.Commands;
-using Plotly.NET;
-using Plotly.NET.LayoutObjects;
-using Proteomics.PSM;
 using UsefulProteomicsDatabases;
-using Chart = Plotly.NET.CSharp.Chart;
 
 namespace Test
 {

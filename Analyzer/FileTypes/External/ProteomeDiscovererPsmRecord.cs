@@ -1,5 +1,4 @@
 ﻿using System.ComponentModel.DataAnnotations.Schema;
-using System.Runtime.CompilerServices;
 using Analyzer.SearchType;
 using Analyzer.Util.TypeConverters;
 using Chemistry;
@@ -7,7 +6,6 @@ using CsvHelper;
 using CsvHelper.Configuration;
 using CsvHelper.Configuration.Attributes;
 using Readers;
-using static Analyzer.Util.TypeConverters.SemiColonDelimitedToDoubleArrayConverter;
 
 namespace Analyzer.FileTypes.External
 {

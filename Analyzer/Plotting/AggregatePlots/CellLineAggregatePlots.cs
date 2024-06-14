@@ -2,16 +2,9 @@
 using Analyzer.Plotting.Util;
 using Analyzer.SearchType;
 using Analyzer.Util;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Analyzer.Plotting.IndividualRunPlots;
 using Plotly.NET;
 using Plotly.NET.ImageExport;
-using Chart = Plotly.NET.CSharp.Chart;
-using GenericChartExtensions = Plotly.NET.CSharp.GenericChartExtensions;
 using Proteomics.PSM;
 
 namespace Analyzer.Plotting.AggregatePlots

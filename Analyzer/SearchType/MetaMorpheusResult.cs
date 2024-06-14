@@ -1,6 +1,4 @@
-﻿using System.IO;
-using System.Reflection.Metadata.Ecma335;
-using System.Text.RegularExpressions;
+﻿using System.Text.RegularExpressions;
 using Analyzer.FileTypes.Internal;
 using Analyzer.Interfaces;
 using Analyzer.Util;
@@ -10,7 +8,6 @@ using Proteomics.ProteolyticDigestion;
 using Proteomics.PSM;
 using Proteomics.RetentionTimePrediction;
 using Readers;
-using ThermoFisher.CommonCore.Data;
 
 namespace Analyzer.SearchType
 {

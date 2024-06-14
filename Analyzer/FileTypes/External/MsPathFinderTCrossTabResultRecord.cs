@@ -1,13 +1,11 @@
 ﻿using System.ComponentModel.DataAnnotations.Schema;
 using System.Globalization;
-using System.Reflection.Metadata.Ecma335;
 using Analyzer.Util.TypeConverters;
 using CsvHelper;
 using CsvHelper.Configuration;
 using CsvHelper.Configuration.Attributes;
 using Easy.Common.Extensions;
 using Readers;
-using ThermoFisher.CommonCore.Data;
 
 namespace Analyzer.FileTypes.External;
 

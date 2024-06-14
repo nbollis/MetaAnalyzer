@@ -1,15 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Analyzer.Plotting.Util;
+﻿using Analyzer.Plotting.Util;
 using Chart = Plotly.NET.CSharp.Chart;
 using Analyzer.SearchType;
 using Analyzer.Util;
 using MathNet.Numerics;
 using Plotly.NET;
-using Plotly.NET.ImageExport;
 using Plotly.NET.LayoutObjects;
 using MathNet.Numerics.Statistics;
 using Analyzer.FileTypes.Internal;

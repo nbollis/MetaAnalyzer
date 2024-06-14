@@ -3,14 +3,8 @@ using Analyzer.SearchType;
 using Analyzer.Util;
 using Plotly.NET.LayoutObjects;
 using Proteomics.PSM;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Plotly.NET;
 using Chart = Plotly.NET.CSharp.Chart;
-using GenericChartExtensions = Plotly.NET.CSharp.GenericChartExtensions;
 
 namespace Analyzer.Plotting.IndividualRunPlots
 {

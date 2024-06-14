@@ -1,5 +1,4 @@
 ﻿using System.Collections;
-using System.Diagnostics;
 using Analyzer.FileTypes.External;
 using Analyzer.FileTypes.Internal;
 using Analyzer.Interfaces;
@@ -7,7 +6,6 @@ using Analyzer.Util;
 using Easy.Common.Extensions;
 using MassSpectrometry;
 using Readers;
-using ThermoFisher.CommonCore.Data.Business;
 
 namespace Analyzer.SearchType
 {

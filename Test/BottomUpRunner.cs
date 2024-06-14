@@ -1,12 +1,10 @@
-﻿using System.Data;
-using System.Text;
+﻿using System.Text;
 using Analyzer.Interfaces;
-using Analyzer.Plotting;
+using Analyzer.Plotting.AggregatePlots;
 using Analyzer.Plotting.ComparativePlots;
 using Analyzer.Plotting.IndividualRunPlots;
 using Analyzer.SearchType;
 using Analyzer.Util;
-using Proteomics;
 using Readers;
 using UsefulProteomicsDatabases;
 

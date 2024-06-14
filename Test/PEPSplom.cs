@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Analyzer.FileTypes.Internal;
+﻿using Analyzer.FileTypes.Internal;
 using Analyzer.Plotting;
 using Analyzer.Plotting.ComparativePlots;
 using Analyzer.Plotting.IndividualRunPlots;

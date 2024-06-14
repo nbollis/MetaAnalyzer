@@ -1,21 +1,11 @@
-﻿using System.Runtime.InteropServices.WindowsRuntime;
-using System.Text.RegularExpressions;
-using Analyzer.FileTypes.Internal;
+﻿using Analyzer.FileTypes.Internal;
 using Analyzer.Util;
 using Chart = Plotly.NET.CSharp.Chart;
 using Plotly.NET;
-using Plotly.NET.ImageExport;
-using Plotly.NET.LayoutObjects;
 using Plotly.NET.TraceObjects;
-using Proteomics.PSM;
-using Analyzer.SearchType;
 using MathNet.Numerics;
-using static Analyzer.Plotting.MiscPlots;
 using MathNet.Numerics.Statistics;
-using Microsoft.FSharp.Core;
-using Omics.Modifications;
 using Omics.SpectrumMatch;
-using Readers;
 using Analyzer.Plotting.Util;
 
 namespace Analyzer.Plotting

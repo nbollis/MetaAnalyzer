@@ -1,17 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Analyzer.FileTypes.Internal;
-using MathNet.Numerics;
-using pepXML.Generated;
+﻿using Analyzer.FileTypes.Internal;
 using Chart = Plotly.NET.CSharp.Chart;
 using Plotly.NET;
-using Plotly.NET.CSharp;
 using Plotly.NET.ImageExport;
-using Plotly.NET.LayoutObjects;
-using Plotly.NET.TraceObjects;
 using GenericChartExtensions = Plotly.NET.GenericChartExtensions;
 
 namespace Analyzer.Plotting

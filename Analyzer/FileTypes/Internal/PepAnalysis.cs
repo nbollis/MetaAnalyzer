@@ -1,14 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Analyzer.Util;
+﻿using Analyzer.Util;
 using CsvHelper;
 using CsvHelper.Configuration;
 using CsvHelper.Configuration.Attributes;
 using Readers;
-using ThermoFisher.CommonCore.Data.Business;
 
 namespace Analyzer.FileTypes.Internal
 {

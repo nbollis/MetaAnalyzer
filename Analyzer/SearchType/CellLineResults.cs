@@ -1,6 +1,5 @@
 ﻿using System.Collections;
 using System.Diagnostics;
-using System.Drawing;
 using Analyzer.FileTypes.External;
 using Analyzer.FileTypes.Internal;
 using Analyzer.Interfaces;
@@ -9,7 +8,6 @@ using Analyzer.Util;
 using Chemistry;
 using Easy.Common.Extensions;
 using MassSpectrometry;
-using pepXML.Generated;
 using Proteomics.PSM;
 using Readers;
 using Ms1Feature = Analyzer.FileTypes.External.Ms1Feature;

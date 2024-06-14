@@ -2,7 +2,6 @@
 using Analyzer.SearchType;
 using Analyzer.Util;
 using Plotly.NET;
-using Plotly.NET.ImageExport;
 using Proteomics.PSM;
 using Chart = Plotly.NET.CSharp.Chart;
 

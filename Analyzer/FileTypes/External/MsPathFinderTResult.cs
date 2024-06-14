@@ -1,5 +1,4 @@
-﻿using System.Diagnostics;
-using Analyzer.Util.TypeConverters;
+﻿using Analyzer.Util.TypeConverters;
 using Chemistry;
 using CsvHelper;
 using CsvHelper.Configuration;

@@ -1,7 +1,6 @@
 ﻿using Analyzer.FileTypes.Internal;
 using Analyzer.Interfaces;
 using Analyzer.Util;
-using CsvHelper;
 
 namespace Analyzer.SearchType
 {

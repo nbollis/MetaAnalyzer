@@ -1,6 +1,4 @@
-﻿using Analyzer.SearchType;
-using CsvHelper;
-using Plotly.NET;
+﻿using CsvHelper;
 using Proteomics.PSM;
 
 namespace Analyzer.Util

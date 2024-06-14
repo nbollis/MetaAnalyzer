@@ -3,7 +3,6 @@ using Analyzer.FileTypes.Internal;
 using Analyzer.Util;
 using MassSpectrometry;
 using Readers;
-using System.Linq;
 using Analyzer.Interfaces;
 using Chemistry;
 using Easy.Common.Extensions;

@@ -3,7 +3,6 @@ using CsvHelper;
 using CsvHelper.Configuration;
 using CsvHelper.Configuration.Attributes;
 using Readers;
-using TopDownProteomics;
 
 namespace Analyzer.FileTypes.Internal
 {
