@@ -67,6 +67,8 @@ public static class CellLinePlots
                 : cellLine.Select(p => p))
             .OrderBy(p => p.Condition.ConvertConditionName())
             .ToList();
+        string resultTypeLabel = isTopDown ? resultType == ResultType.Psm ? "PrSM" : "Proteoform" :
+            resultType == ResultType.Psm ? "PSM" : "Peptide";
 
         foreach (var bulkResult in fileResults.Where(p => p is MetaMorpheusResult))
         {
@@ -95,13 +97,18 @@ public static class CellLinePlots
 
             var chart = Chart.Combine(new[]
             {
-                GenericPlots.ModificationDistribution(nonChimeric, "Non-Chimeric", "Modification", "Count"),
-                GenericPlots.ModificationDistribution(chimeric, "Chimeric", "Modification", "Count"),
+                GenericPlots.ModificationDistribution(nonChimeric, "Non-Chimeric", "Modification", "Percent"),
+                GenericPlots.ModificationDistribution(chimeric, "Chimeric", "Modification", "Percent"),
             })
                 .WithTitle($"{cellLine.CellLine} 1% {resultType} Modification Distribution")
-                .WithSize(1000, 600)
+                .WithSize(1200, 800)
+                .WithXAxis(LinearAxis.init<string, string, string, string, string, string>(TickAngle:45))
                 .WithLayout(GenericPlots.DefaultLayout);
-            GenericChartExtensions.Show(chart);
+            var outName = $"{FileIdentifiers.ModificationDistributionFigure}_{resultTypeLabel}_{cellLine.CellLine}";
+            if (filterByCondition)
+                chart.SaveInCellLineAndMann11Directories(cellLine, outName, 800, 600);
+            else 
+                chart.SaveInCellLineOnly(cellLine, outName, 800, 600);
         }
     }
 

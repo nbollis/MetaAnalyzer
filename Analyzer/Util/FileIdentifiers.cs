@@ -26,7 +26,7 @@
         public static string ChimeraBreakdownByMassFigure => "ChimeraBreakdownByPrecursorMass";
         public static string ChimeraBreakdownTargetDecoy => "ChimeraBreakdown_TargetDecoy";
         public static string TargetDecoyCurve => "TargetDecoyCurve";
-
+        public static string ModificationDistributionFigure => "ModificationDistribution";
 
 
         public static string InternalChimeraComparison => "InternalChimeraComparison.csv";

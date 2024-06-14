@@ -46,7 +46,8 @@ namespace Test
                     //result.Override = false;
                 }
 
-
+                cellLine.PlotModificationDistribution(ResultType.Psm, false);
+                cellLine.PlotModificationDistribution(ResultType.Peptide, false);
                 cellLine.GetMaximumChimeraEstimationFile();
                 cellLine.GetChimeraBreakdownFile();
 
