@@ -1,4 +1,5 @@
 ﻿using Analyzer.Interfaces;
+using Analyzer.Plotting.Util;
 using Analyzer.SearchType;
 using Analyzer.Util;
 using MathNet.Numerics;
@@ -110,9 +111,9 @@ public static class BulkResultPlots
         var peptideChart = GenericPlots.BulkResultBarChart(results, isTopDown, ResultType.Peptide);
         var proteinChart = GenericPlots.BulkResultBarChart(results, isTopDown, ResultType.Protein);
 
-        var psmPath = Path.Combine(outputDirectory, $"BulkResultComparison_{GenericPlots.Label(isTopDown, ResultType.Psm)}");
-        var peptidePath = Path.Combine(outputDirectory, $"BulkResultComparison_{GenericPlots.Label(isTopDown, ResultType.Peptide)}");
-        var proteinPath = Path.Combine(outputDirectory, $"BulkResultComparison_{GenericPlots.Label(isTopDown, ResultType.Protein)}");
+        var psmPath = Path.Combine(outputDirectory, $"BulkResultComparison_{GenericPlots.GetLabel(isTopDown, ResultType.Psm)}");
+        var peptidePath = Path.Combine(outputDirectory, $"BulkResultComparison_{GenericPlots.GetLabel(isTopDown, ResultType.Peptide)}");
+        var proteinPath = Path.Combine(outputDirectory, $"BulkResultComparison_{GenericPlots.GetLabel(isTopDown, ResultType.Protein)}");
 
         psmChart.SavePNG(psmPath);
         peptideChart.SavePNG(peptidePath);
@@ -364,7 +365,7 @@ public static class BulkResultPlots
                 allResults.Select(p => p.GetChronologerDeltaPlotKernelPDF().WithYAxisStyle(Title.init(p.CellLine))),
                 4, 3,
                 Pattern: StyleParam.LayoutGridPattern.Independent, YGap: 0.2)
-            .WithTitle($"Chronologer Delta Kernel Density (1% {GenericPlots.ResultLabel(isTopDown)})")
+            .WithTitle($"Chronologer Delta Kernel Density (1% {GenericPlots.GetResultLabel(isTopDown)})")
             .WithSize(1000, 800)
             .WithLayout(GenericPlots.DefaultLayout)
             .WithLegend(false);
@@ -384,7 +385,7 @@ public static class BulkResultPlots
         var chart = Chart.Grid(
                 allResults.Select(p => p.GetCellLineSpectralSimilarity().WithYAxisStyle(Title.init(p.CellLine))),
                 4, 3, Pattern: StyleParam.LayoutGridPattern.Independent, YGap: 0.2)
-            .WithTitle($"Spectral Angle Distribution (1% {GenericPlots.ResultLabel(isTopDown)})")
+            .WithTitle($"Spectral Angle Distribution (1% {GenericPlots.GetResultLabel(isTopDown)})")
             .WithSize(1000, 800)
             .WithLayout(GenericPlots.DefaultLayout);
         string outpath = Path.Combine(allResults.GetChimeraPaperFigureDirectory(), $"AllResults_{FileIdentifiers.SpectralAngleFigure}_Stacked");
@@ -403,7 +404,7 @@ public static class BulkResultPlots
         double[] chimeraAngles = results.Where(p => p.IsChimeric).Select(p => p.SpectralAngle).ToArray();
         double[] nonChimeraAngles = results.Where(p => !p.IsChimeric).Select(p => p.SpectralAngle).ToArray();
         var violin = GenericPlots.SpectralAngleChimeraComparisonViolinPlot(chimeraAngles, nonChimeraAngles, "AllResults", isTopDown)
-            .WithTitle($"All Results Spectral Angle Distribution (1% {GenericPlots.ResultLabel(isTopDown)})")
+            .WithTitle($"All Results Spectral Angle Distribution (1% {GenericPlots.GetResultLabel(isTopDown)})")
             .WithYAxisStyle(Title.init("Spectral Angle"))
             .WithLayout(GenericPlots.DefaultLayout)
             .WithSize(1000, 600);

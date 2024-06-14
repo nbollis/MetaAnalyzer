@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Analyzer.Util;
 
-namespace Analyzer.Plotting
+namespace Analyzer.Plotting.Util
 {
     public static class Labels
     {

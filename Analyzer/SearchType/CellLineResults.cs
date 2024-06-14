@@ -4,7 +4,7 @@ using System.Drawing;
 using Analyzer.FileTypes.External;
 using Analyzer.FileTypes.Internal;
 using Analyzer.Interfaces;
-using Analyzer.Plotting;
+using Analyzer.Plotting.Util;
 using Analyzer.Util;
 using Chemistry;
 using Easy.Common.Extensions;

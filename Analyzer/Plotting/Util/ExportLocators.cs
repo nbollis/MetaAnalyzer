@@ -7,7 +7,7 @@ using Analyzer.SearchType;
 using Plotly.NET;
 using Plotly.NET.ImageExport;
 
-namespace Analyzer.Plotting
+namespace Analyzer.Plotting.Util
 {
     public static class ExportLocators
     {

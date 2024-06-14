@@ -4,7 +4,7 @@ using Plotly.NET.ImageExport;
 using Plotly.NET.LayoutObjects;
 using Plotly.NET.TraceObjects;
 
-namespace Analyzer.Plotting;
+namespace Analyzer.Plotting.Util;
 
 public static class PlottingTranslators
 {
@@ -52,15 +52,15 @@ public static class PlottingTranslators
         {"MetaMorpheus", Color.fromKeyword(ColorKeyword.Purple) }, // ecoli
         {"MetaMorpheusNoChimeras", Color.fromKeyword(ColorKeyword.Plum) }, // shared
         {"MetaMorpheus_Rep2_WithLibrary", Color.fromKeyword(ColorKeyword.MediumOrchid)}, // jurkat
-        {"MetaMorpheus_Rep2_WithLibrary_NewPEP_NoNorm", Color.fromKeyword(ColorKeyword.Purple)}, 
-        
+        {"MetaMorpheus_Rep2_WithLibrary_NewPEP_NoNorm", Color.fromKeyword(ColorKeyword.Purple)},
+
         {"MsPathFinderTWithModsNoChimeras", Color.fromKeyword(ColorKeyword.Moccasin)}, // ecoli
         {"MsPathFinderTWithMods_7", Color.fromKeyword(ColorKeyword.Gold)},
         {"MsPathFinderTWithMods_15", Color.fromKeyword(ColorKeyword.GoldenRod)},
         {"MsPathFinderTWithModsNoChimerasRep2", Color.fromKeyword(ColorKeyword.Moccasin)}, // jurkat
         {"MsPathFinderTWithMods_7Rep2", Color.fromKeyword(ColorKeyword.Gold)},
         {"MsPathFinderTWithMods_15Rep2", Color.fromKeyword(ColorKeyword.GoldenRod)},
-        
+
         {"ProsightPDNoChimeras", Color.fromKeyword(ColorKeyword.PaleVioletRed)}, // ecoli
         {"ProsightPDChimeras", Color.fromKeyword(ColorKeyword.IndianRed)},
         {"ProsightPDChimeras_7", Color.fromKeyword(ColorKeyword.Red)},
@@ -431,7 +431,7 @@ public static class PlottingTranslators
 
     public static Color ConvertConditionToColor(this string condition)
     {
-        if(ConditionToColorDictionary.TryGetValue(condition, out var color))
+        if (ConditionToColorDictionary.TryGetValue(condition, out var color))
             return color;
         else
         {
@@ -465,13 +465,13 @@ public static class PlottingTranslators
             {
                 return new[]
                 {
-                    "MetaMorpheusNoChimeras", 
+                    "MetaMorpheusNoChimeras",
                     "MetaMorpheus_Rep2_WithLibrary", // metamorpheus rep2 with library and old pep
                     "MetaMorpheus_Rep2_WithLibrary_NewPEP_NoNorm",
 
                     "MsPathFinderTWithModsNoChimerasRep2", "MsPathFinderTWithMods_7Rep2", "MsPathFinderTWithMods_15Rep2",
 
-                    "ProsightPDChimeras_Rep2", "ProsightPDNoChimeras_Rep2", 
+                    "ProsightPDChimeras_Rep2", "ProsightPDNoChimeras_Rep2",
                     "ProsightPdChimeras_Rep2_15_10ppm", "ProsightPDChimeras_Rep2_7_10ppm",
                 };
             }
@@ -489,7 +489,7 @@ public static class PlottingTranslators
                 };
             }
 
-            return new [] {
+            return new[] {
                 /*"MetaMorpheus",*/ "MetaMorpheusNoChimeras", // first searches ran
                 "MetaMorpheus_NewPEP_NoNorm", // ecoli ran with new pep
                 "MetaMorpheus_Rep2_WithLibrary", // metamorpheus rep2 with library and old pep
@@ -499,7 +499,7 @@ public static class PlottingTranslators
                 "MsPathFinderTWithModsNoChimerasRep2", "MsPathFinderTWithMods_7Rep2",
 
                 //"ProsightPDChimeras", "ProsightPDNoChimeras", 
-                "ProsightPDChimeras_Rep2", "ProsightPDNoChimeras_Rep2", 
+                "ProsightPDChimeras_Rep2", "ProsightPDNoChimeras_Rep2",
             };
         }
 
@@ -639,6 +639,5 @@ public static class PlottingTranslators
 
     #endregion
 
-    
 
 }

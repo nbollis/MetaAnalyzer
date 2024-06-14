@@ -4,6 +4,7 @@ using System.Linq;
 using System.Security.Cryptography.X509Certificates;
 using Analyzer.FileTypes.Internal;
 using Analyzer.Interfaces;
+using Analyzer.Plotting.Util;
 using Analyzer.SearchType;
 using Analyzer.Util;
 using CsvHelper.Expressions;
@@ -1116,8 +1117,8 @@ public static class CellLinePlots
     {
         bool isTopDown = cellLine.First().IsTopDown;
         var selector = isTopDown.ChimeraBreakdownSelector(cellLine.CellLine);
-        var smLabel = GenericPlots.SpectralMatchLabel(isTopDown);
-        var pepLabel = GenericPlots.ResultLabel(isTopDown);
+        var smLabel = GenericPlots.GetSpectralMatchLabel(isTopDown);
+        var pepLabel = GenericPlots.GetResultLabel(isTopDown);
         string smOutName = $"{FileIdentifiers.ChimeraBreakdownTargetDecoy}_{smLabel}_{cellLine.CellLine}";
         string pepOutName = $"{FileIdentifiers.ChimeraBreakdownTargetDecoy}_{pepLabel}_{cellLine.CellLine}";
 
@@ -1153,8 +1154,8 @@ public static class CellLinePlots
     {
         bool isTopDown = cellLine.First().IsTopDown;
         var selector = isTopDown.ChimeraBreakdownSelector(cellLine.CellLine);
-        var smLabel = GenericPlots.SpectralMatchLabel(isTopDown);
-        var pepLabel = GenericPlots.ResultLabel(isTopDown);
+        var smLabel = GenericPlots.GetSpectralMatchLabel(isTopDown);
+        var pepLabel = GenericPlots.GetResultLabel(isTopDown);
         string smOutName = $"{FileIdentifiers.ChimeraBreakdownComparisonFigure}_{smLabel}_{cellLine.CellLine}";
         string smAreaOutName = $"{FileIdentifiers.ChimeraBreakdownComparisonStackedAreaFigure}_{smLabel}_{cellLine.CellLine}";
         string smAreaRelativeName = $"{FileIdentifiers.ChimeraBreakdownComparisonStackedAreaPercentFigure}_{smLabel}_{cellLine.CellLine}";
@@ -1250,8 +1251,8 @@ public static class CellLinePlots
     {
         bool isTopDown = cellLine.First().IsTopDown;
         var selector = isTopDown.ChimeraBreakdownSelector(cellLine.CellLine);
-        var smLabel = GenericPlots.SpectralMatchLabel(isTopDown);
-        var pepLabel = GenericPlots.ResultLabel(isTopDown);
+        var smLabel = GenericPlots.GetSpectralMatchLabel(isTopDown);
+        var pepLabel = GenericPlots.GetResultLabel(isTopDown);
         var label = resultType == ResultType.Psm ? smLabel : pepLabel;
 
         List<double> yValuesMass = new();

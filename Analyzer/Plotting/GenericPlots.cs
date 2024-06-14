@@ -16,16 +16,11 @@ using Microsoft.FSharp.Core;
 using Omics.Modifications;
 using Omics.SpectrumMatch;
 using Readers;
+using Analyzer.Plotting.Util;
 
 namespace Analyzer.Plotting
 {
-    public enum TargetDecoyCurveMode
-    {
-        Score,
-        QValue,
-        PepQValue,
-        Pep,
-    }
+    
 
     public static class GenericPlots
     {
@@ -41,47 +36,11 @@ namespace Analyzer.Plotting
             };
         }
 
-        #region Labels
-
-        public static string SpectralMatchLabel(bool isTopDown) => isTopDown ? "PrSMs" : "PSMs";
-        public static string ResultLabel(bool isTopDown) => isTopDown ? "Proteoforms" : "Peptides";
-
-        public static string Label(bool isTopDown, ResultType resultType) => resultType switch
-        {
-            ResultType.Psm => SpectralMatchLabel(isTopDown),
-            ResultType.Peptide => ResultLabel(isTopDown),
-            ResultType.Protein => "Proteins",
-            _ => throw new ArgumentOutOfRangeException(nameof(resultType), resultType, null)
-        };
-
-        #endregion
+     
 
         #region Plotly Things
 
-        public static int DefaultHeight = 600;
-        public static Layout DefaultLayout => Layout.init<string>(PaperBGColor: Color.fromKeyword(ColorKeyword.White), PlotBGColor: Color.fromKeyword(ColorKeyword.White));
-
-        public static Layout DefaultLayoutWithLegend => Layout.init<string>(
-            //PaperBGColor: Color.fromARGB(0, 0,0,0),
-            //PlotBGColor: Color.fromARGB(0, 0, 0, 0),
-            PaperBGColor: Color.fromKeyword(ColorKeyword.White),
-            PlotBGColor: Color.fromKeyword(ColorKeyword.White),
-            ShowLegend: true,
-            Legend: Legend.init(X: 0.5, Y: -0.2, Orientation: StyleParam.Orientation.Horizontal, EntryWidth: 0,
-                VerticalAlign: StyleParam.VerticalAlign.Bottom,
-                XAnchor: StyleParam.XAnchorPosition.Center,
-                YAnchor: StyleParam.YAnchorPosition.Top
-            ));
-
-        public static Layout DefaultLayoutWithLegendTransparentBackground => Layout.init<string>(
-            PaperBGColor: Color.fromARGB(0, 0, 0, 0),
-            PlotBGColor: Color.fromARGB(0, 0, 0, 0),
-            ShowLegend: true,
-            Legend: Legend.init(X: 0.5, Y: -0.2, Orientation: StyleParam.Orientation.Horizontal, EntryWidth: 0,
-                VerticalAlign: StyleParam.VerticalAlign.Bottom,
-                XAnchor: StyleParam.XAnchorPosition.Center,
-                YAnchor: StyleParam.YAnchorPosition.Top
-            ));
+        
 
         #endregion
 
@@ -124,12 +83,12 @@ namespace Analyzer.Plotting
                     MarkerColor: result.First().Condition.ConvertConditionToColor())).ToList();
 
             width = 50 * labels.Count + 10 * results.Count;
-            height = DefaultHeight;
+            height = PlotlyBase.DefaultHeight;
             var chart = Chart.Combine(charts)
-                .WithTitle($"{title} 1% FDR {Label(isTopDown, resultType)}")
+                .WithTitle($"{title} 1% FDR {Labels.GetLabel(isTopDown, resultType)}")
                 .WithXAxisStyle(Title.init("File"))
                 .WithYAxisStyle(Title.init("Count"))
-                .WithLayout(DefaultLayoutWithLegend)
+                .WithLayout(PlotlyBase.DefaultLayoutWithLegend)
                 .WithSize(width, height);
             return chart;
         }
@@ -139,7 +98,7 @@ namespace Analyzer.Plotting
         {
             var chimeraLabels = Enumerable.Repeat("Chimeras", chimeraAngles.Length).ToArray();
             var nonChimeraLabels = Enumerable.Repeat("No Chimeras", nonChimeraAngles.Length).ToArray();
-            string resultType = ResultLabel(isTopDown);
+            string resultType = Labels.GetSpectrumMatchLabel(isTopDown);
             var violin = Chart.Combine(new[]
                 {
                     // chimeras
@@ -152,7 +111,7 @@ namespace Analyzer.Plotting
                 })
                 .WithTitle($"{identifier} Spectral Angle Distribution (1% {resultType})")
                 .WithYAxisStyle(Title.init("Spectral Angle"))
-                .WithLayout(DefaultLayout)
+                .WithLayout(PlotlyBase.DefaultLayout)
                 .WithSize(1000, 600);
             return violin;
         }
@@ -193,10 +152,10 @@ namespace Analyzer.Plotting
                     MarkerColor: condition.ConvertConditionToColor()));
             }
 
-            return Chart.Combine(charts).WithTitle($"1% FDR {Label(isTopDown, resultType)}")
+            return Chart.Combine(charts).WithTitle($"1% FDR {Labels.GetLabel(isTopDown, resultType)}")
                 .WithXAxisStyle(Title.init("Cell Line"))
                 .WithYAxisStyle(Title.init("Count"))
-                .WithLayout(DefaultLayoutWithLegend);
+                .WithLayout(PlotlyBase.DefaultLayoutWithLegend);
         }
 
 
@@ -255,12 +214,12 @@ namespace Analyzer.Plotting
                     MultiText: data.Select(p => p.Duplicates.ToString()).ToArray())).ToArray();
 
             var chart = Chart.Combine(charts)
-                .WithLayout(DefaultLayoutWithLegend)
+                .WithLayout(PlotlyBase.DefaultLayoutWithLegend)
                 .WithTitle($"{title2} {title} Identifications per Spectra")
                 .WithXAxisStyle(Title.init("IDs per Spectrum"))
                 .WithYAxis(LinearAxis.init<int, int, int, int, int, int>(AxisType: StyleParam.AxisType.Log))
                 .WithYAxisStyle(Title.init("Count"))
-                .WithSize(width, DefaultHeight);
+                .WithSize(width, PlotlyBase.DefaultHeight);
             return chart;
         }
 
@@ -319,11 +278,11 @@ namespace Analyzer.Plotting
                     MarkerColor: "Duplicates".ConvertConditionToColor(), MultiText: data.Select(p => p.Duplicates.ToString()).ToArray())).ToArray();
 
             var chart = Chart.Combine(charts)
-                .WithLayout(DefaultLayoutWithLegend)
+                .WithLayout(PlotlyBase.DefaultLayoutWithLegend)
                 .WithTitle($"{title2} {title} Identifications per Spectra \n{extraTitle ?? ""}")
                 .WithXAxisStyle(Title.init("IDs per Spectrum"))
                 .WithYAxisStyle(Title.init( asPercent ? "Percent" :"Count"))
-                .WithSize(width, DefaultHeight);
+                .WithSize(width, PlotlyBase.DefaultHeight);
             return chart;
         }
 
@@ -377,11 +336,11 @@ namespace Analyzer.Plotting
                     Chart.StackedColumn<double, int, string>(data.Select(p => p.Decoys), keys, $"Decoys",
                         MarkerColor: "Decoys".ConvertConditionToColor(), MultiText: data.Select(p => Math.Round(p.Decoys, 2).ToString()).ToArray()),
                 })
-                .WithLayout(DefaultLayoutWithLegend)
+                .WithLayout(PlotlyBase.DefaultLayoutWithLegend)
                 .WithTitle($"{title2} {title} Identifications per Spectra")
                 .WithXAxisStyle(Title.init("IDs per Spectrum"))
                 .WithYAxisStyle(Title.init("Percent"))
-                .WithSize(width, DefaultHeight);
+                .WithSize(width, PlotlyBase.DefaultHeight);
             return chart;
         }
 
@@ -535,97 +494,7 @@ namespace Analyzer.Plotting
         }
 
 
-        /// <summary>
-        /// Plots the target decoy curve(s) for the dataset, if result type or mode is left null, it will perform all
-        /// </summary>
-        /// <param name="results"></param>
-        /// <param name="resultType"></param>
-        /// <param name="mode"></param>
-        public static void PlotTargetDecoyCurves(this MetaMorpheusResult results,
-            ResultType? resultType = null, TargetDecoyCurveMode? mode = null)
-        {
-            List<(ResultType, TargetDecoyCurveMode)> plotsToRun = new List<(ResultType, TargetDecoyCurveMode)>();
-
-            
-            if (mode != null) // mode is selected
-            {
-                if (resultType != null)
-                    plotsToRun.Add((resultType.Value, mode.Value));
-                else
-                {
-                    plotsToRun.Add((ResultType.Psm, mode.Value));
-                    plotsToRun.Add((ResultType.Peptide, mode.Value));
-                }
-            }
-            else // mode is not selected
-            {
-                if (resultType != null)
-                    plotsToRun.AddRange(Enum.GetValues<TargetDecoyCurveMode>().Select(m => (resultType.Value, m)));
-                else
-                {
-                    plotsToRun.AddRange(Enum.GetValues<TargetDecoyCurveMode>().Select(m => (ResultType.Psm, m)));
-                    plotsToRun.AddRange(Enum.GetValues<TargetDecoyCurveMode>().Select(m => (ResultType.Peptide, m)));
-                }
-            }
-
-            foreach (var plotParams in plotsToRun)
-            {
-                var plot = results.CreateTargetDecoyCurve(plotParams.Item1, plotParams.Item2);
-                string outPath = Path.Combine(results.FigureDirectory,
-                                       $"{FileIdentifiers.TargetDecoyCurve}_{results.DatasetName}_{results.Condition}_{Label(results.IsTopDown, plotParams.Item1)}_{plotParams.Item2}");
-                plot.SavePNG(outPath, null, 600, 400);
-            }
-        }
-
-        internal static GenericChart.GenericChart CreateTargetDecoyCurve(this MetaMorpheusResult results, ResultType resultType, TargetDecoyCurveMode mode)
-        {
-            var allResults = resultType switch
-            {
-                ResultType.Psm => results.AllPsms,
-                ResultType.Peptide => results.AllPeptides,
-                _ => throw new ArgumentOutOfRangeException(nameof(resultType), resultType, null)
-            };
-
-            IEnumerable<IGrouping<double, PsmFromTsv>>? binnedResults;
-            switch (mode)
-            {
-                case TargetDecoyCurveMode.Score:
-                    binnedResults = allResults.GroupBy(p => Math.Floor(p.Score));
-                    break;
-                case TargetDecoyCurveMode.QValue: // from 0 to 1 in 100 bins
-                    binnedResults = allResults.GroupBy(p => Math.Floor(p.QValue * 100));
-                    break;
-                case TargetDecoyCurveMode.PepQValue: // from 0 to 1 in 100 bins
-                    binnedResults = allResults.GroupBy(p => Math.Floor(p.PEP_QValue * 100));
-                    break;
-                case TargetDecoyCurveMode.Pep: // from 0 to 1 in 100 bins
-                    binnedResults = allResults.GroupBy(p => Math.Floor(p.PEP * 100));
-                    break;
-                default:
-                    throw new ArgumentOutOfRangeException(nameof(mode), mode, null);
-            }
-            var resultDict = binnedResults.OrderBy(p => p.Key).ToDictionary(p => p.Key,
-                p => (p.Count(sm => sm.IsDecoy()), p.Count(sm => !sm.IsDecoy())));
-            var xValues = mode == TargetDecoyCurveMode.Score ? resultDict.Keys.ToArray() : resultDict.Keys.Select(p => p / 1000.0).ToArray();
-            var targetValues = mode == TargetDecoyCurveMode.Score 
-                ? resultDict.Values.Select(p => p.Item2).ToArray() 
-                : resultDict.Values.Select(p => p.Item2 / 100).ToArray();
-            var decoyValues = mode == TargetDecoyCurveMode.Score 
-                ? resultDict.Values.Select(p => p.Item1).ToArray() 
-                : resultDict.Values.Select(p => p.Item1 / 100).ToArray();
-
-            var targetDecoyChart = Chart.Combine(new[]
-                {
-                    Chart.Spline<double, int, string>(xValues, targetValues, Name: "Targets"),
-                    Chart.Spline<double, int, string>(xValues, decoyValues, Name: "Decoys"),
-                })
-                .WithTitle($"{results.DatasetName} {results.Condition} {Label(results.IsTopDown, resultType)} by {mode}")
-                .WithSize(600, 400)
-                .WithLayout(DefaultLayoutWithLegend);
-
-
-            return targetDecoyChart;
-        }
+        
 
 
         #endregion
@@ -654,7 +523,7 @@ namespace Analyzer.Plotting
                     .WithSize(400, 400)
                     .WithXAxisStyle(Title.init(xTitle)/*, new FSharpOption<Tuple<IConvertible, IConvertible>>(new Tuple<IConvertible, IConvertible>(-15, 15))*/)
                     .WithYAxisStyle(Title.init(yTitle))
-                    .WithLayout(DefaultLayoutWithLegend);
+                    .WithLayout(PlotlyBase.DefaultLayoutWithLegend);
             return chart;
         }
 
@@ -689,7 +558,7 @@ namespace Analyzer.Plotting
                 .WithTitle(title)
                 .WithXAxisStyle(Title.init(xTitle))
                 .WithYAxisStyle(Title.init(yTitle))
-                .WithLayout(DefaultLayoutWithLegend)
+                .WithLayout(PlotlyBase.DefaultLayoutWithLegend)
                 .WithSize(800, 800);
             return chart;
         }
@@ -732,7 +601,7 @@ namespace Analyzer.Plotting
                 .WithTitle(title)
                 .WithXAxisStyle(Title.init(xTitle))
                 .WithYAxisStyle(Title.init(yTitle))
-                .WithLayout(DefaultLayout);
+                .WithLayout(PlotlyBase.DefaultLayout);
             return chart;
         }
 
