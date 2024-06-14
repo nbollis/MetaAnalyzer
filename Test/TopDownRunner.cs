@@ -153,7 +153,7 @@ namespace Test
 
             //foreach (var cellLine in AllResults)
             //{
-            //    foreach (var result in cellLine.Where(p => true.ChimeraBreakdownSelector(cellLine.CellLine).Contains(p.Condition)))
+            //    foreach (var result in cellLine.Where(p => true.GetSingleResultSelector(cellLine.CellLine).Contains(p.Condition)))
             //    {
             //        (result as MetaMorpheusResult)?.GetChimeraBreakdownFile();
             //    }
@@ -169,7 +169,7 @@ namespace Test
             //    //cellLine.PlotChronologerDeltaPlotBoxAndWhisker();
             //    //cellLine.PlotChronologerDeltaRangePlot();
 
-            //    foreach (var result in cellLine.Where(p => false.ChimeraBreakdownSelector(cellLine.CellLine).Contains(p.Condition)))
+            //    foreach (var result in cellLine.Where(p => false.GetSingleResultSelector(cellLine.CellLine).Contains(p.Condition)))
             //    {
             //        (result as MetaMorpheusResult)?.GetChimeraBreakdownFile();
             //    }

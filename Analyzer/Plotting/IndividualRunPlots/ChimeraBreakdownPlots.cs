@@ -12,6 +12,7 @@ using System.Threading.Tasks;
 using Proteomics.PSM;
 using Analyzer.SearchType;
 using Plotly.NET.ImageExport;
+using Analyzer.Interfaces;
 
 
 namespace Analyzer.Util
@@ -23,6 +24,8 @@ namespace Analyzer.Util
         public static string ChimeraBreakdownComparisonStackedAreaFigure => "ChimeraBreakdownStackedArea_1%";
         public static string ChimeraBreakdownComparisonStackedAreaPercentFigure => "ChimeraBreakdownStackedAreaPercent_1%";
         public static string ChimeraBreakdownByChargeStateFigure => "ChimeraBreakdownByChargeState";
+        public static string ChimeraBreakdownByMassFigure => "ChimeraBreakdownByPrecursorMass";
+        public static string ChimeraBreakdownTargetDecoy => "ChimeraBreakdown_TargetDecoy";
     }
 }
 
@@ -344,5 +347,63 @@ namespace Analyzer.Plotting.IndividualRunPlots
             return chart;
         }
 
+
+        public static void PlotChimeraBreakdownByMassAndCharge(this CellLineResults cellLine)
+        {
+            bool isTopDown = cellLine.First().IsTopDown;
+            var selector = cellLine.GetSingleResultSelector();
+
+            var (chargePlot, massPlot) = cellLine.Where(p => p is IChimeraBreakdownCompatible && selector.Contains(p.Condition))
+                .SelectMany(p => ((IChimeraBreakdownCompatible)p).ChimeraBreakdownFile.Results)
+                .Where(p => p.Type == ResultType.Psm).ToList().GetChimeraBreakdownByMassAndCharge(ResultType.Psm, isTopDown);
+            chargePlot.SaveInCellLineOnly(cellLine, $"{FileIdentifiers.ChimeraBreakdownByChargeStateFigure}_{cellLine.CellLine}_{ResultType.Psm}", 600, 600);
+            massPlot.SaveInCellLineOnly(cellLine, $"{FileIdentifiers.ChimeraBreakdownByMassFigure}_{cellLine.CellLine}_{ResultType.Psm}", 600, 600);
+
+            (chargePlot, massPlot) = cellLine.Where(p => p is IChimeraBreakdownCompatible && selector.Contains(p.Condition))
+                .SelectMany(p => ((IChimeraBreakdownCompatible)p).ChimeraBreakdownFile.Results)
+                .Where(p => p.Type == ResultType.Peptide).ToList().GetChimeraBreakdownByMassAndCharge(ResultType.Peptide, isTopDown);
+            chargePlot.SaveInCellLineOnly(cellLine, $"{FileIdentifiers.ChimeraBreakdownByChargeStateFigure}_{cellLine.CellLine}_{ResultType.Peptide}", 600, 600);
+            massPlot.SaveInCellLineOnly(cellLine, $"{FileIdentifiers.ChimeraBreakdownByMassFigure}_{cellLine.CellLine}_{ResultType.Peptide}", 600, 600);
+        }
+
+        internal static (GenericChart.GenericChart Charge, GenericChart.GenericChart Mass) GetChimeraBreakdownByMassAndCharge(this List<ChimeraBreakdownRecord> results, ResultType resultType = ResultType.Psm, bool isTopDown = false)
+        {
+            var smLabel = Labels.GetSpectrumMatchLabel(isTopDown);
+            var pepLabel = Labels.GetPeptideLabel(isTopDown);
+            var label = resultType == ResultType.Psm ? smLabel : pepLabel;
+
+            List<double> yValuesMass = new();
+            List<int> yValuesCharge = new();
+            List<int> xValues = new();
+            foreach (var result in results)
+            {
+                if (resultType == ResultType.Psm)
+                {
+                    yValuesMass.AddRange(result.PsmMasses);
+                    yValuesCharge.AddRange(result.PsmCharges);
+                    xValues.AddRange(Enumerable.Repeat(result.IdsPerSpectra, result.PsmMasses.Length));
+                }
+                else
+                {
+                    yValuesMass.AddRange(result.PeptideMasses);
+                    yValuesCharge.AddRange(result.PeptideCharges);
+                    xValues.AddRange(Enumerable.Repeat(result.IdsPerSpectra, result.PeptideMasses.Length));
+                }
+            }
+
+            var chargePlot =
+                Chart.BoxPlot<int, int, string>(xValues, yValuesCharge)
+                    .WithXAxisStyle(Title.init("Degree of Chimerism"))
+                    .WithYAxisStyle(Title.init("Precursor Charge State"))
+                    .WithTitle($"1% {label} Charge vs Degree of Chimerism");
+
+            var massPlot =
+                Chart.BoxPlot<int, double, string>(xValues, yValuesMass)
+                    .WithXAxisStyle(Title.init("Degree of Chimerism"))
+                    .WithYAxisStyle(Title.init("Precursor Mass"))
+                    .WithTitle($"1% {label} Mass vs Degree of Chimerism");
+
+            return (chargePlot, massPlot);
+        }
     }
 }

@@ -40,7 +40,7 @@ public static class BulkResultPlots
     {
         bool isTopDown = allResults.First().First().IsTopDown;
         var results = allResults.SelectMany(p => p.BulkResultCountComparisonFile.Results)
-            .Where(p => isTopDown.InternalMMComparisonSelector(p.Condition).Contains(p.Condition))
+            .Where(p => isTopDown.GetInternalMetaMorpheusFileComparisonSelector(p.Condition).Contains(p.Condition))
             .ToList();
         var labels = results.Select(p => p.DatasetName).Distinct().ConvertConditionNames().ToList();
 
@@ -104,7 +104,7 @@ public static class BulkResultPlots
 
         var results = allResults.CellLineResults.SelectMany(p => p.BulkResultCountComparisonFile.Results)
             .Where(p => filterByCondition ?
-                isTopDown.BulkResultComparisonSelector(p.DatasetName).Contains(p.Condition) : p != null)
+                isTopDown.GetBulkResultComparisonSelector(p.DatasetName).Contains(p.Condition) : p != null)
             .OrderBy(p => p.Condition.ConvertConditionName())
             .ToList();
 
@@ -127,7 +127,7 @@ public static class BulkResultPlots
     /// <param name="allResults"></param>
     public static void PlotBulkResultChimeraBreakDown(this AllResults allResults)
     {
-        var selector = allResults.First().First().IsTopDown.ChimeraBreakdownSelector();
+        var selector = allResults.GetSingleResultSelector();
         bool isTopDown = allResults.First().First().IsTopDown;
         var smLabel = isTopDown ? "PrSM" : "PSM";
         var pepLabel = isTopDown ? "Proteoform" : "Peptide";
@@ -176,7 +176,7 @@ public static class BulkResultPlots
     public static void PlotBulkResultRetentionTimePredictions(this AllResults allResults)
     {
         var retentionTimePredictions = allResults.CellLineResults
-            .SelectMany(p => p.Where(p => false.FdrPlotSelector().Contains(p.Condition))
+            .SelectMany(p => p.Where(b => false.GetSingleResultSelector(p.CellLine).Contains(b.Condition))
                 .OrderBy(p => ((MetaMorpheusResult)p).RetentionTimePredictionFile.First())
                 .Select(p => ((MetaMorpheusResult)p).RetentionTimePredictionFile))
             .ToList();
@@ -260,7 +260,7 @@ public static class BulkResultPlots
     public static void PlotChronologerVsPercentHi(this AllResults allResults)
     {
         var results = allResults.SelectMany(p => p.Results
-                .Where(p => p is MetaMorpheusResult && false.FdrPlotSelector().Contains(p.Condition))
+                .Where(b => b is MetaMorpheusResult && false.GetSingleResultSelector(p.CellLine).Contains(b.Condition))
                 .SelectMany(p => ((MetaMorpheusResult)p).RetentionTimePredictionFile.Results.Where(m => m.ChronologerPrediction != 0 && m.PeptideModSeq != "")))
             .ToList();
         var chronologer = results
@@ -338,7 +338,7 @@ public static class BulkResultPlots
     public static void PlotBulkChronologerDeltaPlotKernalPDF(this AllResults allResults)
     {
         var results = allResults.SelectMany(p => p.Results
-                   .Where(p => p is MetaMorpheusResult && false.FdrPlotSelector().Contains(p.Condition))
+                   .Where(b => b is MetaMorpheusResult && false.GetSingleResultSelector(p.CellLine).Contains(b.Condition))
                    .SelectMany(p => ((MetaMorpheusResult)p).RetentionTimePredictionFile.Results.Where(m => m.ChronologerPrediction != 0 && m.PeptideModSeq != "")))
                    .ToList();
 
@@ -397,7 +397,7 @@ public static class BulkResultPlots
     {
         bool isTopDown = allResults.First().First().IsTopDown;
         var results = allResults.CellLineResults.SelectMany(n => n
-            .Where(p => isTopDown.FdrPlotSelector().Contains(p.Condition))
+            .Where(p => isTopDown.GetSingleResultSelector(n.CellLine).Contains(p.Condition))
             .OrderBy(p => ((MetaMorpheusResult)p).RetentionTimePredictionFile.First())
             .SelectMany(p => ((MetaMorpheusResult)p).RetentionTimePredictionFile.Results.Where(m => m.SpectralAngle is not -1 or double.NaN)))
             .ToList();
@@ -424,7 +424,7 @@ public static class BulkResultPlots
     /// <param name="allResults"></param>
     public static void PlotBulkResultChimeraBreakDown_TargetDecoy(this AllResults allResults)
     {
-        var selector = allResults.First().First().IsTopDown.ChimeraBreakdownSelector();
+        var selector = allResults.GetSingleResultSelector();
         bool isTopDown = allResults.First().First().IsTopDown;
         var smLabel = isTopDown ? "PrSM" : "PSM";
         var pepLabel = isTopDown ? "Proteoform" : "Peptide";
