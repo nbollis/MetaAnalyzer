@@ -100,7 +100,7 @@ namespace Test
                 foreach (var individualResult in cellLine)
                 {
                     //if (individualResult is not MetaMorpheusResult mm) continue;
-                    //mm.ExportPepFeaturesPlots();
+                    //mm.PlotPepFeaturesScatterGrid();
                     //mm.PlotTargetDecoyCurves();
                     //mm.ExportCombinedChimeraTargetDecoyExploration(mm.FigureDirectory, mm.Condition);
                 }

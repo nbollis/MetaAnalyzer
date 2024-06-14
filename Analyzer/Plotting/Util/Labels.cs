@@ -12,6 +12,7 @@ namespace Analyzer.Plotting.Util
         internal const string BottomUpSpectrumMatchLabel = "PSMs";
         internal const string TopDownSpectrumMatchLabel = "PrSMs";
         internal const string BottomUpPeptideLabel = "Peptides";
+        internal const string BottomUpPeptidoformLabel = "Peptidoform";
         internal const string TopDownProteoformLabel = "Proteoforms";
         internal const string ProteinLabel = "Proteins";
 
@@ -27,5 +28,8 @@ namespace Analyzer.Plotting.Util
         public static string GetSpectrumMatchLabel(bool isTopDown) => isTopDown ? TopDownSpectrumMatchLabel : BottomUpSpectrumMatchLabel;
 
         public static string GetPeptideLabel(bool isTopDown) => isTopDown ? TopDownProteoformLabel : BottomUpPeptideLabel;
+
+        public static string GetDifferentFormLabel(bool isTopDown) =>
+            isTopDown ? TopDownProteoformLabel : BottomUpPeptidoformLabel;
     }
 }

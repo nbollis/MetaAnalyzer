@@ -46,9 +46,9 @@ namespace Analyzer.Plotting.IndividualRunPlots
             foreach (var plotParams in plotsToRun)
             {
                 var plot = results.CreateTargetDecoyCurve(plotParams.Item1, plotParams.Item2);
-                string outPath = Path.Combine(results.FigureDirectory,
-                                       $"{FileIdentifiers.TargetDecoyCurve}_{results.DatasetName}_{results.Condition}_{Labels.GetLabel(results.IsTopDown, plotParams.Item1)}_{plotParams.Item2}");
-                plot.SavePNG(outPath, null, 600, 400);
+                var outName =
+                    $"{FileIdentifiers.TargetDecoyCurve}_{results.DatasetName}_{results.Condition}_{Labels.GetLabel(results.IsTopDown, plotParams.Item1)}_{plotParams.Item2}";
+                plot.SaveInRunResultOnly(results, outName, 600, 400);
             }
         }
 
@@ -100,6 +100,26 @@ namespace Analyzer.Plotting.IndividualRunPlots
 
 
             return targetDecoyChart;
+        }
+
+        /// <summary>
+        /// Exports a grid of scatter plots of the ratio of targets/total results for each PEP training feature
+        /// </summary>
+        /// <param name="results"></param>
+        /// <param name="condition"></param>
+        public static void PlotPepFeaturesScatterGrid(this MetaMorpheusResult results, string? condition = null)
+        {
+            string exportPath = $"{FileIdentifiers.PepGridChartFigure}_{results.DatasetName}_{condition ?? results.Condition}";
+            var plot = results.GetPepFeaturesScatterGrid(condition);
+            plot.SaveInRunResultOnly(results, exportPath, 800, 800);
+        }
+
+        internal static GenericChart.GenericChart GetPepFeaturesScatterGrid(this MetaMorpheusResult results,
+            string? condition = null)
+        {
+            string pepForPercolatorPath = Directory.GetFiles(results.DirectoryPath, "*.tab", SearchOption.AllDirectories).First();
+            var plot = new PepEvaluationPlot(pepForPercolatorPath).PepChart;
+            return plot;
         }
     }
 }

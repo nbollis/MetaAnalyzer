@@ -44,7 +44,7 @@ namespace Test
                 result.CountChimericPeptides();
                 result.GetBulkResultCountComparisonFile();
                 result.GetIndividualFileComparison();
-                //result.ExportPepFeaturesPlots();
+                //result.PlotPepFeaturesScatterGrid();
                 //result.ExportCombinedChimeraTargetDecoyExploration(figPath,
                 //    new KeyValuePair<string, string>(result.Condition, result.Condition));
 
@@ -95,7 +95,7 @@ namespace Test
             string figPath = @"B:\Users\Nic\Chimeras\PEPTesting\Figures\BUTDNormComparison";
             foreach (var result in results)
             {
-                result.Item1.ExportPepFeaturesPlots(result.Item2);
+                result.Item1.PlotPepFeaturesScatterGrid(result.Item2);
                 result.Item1.ExportCombinedChimeraTargetDecoyExploration(figPath, result.Item2);
             }
 

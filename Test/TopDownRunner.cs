@@ -46,7 +46,7 @@ namespace Test
                         pc.CountChimericPeptides();
                     if (result is MetaMorpheusResult mm)
                     {
-                        mm.ExportPepFeaturesPlots();
+                        mm.PlotPepFeaturesScatterGrid();
                         mm.ExportCombinedChimeraTargetDecoyExploration(mm.FigureDirectory, mm.Condition);
                     }
                     result.Override = false;
@@ -83,7 +83,7 @@ namespace Test
                 foreach (var individualResult in cellLine)
                 {
                     if (individualResult is not MetaMorpheusResult mm) continue;
-                    mm.ExportPepFeaturesPlots();
+                    mm.PlotPepFeaturesScatterGrid();
                     mm.ExportCombinedChimeraTargetDecoyExploration(mm.FigureDirectory, mm.Condition);
                 }
 
