@@ -3,7 +3,7 @@ using Analyzer.FileTypes.Internal;
 
 namespace Analyzer.SearchType
 {
-    internal class ChimerysResult : BulkResult
+    internal class ChimerysResult : SingleRunResults
     {
         private ProteomeDiscovererPsmFile _psmFile;
         private ProteomeDiscovererProteoformFile _peptideFile;

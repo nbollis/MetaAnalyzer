@@ -8,14 +8,14 @@ namespace Analyzer.Plotting.Util
     {
         #region Generic
 
-        public static void SaveInCellLineOnly(this GenericChart.GenericChart chart, CellLineResults cellLine,
+        public static void SaveInCellLineOnly(this GenericChart.GenericChart chart, DatasetResults cellLine,
             string exportName, int? width = null, int? height = null)
         {
             var cellLineDirectory = cellLine.FigureDirectory;
             chart.SavePNG(Path.Combine(cellLineDirectory, exportName), null, width, height);
         }
 
-        public static void SaveInRunResultOnly(this GenericChart.GenericChart chart, BulkResult runResult,
+        public static void SaveInRunResultOnly(this GenericChart.GenericChart chart, SingleRunResults runResult,
             string exportName, int? width = null, int? height = null)
         {
             var runResultDirectory = runResult.FigureDirectory;
@@ -26,14 +26,14 @@ namespace Analyzer.Plotting.Util
 
         #region ChimeraPaper
 
-        public static void SaveInMan11Only(this GenericChart.GenericChart chart, CellLineResults cellLine,
+        public static void SaveInMan11Only(this GenericChart.GenericChart chart, DatasetResults cellLine,
             string exportName, int? width = null, int? height = null)
         {
             var mann11Directory = cellLine.GetChimeraPaperFigureDirectory();
             chart.SavePNG(Path.Combine(mann11Directory, exportName), null, width, height);
         }
 
-        public static void SaveInCellLineAndMann11Directories(this GenericChart.GenericChart chart, CellLineResults cellLine, string exportName,
+        public static void SaveInCellLineAndMann11Directories(this GenericChart.GenericChart chart, DatasetResults cellLine, string exportName,
             int? width = null, int? height = null)
         {
             chart.SaveInCellLineOnly(cellLine, exportName, width, height);
@@ -48,7 +48,7 @@ namespace Analyzer.Plotting.Util
             return directory;
         }
 
-        public static string GetChimeraPaperFigureDirectory(this CellLineResults cellLine)
+        public static string GetChimeraPaperFigureDirectory(this DatasetResults cellLine)
         {
             string directory = cellLine.DirectoryPath.Contains("PEPTesting") ?
                 Path.Combine(cellLine.DirectoryPath, "Figures")

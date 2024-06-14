@@ -11,7 +11,7 @@ using Readers;
 
 namespace Analyzer.SearchType
 {
-    public class MetaMorpheusResult : BulkResult, IChimeraBreakdownCompatible, IChimeraPeptideCounter, IDisposable, IMultiFilterChecker
+    public class MetaMorpheusResult : SingleRunResults, IChimeraBreakdownCompatible, IChimeraPeptideCounter, IDisposable, IMultiFilterChecker
     {
         #region Results
 
@@ -32,7 +32,7 @@ namespace Analyzer.SearchType
         #endregion
 
         public override BulkResultCountComparisonFile BaseSeqIndividualFileComparisonFile => _baseSeqIndividualFileComparison ??= CountIndividualFilesForFengChaoComparison();
-        public string[] DataFilePaths { get; set; } // set by CellLineResults constructor
+        public string[] DataFilePaths { get; set; } // set by DatasetResults constructor
         public MetaMorpheusResult(string directoryPath) : base(directoryPath)
         {
             PsmPath = Directory.GetFiles(directoryPath, "*PSMs.psmtsv", SearchOption.AllDirectories).First();

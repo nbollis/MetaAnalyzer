@@ -19,7 +19,7 @@ namespace Test
         internal static AllResults? _allResults;
         internal static AllResults AllResults => _allResults ??= new AllResults(DirectoryPath, Directory.GetDirectories(DirectoryPath)
                    .Where(p => !p.Contains("Figures") && !p.Contains("Prosight") && RunOnAll || p.Contains("Hela"))
-                   .Select(datasetDirectory => new CellLineResults(datasetDirectory)).ToList());
+                   .Select(datasetDirectory => new DatasetResults(datasetDirectory)).ToList());
 
         [OneTimeSetUp]
         public static void OneTimeSetup() { Loaders.LoadElements(); }
@@ -27,7 +27,7 @@ namespace Test
         [Test]
         public static void RunAllParsing()
         {
-            foreach (CellLineResults cellLine in AllResults)
+            foreach (DatasetResults cellLine in AllResults)
             {
                 foreach (var result in cellLine)
                 {
@@ -74,7 +74,7 @@ namespace Test
         public static void PlotAllFigures()
         {
 
-            foreach (CellLineResults cellLine in AllResults)
+            foreach (DatasetResults cellLine in AllResults)
             {
                 cellLine.PlotIndividualFileResults(ResultType.Psm);
                 cellLine.PlotIndividualFileResults(ResultType.Peptide);
@@ -115,7 +115,7 @@ namespace Test
         {
             string cellLineString = "A549";
             //var cellLine = AllResults.First(p => p.CellLine == cellLineString);
-            var cellLine = new CellLineResults(Path.Combine(DirectoryPath, "A549"));
+            var cellLine = new DatasetResults(Path.Combine(DirectoryPath, "A549"));
             
             AllResults.PlotBulkChronologerDeltaPlotKernalPDF();
             //cellLine.PlotIndividualFileResults();

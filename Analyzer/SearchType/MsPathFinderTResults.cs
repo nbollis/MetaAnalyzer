@@ -9,7 +9,7 @@ using Readers;
 
 namespace Analyzer.SearchType
 {
-    public class MsPathFinderTResults : BulkResult, IEnumerable<MsPathFinderTIndividualFileResult>, 
+    public class MsPathFinderTResults : SingleRunResults, IEnumerable<MsPathFinderTIndividualFileResult>, 
         IChimeraBreakdownCompatible, IDisposable
     {
         private string _datasetInfoFilePath => Path.Combine(DirectoryPath, "DatasetInfoFile.tsv");

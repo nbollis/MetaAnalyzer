@@ -70,7 +70,7 @@ namespace Test
         [Test]
         public static void GenerateAllFigures()
         {
-            //foreach (CellLineResults cellLine in AllResults)
+            //foreach (DatasetResults cellLine in AllResults)
             //{
             //    foreach (var individualResult in cellLine)
             //    {
@@ -194,11 +194,11 @@ namespace Test
                     where !dirpath.Contains("Fig")
                     where dirpath.Contains("Ecoli")
                     select new MetaMorpheusResult(dirpath))
-                .Cast<BulkResult>()
+                .Cast<SingleRunResults>()
                 .ToList();
 
 
-            var cellLine = new CellLineResults(path, results);
+            var cellLine = new DatasetResults(path, results);
             cellLine.Override = true;
             cellLine.GetBulkResultCountComparisonFile();
             cellLine.GetIndividualFileComparison();

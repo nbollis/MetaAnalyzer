@@ -15,27 +15,27 @@ using Ms1FeatureFile = Analyzer.FileTypes.External.Ms1FeatureFile;
 
 namespace Analyzer.SearchType;
 
-public class CellLineResults : IEnumerable<BulkResult>, IDisposable
+public class DatasetResults : IEnumerable<SingleRunResults>, IDisposable
 {
     public string DirectoryPath { get; set; }
     public bool Override { get; set; } = false;
     public string SearchResultsDirectoryPath { get; set; }
     public string CellLine { get; set; }
-    public List<BulkResult> Results { get; set; }
+    public List<SingleRunResults> Results { get; set; }
 
-    public BulkResult this[int index] => Results[index];
+    public SingleRunResults this[int index] => Results[index];
     public string DatasetName { get; set; }
 
     private string[] _dataFilePaths;
 
     public string FigureDirectory { get; }
 
-    public CellLineResults(string directoryPath)
+    public DatasetResults(string directoryPath)
     {
         DirectoryPath = directoryPath;
         SearchResultsDirectoryPath = Path.Combine(DirectoryPath, "SearchResults"); /*directoryPath*/;
         CellLine = Path.GetFileName(DirectoryPath);
-        Results = new List<BulkResult>();
+        Results = new List<SingleRunResults>();
         FigureDirectory = Path.Combine(DirectoryPath, "Figures");
         if (!Directory.Exists(FigureDirectory))
             Directory.CreateDirectory(FigureDirectory);
@@ -97,7 +97,7 @@ public class CellLineResults : IEnumerable<BulkResult>, IDisposable
         }
     }
 
-    public CellLineResults(string directorypath, List<BulkResult> results)
+    public DatasetResults(string directorypath, List<SingleRunResults> results)
     {
         DirectoryPath = directorypath;
         SearchResultsDirectoryPath = Path.Combine(DirectoryPath);
@@ -573,7 +573,7 @@ public class CellLineResults : IEnumerable<BulkResult>, IDisposable
         sw.Dispose();
     }
 
-    public IEnumerator<BulkResult> GetEnumerator()
+    public IEnumerator<SingleRunResults> GetEnumerator()
     {
         return Results.GetEnumerator();
     }

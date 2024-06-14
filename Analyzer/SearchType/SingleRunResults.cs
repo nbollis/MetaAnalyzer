@@ -4,7 +4,7 @@ using Analyzer.Util;
 
 namespace Analyzer.SearchType
 {
-    public abstract class BulkResult : IChimeraPaperResults, IDisposable
+    public abstract class SingleRunResults : IChimeraPaperResults, IDisposable
     {
         public string DirectoryPath { get; set; }
         public string DatasetName { get; set; }
@@ -64,7 +64,7 @@ namespace Analyzer.SearchType
 
         #endregion
 
-        public BulkResult(string directoryPath)
+        public SingleRunResults(string directoryPath)
         {
             DirectoryPath = directoryPath;
             FigureDirectory = Path.Combine(DirectoryPath, "Figures");

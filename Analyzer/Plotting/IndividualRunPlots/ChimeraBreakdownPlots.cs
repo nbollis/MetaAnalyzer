@@ -344,7 +344,7 @@ namespace Analyzer.Plotting.IndividualRunPlots
 
         
 
-        public static void PlotChimeraBreakdownByMassAndCharge(this CellLineResults cellLine)
+        public static void PlotChimeraBreakdownByMassAndCharge(this DatasetResults cellLine)
         {
             bool isTopDown = cellLine.First().IsTopDown;
             var selector = cellLine.GetSingleResultSelector();

@@ -17,14 +17,14 @@ public static class MiscPlots
 
 
 
-    public static void PlotAccuracyByModificationType(this CellLineResults cellLine)
+    public static void PlotAccuracyByModificationType(this DatasetResults cellLine)
     {
         var plot = cellLine.GetAccuracyByModTypePlot_2();
         GenericChartExtensions.Show(plot);
         //plot.SaveInCellLineOnly(cellLine, $"{FileIdentifiers.AccuracyByModType}_{cellLine.CellLine}", 800, 800);
     }
 
-    internal static GenericChart.GenericChart GetAccuracyByModTypePlot(this CellLineResults cellLine)
+    internal static GenericChart.GenericChart GetAccuracyByModTypePlot(this DatasetResults cellLine)
     {
         var chronologerResults = cellLine.Results
             .Where(p => false.GetSingleResultSelector(cellLine.CellLine).Contains(p.Condition))
@@ -74,7 +74,7 @@ public static class MiscPlots
         return chronErrorPlot;
     }
 
-    internal static GenericChart.GenericChart GetAccuracyByModTypePlot_2(this CellLineResults cellLine)
+    internal static GenericChart.GenericChart GetAccuracyByModTypePlot_2(this DatasetResults cellLine)
     {
         var resultFiles = cellLine.Results
             .Where(p => false.GetSingleResultSelector(cellLine.CellLine).Contains(p.Condition))

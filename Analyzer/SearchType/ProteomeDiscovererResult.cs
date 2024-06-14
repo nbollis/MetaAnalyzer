@@ -9,7 +9,7 @@ using Easy.Common.Extensions;
 
 namespace Analyzer.SearchType
 {
-    public class ProteomeDiscovererResult : BulkResult, IChimeraBreakdownCompatible, IDisposable
+    public class ProteomeDiscovererResult : SingleRunResults, IChimeraBreakdownCompatible, IDisposable
     {
         private ProteomeDiscovererPsmFile _psmFile;
         private ProteomeDiscovererProteoformFile _peptideFile;

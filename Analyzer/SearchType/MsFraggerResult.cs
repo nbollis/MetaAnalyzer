@@ -5,7 +5,7 @@ using Analyzer.Util;
 
 namespace Analyzer.SearchType
 {
-    public class MsFraggerResult : BulkResult, IChimeraPaperResults
+    public class MsFraggerResult : SingleRunResults, IChimeraPaperResults
     {
         public List<MsFraggerIndividualFileResult> IndividualFileResults { get; set; }
 

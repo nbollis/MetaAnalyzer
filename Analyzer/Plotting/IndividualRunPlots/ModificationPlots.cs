@@ -10,7 +10,7 @@ namespace Analyzer.Plotting.IndividualRunPlots
 {
     public static class ModificationPlots
     {
-        public static void PlotModificationDistribution(this CellLineResults cellLine,
+        public static void PlotModificationDistribution(this DatasetResults cellLine,
             ResultType resultType = ResultType.Psm, bool filterByCondition = true)
         {
             bool isTopDown = cellLine.First().IsTopDown;

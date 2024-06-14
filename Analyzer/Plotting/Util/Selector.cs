@@ -110,16 +110,16 @@ namespace Analyzer.Plotting.Util
                 { (TopDownEcoliSelector.DatasetName, true), TopDownEcoliSelector },
                 { (BottomUpMann11Selector.DatasetName, false), BottomUpMann11Selector },
                 { ("A549", false), BottomUpMann11Selector },
-                { ("GAMG", false), TopDownJurkatSelector },
-                { ("HEK293", false), TopDownEcoliSelector },
-                { ("Hela", false), TopDownJurkatSelector },
-                { ("HepG2", false), TopDownEcoliSelector },
-                { ("Jurkat", false), TopDownJurkatSelector },
-                { ("K562", false), TopDownEcoliSelector },
-                { ("LanCap", false), TopDownJurkatSelector },
-                { ("MCF7", false), TopDownEcoliSelector },
-                { ("RKO", false), TopDownEcoliSelector },
-                { ("U2OS", false), TopDownEcoliSelector },
+                { ("GAMG", false), BottomUpMann11Selector },
+                { ("HEK293", false), BottomUpMann11Selector },
+                { ("Hela", false), BottomUpMann11Selector },
+                { ("HepG2", false), BottomUpMann11Selector },
+                { ("Jurkat", false), BottomUpMann11Selector },
+                { ("K562", false), BottomUpMann11Selector },
+                { ("LanCap", false), BottomUpMann11Selector },
+                { ("MCF7", false), BottomUpMann11Selector },
+                { ("RKO", false), BottomUpMann11Selector },
+                { ("U2OS", false), BottomUpMann11Selector },
             };
         }
 
@@ -179,22 +179,22 @@ namespace Analyzer.Plotting.Util
         }
 
         // From Cell Line
-        public static string[] GetIndividualFileComparisonSelector(this CellLineResults results)
+        public static string[] GetIndividualFileComparisonSelector(this DatasetResults results)
         {
             return results.First().IsTopDown.GetIndividualFileComparisonSelector(results.CellLine);
         }
 
-        public static string[] GetInternalMetaMorpheusFileComparisonSelector(this CellLineResults results)
+        public static string[] GetInternalMetaMorpheusFileComparisonSelector(this DatasetResults results)
         {
             return results.First().IsTopDown.GetInternalMetaMorpheusFileComparisonSelector(results.CellLine);
         }
 
-        public static string[] GetBulkResultComparisonSelector(this CellLineResults results)
+        public static string[] GetBulkResultComparisonSelector(this DatasetResults results)
         {
             return results.First().IsTopDown.GetBulkResultComparisonSelector(results.CellLine);
         }
 
-        public static string[] GetSingleResultSelector(this CellLineResults results)
+        public static string[] GetSingleResultSelector(this DatasetResults results)
         {
             return results.First().IsTopDown.GetSingleResultSelector(results.CellLine);
         }

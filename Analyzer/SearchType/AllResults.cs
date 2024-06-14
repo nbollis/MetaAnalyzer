@@ -4,23 +4,23 @@ using Analyzer.Util;
 
 namespace Analyzer.SearchType
 {
-    public class AllResults : IEnumerable<CellLineResults>
+    public class AllResults : IEnumerable<DatasetResults>
     {
         public string DirectoryPath { get; set; }
         public bool Override { get; set; } = false;
-        public List<CellLineResults> CellLineResults { get; set; }
+        public List<DatasetResults> CellLineResults { get; set; }
 
         public AllResults(string directoryPath)
         {
             DirectoryPath = directoryPath;
-            CellLineResults = new List<CellLineResults>();
+            CellLineResults = new List<DatasetResults>();
             foreach (var directory in Directory.GetDirectories(DirectoryPath).Where(p => !p.Contains("Figures") && !p.Contains("Order"))) 
             {
-                CellLineResults.Add(new CellLineResults(directory));
+                CellLineResults.Add(new DatasetResults(directory));
             }
         }
 
-        public AllResults(string directoryPath, List<CellLineResults> cellLineResults)
+        public AllResults(string directoryPath, List<DatasetResults> cellLineResults)
         {
             DirectoryPath = directoryPath;
             CellLineResults = cellLineResults;
@@ -124,7 +124,7 @@ namespace Analyzer.SearchType
             return individualFileComparison;
         }
 
-        public IEnumerator<CellLineResults> GetEnumerator()
+        public IEnumerator<DatasetResults> GetEnumerator()
         {
             return CellLineResults.GetEnumerator();
         }
