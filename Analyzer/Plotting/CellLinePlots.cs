@@ -4,6 +4,7 @@ using System.Linq;
 using System.Security.Cryptography.X509Certificates;
 using Analyzer.FileTypes.Internal;
 using Analyzer.Interfaces;
+using Analyzer.Plotting.IndividualRunPlots;
 using Analyzer.Plotting.Util;
 using Analyzer.SearchType;
 using Analyzer.Util;
@@ -104,7 +105,7 @@ public static class CellLinePlots
                 .WithTitle($"{cellLine.CellLine} 1% {resultType} Modification Distribution")
                 .WithSize(1200, 800)
                 .WithXAxis(LinearAxis.init<string, string, string, string, string, string>(TickAngle:45))
-                .WithLayout(GenericPlots.DefaultLayout);
+                .WithLayout(PlotlyBase.DefaultLayout);
             var outName = $"{FileIdentifiers.ModificationDistributionFigure}_{resultTypeLabel}_{cellLine.CellLine}";
             if (filterByCondition)
                 chart.SaveInCellLineAndMann11Directories(cellLine, outName, 800, 600);
@@ -121,14 +122,14 @@ public static class CellLinePlots
     {
         var plots = cellLine.GetCellLineRetentionTimePredictions();
         string outPath = Path.Combine(cellLine.GetChimeraPaperFigureDirectory(), $"{FileIdentifiers.ChronologerFigure}_{cellLine.CellLine}");
-        plots.Chronologer.SavePNG(outPath, null, 1000, GenericPlots.DefaultHeight);
+        plots.Chronologer.SavePNG(outPath, null, 1000, PlotlyBase.DefaultHeight);
         outPath = Path.Combine(cellLine.FigureDirectory, $"{FileIdentifiers.ChronologerFigure}_{cellLine.CellLine}");
-        plots.Chronologer.SavePNG(outPath, null, 1000, GenericPlots.DefaultHeight);
+        plots.Chronologer.SavePNG(outPath, null, 1000, PlotlyBase.DefaultHeight);
 
         outPath = Path.Combine(cellLine.GetChimeraPaperFigureDirectory(), $"{FileIdentifiers.SSRCalcFigure}_{cellLine.CellLine}");
-        plots.SSRCalc3.SavePNG(outPath, null, 1000, GenericPlots.DefaultHeight);
+        plots.SSRCalc3.SavePNG(outPath, null, 1000, PlotlyBase.DefaultHeight);
         outPath = Path.Combine(cellLine.FigureDirectory, $"{FileIdentifiers.SSRCalcFigure}_{cellLine.CellLine}");
-        plots.SSRCalc3.SavePNG(outPath, null, 1000, GenericPlots.DefaultHeight);
+        plots.SSRCalc3.SavePNG(outPath, null, 1000, PlotlyBase.DefaultHeight);
     }
 
     internal static (GenericChart.GenericChart Chronologer, GenericChart.GenericChart SSRCalc3) GetCellLineRetentionTimePredictions(this CellLineResults cellLine)
@@ -185,7 +186,7 @@ public static class CellLinePlots
                     XAnchor: StyleParam.XAnchorPosition.Center,
                     YAnchor: StyleParam.YAnchorPosition.Top
                 )))
-            .WithSize(1000, GenericPlots.DefaultHeight);
+            .WithSize(1000, PlotlyBase.DefaultHeight);
 
         var ssrCalc = individualFiles
             .SelectMany(p => p.Where(m => m.SSRCalcPrediction is not 0 or double.NaN or -1 ))
@@ -226,8 +227,8 @@ public static class CellLinePlots
             .WithTitle($"{cellLine.CellLine} SSRCalc3 Predicted HI vs Retention Time (1% Peptides)")
             .WithXAxisStyle(Title.init("Retention Time"))
             .WithYAxisStyle(Title.init("SSRCalc3 Prediction"))
-            .WithLayout(GenericPlots.DefaultLayoutWithLegend)
-            .WithSize(1000, GenericPlots.DefaultHeight);
+            .WithLayout(PlotlyBase.DefaultLayoutWithLegend)
+            .WithSize(1000, PlotlyBase.DefaultHeight);
         return (chronologerPlot, ssrCalcPlot);
     }
 
@@ -235,18 +236,12 @@ public static class CellLinePlots
 
     
 
-    public enum Kernels
-    {
-        Gaussian,
-        Epanechnikov,
-        Triangular,
-        Uniform
-    }
+  
 
     public static void PlotChronologerVsPercentHi(this CellLineResults cellLine)
     {
         cellLine.GetChronologerHIScatterPlot()
-            .SaveInCellLineOnly(cellLine, $"{FileIdentifiers.ChronologerFigureACN}_{cellLine.CellLine}", 1000, GenericPlots.DefaultHeight);
+            .SaveInCellLineOnly(cellLine, $"{FileIdentifiers.ChronologerFigureACN}_{cellLine.CellLine}", 1000, PlotlyBase.DefaultHeight);
     }
 
     internal static GenericChart.GenericChart GetChronologerHIScatterPlot(this CellLineResults cellLine)
@@ -303,7 +298,7 @@ public static class CellLinePlots
                     XAnchor: StyleParam.XAnchorPosition.Center,
                     YAnchor: StyleParam.YAnchorPosition.Top
                 )))
-            .WithSize(1000, GenericPlots.DefaultHeight);
+            .WithSize(1000, PlotlyBase.DefaultHeight);
         return chronologerPlot;
     }
 
@@ -351,7 +346,7 @@ public static class CellLinePlots
             .WithSize(400, 400)
             .WithXAxisStyle(Title.init("Delta Chronologer"))
             .WithYAxisStyle(Title.init("Density"))
-            .WithLayout(GenericPlots.DefaultLayoutWithLegend);
+            .WithLayout(PlotlyBase.DefaultLayoutWithLegend);
 
         return chart;
     }
@@ -406,7 +401,7 @@ public static class CellLinePlots
             .WithTitle($"{cellLine.CellLine} Chronologer Delta Range")
             .WithXAxisStyle(Title.init("Retention Time"))
             .WithYAxisStyle(Title.init("Chronologer Prediction"))
-            .WithLayout(GenericPlots.DefaultLayoutWithLegend)
+            .WithLayout(PlotlyBase.DefaultLayoutWithLegend)
             .WithSize(1200, 1000);
 
         return chart;
@@ -450,7 +445,7 @@ public static class CellLinePlots
             .WithTitle($"{cellLine.CellLine} Chronologer Predicted HI vs Retention Time (1% Peptides)")
             .WithXAxisStyle(Title.init("Retention Time"))
             .WithYAxisStyle(Title.init("Chronologer Prediction"))
-            .WithLayout(GenericPlots.DefaultLayoutWithLegend)
+            .WithLayout(PlotlyBase.DefaultLayoutWithLegend)
             .WithSize(1200, 1000);
         return chart;
     }
@@ -506,7 +501,7 @@ public static class CellLinePlots
 
         var chronErrorPlot = Chart.Grid(new []{chimericChronErrorPlot, nonChimericChronErrorPlot}, 1, 2)
             .WithTitle($"{cellLine.CellLine} Chronologer Error by Modification Type")
-            .WithLayout(GenericPlots.DefaultLayoutWithLegend)
+            .WithLayout(PlotlyBase.DefaultLayoutWithLegend)
             .WithSize(1200, 600);
 
         return chronErrorPlot;
@@ -628,21 +623,21 @@ public static class CellLinePlots
 
         }, 2, 2)
             .WithTitle($"{cellLine.CellLine} Accuracy by Modification Type")
-            .WithLayout(GenericPlots.DefaultLayoutWithLegend)
+            .WithLayout(PlotlyBase.DefaultLayoutWithLegend)
             .WithSize(1000, 1000);
 
 
-        //var chimericChronErrorPlot = GenericPlots.Histogram2D(chronologerErrorChimericXValues, chronologerErrorRTChimericyValues, "Chimeric",
+        //var chimericChronErrorPlot = PlotlyBase.Histogram2D(chronologerErrorChimericXValues, chronologerErrorRTChimericyValues, "Chimeric",
         //    "Modification Type", "Chronologer Error");
-        //var nonChimericChronErrorPlot = GenericPlots.Histogram2D(chronologerErrorNonChimericXValues, chronologerErrorRTNonChimericYValues, "Non-Chimeric",
+        //var nonChimericChronErrorPlot = PlotlyBase.Histogram2D(chronologerErrorNonChimericXValues, chronologerErrorRTNonChimericYValues, "Non-Chimeric",
         //    "Modification Type", "Chronologer Error");
-        //var chimericTDRatioPlot = GenericPlots.Histogram2D(tdRationChimericXValues, tDRatioChimericYValues, "Chimeric",
+        //var chimericTDRatioPlot = PlotlyBase.Histogram2D(tdRationChimericXValues, tDRatioChimericYValues, "Chimeric",
         //    "Modification Type", "T/D Ratio");
-        //var nonChimericTDRatioPlot = GenericPlots.Histogram2D(tdRationNonChimericXValues, tDRatioNonChimericYValues, "Non-Chimeric",
+        //var nonChimericTDRatioPlot = PlotlyBase.Histogram2D(tdRationNonChimericXValues, tDRatioNonChimericYValues, "Non-Chimeric",
         //    "Modification Type", "T/D Ratio");
-        //var chimericDeconRTPlot = GenericPlots.Histogram2D(deconRTAccuracyChimericXValues, deconRTAccuracyChimericYValues, "Chimeric",
+        //var chimericDeconRTPlot = PlotlyBase.Histogram2D(deconRTAccuracyChimericXValues, deconRTAccuracyChimericYValues, "Chimeric",
         //    "Modification Type", "Decon RT Accuracy");
-        //var nonChimericDeconRTPlot = GenericPlots.Histogram2D(deconRTAccuracyNonChimericXValues, deconRTAccuracyNonChimericYValues, "Non-Chimeric",
+        //var nonChimericDeconRTPlot = PlotlyBase.Histogram2D(deconRTAccuracyNonChimericXValues, deconRTAccuracyNonChimericYValues, "Non-Chimeric",
         //    "Modification Type", "Decon RT Accuracy");
 
         //var chronErrorPlot = Chart.Grid(new[]
@@ -653,7 +648,7 @@ public static class CellLinePlots
 
         //}, 3, 1)
         //    .WithTitle($"{cellLine.CellLine} Accuracy by Modification Type")
-        //    .WithLayout(GenericPlots.DefaultLayoutWithLegend)
+        //    .WithLayout(PlotlyBase.DefaultLayoutWithLegend)
         //    .WithSize(1200, 1800);
 
 
@@ -707,7 +702,7 @@ public static class CellLinePlots
         }, 3, 2)
         .WithSize(1200, 600 * 3)
             .WithTitle($"{cellLine.CellLine} Average Retention Time Shift Kernel Density")
-            .WithLayout(GenericPlots.DefaultLayoutWithLegend);
+            .WithLayout(PlotlyBase.DefaultLayoutWithLegend);
         exportName = $"AllResults_{FileIdentifiers.RetentionTimeShift_Stacked}_{cellLine.CellLine}{suffix}";
         stacked.SaveInCellLineAndMann11Directories(cellLine, exportName, 1200, 600 * 3);
     }
@@ -838,7 +833,7 @@ public static class CellLinePlots
             .WithSize(800, 800)
             .WithXAxisStyle(Title.init("RT Shift"), MinMax: new FSharpOption<Tuple<IConvertible, IConvertible>>(new Tuple<IConvertible, IConvertible>(-5, 5)))
             .WithYAxisStyle(Title.init("Density"))
-            .WithLayout(GenericPlots.DefaultLayoutWithLegend);
+            .WithLayout(PlotlyBase.DefaultLayoutWithLegend);
 
         return kernelPlot;
     }
@@ -883,7 +878,7 @@ public static class CellLinePlots
         }, 3, 2)
         .WithSize(1200, 1800)
             .WithTitle($"{cellLine.CellLine} Average Retention Time Shift Histogram")
-            .WithLayout(GenericPlots.DefaultLayoutWithLegend);
+            .WithLayout(PlotlyBase.DefaultLayoutWithLegend);
         exportName = $"AllResults_{FileIdentifiers.RetentionTimeShiftHistogram_Stacked}_{cellLine.CellLine}{suffix}";
         stacked.SaveInCellLineAndMann11Directories(cellLine, exportName, 1200, 600 * 3);
     }
@@ -1014,7 +1009,7 @@ public static class CellLinePlots
             .WithSize(600, 600)
             .WithXAxisStyle(Title.init("RT Shift"), MinMax: new FSharpOption<Tuple<IConvertible, IConvertible>>(new Tuple<IConvertible, IConvertible>(-3, 3)))
             .WithYAxisStyle(Title.init("Count"))
-            .WithLayout(GenericPlots.DefaultLayoutWithLegend);
+            .WithLayout(PlotlyBase.DefaultLayoutWithLegend);
 
         return hist;
     }
@@ -1051,7 +1046,7 @@ public static class CellLinePlots
         }, 6, 2)
             .WithSize(1200, 600 * 6)
             .WithTitle($"{cellLine.CellLine} Average Retention Time Shift")
-            .WithLayout(GenericPlots.DefaultLayoutWithLegend);
+            .WithLayout(PlotlyBase.DefaultLayoutWithLegend);
         string exportName = $"AllResults_{FileIdentifiers.RetentionTimeShiftFullGrid_Stacked}_{cellLine.CellLine}{suffix}";
         stacked.SaveInCellLineAndMann11Directories(cellLine, exportName, 1200, 600 * 6);
     }
@@ -1117,8 +1112,8 @@ public static class CellLinePlots
     {
         bool isTopDown = cellLine.First().IsTopDown;
         var selector = isTopDown.ChimeraBreakdownSelector(cellLine.CellLine);
-        var smLabel = GenericPlots.GetSpectralMatchLabel(isTopDown);
-        var pepLabel = GenericPlots.GetResultLabel(isTopDown);
+        var smLabel = Labels.GetSpectrumMatchLabel(isTopDown);
+        var pepLabel = Labels.GetPeptideLabel(isTopDown);
         string smOutName = $"{FileIdentifiers.ChimeraBreakdownTargetDecoy}_{smLabel}_{cellLine.CellLine}";
         string pepOutName = $"{FileIdentifiers.ChimeraBreakdownTargetDecoy}_{pepLabel}_{cellLine.CellLine}";
 
@@ -1131,16 +1126,16 @@ public static class CellLinePlots
         var psmChart =
             results.GetChimeraBreakDownStackedColumn_TargetDecoy(ResultType.Psm, cellLine.First().IsTopDown, absolute, out int width);
         string psmOutPath = Path.Combine(cellLine.GetChimeraPaperFigureDirectory(), smOutName);
-        psmChart.SavePNG(psmOutPath, null, width, GenericPlots.DefaultHeight);
+        psmChart.SavePNG(psmOutPath, null, width, PlotlyBase.DefaultHeight);
         psmOutPath = Path.Combine(cellLine.FigureDirectory, smOutName);
-        psmChart.SavePNG(psmOutPath, null, width, GenericPlots.DefaultHeight);
+        psmChart.SavePNG(psmOutPath, null, width, PlotlyBase.DefaultHeight);
 
         var peptideChart =
             results.GetChimeraBreakDownStackedColumn_TargetDecoy(ResultType.Peptide, cellLine.First().IsTopDown, absolute, out width);
         string peptideOutPath = Path.Combine(cellLine.GetChimeraPaperFigureDirectory(), pepOutName);
-        peptideChart.SavePNG(peptideOutPath, null, width, GenericPlots.DefaultHeight);
+        peptideChart.SavePNG(peptideOutPath, null, width, PlotlyBase.DefaultHeight);
         peptideOutPath = Path.Combine(cellLine.FigureDirectory, pepOutName);
-        peptideChart.SavePNG(peptideOutPath, null, width, GenericPlots.DefaultHeight);
+        peptideChart.SavePNG(peptideOutPath, null, width, PlotlyBase.DefaultHeight);
     }
 
     #endregion
@@ -1154,8 +1149,8 @@ public static class CellLinePlots
     {
         bool isTopDown = cellLine.First().IsTopDown;
         var selector = isTopDown.ChimeraBreakdownSelector(cellLine.CellLine);
-        var smLabel = GenericPlots.GetSpectralMatchLabel(isTopDown);
-        var pepLabel = GenericPlots.GetResultLabel(isTopDown);
+        var smLabel = Labels.GetSpectrumMatchLabel(isTopDown);
+        var pepLabel = Labels.GetPeptideLabel(isTopDown);
         string smOutName = $"{FileIdentifiers.ChimeraBreakdownComparisonFigure}_{smLabel}_{cellLine.CellLine}";
         string smAreaOutName = $"{FileIdentifiers.ChimeraBreakdownComparisonStackedAreaFigure}_{smLabel}_{cellLine.CellLine}";
         string smAreaRelativeName = $"{FileIdentifiers.ChimeraBreakdownComparisonStackedAreaPercentFigure}_{smLabel}_{cellLine.CellLine}";
@@ -1169,30 +1164,30 @@ public static class CellLinePlots
 
         var psmChart = results.GetChimeraBreakDownStackedColumn(ResultType.Psm, cellLine.First().IsTopDown, out int width); 
         string psmOutPath = Path.Combine(cellLine.GetChimeraPaperFigureDirectory(), smOutName);
-        psmChart.SavePNG(psmOutPath, null, width, GenericPlots.DefaultHeight);
+        psmChart.SavePNG(psmOutPath, null, width, PlotlyBase.DefaultHeight);
 
         var stackedAreaPsmChart = results.GetChimeraBreakDownStackedArea(ResultType.Psm, cellLine.First().IsTopDown, out width);
         string stackedAreaPsmOutPath = Path.Combine(cellLine.GetChimeraPaperFigureDirectory(), smAreaOutName);
-        stackedAreaPsmChart.SavePNG(stackedAreaPsmOutPath, null, width, GenericPlots.DefaultHeight);
+        stackedAreaPsmChart.SavePNG(stackedAreaPsmOutPath, null, width, PlotlyBase.DefaultHeight);
 
         var statckedAreaPsmChartRelative = results.GetChimeraBreakDownStackedArea(ResultType.Psm, cellLine.First().IsTopDown, out width, true);
         string stackedAreaPsmRelativeOutPath = Path.Combine(cellLine.GetChimeraPaperFigureDirectory(), smAreaRelativeName);
-        statckedAreaPsmChartRelative.SavePNG(stackedAreaPsmRelativeOutPath, null, width, GenericPlots.DefaultHeight);
+        statckedAreaPsmChartRelative.SavePNG(stackedAreaPsmRelativeOutPath, null, width, PlotlyBase.DefaultHeight);
 
         if (results.All(p => p.Type == ResultType.Psm))
             goto IndividualResults;
 
         var peptideChart = results.GetChimeraBreakDownStackedColumn(ResultType.Peptide, cellLine.First().IsTopDown, out width);
         string peptideOutPath = Path.Combine(cellLine.GetChimeraPaperFigureDirectory(), pepOutName);
-        peptideChart.SavePNG(peptideOutPath, null, width, GenericPlots.DefaultHeight);
+        peptideChart.SavePNG(peptideOutPath, null, width, PlotlyBase.DefaultHeight);
 
         var stackedAreaPeptideChart = results.GetChimeraBreakDownStackedArea(ResultType.Peptide, cellLine.First().IsTopDown, out width);
         string stackedAreaPeptideOutPath = Path.Combine(cellLine.GetChimeraPaperFigureDirectory(), pepAreaOutName);
-        stackedAreaPeptideChart.SavePNG(stackedAreaPeptideOutPath, null, width, GenericPlots.DefaultHeight);
+        stackedAreaPeptideChart.SavePNG(stackedAreaPeptideOutPath, null, width, PlotlyBase.DefaultHeight);
 
         var stackedAreaPeptideChartRelative = results.GetChimeraBreakDownStackedArea(ResultType.Peptide, cellLine.First().IsTopDown, out width, true);
         string stackedAreaPeptideRelativeOutPath = Path.Combine(cellLine.GetChimeraPaperFigureDirectory(), pepAreaRelativeName);
-        stackedAreaPeptideChartRelative.SavePNG(stackedAreaPeptideRelativeOutPath, null, width, GenericPlots.DefaultHeight);
+        stackedAreaPeptideChartRelative.SavePNG(stackedAreaPeptideRelativeOutPath, null, width, PlotlyBase.DefaultHeight);
 
 
         IndividualResults:
@@ -1205,17 +1200,17 @@ public static class CellLinePlots
 
             psmChart = results.GetChimeraBreakDownStackedColumn(ResultType.Psm, cellLine.First().IsTopDown, out width, file.Condition);
             psmOutPath = Path.Combine(file.FigureDirectory, smOutName);
-            psmChart.SavePNG(psmOutPath, null, width, GenericPlots.DefaultHeight);
+            psmChart.SavePNG(psmOutPath, null, width, PlotlyBase.DefaultHeight);
 
 
             stackedAreaPsmChart = results.GetChimeraBreakDownStackedArea(ResultType.Psm, cellLine.First().IsTopDown, out width, false, file.Condition);
             stackedAreaPsmOutPath = Path.Combine(file.FigureDirectory, smAreaOutName);
-            stackedAreaPsmChart.SavePNG(stackedAreaPsmOutPath, null, width, GenericPlots.DefaultHeight);
+            stackedAreaPsmChart.SavePNG(stackedAreaPsmOutPath, null, width, PlotlyBase.DefaultHeight);
 
 
             statckedAreaPsmChartRelative = results.GetChimeraBreakDownStackedArea(ResultType.Psm, cellLine.First().IsTopDown, out width, true, file.Condition);
             stackedAreaPsmRelativeOutPath = Path.Combine(file.FigureDirectory, smAreaRelativeName);
-            statckedAreaPsmChartRelative.SavePNG(stackedAreaPsmRelativeOutPath, null, width, GenericPlots.DefaultHeight);
+            statckedAreaPsmChartRelative.SavePNG(stackedAreaPsmRelativeOutPath, null, width, PlotlyBase.DefaultHeight);
 
 
             if (results.All(p => p.Type == ResultType.Psm))
@@ -1223,15 +1218,15 @@ public static class CellLinePlots
 
             peptideChart = results.GetChimeraBreakDownStackedColumn(ResultType.Peptide, cellLine.First().IsTopDown, out width, file.Condition);
             peptideOutPath = Path.Combine(file.FigureDirectory, pepOutName);
-            peptideChart.SavePNG(peptideOutPath, null, width, GenericPlots.DefaultHeight);
+            peptideChart.SavePNG(peptideOutPath, null, width, PlotlyBase.DefaultHeight);
 
             stackedAreaPeptideChart = results.GetChimeraBreakDownStackedArea(ResultType.Peptide, cellLine.First().IsTopDown, out width, false, file.Condition);
             stackedAreaPeptideOutPath = Path.Combine(file.FigureDirectory, pepAreaOutName);
-            stackedAreaPeptideChart.SavePNG(stackedAreaPeptideOutPath, null, width, GenericPlots.DefaultHeight);
+            stackedAreaPeptideChart.SavePNG(stackedAreaPeptideOutPath, null, width, PlotlyBase.DefaultHeight);
 
             stackedAreaPeptideChartRelative = results.GetChimeraBreakDownStackedArea(ResultType.Peptide, cellLine.First().IsTopDown, out width, true, file.Condition);
             stackedAreaPeptideRelativeOutPath = Path.Combine(file.FigureDirectory, pepAreaRelativeName);
-            stackedAreaPeptideChartRelative.SavePNG(stackedAreaPeptideRelativeOutPath, null, width, GenericPlots.DefaultHeight);
+            stackedAreaPeptideChartRelative.SavePNG(stackedAreaPeptideRelativeOutPath, null, width, PlotlyBase.DefaultHeight);
         }
     }
 
@@ -1251,8 +1246,8 @@ public static class CellLinePlots
     {
         bool isTopDown = cellLine.First().IsTopDown;
         var selector = isTopDown.ChimeraBreakdownSelector(cellLine.CellLine);
-        var smLabel = GenericPlots.GetSpectralMatchLabel(isTopDown);
-        var pepLabel = GenericPlots.GetResultLabel(isTopDown);
+        var smLabel = Labels.GetSpectrumMatchLabel(isTopDown);
+        var pepLabel = Labels.GetPeptideLabel(isTopDown);
         var label = resultType == ResultType.Psm ? smLabel : pepLabel;
 
         List<double> yValuesMass = new();

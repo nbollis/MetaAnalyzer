@@ -13,4 +13,12 @@ namespace Analyzer.Plotting.Util
         PepQValue,
         Pep,
     }
+
+    public enum Kernels
+    {
+        Gaussian,
+        Epanechnikov,
+        Triangular,
+        Uniform
+    }
 }

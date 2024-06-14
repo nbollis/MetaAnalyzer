@@ -4,6 +4,7 @@ using Analyzer.Interfaces;
 using Plotly.NET.ImageExport;
 using Readers;
 using Analyzer.Plotting;
+using Analyzer.Plotting.IndividualRunPlots;
 using Analyzer.SearchType;
 using Analyzer.Util;
 using NUnit.Framework.Constraints;
