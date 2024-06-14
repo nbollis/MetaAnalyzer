@@ -141,9 +141,6 @@ namespace Analyzer.Plotting
         }
 
 
-        
-
-
         internal static GenericChart.GenericChart KernelDensityPlot(List<double> values, string title,
             string xTitle = "", string yTitle = "", double bandwidth = 0.2, Kernels kernel = Kernels.Gaussian)
         {

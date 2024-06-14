@@ -149,10 +149,11 @@ namespace Analyzer.SearchType
                 return new ChimeraCountingFile(_chimeraPsmPath);
 
             var psms = AllPsms.Where(p => p.DecoyContamTarget == "T").ToList();
-            var allPsmCounts = psms.GroupBy(p => p, CustomComparer<PsmFromTsv>.ChimeraComparer)
-                .GroupBy(m => m.Count()).ToDictionary(p => p.Key, p => p.Count());
-            var onePercentFdrPsmCounts = psms.Where(p => p.PEP_QValue <= 0.01).GroupBy(p => p, CustomComparer<PsmFromTsv>.ChimeraComparer)
-                .GroupBy(m => m.Count()).ToDictionary(p => p.Key, p => p.Count());
+            var allPsmCounts = psms.ToChimeraGroupedDictionary()
+                .ToDictionary(p => p.Key, p => p.Value.Count());
+            var onePercentFdrPsmCounts = psms.Where(p => p.PEP_QValue <= 0.01)
+                .ToChimeraGroupedDictionary()
+                .ToDictionary(p => p.Key, p => p.Value.Count());
             var results = allPsmCounts.Keys.Select(count => new ChimeraCountingResult(count, allPsmCounts[count],
                 onePercentFdrPsmCounts.TryGetValue(count, out var psmCount) ? psmCount : 0, DatasetName, Condition)).ToList();
 
@@ -170,10 +171,11 @@ namespace Analyzer.SearchType
                 return new ChimeraCountingFile(_chimeraPeptidePath);
 
             var peptides = AllPeptides.Where(p => p.DecoyContamTarget == "T").ToList();
-            var allPeptideCounts = peptides.GroupBy(p => p, CustomComparer<PsmFromTsv>.ChimeraComparer)
-                .GroupBy(m => m.Count()).ToDictionary(p => p.Key, p => p.Count());
-            var onePercentFdrPeptideCounts = peptides.Where(p => p.PEP_QValue <= 0.01).GroupBy(p => p, CustomComparer<PsmFromTsv>.ChimeraComparer)
-                .GroupBy(m => m.Count()).ToDictionary(p => p.Key, p => p.Count());
+            var allPeptideCounts = peptides.ToChimeraGroupedDictionary()
+                .ToDictionary(p => p.Key, p => p.Value.Count());
+            var onePercentFdrPeptideCounts = peptides.Where(p => p.PEP_QValue <= 0.01)
+                .ToChimeraGroupedDictionary()
+                .ToDictionary(p => p.Key, p => p.Value.Count());
             var results = allPeptideCounts.Keys.Select(count => new ChimeraCountingResult(count, allPeptideCounts[count],
                                onePercentFdrPeptideCounts.TryGetValue(count, out var peptideCount) ? peptideCount : 0, DatasetName, Condition)).ToList();
 

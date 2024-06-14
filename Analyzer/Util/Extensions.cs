@@ -12,6 +12,14 @@ namespace Analyzer.Util
         /// <returns></returns>
         public static bool IsDecoy(this PsmFromTsv psm) => psm.DecoyContamTarget == "D";
 
+        public static Dictionary<int, List<PsmFromTsv>> ToChimeraGroupedDictionary(this IEnumerable<PsmFromTsv> psms)
+        {
+            return psms.GroupBy(p => p, CustomComparer<PsmFromTsv>.ChimeraComparer)
+                .GroupBy(m => m.Count())
+                .ToDictionary(p => p.Key, p => p.SelectMany(m => m).ToList());
+        }
+
+
         public static bool ValidateMyColumn(this IReaderRow row)
         {
             // if I remove the HasHeaderRecord check here and set the CsvConfig HasHeaderRecord = false
@@ -32,6 +40,8 @@ namespace Analyzer.Util
             // Logging to objectForLogRef
             return false;
         }
+
+
 
         /// <summary>
         /// Calculate the rolling average of a list of doubles
@@ -79,26 +89,6 @@ namespace Analyzer.Util
 
             return result;
         }
-
-        /// <summary>
-        /// Calculate the rolling average of a list of integers
-        /// </summary>
-        /// <param name="numbers"></param>
-        /// <param name="windowSize"></param>
-        /// <returns></returns>
-        public static List<double> CalculateRollingAverage(this List<int> numbers, int windowSize)
-        {
-            var result = new List<double>();
-
-            for (int i = 0; i < numbers.Count - windowSize + 1; i++)
-            {
-                var window = numbers.Skip(i).Take(windowSize);
-                result.Add(window.Average());
-            }
-
-            return result;
-        }
-
 
        
 

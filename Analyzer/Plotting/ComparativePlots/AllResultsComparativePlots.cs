@@ -1,4 +1,5 @@
-﻿using Analyzer.Interfaces;
+﻿using Analyzer.FileTypes.Internal;
+using Analyzer.Interfaces;
 using Analyzer.Plotting.AggregatePlots;
 using Analyzer.Plotting.IndividualRunPlots;
 using Analyzer.Plotting.Util;
@@ -46,53 +47,80 @@ namespace Analyzer.Plotting.ComparativePlots
             var noChimeras = results.Where(p => p.Condition.Contains("NoChimeras")).ToList();
             var withChimeras = results.Where(p => !p.Condition.Contains("NoChimeras")).ToList();
 
+            // Recalculate No Chimeras from the chimeric results accepting only one Psm per spectrum
+            if (isTopDown)
+            {
+                var chimericResult = (MetaMorpheusResult)allResults.SelectMany(m =>
+                        m.Where(p => allResults.GetInternalMetaMorpheusFileComparisonSelector().Contains(p.Condition)))
+                    .First(p => !p.Condition.Contains("NoChimeras"));
+
+                var psmCount = chimericResult.AllPsms.Count(p => p is { DecoyContamTarget: "T", PEP_QValue: <= 0.01 });
+                var peptides = chimericResult.AllPeptides.Where(p => p is { DecoyContamTarget: "T", PEP_QValue: <= 0.01 }).ToArray();
+                var peptideCount = peptides.Length;
+                var proteinCount = peptides.Select(p => p.Accession).Distinct().Count();
+                
+                var BulkResultCountComparison = new BulkResultCountComparison()
+                {
+                    OnePercentPeptideCount = peptideCount,
+                    OnePercentProteinGroupCount = proteinCount,
+                    OnePercentPsmCount = psmCount,
+                };
+                noChimeras = new() { BulkResultCountComparison };
+            }
+
+
             var psmChart = Chart.Combine(new[]
             {
-            Chart2D.Chart.Column<int, string, string, int, int>(noChimeras.Select(p => p.OnePercentPsmCount),
-                labels, null, "No Chimeras", MarkerColor: noChimeras.First().Condition.ConvertConditionToColor()),
-            Chart2D.Chart.Column<int, string, string, int, int>(withChimeras.Select(p => p.OnePercentPsmCount),
-                labels, null, "Chimeras", MarkerColor: withChimeras.First().Condition.ConvertConditionToColor()),
-            //Chart2D.Chart.Column<int, string, string, int, int>(others.Select(chimeraGroup => chimeraGroup.OnePercentPsmCount),
-            //    labels, null, "Others", MarkerColor: ConditionToColorDictionary[others.First().Condition])
-        });
+                Chart2D.Chart.Column<int, string, string, int, int>(noChimeras.Select(p => p.OnePercentPsmCount),
+                    labels, null, "No Chimeras", MarkerColor: noChimeras.First().Condition.ConvertConditionToColor()),
+                Chart2D.Chart.Column<int, string, string, int, int>(withChimeras.Select(p => p.OnePercentPsmCount),
+                    labels, null, "Chimeras", MarkerColor: withChimeras.First().Condition.ConvertConditionToColor()),
+                //Chart2D.Chart.Column<int, string, string, int, int>(others.Select(chimeraGroup => chimeraGroup.OnePercentPsmCount),
+                //    labels, null, "Others", MarkerColor: ConditionToColorDictionary[others.First().Condition])
+            });
             var smLabel = allResults.First().First().IsTopDown ? "PrSMs" : "PSMs";
             psmChart.WithTitle($"MetaMorpheus 1% FDR {smLabel}")
                 .WithXAxisStyle(Title.init("Cell Line"))
                 .WithYAxisStyle(Title.init("Count"))
                 .WithLayout(PlotlyBase.DefaultLayoutWithLegend);
-            string psmOutpath = Path.Combine(allResults.GetChimeraPaperFigureDirectory(), $"InternalMetaMorpheusComparison_{smLabel}");
+            string psmOutpath = Path.Combine(allResults.GetChimeraPaperFigureDirectory(),
+                $"InternalMetaMorpheusComparison_{smLabel}");
             psmChart.SavePNG(psmOutpath);
 
             var peptideChart = Chart.Combine(new[]
             {
-            Chart2D.Chart.Column<int, string, string, int, int>(noChimeras.Select(p => p.OnePercentPeptideCount),
-                labels, null, "No Chimeras", MarkerColor: noChimeras.First().Condition.ConvertConditionToColor()),
-            Chart2D.Chart.Column<int, string, string, int, int>(withChimeras.Select(p => p.OnePercentPeptideCount),
-                labels, null, "Chimeras", MarkerColor: withChimeras.First().Condition.ConvertConditionToColor()),
-            //Chart2D.Chart.Column<int, string, string, int, int>(others.Select(chimeraGroup => chimeraGroup.OnePercentPeptideCount),
-            //    labels, null, "Others", MarkerColor: ConditionToColorDictionary[others.First().Condition])
-        });
+                Chart2D.Chart.Column<int, string, string, int, int>(noChimeras.Select(p => p.OnePercentPeptideCount),
+                    labels, null, "No Chimeras", MarkerColor: noChimeras.First().Condition.ConvertConditionToColor()),
+                Chart2D.Chart.Column<int, string, string, int, int>(withChimeras.Select(p => p.OnePercentPeptideCount),
+                    labels, null, "Chimeras", MarkerColor: withChimeras.First().Condition.ConvertConditionToColor()),
+                //Chart2D.Chart.Column<int, string, string, int, int>(others.Select(chimeraGroup => chimeraGroup.OnePercentPeptideCount),
+                //    labels, null, "Others", MarkerColor: ConditionToColorDictionary[others.First().Condition])
+            });
             peptideChart.WithTitle($"MetaMorpheus 1% FDR {allResults.First().First().ResultType}s")
                 .WithXAxisStyle(Title.init("Cell Line"))
                 .WithYAxisStyle(Title.init("Count"))
                 .WithLayout(PlotlyBase.DefaultLayoutWithLegend);
-            string peptideOutpath = Path.Combine(allResults.GetChimeraPaperFigureDirectory(), $"InternalMetaMorpheusComparison_{allResults.First().First().ResultType}s");
+            string peptideOutpath = Path.Combine(allResults.GetChimeraPaperFigureDirectory(),
+                $"InternalMetaMorpheusComparison_{allResults.First().First().ResultType}s");
             peptideChart.SavePNG(peptideOutpath);
 
             var proteinChart = Chart.Combine(new[]
             {
-            Chart2D.Chart.Column<int, string, string, int, int>(noChimeras.Select(p => p.OnePercentProteinGroupCount),
-                labels, null, "No Chimeras", MarkerColor: noChimeras.First().Condition.ConvertConditionToColor()),
-            Chart2D.Chart.Column<int, string, string, int, int>(withChimeras.Select(p => p.OnePercentProteinGroupCount),
-                labels, null, "Chimeras", MarkerColor: withChimeras.First().Condition.ConvertConditionToColor()),
-            //Chart2D.Chart.Column<int, string, string, int, int>(others.Select(chimeraGroup => chimeraGroup.OnePercentProteinGroupCount),
-            //    labels, null, "Chimeras", MarkerColor: ConditionToColorDictionary[others.First().Condition]),
-        });
+                Chart2D.Chart.Column<int, string, string, int, int>(
+                    noChimeras.Select(p => p.OnePercentProteinGroupCount),
+                    labels, null, "No Chimeras", MarkerColor: noChimeras.First().Condition.ConvertConditionToColor()),
+                Chart2D.Chart.Column<int, string, string, int, int>(
+                    withChimeras.Select(p => p.OnePercentProteinGroupCount),
+                    labels, null, "Chimeras", MarkerColor: withChimeras.First().Condition.ConvertConditionToColor()),
+                //Chart2D.Chart.Column<int, string, string, int, int>(others.Select(chimeraGroup => chimeraGroup.OnePercentProteinGroupCount),
+                //    labels, null, "Chimeras", MarkerColor: ConditionToColorDictionary[others.First().Condition]),
+            });
             proteinChart.WithTitle("MetaMorpheus 1% FDR Proteins")
                 .WithXAxisStyle(Title.init("Cell Line"))
                 .WithYAxisStyle(Title.init("Count"))
                 .WithLayout(PlotlyBase.DefaultLayoutWithLegend);
-            string proteinOutpath = Path.Combine(allResults.GetChimeraPaperFigureDirectory(), "InternalMetaMorpheusComparison_Proteins");
+            string proteinOutpath = Path.Combine(allResults.GetChimeraPaperFigureDirectory(),
+                "InternalMetaMorpheusComparison_Proteins");
             proteinChart.SavePNG(proteinOutpath);
         }
 

@@ -52,10 +52,7 @@ namespace Analyzer.Plotting.IndividualRunPlots
             };
 
 
-            var grouped = results.GroupBy(p => p, CustomComparer<PsmFromTsv>.ChimeraComparer)
-                .GroupBy(m => m.Count())
-                .ToDictionary(p => p.Key, p => p.SelectMany(m => m));
-
+            var grouped = results.ToChimeraGroupedDictionary();
             var nonChimeric = grouped[1]
                 .Select(p => p.FullSequence)
                 .ToList();

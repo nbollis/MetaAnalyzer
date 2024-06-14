@@ -94,9 +94,6 @@ namespace Analyzer.Plotting.IndividualRunPlots
             proteoformChart.SavePNG(proteoformChartOutPath, null, 1000, 1000);
         }
 
-
-
-
         /// <summary>
         /// Plots the type of chimera as a function of the number of results they are chimeric with
         /// types include sharing the same base sequence or being an entirely different protein/peptide
@@ -341,8 +338,6 @@ namespace Analyzer.Plotting.IndividualRunPlots
                 .WithSize(width, 1200);
             return chart;
         }
-
-        
 
         public static void PlotChimeraBreakdownByMassAndCharge(this DatasetResults cellLine)
         {
