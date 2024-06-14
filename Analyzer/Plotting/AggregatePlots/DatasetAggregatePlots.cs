@@ -9,7 +9,7 @@ using Proteomics.PSM;
 
 namespace Analyzer.Plotting.AggregatePlots
 {
-    public static class CellLineAggregatePlots
+    public static class DatasetAggregatePlots
     {
 
         public static void PlotCellLineSpectralSimilarity(this DatasetResults cellLine)

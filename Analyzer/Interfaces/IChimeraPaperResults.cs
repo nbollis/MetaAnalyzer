@@ -35,3 +35,10 @@ public interface IMultiFilterChecker : IChimeraPaperResults
     BulkResultCountComparisonMultipleFilteringTypesFile BulkResultCountComparisonMultipleFilteringTypesFile { get; }
     BulkResultCountComparisonMultipleFilteringTypesFile GetBulkResultCountComparisonMultipleFilteringTypesFile();
 }
+
+public interface IRetentionTimePredictionAnalysis
+{
+    public RetentionTimePredictionFile RetentionTimePredictionFile { get; }
+    public void CreateRetentionTimePredictionReadyFile();
+    public void AppendChronologerPrediction();
+}

@@ -1,11 +1,12 @@
-﻿using Analyzer.Plotting.Util;
+﻿using Analyzer.FileTypes.Internal;
+using Analyzer.Plotting.Util;
 using Analyzer.SearchType;
 using Analyzer.Util;
 using Plotly.NET;
 
 namespace Analyzer.Plotting.ComparativePlots
 {
-    public static class CellLineComparativePlots
+    public static class DatasetComparativePlots
     {
         public static void PlotIndividualFileResults(this DatasetResults cellLine, ResultType? resultType = null,
             string? outputDirectory = null, bool filterByCondition = true)
@@ -31,6 +32,13 @@ namespace Analyzer.Plotting.ComparativePlots
 
             return GenericPlots.IndividualFileResultBarChart(fileResults, out width, out height, cellLine.CellLine,
                 isTopDown, resultType);
+        }
+
+        public static GenericChart.GenericChart GetIndividualFileResultsBarChart(this List<BulkResultCountComparisonFile> fileResults, out int width,
+            out int height, ResultType resultType = ResultType.Psm,  string cellLine = "", bool isTopDown = false)
+
+        {
+            return GenericPlots.IndividualFileResultBarChart(fileResults, out width, out height, cellLine, isTopDown, resultType);
         }
 
 

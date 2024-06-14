@@ -55,14 +55,14 @@ namespace Analyzer.Plotting.IndividualRunPlots
 
             foreach (var plotParams in plotsToRun)
             {
-                var plot = results.CreateTargetDecoyCurve(plotParams.Item1, plotParams.Item2);
+                var plot = results.GetTargetDecoyCurve(plotParams.Item1, plotParams.Item2);
                 var outName =
                     $"{FileIdentifiers.TargetDecoyCurve}_{results.DatasetName}_{results.Condition}_{Labels.GetLabel(results.IsTopDown, plotParams.Item1)}_{plotParams.Item2}";
                 plot.SaveInRunResultOnly(results, outName, 600, 400);
             }
         }
 
-        internal static GenericChart.GenericChart CreateTargetDecoyCurve(this MetaMorpheusResult results, ResultType resultType, TargetDecoyCurveMode mode)
+        public static GenericChart.GenericChart GetTargetDecoyCurve(this MetaMorpheusResult results, ResultType resultType, TargetDecoyCurveMode mode)
         {
             var allResults = resultType switch
             {
@@ -70,7 +70,11 @@ namespace Analyzer.Plotting.IndividualRunPlots
                 ResultType.Peptide => results.AllPeptides,
                 _ => throw new ArgumentOutOfRangeException(nameof(resultType), resultType, null)
             };
+            return allResults.GetTargetDecoyCurve(resultType, mode, results.DatasetName, results.Condition, results.IsTopDown);
+        }
 
+        public static GenericChart.GenericChart GetTargetDecoyCurve(this List<PsmFromTsv> allResults, ResultType resultType, TargetDecoyCurveMode mode, string datasetName, string condition, bool isTopDown = true)
+        {
             IEnumerable<IGrouping<double, PsmFromTsv>>? binnedResults;
             switch (mode)
             {
@@ -104,7 +108,7 @@ namespace Analyzer.Plotting.IndividualRunPlots
                     Chart.Spline<double, int, string>(xValues, targetValues, Name: "Targets"),
                     Chart.Spline<double, int, string>(xValues, decoyValues, Name: "Decoys"),
                 })
-                .WithTitle($"{results.DatasetName} {results.Condition} {Labels.GetLabel(results.IsTopDown, resultType)} by {mode}")
+                .WithTitle($"{datasetName} {condition} {Labels.GetLabel(isTopDown, resultType)} by {mode}")
                 .WithSize(600, 400)
                 .WithLayout(PlotlyBase.DefaultLayoutWithLegend);
 

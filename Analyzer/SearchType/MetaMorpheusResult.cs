@@ -11,7 +11,7 @@ using Readers;
 
 namespace Analyzer.SearchType
 {
-    public class MetaMorpheusResult : SingleRunResults, IChimeraBreakdownCompatible, IChimeraPeptideCounter, IDisposable, IMultiFilterChecker
+    public class MetaMorpheusResult : SingleRunResults, IChimeraBreakdownCompatible, IChimeraPeptideCounter, IDisposable, IMultiFilterChecker, IRetentionTimePredictionAnalysis
     {
         #region Results
 

@@ -37,12 +37,14 @@ namespace Analyzer.Util
 
 namespace Analyzer.Plotting.IndividualRunPlots
 {
-    
-
     public static class RetentionTimePlots
     {
         #region Retention Time Prediction
 
+        /// <summary>
+        /// Plots the output of SSRCalc3 and Chronologer vs the actual retention time
+        /// </summary>
+        /// <param name="cellLine"></param>
         public static void PlotCellLineRetentionTimePredictions(this DatasetResults cellLine)
         {
             var plots = cellLine.GetCellLineRetentionTimePredictions();
@@ -154,7 +156,10 @@ namespace Analyzer.Plotting.IndividualRunPlots
         }
 
         
-
+        /// <summary>
+        /// Plots the output of Chronologer vs the actual retention time converted to %Hydrophobic
+        /// </summary>
+        /// <param name="cellLine"></param>
         public static void PlotChronologerVsPercentHi(this DatasetResults cellLine)
         {
             cellLine.GetChronologerHIScatterPlot()
