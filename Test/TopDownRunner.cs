@@ -129,19 +129,24 @@ namespace Test
         [Test]
         public static void OvernightRunner()
         {
-            BottomUpRunner.RunAllParsing();
-            TopDownRunner.RunAllParsing();
+            AllResults.PlotInternalMMComparison();
+
+           
             foreach (var cellLine in BottomUpRunner.AllResults)
             {
-                //cellLine.PlotAccuracyByModificationType();
-                //foreach (var result in cellLine)
-                //    if (result is IChimeraBreakdownCompatible cbc)
-                //        cbc?.GetChimeraBreakdownFile();
-
-                //cellLine.GetMaximumChimeraEstimationFile();
-                //cellLine.Dispose();
+                cellLine.PlotModificationDistribution();
+                cellLine.PlotModificationDistribution(ResultType.Peptide);
+                foreach (var result in cellLine)
+                {
+                    if (result is MetaMorpheusResult mm)
+                    {
+                        
+                    }
+                }
             }
 
+            BottomUpRunner.RunAllParsing();
+            TopDownRunner.RunAllParsing();
             //foreach (var cellLine in AllResults)
             //{
             //    foreach (var result in cellLine.Where(p => true.GetSingleResultSelector(cellLine.CellLine).Contains(p.Condition)))

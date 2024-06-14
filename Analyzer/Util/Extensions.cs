@@ -20,6 +20,16 @@ namespace Analyzer.Util
         }
 
 
+
+
+
+        public static string[] GetDirectories(this string directoryPath)
+        {
+            return Directory.GetDirectories(directoryPath);
+        }
+
+
+
         public static bool ValidateMyColumn(this IReaderRow row)
         {
             // if I remove the HasHeaderRecord check here and set the CsvConfig HasHeaderRecord = false

@@ -64,25 +64,28 @@ namespace Analyzer.SearchType
 
         #endregion
 
-        public SingleRunResults(string directoryPath)
+        protected SingleRunResults(string directoryPath, string? datasetName = null, string? condition = null)
         {
             DirectoryPath = directoryPath;
             FigureDirectory = Path.Combine(DirectoryPath, "Figures");
             if (!Directory.Exists(FigureDirectory))
                 Directory.CreateDirectory(FigureDirectory);
-            if (DirectoryPath.Contains("Task"))
-            {
-                DatasetName =
-                    Path.GetFileName(
-                        Path.GetDirectoryName(Path.GetDirectoryName(Path.GetDirectoryName(DirectoryPath))));
-                Condition = Path.GetFileName(Path.GetDirectoryName(DirectoryPath)) +
-                            Path.GetFileName(DirectoryPath).Split('-')[1];
-            }
+
+            if (datasetName is null)
+                if (DirectoryPath.Contains("Task"))
+                    DatasetName = Path.GetFileName(Path.GetDirectoryName(Path.GetDirectoryName(Path.GetDirectoryName(DirectoryPath))));
+                else
+                    DatasetName = Path.GetFileName(Path.GetDirectoryName(Path.GetDirectoryName(DirectoryPath)));
             else
-            {
-                Condition = Path.GetFileName(DirectoryPath);
-                DatasetName = Path.GetFileName(Path.GetDirectoryName(Path.GetDirectoryName(DirectoryPath)));
-            }
+                DatasetName = datasetName;
+
+            if (condition is null)
+                if (DirectoryPath.Contains("Task"))
+                    Condition = Path.GetFileName(Path.GetDirectoryName(DirectoryPath)) + Path.GetFileName(DirectoryPath).Split('-')[1];
+                else
+                    Condition = Path.GetFileName(DirectoryPath);
+            else
+                Condition = condition;
         }
 
         public abstract BulkResultCountComparisonFile? GetIndividualFileComparison(string path = null);

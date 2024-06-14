@@ -9,6 +9,7 @@ using MathNet.Numerics;
 using Plotly.NET;
 using Plotly.NET.ImageExport;
 using Plotly.NET.LayoutObjects;
+using Proteomics.PSM;
 using Chart = Plotly.NET.CSharp.Chart;
 using GenericChartExtensions = Plotly.NET.CSharp.GenericChartExtensions;
 
@@ -16,23 +17,25 @@ namespace Analyzer.Plotting.ComparativePlots
 {
     public static class AllResultsComparativePlots
     {
-        public static void PlotStackedIndividualFileComparison(this AllResults allResults)
+        public static void PlotStackedIndividualFileComparison(this AllResults allResults, ResultType? resultTypeNullable = null, bool filterByCondition = true)
         {
             int width = 0;
             int height = 0;
 
-            double heightScaler = allResults.First().First().IsTopDown ? 1.5 : 2.5;
-            var title = allResults.First().First().IsTopDown ? "PrSMs" : "Peptides";
-            var resultType = allResults.First().First().IsTopDown ? ResultType.Psm : ResultType.Peptide;
+            double heightScaler = allResults.First().First().IsTopDown ? 1.0 : 2.5;
+            var resultType = resultTypeNullable ?? (allResults.First().First().IsTopDown ? ResultType.Psm : ResultType.Peptide);
+            var title = Labels.GetLabel(allResults.First().First().IsTopDown, resultType);
             var chart = Chart.Grid(
-                    allResults.Select(p => p.GetIndividualFileResultsBarChart(out width, out height)
+                    allResults.Select(p => p.GetIndividualFileResultsBarChart(out width, out height, resultType, filterByCondition)
                         .WithYAxisStyle(Title.init(p.CellLine))),
-                    allResults.Count(), 1, Pattern: StyleParam.LayoutGridPattern.Independent, YGap: 0.2)
+                    allResults.Count(), 1, Pattern: StyleParam.LayoutGridPattern.Independent, YGap: 0.4)
                 .WithTitle($"Individual File Comparison 1% {title}")
                 .WithSize(width, (int)(height * allResults.Count() / heightScaler))
-                .WithLayout(PlotlyBase.DefaultLayoutWithLegend)
-                .WithLegend(false);
-            string outpath = Path.Combine(allResults.GetChimeraPaperFigureDirectory(), $"AllResults_{FileIdentifiers.IndividualFileComparisonFigure}_Stacked");
+                .WithLayout(PlotlyBase.DefaultLayoutWithLegend);
+            string outpath = Path.Combine(allResults.GetChimeraPaperFigureDirectory(), $"AllResults_{FileIdentifiers.IndividualFileComparisonFigure}_{title}_Stacked");
+
+            if (!filterByCondition)
+                height *= 2;
             chart.SavePNG(outpath, null, width, (int)(height * allResults.Count() / heightScaler));
         }
 
@@ -50,22 +53,33 @@ namespace Analyzer.Plotting.ComparativePlots
             // Recalculate No Chimeras from the chimeric results accepting only one Psm per spectrum
             if (isTopDown)
             {
-                var chimericResult = (MetaMorpheusResult)allResults.SelectMany(m =>
-                        m.Where(p => allResults.GetInternalMetaMorpheusFileComparisonSelector().Contains(p.Condition)))
-                    .First(p => !p.Condition.Contains("NoChimeras"));
 
-                var psmCount = chimericResult.AllPsms.Count(p => p is { DecoyContamTarget: "T", PEP_QValue: <= 0.01 });
-                var peptides = chimericResult.AllPeptides.Where(p => p is { DecoyContamTarget: "T", PEP_QValue: <= 0.01 }).ToArray();
-                var peptideCount = peptides.Length;
-                var proteinCount = peptides.Select(p => p.Accession).Distinct().Count();
-                
-                var BulkResultCountComparison = new BulkResultCountComparison()
+                noChimeras.Clear();
+                foreach (var singleRunResults in allResults.SelectMany(m =>
+                                 m.Where(p => allResults.GetInternalMetaMorpheusFileComparisonSelector().Contains(p.Condition)))
+                             .Where(p => !p.Condition.Contains("NoChimeras")))
                 {
-                    OnePercentPeptideCount = peptideCount,
-                    OnePercentProteinGroupCount = proteinCount,
-                    OnePercentPsmCount = psmCount,
-                };
-                noChimeras = new() { BulkResultCountComparison };
+                    var chimericResult = (MetaMorpheusResult)singleRunResults;
+
+                    var psmCount = chimericResult.AllPsms.Where(p => p is { DecoyContamTarget: "T", PEP_QValue: <= 0.01 })
+                        .GroupBy(p => p, CustomComparer<PsmFromTsv>.ChimeraComparer).Count();
+                    var peptides = chimericResult.AllPeptides.Where(p => p is { DecoyContamTarget: "T", PEP_QValue: <= 0.01 })
+                        .GroupBy(p => p, CustomComparer<PsmFromTsv>.ChimeraComparer).ToArray();
+                    var peptideCount = peptides.Length;
+                    var proteinCount = peptides.SelectMany(p => p.MinBy(m => m.PEP_QValue)?.Accession).Distinct().Count();
+
+                    var bulkResultCountComparison = new BulkResultCountComparison()
+                    {
+                        DatasetName = chimericResult.DatasetName,
+                        Condition = "Non-Chimeric",
+                        FileName = "Combined",
+                        OnePercentPeptideCount = peptideCount,
+                        OnePercentProteinGroupCount = proteinCount,
+                        OnePercentPsmCount = psmCount,
+                    };
+
+                    noChimeras.Add(bulkResultCountComparison);
+                }
             }
 
 

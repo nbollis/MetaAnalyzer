@@ -33,7 +33,7 @@ namespace Analyzer.SearchType
 
         public override BulkResultCountComparisonFile BaseSeqIndividualFileComparisonFile => _baseSeqIndividualFileComparison ??= CountIndividualFilesForFengChaoComparison();
         public string[] DataFilePaths { get; set; } // set by CellLineResults constructor
-        public MetaMorpheusResult(string directoryPath) : base(directoryPath)
+        public MetaMorpheusResult(string directoryPath, string? datasetName = null, string? condition = null) : base(directoryPath, datasetName, condition)
         {
             PsmPath = Directory.GetFiles(directoryPath, "*PSMs.psmtsv", SearchOption.AllDirectories).First();
             PeptidePath = Directory.GetFiles(directoryPath, "*Peptides.psmtsv", SearchOption.AllDirectories).FirstOrDefault();

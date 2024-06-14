@@ -24,10 +24,12 @@ namespace Analyzer.Plotting.ComparativePlots
             out int height, ResultType resultType = ResultType.Psm, bool filterByCondition = true)
         {
             bool isTopDown = cellLine.First().IsTopDown;
-            var fileResults = (filterByCondition ? cellLine.Select(p => p.IndividualFileComparisonFile)
+            var filteredResults = (filterByCondition ? cellLine.Select(p => p.IndividualFileComparisonFile)
                         .Where(p => p != null && p.Any() && isTopDown.GetIndividualFileComparisonSelector(cellLine.CellLine).Contains(p.First().Condition))
-                    : cellLine.Select(p => p.IndividualFileComparisonFile))
-                .OrderBy(p => p.First().Condition.ConvertConditionName())
+                    : cellLine.Select(p => p.IndividualFileComparisonFile));
+            var fileResults = filteredResults
+                .Where(p => p is not null)
+                .OrderBy(b => b.First().Condition.ConvertConditionName())
                 .ToList();
 
             return GenericPlots.IndividualFileResultBarChart(fileResults, out width, out height, cellLine.CellLine,

@@ -88,7 +88,21 @@ public static class PlottingTranslators
         {"MetaMorpheus_FullPEPChimeraIncorporation", Color.fromKeyword(ColorKeyword.GoldenRod)},
         {"Full_ChimeraIncorporation_NoNormalization", Color.fromKeyword(ColorKeyword.Plum)},
         {"Small_ChimeraIncorporation", Color.fromKeyword(ColorKeyword.RoyalBlue)},
-        {"MetaMorpheus_NoNormalization", Color.fromKeyword(ColorKeyword.RoyalBlue)},
+
+        {"Semi-Specific", Color.fromKeyword(ColorKeyword.Indigo)},
+        {"Non-Specific", Color.fromKeyword(ColorKeyword.SteelBlue)},
+        {"Modern", Color.fromKeyword(ColorKeyword.YellowGreen)},
+        {"Classic - Initial", Color.fromKeyword(ColorKeyword.Blue)},
+        {"Classic - Post Calibration", Color.fromKeyword(ColorKeyword.Orange)},
+        {"Classic - Post GPTMD", Color.fromKeyword(ColorKeyword.Green)},
+        {"TopDown - Initial", Color.fromKeyword(ColorKeyword.Navy)},
+        {"TopDown - Post Calibration", Color.fromKeyword(ColorKeyword.DarkGoldenRod)},
+        {"TopDown - Post Averaging", Color.fromKeyword(ColorKeyword.DarkRed)},
+        {"TopDown - Post GPTMD", Color.fromKeyword(ColorKeyword.DarkGreen)},
+
+
+
+
     };
 
     private static Dictionary<string, string> FileNameConversionDictionary = new()

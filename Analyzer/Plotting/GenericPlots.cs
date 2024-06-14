@@ -64,7 +64,7 @@ namespace Analyzer.Plotting
                     result.Results.First().Condition.ConvertConditionName(),
                     MarkerColor: result.First().Condition.ConvertConditionToColor())).ToList();
 
-            width = 50 * labels.Count + 10 * results.Count;
+            width = Math.Max(50 * labels.Count + 10 * results.Count, 800);
             height = PlotlyBase.DefaultHeight;
             var chart = Chart.Combine(charts)
                 .WithTitle($"{title} 1% FDR {Labels.GetLabel(isTopDown, resultType)}")
