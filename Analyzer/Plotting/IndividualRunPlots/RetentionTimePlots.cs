@@ -52,15 +52,11 @@ namespace Analyzer.Plotting.IndividualRunPlots
         public static void PlotCellLineRetentionTimePredictions(this CellLineResults cellLine)
         {
             var plots = cellLine.GetCellLineRetentionTimePredictions();
-            string outPath = Path.Combine(cellLine.GetChimeraPaperFigureDirectory(), $"{FileIdentifiers.ChronologerFigure}_{cellLine.CellLine}");
-            plots.Chronologer.SavePNG(outPath, null, 1000, PlotlyBase.DefaultHeight);
-            outPath = Path.Combine(cellLine.FigureDirectory, $"{FileIdentifiers.ChronologerFigure}_{cellLine.CellLine}");
-            plots.Chronologer.SavePNG(outPath, null, 1000, PlotlyBase.DefaultHeight);
-
-            outPath = Path.Combine(cellLine.GetChimeraPaperFigureDirectory(), $"{FileIdentifiers.SSRCalcFigure}_{cellLine.CellLine}");
-            plots.SSRCalc3.SavePNG(outPath, null, 1000, PlotlyBase.DefaultHeight);
-            outPath = Path.Combine(cellLine.FigureDirectory, $"{FileIdentifiers.SSRCalcFigure}_{cellLine.CellLine}");
-            plots.SSRCalc3.SavePNG(outPath, null, 1000, PlotlyBase.DefaultHeight);
+            
+            var chronOutName = $"{FileIdentifiers.ChronologerFigure}_{cellLine.CellLine}";
+            var ssrCalcOutName = $"{FileIdentifiers.SSRCalcFigure}_{cellLine.CellLine}";   
+            plots.Chronologer.SaveInCellLineOnly(cellLine, chronOutName, 1000, PlotlyBase.DefaultHeight);
+            plots.SSRCalc3.SaveInCellLineOnly(cellLine, ssrCalcOutName, 1000, PlotlyBase.DefaultHeight);
         }
 
         internal static (GenericChart.GenericChart Chronologer, GenericChart.GenericChart SSRCalc3) GetCellLineRetentionTimePredictions(this CellLineResults cellLine)
@@ -234,7 +230,7 @@ namespace Analyzer.Plotting.IndividualRunPlots
         {
             var chart = cellLine.GetChronologerDeltaPlotKernelPDF(kernel);
             //GenericChartExtensions.Show(chart);
-            chart.SaveInCellLineAndMann11Directories(cellLine, $"{FileIdentifiers.ChronologerDeltaKdeFigure}_{cellLine.CellLine}", 600, 600);
+            chart.SaveInCellLineOnly(cellLine, $"{FileIdentifiers.ChronologerDeltaKdeFigure}_{cellLine.CellLine}", 600, 600);
         }
 
         internal static GenericChart.GenericChart GetChronologerDeltaPlotKernelPDF(this CellLineResults cellLine, Kernels kernel = Kernels.Gaussian)

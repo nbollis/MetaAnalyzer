@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Analyzer.FileTypes.Internal;
 using Analyzer.Plotting;
+using Analyzer.Plotting.ComparativePlots;
 using Analyzer.Plotting.IndividualRunPlots;
 using Analyzer.SearchType;
 using Analyzer.Util;

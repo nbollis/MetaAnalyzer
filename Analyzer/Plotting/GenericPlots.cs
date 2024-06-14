@@ -10,7 +10,7 @@ using Plotly.NET.TraceObjects;
 using Proteomics.PSM;
 using Analyzer.SearchType;
 using MathNet.Numerics;
-using static Analyzer.Plotting.CellLinePlots;
+using static Analyzer.Plotting.MiscPlots;
 using MathNet.Numerics.Statistics;
 using Microsoft.FSharp.Core;
 using Omics.Modifications;

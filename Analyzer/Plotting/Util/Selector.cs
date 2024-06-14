@@ -125,7 +125,6 @@ namespace Analyzer.Plotting.Util
                 { ("MCF7", false), TopDownEcoliSelector },
                 { ("RKO", false), TopDownEcoliSelector },
                 { ("U2OS", false), TopDownEcoliSelector },
-
             };
         }
 

@@ -347,6 +347,7 @@ namespace Analyzer.Plotting.IndividualRunPlots
             return chart;
         }
 
+        
 
         public static void PlotChimeraBreakdownByMassAndCharge(this CellLineResults cellLine)
         {

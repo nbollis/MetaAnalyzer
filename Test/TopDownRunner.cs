@@ -4,6 +4,7 @@ using Analyzer.Interfaces;
 using Plotly.NET.ImageExport;
 using Readers;
 using Analyzer.Plotting;
+using Analyzer.Plotting.ComparativePlots;
 using Analyzer.Plotting.IndividualRunPlots;
 using Analyzer.SearchType;
 using Analyzer.Util;
@@ -79,20 +80,20 @@ namespace Test
         [Test]
         public static void GenerateAllFigures()
         {
-            foreach (CellLineResults cellLine in AllResults)
-            {
-                foreach (var individualResult in cellLine)
-                {
-                    if (individualResult is not MetaMorpheusResult mm) continue;
-                    mm.PlotPepFeaturesScatterGrid();
-                    mm.ExportCombinedChimeraTargetDecoyExploration(mm.FigureDirectory, mm.Condition);
-                }
+            //foreach (CellLineResults cellLine in AllResults)
+            //{
+            //    foreach (var individualResult in cellLine)
+            //    {
+            //        if (individualResult is not MetaMorpheusResult mm) continue;
+            //        //mm.PlotPepFeaturesScatterGrid();
+            //        //mm.ExportCombinedChimeraTargetDecoyExploration(mm.FigureDirectory, mm.Condition);
+            //    }
 
-                cellLine.PlotIndividualFileResults();
-                cellLine.PlotCellLineSpectralSimilarity();
-                cellLine.PlotCellLineChimeraBreakdown();
-                cellLine.PlotCellLineChimeraBreakdown_TargetDecoy();
-            }
+            //    cellLine.PlotIndividualFileResults();
+            //    cellLine.PlotCellLineSpectralSimilarity();
+            //    cellLine.PlotCellLineChimeraBreakdown();
+            //    cellLine.PlotCellLineChimeraBreakdown_TargetDecoy();
+            //}
 
             AllResults.PlotInternalMMComparison();
             AllResults.PlotBulkResultComparisons();

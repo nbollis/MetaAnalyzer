@@ -133,46 +133,6 @@ namespace Analyzer.Plotting.IndividualRunPlots
             return plot;
         }
 
-        public static void PlotCellLineSpectralSimilarity(this CellLineResults cellLine)
-        {
-
-            string outpath = Path.Combine(cellLine.GetChimeraPaperFigureDirectory(), $"{FileIdentifiers.SpectralAngleFigure}_{cellLine.CellLine}");
-            var chart = cellLine.GetCellLineSpectralSimilarity();
-            chart.SavePNG(outpath);
-            outpath = Path.Combine(cellLine.FigureDirectory, $"{FileIdentifiers.SpectralAngleFigure}_{cellLine.CellLine}");
-            cellLine.GetCellLineSpectralSimilarity().SavePNG(outpath);
-        }
-
-        internal static GenericChart.GenericChart GetCellLineSpectralSimilarity(this CellLineResults cellLine)
-        {
-            bool isTopDown = cellLine.First().IsTopDown;
-            double[] chimeraAngles;
-            double[] nonChimeraAngles;
-            if (isTopDown)
-            {
-                var angles = cellLine.Results
-                    .Where(p => isTopDown.GetSingleResultSelector(cellLine.CellLine).Contains(p.Condition))
-                    .SelectMany(p => ((MetaMorpheusResult)p).AllPeptides.Where(m => m.SpectralAngle is not -1 or double.NaN))
-                    .GroupBy(p => p, CustomComparer<PsmFromTsv>.ChimeraComparer)
-                    .SelectMany(chimeraGroup =>
-                        chimeraGroup.Select(prsm => (prsm.SpectralAngle ?? -1, chimeraGroup.Count() > 1)))
-                    .ToList();
-                chimeraAngles = angles.Where(p => p.Item2).Select(p => p.Item1).ToArray();
-                nonChimeraAngles = angles.Where(p => !p.Item2).Select(p => p.Item1).ToArray();
-            }
-            else
-            {
-                var angles = cellLine.Results
-                    .Where(p => isTopDown.GetSingleResultSelector(cellLine.CellLine).Contains(p.Condition))
-                    .OrderBy(p => ((MetaMorpheusResult)p).RetentionTimePredictionFile.First())
-                    .Select(p => ((MetaMorpheusResult)p).RetentionTimePredictionFile)
-                    .SelectMany(p => p.Where(m => m.SpectralAngle is not -1 or double.NaN))
-                    .ToList();
-                chimeraAngles = angles.Where(p => p.IsChimeric).Select(p => p.SpectralAngle).ToArray();
-                nonChimeraAngles = angles.Where(p => !p.IsChimeric).Select(p => p.SpectralAngle).ToArray();
-            }
-
-            return GenericPlots.SpectralAngleChimeraComparisonViolinPlot(chimeraAngles, nonChimeraAngles, cellLine.CellLine, isTopDown);
-        }
+        
     }
 }
