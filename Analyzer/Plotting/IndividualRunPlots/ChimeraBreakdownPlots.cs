@@ -13,6 +13,19 @@ using Proteomics.PSM;
 using Analyzer.SearchType;
 using Plotly.NET.ImageExport;
 
+
+namespace Analyzer.Util
+{
+    public static partial class FileIdentifiers
+    {
+        public static string ChimeraBreakdownComparison => "ChimeraBreakdownComparison.csv";
+        public static string ChimeraBreakdownComparisonFigure => "ChimeraBreakdown_1%";
+        public static string ChimeraBreakdownComparisonStackedAreaFigure => "ChimeraBreakdownStackedArea_1%";
+        public static string ChimeraBreakdownComparisonStackedAreaPercentFigure => "ChimeraBreakdownStackedAreaPercent_1%";
+        public static string ChimeraBreakdownByChargeStateFigure => "ChimeraBreakdownByChargeState";
+    }
+}
+
 namespace Analyzer.Plotting.IndividualRunPlots
 {
     public static class ChimeraBreakdownPlots

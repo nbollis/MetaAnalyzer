@@ -6,6 +6,19 @@ using Plotly.NET.ImageExport;
 using Proteomics.PSM;
 using Chart = Plotly.NET.CSharp.Chart;
 
+
+namespace Analyzer.Util
+{
+    public static partial class FileIdentifiers
+    {
+        public static string SpectralAngleFigure => "SpectralAngleComparison";
+        public static string PepGridChartFigure => "PepFeatureAnalysis";
+        public static string ChimeraBreakdownByMassFigure => "ChimeraBreakdownByPrecursorMass";
+        public static string ChimeraBreakdownTargetDecoy => "ChimeraBreakdown_TargetDecoy";
+        public static string TargetDecoyCurve => "TargetDecoyCurve";
+    }
+}
+
 namespace Analyzer.Plotting.IndividualRunPlots
 {
     public static class FdrEvaluationPlots
