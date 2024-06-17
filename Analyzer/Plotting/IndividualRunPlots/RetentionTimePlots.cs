@@ -10,6 +10,8 @@ using Analyzer.FileTypes.Internal;
 using Microsoft.FSharp.Core;
 using Plotly.NET.CSharp;
 using Readers;
+using GenericChartExtensions = Plotly.NET.CSharp.GenericChartExtensions;
+using System.Text.RegularExpressions;
 
 namespace Analyzer.Util
 {
@@ -50,7 +52,12 @@ namespace Analyzer.Plotting.IndividualRunPlots
             var plots = cellLine.GetCellLineRetentionTimePredictions();
             
             var chronOutName = $"{FileIdentifiers.ChronologerFigure}_{cellLine.CellLine}";
-            var ssrCalcOutName = $"{FileIdentifiers.SSRCalcFigure}_{cellLine.CellLine}";   
+            var ssrCalcOutName = $"{FileIdentifiers.SSRCalcFigure}_{cellLine.CellLine}";
+
+            //GenericChartExtensions.Show(plots.Chronologer);
+            //GenericChartExtensions.Show(plots.SSRCalc3);
+
+
             plots.Chronologer.SaveInCellLineOnly(cellLine, chronOutName, 1000, PlotlyBase.DefaultHeight);
             plots.SSRCalc3.SaveInCellLineOnly(cellLine, ssrCalcOutName, 1000, PlotlyBase.DefaultHeight);
         }
@@ -82,22 +89,26 @@ namespace Analyzer.Plotting.IndividualRunPlots
 
             (double RT, double Prediction)[] line = new[]
             {
-            (chronologer.Min(p => p.RetentionTime), chronologerInterceptSlope.A + chronologerInterceptSlope.B * chronologer.Min(p => p.RetentionTime)),
-            (chronologer.Max(p => p.RetentionTime), chronologerInterceptSlope.A + chronologerInterceptSlope.B * chronologer.Max(p => p.RetentionTime))
-        };
+                (chronologer.Min(p => p.RetentionTime),
+                    chronologerInterceptSlope.A + chronologerInterceptSlope.B * chronologer.Min(p => p.RetentionTime)),
+                (chronologer.Max(p => p.RetentionTime),
+                    chronologerInterceptSlope.A + chronologerInterceptSlope.B * chronologer.Max(p => p.RetentionTime))
+            };
             var chronologerPlot = Chart.Combine(new[]
                 {
-                Chart2D.Chart.Scatter<double, double, string>(
-                    chronologer.Where(p => !p.IsChimeric).Select(p => p.RetentionTime),
-                    chronologer.Where(p => !p.IsChimeric).Select(p => p.ChronologerPrediction), StyleParam.Mode.Markers,
-                    $"No Chimeras - R^2={nonChimericR2}", MarkerColor: "No Chimeras".ConvertConditionToColor()),
-                Chart2D.Chart.Scatter<double, double, string>(
-                    chronologer.Where(p => p.IsChimeric).Select(p => p.RetentionTime),
-                    chronologer.Where(p => p.IsChimeric).Select(p => p.ChronologerPrediction), StyleParam.Mode.Markers,
-                    $"Chimeras - R^2={chimeraR2}", MarkerColor: "Chimeras".ConvertConditionToColor()),
-                Chart.Line<double, double, string>(line.Select(p => p.RT), line.Select(p => p.Prediction))
-                    .WithLegend(false)
-            })
+                    Chart2D.Chart.Scatter<double, double, string>(
+                        chronologer.Where(p => !p.IsChimeric).Select(p => p.RetentionTime),
+                        chronologer.Where(p => !p.IsChimeric).Select(p => p.ChronologerPrediction),
+                        StyleParam.Mode.Markers,
+                        $"No Chimeras - R^2={nonChimericR2}", MarkerColor: "No Chimeras".ConvertConditionToColor()),
+                    Chart2D.Chart.Scatter<double, double, string>(
+                        chronologer.Where(p => p.IsChimeric).Select(p => p.RetentionTime),
+                        chronologer.Where(p => p.IsChimeric).Select(p => p.ChronologerPrediction),
+                        StyleParam.Mode.Markers,
+                        $"Chimeras - R^2={chimeraR2}", MarkerColor: "Chimeras".ConvertConditionToColor()),
+                    Chart.Line<double, double, string>(line.Select(p => p.RT), line.Select(p => p.Prediction))
+                        .WithLegend(false)
+                })
                 .WithTitle($"{cellLine.CellLine} Chronologer Predicted HI vs Retention Time (1% Peptides)")
                 .WithXAxisStyle(Title.init("Retention Time"))
                 .WithYAxisStyle(Title.init("Chronologer Prediction"))
@@ -131,22 +142,24 @@ namespace Analyzer.Plotting.IndividualRunPlots
 
             line = new[]
             {
-            (ssrCalc.Min(p => p.RetentionTime), ssrCalcInterceptSlope.A + ssrCalcInterceptSlope.B * ssrCalc.Min(p => p.RetentionTime)),
-            (ssrCalc.Max(p => p.RetentionTime), ssrCalcInterceptSlope.A + ssrCalcInterceptSlope.B * ssrCalc.Max(p => p.RetentionTime))
-        };
+                (ssrCalc.Min(p => p.RetentionTime),
+                    ssrCalcInterceptSlope.A + ssrCalcInterceptSlope.B * ssrCalc.Min(p => p.RetentionTime)),
+                (ssrCalc.Max(p => p.RetentionTime),
+                    ssrCalcInterceptSlope.A + ssrCalcInterceptSlope.B * ssrCalc.Max(p => p.RetentionTime))
+            };
 
             var ssrCalcPlot = Chart.Combine(new[]
                 {
-                Chart2D.Chart.Scatter<double, double, string>(
-                    ssrCalc.Where(p => !p.IsChimeric).Select(p => p.RetentionTime),
-                    ssrCalc.Where(p => !p.IsChimeric).Select(p => p.SSRCalcPrediction), StyleParam.Mode.Markers,
-                    $"No Chimeras - R^2={nonChimericR2}", MarkerColor: "No Chimeras".ConvertConditionToColor()),
-                Chart2D.Chart.Scatter<double, double, string>(
-                    ssrCalc.Where(p => p.IsChimeric).Select(p => p.RetentionTime),
-                    ssrCalc.Where(p => p.IsChimeric).Select(p => p.SSRCalcPrediction), StyleParam.Mode.Markers,
-                    $"Chimeras - R^2={chimeraR2}", MarkerColor: "Chimeras".ConvertConditionToColor()),
-                Chart.Line<double, double, string>(line.Select(p => p.RT), line.Select(p => p.Prediction))
-            })
+                    Chart2D.Chart.Scatter<double, double, string>(
+                        ssrCalc.Where(p => !p.IsChimeric).Select(p => p.RetentionTime),
+                        ssrCalc.Where(p => !p.IsChimeric).Select(p => p.SSRCalcPrediction), StyleParam.Mode.Markers,
+                        $"No Chimeras - R^2={nonChimericR2}", MarkerColor: "No Chimeras".ConvertConditionToColor()),
+                    Chart2D.Chart.Scatter<double, double, string>(
+                        ssrCalc.Where(p => p.IsChimeric).Select(p => p.RetentionTime),
+                        ssrCalc.Where(p => p.IsChimeric).Select(p => p.SSRCalcPrediction), StyleParam.Mode.Markers,
+                        $"Chimeras - R^2={chimeraR2}", MarkerColor: "Chimeras".ConvertConditionToColor()),
+                    Chart.Line<double, double, string>(line.Select(p => p.RT), line.Select(p => p.Prediction))
+                })
                 .WithTitle($"{cellLine.CellLine} SSRCalc3 Predicted HI vs Retention Time (1% Peptides)")
                 .WithXAxisStyle(Title.init("Retention Time"))
                 .WithYAxisStyle(Title.init("SSRCalc3 Prediction"))
@@ -155,6 +168,101 @@ namespace Analyzer.Plotting.IndividualRunPlots
             return (chronologerPlot, ssrCalcPlot);
         }
 
+
+        public static void PlotCellLineRetentionTimeVsChronologerPredictionBubble(this CellLineResults cellLine)
+        {
+            var plot = cellLine.GetChronologerRetentionTimePredictionsBubble();
+            GenericChartExtensions.Show(plot);
+            plot.SaveInCellLineOnly(cellLine, $"{FileIdentifiers.ChronologerFigureACN}_{cellLine.CellLine}_Bubble", 1000, PlotlyBase.DefaultHeight);
+        }
+        
+
+        internal static GenericChart.GenericChart GetChronologerRetentionTimePredictionsBubble(this CellLineResults cellLine)
+        {
+            var chronologer = cellLine.Results
+                .Where(p => false.GetSingleResultSelector(cellLine.CellLine).Contains(p.Condition))
+                .OrderBy(p => ((MetaMorpheusResult)p).RetentionTimePredictionFile.First())
+                .Select(p => ((MetaMorpheusResult)p).RetentionTimePredictionFile)
+                .SelectMany(p => p.Where(m => m.ChronologerPrediction != 0 && m.PeptideModSeq != ""))
+                .Select(p => (p.ChronologerPrediction, p.RetentionTime, p.IsChimeric))
+                .ToList();
+
+            // Fit data to line and calculate R^2
+            var chronologerInterceptSlope = Fit.Line(chronologer.Select(p => p.RetentionTime).ToArray(),
+                chronologer.Select(p => p.ChronologerPrediction).ToArray());
+            var chimeraR2 = GoodnessOfFit.CoefficientOfDetermination(
+                chronologer.Where(p => p.IsChimeric)
+                    .Select(p => p.RetentionTime * chronologerInterceptSlope.B + chronologerInterceptSlope.A),
+                chronologer.Where(p => p.IsChimeric)
+                    .Select(p => p.ChronologerPrediction)).Round(4);
+            var nonChimericR2 = GoodnessOfFit.CoefficientOfDetermination(
+                chronologer.Where(p => !p.IsChimeric)
+                    .Select(p => p.RetentionTime * chronologerInterceptSlope.B + chronologerInterceptSlope.A),
+                chronologer.Where(p => !p.IsChimeric)
+                    .Select(p => p.ChronologerPrediction)).Round(4);
+
+            (double RT, double Prediction)[] line = new[]
+            {
+                (chronologer.Min(p => p.RetentionTime),
+                    chronologerInterceptSlope.A + chronologerInterceptSlope.B * chronologer.Min(p => p.RetentionTime)),
+                (chronologer.Max(p => p.RetentionTime),
+                    chronologerInterceptSlope.A + chronologerInterceptSlope.B * chronologer.Max(p => p.RetentionTime))
+            };
+
+            // Bin points for bubble chart and create size array
+            int numberOfSizes = 30;
+            int sizeScaler = 5;
+            var chimeraGrouped = chronologer.Where(p => p.IsChimeric)
+                .GroupBy(p => p.RetentionTime.Round(2)).ToList();
+            var nonChimeraGrouped = chronologer.Where(p => !p.IsChimeric)
+                .GroupBy(p => p.RetentionTime.Round(2)).ToList();
+
+            var minSize = Math.Min(chimeraGrouped.Min(p => p.Count()), nonChimeraGrouped.Min(p => p.Count()));
+            var maxSize = Math.Max(chimeraGrouped.Max(p => p.Count()), nonChimeraGrouped.Max(p => p.Count()));
+
+            var sizeScale = (maxSize - minSize) / (double)numberOfSizes;
+            var chimeraGroupSizes = chimeraGrouped.Select(p => (int)Math.Round((p.Count() - minSize) / sizeScale + sizeScaler)).ToList();
+            var nonChimeraGroupSizes = nonChimeraGrouped.Select(p => (int)Math.Round((p.Count() - minSize) / sizeScale + sizeScaler)).ToList();
+
+            var nonChimeric = nonChimeraGrouped.Select(group => new Tuple<double, double, int>(group.Key, group.Average(p => p.ChronologerPrediction), nonChimeraGroupSizes[nonChimeraGrouped.IndexOf(group)])).ToList();
+            var chimeric = chimeraGrouped.Select(group => new Tuple<double, double, int>(group.Key, group.Average(p => p.ChronologerPrediction), chimeraGroupSizes[chimeraGrouped.IndexOf(group)])).ToList();
+
+            var chronologerPlot = Chart.Combine(new[]
+                {
+                    Chart2D.Chart.Bubble<double, double, int>(nonChimeric, Name: $"Non-Chimeric - R^2={nonChimericR2}",
+                        MarkerColor: /*"Non-Chimeric".ConvertConditionToColor()*/ Color.fromARGB(100, 102,102,255),
+                        MarkerOutline: Line.init(Color: Color.fromARGB(0,0,0,0))),
+                    Chart2D.Chart.Bubble<double, double, int>(chimeric, Name: $"Chimeric - R^2={chimeraR2}", 
+                        MarkerColor: /*"Chimeric".ConvertConditionToColor()*/ Color.fromARGB(70, 255,102,102),
+                        MarkerOutline: Line.init(Color: Color.fromARGB(0,0,0,0))),
+                    //Chart2D.Chart.Scatter<double, double, string>(
+                    //    chronologer.Where(p => !p.IsChimeric).Select(p => p.RetentionTime),
+                    //    chronologer.Where(p => !p.IsChimeric).Select(p => p.ChronologerPrediction),
+                    //    StyleParam.Mode.Markers,
+                    //    $"No Chimeras - R^2={nonChimericR2}", MarkerColor: "No Chimeras".ConvertConditionToColor()),
+                    //Chart2D.Chart.Scatter<double, double, string>(
+                    //    chronologer.Where(p => p.IsChimeric).Select(p => p.RetentionTime),
+                    //    chronologer.Where(p => p.IsChimeric).Select(p => p.ChronologerPrediction),
+                    //    StyleParam.Mode.Markers,
+                    //    $"Chimeras - R^2={chimeraR2}", MarkerColor: "Chimeras".ConvertConditionToColor()),
+                    Chart.Line<double, double, string>(line.Select(p => p.RT), line.Select(p => p.Prediction))
+                        .WithLegend(false)
+                })
+                .WithTitle($"{cellLine.CellLine} Chronologer Predicted HI vs Retention Time (1% Peptides)")
+                .WithXAxisStyle(Title.init("Retention Time"))
+                .WithYAxisStyle(Title.init("Chronologer Prediction"))
+                .WithLayout(Layout.init<string>(PaperBGColor: Color.fromKeyword(ColorKeyword.White),
+                    PlotBGColor: Color.fromKeyword(ColorKeyword.White),
+                    ShowLegend: true,
+                    Legend: Legend.init(X: 0.5, Y: -0.2, Orientation: StyleParam.Orientation.Horizontal, EntryWidth: 0,
+                        VerticalAlign: StyleParam.VerticalAlign.Bottom,
+                        XAnchor: StyleParam.XAnchorPosition.Center,
+                        YAnchor: StyleParam.YAnchorPosition.Top
+                    )))
+                .WithSize(1600, 900);
+
+            return chronologerPlot;
+        }
         
         /// <summary>
         /// Plots the output of Chronologer vs the actual retention time converted to %Hydrophobic

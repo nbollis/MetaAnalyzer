@@ -22,7 +22,7 @@ namespace Test
             get
             {
                 List<CellLineResults> differentRunResults = new();
-                foreach (var specificRunDirectory in Directory.GetDirectories(DirectoryPath).Where(p => !p.Contains("Figures")))
+                foreach (var specificRunDirectory in Directory.GetDirectories(DirectoryPath).Where(p => !p.Contains("Figures")).Take(2))
                 {
                     var runDirectories = specificRunDirectory.GetDirectories();
 
@@ -82,22 +82,43 @@ namespace Test
         [Test]
         public static void FirstGo()
         {
-            AllResults.PlotStackedIndividualFileComparison(ResultType.Psm, false);
-            AllResults.PlotStackedIndividualFileComparison(ResultType.Peptide, false);
-            AllResults.PlotStackedIndividualFileComparison(ResultType.Protein, false);
+            
             foreach (var groupRun in AllResults)
             {
+                foreach (var singleRunResults in groupRun)
+                {
+                    var mm = (MetaMorpheusResult)singleRunResults;
+                    mm.GetBulkResultCountComparisonMultipleFilteringTypesFile();
+                    mm.PlotTargetDecoyCurves(ResultType.Psm, TargetDecoyCurveMode.Score);
+                    mm.PlotTargetDecoyCurves(ResultType.Peptide, TargetDecoyCurveMode.Score);
+                }
+
+                groupRun.GetBulkResultCountComparisonMultipleFilteringTypesFile();
                 groupRun.GetIndividualFileComparison();
                 groupRun.PlotIndividualFileResults(ResultType.Psm, null, false);
                 groupRun.PlotIndividualFileResults(ResultType.Peptide, null, false);
                 groupRun.PlotIndividualFileResults(ResultType.Protein, null, false);
-                foreach (var singleRunResults in groupRun)
-                {
-                    var mm = (MetaMorpheusResult)singleRunResults;
-                    mm.PlotPepFeaturesScatterGrid();
-                    mm.PlotTargetDecoyCurves(ResultType.Peptide, TargetDecoyCurveMode.Score);
-                    mm.PlotTargetDecoyCurves(ResultType.Psm, TargetDecoyCurveMode.Score);
-                }
+            }
+
+            AllResults.PlotStackedIndividualFileComparison(ResultType.Psm, false);
+            AllResults.PlotStackedIndividualFileComparison(ResultType.Peptide, false);
+            AllResults.PlotStackedIndividualFileComparison(ResultType.Protein, false);
+        }
+
+
+
+        [Test]
+        public static void TargetDecoyCurveTestRunner()
+        {
+            string dirpath = @"B:\Users\Nic\Chimeras\Testing";
+            List<MetaMorpheusResult> mmResults = dirpath.GetDirectories().Select(mmDir => new MetaMorpheusResult(mmDir)).ToList();
+
+            foreach (var result in mmResults)
+            {
+                result.PlotTargetDecoyCurves(ResultType.Psm, TargetDecoyCurveMode.Score, true);
+                result.PlotTargetDecoyCurves(ResultType.Psm, TargetDecoyCurveMode.Score, false);
+                result.PlotTargetDecoyCurves(ResultType.Peptide, TargetDecoyCurveMode.Score, true);
+                result.PlotTargetDecoyCurves(ResultType.Peptide, TargetDecoyCurveMode.Score, false);
             }
         }
     }

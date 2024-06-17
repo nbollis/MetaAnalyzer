@@ -3,6 +3,7 @@ using Analyzer.Interfaces;
 using Analyzer.Plotting.AggregatePlots;
 using Analyzer.Plotting.ComparativePlots;
 using Analyzer.Plotting.IndividualRunPlots;
+using Analyzer.Plotting.Util;
 using Analyzer.SearchType;
 using Analyzer.Util;
 using Readers;
@@ -27,7 +28,7 @@ namespace Test
         [Test]
         public static void RunAllParsing()
         {
-            foreach (CellLineResults cellLine in AllResults)
+            foreach (CellLineResults cellLine in AllResults.Skip(3))
             {
                 foreach (var result in cellLine)
                 {
@@ -42,12 +43,34 @@ namespace Test
                         cb.GetChimeraBreakdownFile();
                     if (result is IChimeraPeptideCounter pc)
                         pc.CountChimericPeptides();
+                    if (result is MetaMorpheusResult mm)
+                    {
+                        mm.PlotTargetDecoyCurves(ResultType.Psm, TargetDecoyCurveMode.Score, false);
+                        mm.PlotTargetDecoyCurves(ResultType.Psm, TargetDecoyCurveMode.Score, true);
+                        mm.PlotTargetDecoyCurves(ResultType.Peptide, TargetDecoyCurveMode.Score, false);
+                        mm.PlotTargetDecoyCurves(ResultType.Peptide, TargetDecoyCurveMode.Score, true);
+                    }
 
                     //result.Override = false;
                 }
 
-                cellLine.PlotModificationDistribution(ResultType.Psm, false);
-                cellLine.PlotModificationDistribution(ResultType.Peptide, false);
+                try
+                {
+                    cellLine.PlotModificationDistribution(ResultType.Psm, false);
+                }
+                catch (Exception e)
+                {
+                    Console.WriteLine(e);
+                }
+                try
+                {
+                    cellLine.PlotModificationDistribution(ResultType.Peptide, false);
+                }
+                catch (Exception e)
+                {
+                    Console.WriteLine(e);
+                }
+
                 cellLine.GetMaximumChimeraEstimationFile();
                 cellLine.GetChimeraBreakdownFile();
 
@@ -57,6 +80,10 @@ namespace Test
                 cellLine.CountChimericPsms();
                 cellLine.CountChimericPeptides();
                 cellLine.Override = false;
+
+
+                cellLine.PlotModificationDistribution(ResultType.Psm, false);
+                cellLine.PlotModificationDistribution(ResultType.Peptide, false);
                 cellLine.Dispose();
             }
 

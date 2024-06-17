@@ -2,6 +2,7 @@
 using Analyzer.Plotting.AggregatePlots;
 using Analyzer.Plotting.ComparativePlots;
 using Analyzer.Plotting.IndividualRunPlots;
+using Analyzer.Plotting.Util;
 using Analyzer.SearchType;
 using Analyzer.Util;
 using UsefulProteomicsDatabases;
@@ -40,6 +41,10 @@ namespace Test
                     {
                         mm.PlotPepFeaturesScatterGrid();
                         mm.ExportCombinedChimeraTargetDecoyExploration(mm.FigureDirectory, mm.Condition);
+                        mm.PlotTargetDecoyCurves(ResultType.Psm, TargetDecoyCurveMode.Score, false);
+                        mm.PlotTargetDecoyCurves(ResultType.Psm, TargetDecoyCurveMode.Score, true);
+                        mm.PlotTargetDecoyCurves(ResultType.Peptide, TargetDecoyCurveMode.Score, false);
+                        mm.PlotTargetDecoyCurves(ResultType.Peptide, TargetDecoyCurveMode.Score, true);
                     }
                     result.Override = false;
                 }
@@ -55,6 +60,8 @@ namespace Test
                 cellLine.PlotCellLineSpectralSimilarity();
                 cellLine.PlotCellLineChimeraBreakdown();
                 cellLine.PlotCellLineChimeraBreakdown_TargetDecoy();
+                cellLine.PlotModificationDistribution(ResultType.Psm, false);
+                cellLine.PlotModificationDistribution(ResultType.Peptide, false);
 
                 cellLine.Dispose();
             }
@@ -129,23 +136,48 @@ namespace Test
         [Test]
         public static void OvernightRunner()
         {
-            AllResults.PlotInternalMMComparison();
+            //foreach (var cellLine in AllResults )
+            //{
+            //    foreach (var result in cellLine)
+            //    {
+            //        if (result is MetaMorpheusResult mm)
+            //        {
+            //            if (cellLine.GetSingleResultSelector().Contains(mm.Condition))
+            //            {
+            //                mm.PlotTargetDecoyCurves(ResultType.Psm, TargetDecoyCurveMode.Score, false);
+            //                mm.PlotTargetDecoyCurves(ResultType.Psm, TargetDecoyCurveMode.Score, true);
+            //                mm.PlotTargetDecoyCurves(ResultType.Peptide, TargetDecoyCurveMode.Score, false);
+            //                mm.PlotTargetDecoyCurves(ResultType.Peptide, TargetDecoyCurveMode.Score, true);
+            //            }
+            //        }
+            //    }
+            //    //cellLine.PlotModificationDistribution();
+            //    //cellLine.PlotModificationDistribution(ResultType.Peptide);
 
+            //}
            
             foreach (var cellLine in BottomUpRunner.AllResults)
             {
-                cellLine.PlotModificationDistribution();
-                cellLine.PlotModificationDistribution(ResultType.Peptide);
-                foreach (var result in cellLine)
-                {
-                    if (result is MetaMorpheusResult mm)
-                    {
-                        
-                    }
-                }
+                //cellLine.PlotModificationDistribution();
+                //cellLine.PlotModificationDistribution(ResultType.Peptide);
+                //cellLine.PlotCellLineRetentionTimeVsChronologerPredictionBubble();
+                //foreach (var result in cellLine)
+                //{
+                //    if (result is MetaMorpheusResult mm)
+                //    {
+                //        if (Selector.BottomUpMann11Selector.SingleResultSelector.Contains(mm.Condition))
+                //        {
+                //            mm.PlotTargetDecoyCurves(ResultType.Psm, TargetDecoyCurveMode.Score, false);
+                //            mm.PlotTargetDecoyCurves(ResultType.Psm, TargetDecoyCurveMode.Score, true);
+                //            mm.PlotTargetDecoyCurves(ResultType.Peptide, TargetDecoyCurveMode.Score, false);
+                //            mm.PlotTargetDecoyCurves(ResultType.Peptide, TargetDecoyCurveMode.Score, true);
+                //        }
+                //    }
+                //}
             }
 
             BottomUpRunner.RunAllParsing();
+            PepTestingRunner.FirstGo();
             TopDownRunner.RunAllParsing();
             //foreach (var cellLine in AllResults)
             //{

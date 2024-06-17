@@ -680,7 +680,8 @@ namespace Analyzer.SearchType
                 p.Contains("All target PSMs with", StringComparison.InvariantCultureIgnoreCase));
             int resultTextPsms = int.Parse(psmsLine.Split(':')[1].Trim());
             var proteoformLine = resultText.First(p =>
-                p.Contains("All target proteoforms with", StringComparison.InvariantCultureIgnoreCase));
+                p.Contains("All target proteoforms with", StringComparison.InvariantCultureIgnoreCase) 
+                || p.Contains("All target peptides w", StringComparison.InvariantCultureIgnoreCase));
             int resultTextProteoforms = int.Parse(proteoformLine.Split(':')[1].Trim());
             var proteinLine = resultText.First(p =>
                 p.Contains("All target protein groups with", StringComparison.InvariantCultureIgnoreCase));
