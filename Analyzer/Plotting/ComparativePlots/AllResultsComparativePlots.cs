@@ -1,4 +1,5 @@
-﻿using Analyzer.FileTypes.Internal;
+﻿using System.Runtime.InteropServices.WindowsRuntime;
+using Analyzer.FileTypes.Internal;
 using Analyzer.Interfaces;
 using Analyzer.Plotting.AggregatePlots;
 using Analyzer.Plotting.IndividualRunPlots;
@@ -6,12 +7,22 @@ using Analyzer.Plotting.Util;
 using Analyzer.SearchType;
 using Analyzer.Util;
 using MathNet.Numerics;
+using Microsoft.FSharp.Core;
 using Plotly.NET;
+using Plotly.NET.CSharp;
 using Plotly.NET.ImageExport;
 using Plotly.NET.LayoutObjects;
 using Proteomics.PSM;
 using Chart = Plotly.NET.CSharp.Chart;
 using GenericChartExtensions = Plotly.NET.CSharp.GenericChartExtensions;
+
+namespace Analyzer.Util
+{
+    public static partial class FileIdentifiers
+    {
+        public static string ComparativeResultFilteringFigure => "AllResults_ComparingPRs";
+    }
+}
 
 namespace Analyzer.Plotting.ComparativePlots
 {
@@ -484,5 +495,61 @@ namespace Analyzer.Plotting.ComparativePlots
 
 
         #endregion
+
+
+        public static void PlotBulkResultsDifferentFilteringTypePlotsForPullRequests(this AllResults allResults)
+        {
+            var chart = allResults.BulkResultCountComparisonMultipleFilteringTypesFile.Results
+                .GetBulkResultsDifferentFilteringTypePlotsForPullRequests();
+            var outName = $"{FileIdentifiers.ComparativeResultFilteringFigure}_{DateTime.Now:yyMMdd}";
+            chart.SaveInAllResultsOnly(allResults, outName, 1600, 1600);
+        }
+
+        public static GenericChart.GenericChart GetBulkResultsDifferentFilteringTypePlotsForPullRequests(this List<BulkResultCountComparisonMultipleFilteringTypes> results)
+        {
+            var chartsToGrid = new List<GenericChart.GenericChart>();
+            var types = Enum.GetValues<ResultType>();
+            var filters = Enum.GetValues<FilteringType>();
+            for (var i = 0; i < filters.Length; i++)
+            {
+                var filterType = filters[i];
+                for (var j = 0; j < types.Length; j++)
+                {
+                    var resultType = types[j];
+                    var yAxisTitle = j == 0 ? filterType.ToString() : "";
+                    var xAxisTitle = i == filters.Length - 1 ? resultType.ToString() : "";
+                    var chartsToCombine = new List<GenericChart.GenericChart>();
+                    foreach (var prRun in results.GroupBy(p => p.DatasetName))
+                    {
+                        var prRunChart = prRun.ToList()
+                            .GetBulkResultsDifferentFilteringPlot_ColumnChartByTask(resultType, filterType)
+                            //.WithTitle($"{prRun.Key} {resultType} {filterType}")
+                            .WithXAxisStyle(Title.init($"{resultType}", Side: StyleParam.Side.Top))
+                            .WithLegend(false);
+                        //GenericChartExtensions.Show(prRunChart);
+                        chartsToCombine.Add(prRunChart);
+                    }
+
+
+                    var chart = Chart.Combine(chartsToCombine)
+                        //.WithTitle($"{resultType}s by {filterType}")
+                        .WithXAxisStyle(Title.init(xAxisTitle, Side: StyleParam.Side.Top, Font: Font.init(null, 36)))
+                        .WithYAxisStyle(Title.init(yAxisTitle, Font: Font.init(null, 36)))
+                        .WithAxisAnchor(i, j)
+                        .WithLayout(PlotlyBase.DefaultLayout)
+                        .WithLegend(false);
+
+                    //GenericChartExtensions.Show(chart);
+                    chartsToGrid.Add(chart);
+                }
+            }
+
+            var grid = Chart.Grid(chartsToGrid, filters.Length, types.Length)
+                .WithSize(2400, 2400)
+                .WithLegend(true);
+
+            return grid;
+        }
+
     }
 }

@@ -4,6 +4,46 @@ namespace Analyzer.Plotting.Util;
 
 public static class PlottingTranslators
 {
+
+    static PlottingTranslators()
+    {
+        ColorQueue = new Queue<Color>(new[]
+        {
+            Color.fromKeyword(ColorKeyword.Blue),
+            Color.fromKeyword(ColorKeyword.Red),
+            Color.fromKeyword(ColorKeyword.Green),
+            Color.fromKeyword(ColorKeyword.Purple),
+            Color.fromKeyword(ColorKeyword.Orange),
+            Color.fromKeyword(ColorKeyword.Yellow),
+            Color.fromKeyword(ColorKeyword.Cyan),
+            Color.fromKeyword(ColorKeyword.Magenta),
+            Color.fromKeyword(ColorKeyword.Lime),
+            Color.fromKeyword(ColorKeyword.Pink),
+            Color.fromKeyword(ColorKeyword.Teal),
+            Color.fromKeyword(ColorKeyword.Lavender),
+            Color.fromKeyword(ColorKeyword.Brown),
+            Color.fromKeyword(ColorKeyword.Beige),
+            Color.fromKeyword(ColorKeyword.Maroon),
+            Color.fromKeyword(ColorKeyword.Olive),
+            Color.fromKeyword(ColorKeyword.Coral),
+            Color.fromKeyword(ColorKeyword.Navy),
+            Color.fromKeyword(ColorKeyword.Grey),
+            Color.fromKeyword(ColorKeyword.White),
+            Color.fromKeyword(ColorKeyword.Black),
+            Color.fromKeyword(ColorKeyword.Purple),
+            Color.fromKeyword(ColorKeyword.Indigo),
+            Color.fromKeyword(ColorKeyword.Turquoise),
+            Color.fromKeyword(ColorKeyword.DarkOrange),
+            Color.fromKeyword(ColorKeyword.DarkBlue),
+            Color.fromKeyword(ColorKeyword.DarkRed),
+            Color.fromKeyword(ColorKeyword.DarkGreen),
+            Color.fromKeyword(ColorKeyword.DarkViolet),
+            Color.fromKeyword(ColorKeyword.DarkCyan),
+            Color.fromKeyword(ColorKeyword.DarkMagenta),
+            Color.fromKeyword(ColorKeyword.DarkGrey),
+        });
+    }
+
     #region Conversion Dictionaries
 
     /// <summary>
@@ -99,10 +139,6 @@ public static class PlottingTranslators
         {"TopDown - Post Calibration", Color.fromKeyword(ColorKeyword.DarkGoldenRod)},
         {"TopDown - Post Averaging", Color.fromKeyword(ColorKeyword.DarkRed)},
         {"TopDown - Post GPTMD", Color.fromKeyword(ColorKeyword.DarkGreen)},
-
-
-
-
     };
 
     private static Dictionary<string, string> FileNameConversionDictionary = new()
@@ -413,6 +449,8 @@ public static class PlottingTranslators
         {"ProsightPDChimeras_Rep2_15", "ProsightPD\u280015 Chimeras"},
     };
 
+    public static Queue<Color> ColorQueue { get; }
+
     #endregion
 
     #region Conversion Methods
@@ -452,6 +490,11 @@ public static class PlottingTranslators
                     return Color.fromKeyword(ColorKeyword.Black);
                 if (ConditionToColorDictionary.TryGetValue(key, out color))
                     return color;
+            }
+            else
+            {
+                ConditionToColorDictionary.Add(condition, ColorQueue.Dequeue());
+                return ConditionToColorDictionary[condition];
             }
         }
 

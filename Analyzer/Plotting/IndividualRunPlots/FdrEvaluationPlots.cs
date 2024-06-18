@@ -81,25 +81,17 @@ namespace Analyzer.Plotting.IndividualRunPlots
         public static GenericChart.GenericChart GetTargetDecoyCurve(this List<PsmFromTsv> allResults, ResultType resultType, TargetDecoyCurveMode mode, string datasetName, 
             string condition, bool isTopDown = true)
         {
-            IEnumerable<IGrouping<double, PsmFromTsv>>? binnedResults;
-            switch (mode)
+            IEnumerable<IGrouping<double, PsmFromTsv>>? binnedResults = mode switch
             {
-                case TargetDecoyCurveMode.Score:
-                    binnedResults = allResults.GroupBy(p => Math.Floor(p.Score));
-                    break;
-                case TargetDecoyCurveMode.QValue: // from 0 to 1 in 100 bins
-                    binnedResults = allResults.GroupBy(p => Math.Floor(p.QValue * 100));
-                    break;
-                case TargetDecoyCurveMode.PepQValue: // from 0 to 1 in 100 bins
-                    binnedResults = allResults.GroupBy(p => Math.Floor(p.PEP_QValue * 100));
-                    break;
-                case TargetDecoyCurveMode.Pep: // from 0 to 1 in 100 bins
-                    binnedResults = allResults.GroupBy(p => Math.Floor(p.PEP * 100));
-                    break;
-                default:
-                    throw new ArgumentOutOfRangeException(nameof(mode), mode, null);
-            }
-
+                TargetDecoyCurveMode.Score => allResults.GroupBy(p => Math.Floor(p.Score)),
+                TargetDecoyCurveMode.QValue => // from 0 to 1 in 100 bins
+                    allResults.GroupBy(p => Math.Floor(p.QValue * 100)),
+                TargetDecoyCurveMode.PepQValue => // from 0 to 1 in 100 bins
+                    allResults.GroupBy(p => Math.Floor(p.PEP_QValue * 100)),
+                TargetDecoyCurveMode.Pep => // from 0 to 1 in 100 bins
+                    allResults.GroupBy(p => Math.Floor(p.PEP * 100)),
+                _ => throw new ArgumentOutOfRangeException(nameof(mode), mode, null)
+            };
 
             var resultDict = binnedResults.OrderBy(p => p.Key).ToDictionary(p => p.Key,
                 p => (p.Count(sm => sm.IsDecoy()), p.Count(sm => !sm.IsDecoy())));

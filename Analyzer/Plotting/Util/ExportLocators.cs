@@ -22,6 +22,13 @@ namespace Analyzer.Plotting.Util
             chart.SavePNG(Path.Combine(runResultDirectory, exportName), null, width, height);
         }
 
+        public static void SaveInAllResultsOnly(this GenericChart.GenericChart chart, AllResults allResults,
+            string exportName, int? width = null, int? height = null)
+        {
+            var allResultsDirectory = allResults.GetChimeraPaperFigureDirectory();
+            chart.SavePNG(Path.Combine(allResultsDirectory, exportName), null, width, height);
+        }
+
         #endregion
 
         #region ChimeraPaper

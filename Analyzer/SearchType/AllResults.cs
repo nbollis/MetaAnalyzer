@@ -1,5 +1,6 @@
 ﻿using System.Collections;
 using Analyzer.FileTypes.Internal;
+using Analyzer.Interfaces;
 using Analyzer.Util;
 
 namespace Analyzer.SearchType
@@ -123,6 +124,33 @@ namespace Analyzer.SearchType
             individualFileComparison.WriteResults(_individualFileComparisonPath);
             return individualFileComparison;
         }
+
+        private string _bultResultCountingDifferentFilteringFilePath => Path.Combine(DirectoryPath, $"All_{FileIdentifiers.BulkResultComparisonMultipleFilters}");
+        private BulkResultCountComparisonMultipleFilteringTypesFile? _bulkResultCountComparisonMultipleFilteringTypesFile;
+
+        public BulkResultCountComparisonMultipleFilteringTypesFile BulkResultCountComparisonMultipleFilteringTypesFile =>
+            _bulkResultCountComparisonMultipleFilteringTypesFile ??= GetBulkResultCountComparisonMultipleFilteringTypesFile();
+
+        public BulkResultCountComparisonMultipleFilteringTypesFile GetBulkResultCountComparisonMultipleFilteringTypesFile()
+        {
+            if (!Override && File.Exists(_bultResultCountingDifferentFilteringFilePath))
+            {
+                var result = new BulkResultCountComparisonMultipleFilteringTypesFile(_bultResultCountingDifferentFilteringFilePath);
+                if (result.Results.DistinctBy(p => p.Condition).Count() == CellLineResults.Count)
+                    return result;
+            }
+
+            List<BulkResultCountComparisonMultipleFilteringTypes> results = new List<BulkResultCountComparisonMultipleFilteringTypes>();
+            foreach (var result in CellLineResults)
+            {
+                results.AddRange(result.BulkResultCountComparisonMultipleFilteringTypesFile.Results);
+            }
+
+            var bulkResultCountComparisonFile = new BulkResultCountComparisonMultipleFilteringTypesFile(_bultResultCountingDifferentFilteringFilePath) { Results = results };
+            bulkResultCountComparisonFile.WriteResults(_bultResultCountingDifferentFilteringFilePath);
+            return bulkResultCountComparisonFile;
+        }
+
 
         public IEnumerator<CellLineResults> GetEnumerator()
         {

@@ -6,4 +6,12 @@
         Peptide,
         Protein
     }
+
+    public enum FilteringType
+    {
+        None,
+        PEPQValue,
+        QValue,
+        ResultsText,
+    }
 }

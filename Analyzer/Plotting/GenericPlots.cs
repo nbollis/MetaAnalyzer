@@ -10,7 +10,7 @@ using Analyzer.Plotting.Util;
 
 namespace Analyzer.Plotting
 {
-    
+
 
     public static class GenericPlots
     {
@@ -26,13 +26,13 @@ namespace Analyzer.Plotting
             };
         }
 
-        public static GenericChart.GenericChart IndividualFileResultBarChart(List<BulkResultCountComparisonFile> results, 
+        public static GenericChart.GenericChart IndividualFileResultBarChart(List<BulkResultCountComparisonFile> results,
             out int width, out int height, string title = "", bool isTopDown = false, ResultType resultType = ResultType.Psm)
         {
             results.ForEach(p => p.Results = p.Results.OrderBy(m => m.FileName.ConvertFileName()).ToList());
             var labels = results.SelectMany(p => p.Results.Select(m => m.FileName))
                 .ConvertFileNames().Distinct().ToList();
-            
+
 
             // if results exist for one dataset but not the other, ensure they are plotted in the correct order
             foreach (var individualFile in results)
@@ -170,7 +170,7 @@ namespace Analyzer.Plotting
         }
 
         internal static GenericChart.GenericChart Histogram2D<T>(List<T> xValues, List<double> yValues, string title,
-            string xTitle = "", string yTitle = "", bool normalizeColumns = false ) where T : IConvertible
+            string xTitle = "", string yTitle = "", bool normalizeColumns = false) where T : IConvertible
         {
             var zValues = default(Plotly.NET.CSharp.Optional<IEnumerable<IEnumerable<double>>>);
             if (normalizeColumns)
@@ -184,17 +184,17 @@ namespace Analyzer.Plotting
                     combined[i] = (xValues[i], yValues[i]);
 
                 // group by keys and adjust values to be a percentage of total in group
-                zValues = new Plotly.NET.CSharp.Optional<IEnumerable<IEnumerable<double>>>( combined.GroupBy(p => p.Item1)
+                zValues = new Plotly.NET.CSharp.Optional<IEnumerable<IEnumerable<double>>>(combined.GroupBy(p => p.Item1)
                     .Select(group =>
                         group.Select(p => Math.Sign(p.Item2) * (Math.Abs(p.Item2) / group.Max(m => Math.Abs(m.Item2))))), true);
-                
+
             }
 
 
-            NoNorm:
-            var chart = Chart.Histogram2DContour<T, double, double>(xValues, yValues, Z: zValues, YBins: Bins.init(null, null, 0.1) 
+        NoNorm:
+            var chart = Chart.Histogram2DContour<T, double, double>(xValues, yValues, Z: zValues, YBins: Bins.init(null, null, 0.1)
                     /*HistNorm: StyleParam.HistNorm.Percent*//*, HistFunc: StyleParam.HistFunc.Avg*/)
-            //var chart = Chart.BoxPlot<T, double, string>(xValues, yValues, Name: title, MarkerColor: title.ConvertConditionToColor()
+                //var chart = Chart.BoxPlot<T, double, string>(xValues, yValues, Name: title, MarkerColor: title.ConvertConditionToColor()
                 //BoxWidth: 4, MeanLine: MeanLine.init(true, title.ConvertConditionToColor()), Points: StyleParam.BoxPoints.False)
                 .WithSize(400, 400)
                 .WithTitle(title)
@@ -247,6 +247,46 @@ namespace Analyzer.Plotting
             return chart;
         }
 
+        internal static GenericChart.GenericChart GetBulkResultsDifferentFilteringPlot_ColumnChartByTask(
+            this List<BulkResultCountComparisonMultipleFilteringTypes> results, ResultType resultType = ResultType.Psm,
+            FilteringType filteringType = FilteringType.PEPQValue)
+        {
+
+            var condition = results.First().DatasetName;
+            var values = new int[results.Count()];
+            var keys = results.Select(p => p.Condition).ToArray();
+            values = resultType switch
+            {
+                ResultType.Psm => filteringType switch
+                {
+                    FilteringType.PEPQValue => results.Select(p => p.PsmCount_PepQValue).ToArray(),
+                    FilteringType.QValue => results.Select(p => p.PsmCount_QValue).ToArray(),
+                    FilteringType.None => results.Select(p => p.PsmCount).ToArray(),
+                    FilteringType.ResultsText => results.Select(p => p.PsmCount_ResultFile).ToArray(),
+                    _ => values
+                },
+                ResultType.Peptide => filteringType switch
+                {
+                    FilteringType.PEPQValue => results.Select(p => p.ProteoformCount_PepQValue).ToArray(),
+                    FilteringType.QValue => results.Select(p => p.ProteoformCount_QValue).ToArray(),
+                    FilteringType.None => results.Select(p => p.ProteoformCount).ToArray(),
+                    FilteringType.ResultsText => results.Select(p => p.ProteinGroupCount_ResultFile).ToArray(),
+                    _ => values
+                },
+                ResultType.Protein => filteringType switch
+                {
+                    FilteringType.PEPQValue => results.Select(p => p.ProteinGroupCount_PepQValue).ToArray(),
+                    FilteringType.QValue => results.Select(p => p.ProteinGroupCount_QValue).ToArray(),
+                    FilteringType.None => results.Select(p => p.ProteinGroupCount).ToArray(),
+                    FilteringType.ResultsText => results.Select(p => p.ProteinGroupCount_ResultFile).ToArray(),
+                    _ => values
+                },
+                _ => values
+            };
+
+            var chart = Chart.Column<int, string, string>(values, keys, Name: condition, MarkerColor: condition.ConvertConditionToColor());
+            return chart;
+        }
 
     }
 

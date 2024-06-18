@@ -8,6 +8,9 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Analyzer", "Analyzer\Analyzer.csproj", "{FC445E70-EE71-4158-A065-BB4F87F206DD}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CMD", "CMD\CMD.csproj", "{9A97C73A-30D6-406C-A541-BADD3E6C726A}"
+	ProjectSection(ProjectDependencies) = postProject
+		{FC445E70-EE71-4158-A065-BB4F87F206DD} = {FC445E70-EE71-4158-A065-BB4F87F206DD}
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
