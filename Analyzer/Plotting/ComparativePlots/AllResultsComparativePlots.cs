@@ -16,14 +16,7 @@ using Proteomics.PSM;
 using Chart = Plotly.NET.CSharp.Chart;
 using GenericChartExtensions = Plotly.NET.CSharp.GenericChartExtensions;
 
-namespace Analyzer.Util
-{
-    public static partial class FileIdentifiers
-    {
-        public static string ComparativeResultFilteringFigure => "AllResults_ComparingPRs";
-        public static string IndividualFileComparativeResultFilteringFigure => "AllResults_ComparingPRs_IndividualFile";
-    }
-}
+
 
 namespace Analyzer.Plotting.ComparativePlots
 {
@@ -497,67 +490,5 @@ namespace Analyzer.Plotting.ComparativePlots
 
         #endregion
 
-
-        public static void PlotBulkResultsDifferentFilteringTypePlotsForPullRequests(this AllResults allResults, bool individualFiles = false)
-        {
-            var chart = individualFiles 
-                ? allResults.IndividualFileResultCountingMultipleFilteringTypesFile.Results
-                    .GetBulkResultsDifferentFilteringTypePlotsForPullRequests(individualFiles)
-                : allResults.BulkResultCountComparisonMultipleFilteringTypesFile.Results
-                    .GetBulkResultsDifferentFilteringTypePlotsForPullRequests(individualFiles);
-
-            //GenericChartExtensions.Show(chart);
-
-            var outName = individualFiles 
-                ? $"{FileIdentifiers.IndividualFileComparativeResultFilteringFigure}_{DateTime.Now:yyMMdd}"
-                : $"{FileIdentifiers.ComparativeResultFilteringFigure}_{DateTime.Now:yyMMdd}";
-            int height = individualFiles ? 3000 : 2200;
-            int width = individualFiles ? 3000 : 2200;
-            chart.SaveInAllResultsOnly(allResults, outName, width, height);
-        }
-
-        internal static GenericChart.GenericChart GetBulkResultsDifferentFilteringTypePlotsForPullRequests(this List<BulkResultCountComparisonMultipleFilteringTypes> results,
-            bool individualFiles = false)
-        {
-            var chartsToGrid = new List<GenericChart.GenericChart>();
-            var types = Enum.GetValues<ResultType>();
-            var filters = Enum.GetValues<FilteringType>();
-            for (var i = 0; i < filters.Length; i++)
-            {
-                var filterType = filters[i];
-                for (var j = 0; j < types.Length; j++)
-                {
-                    var resultType = types[j];
-                    var yAxisTitle = j == 0 ? filterType.ToString() : "";
-                    var xAxisTitle = i == filters.Length - 1 ? resultType.ToString() : "";
-
-                    // Generate a single plot in the 3x4 grid
-                    var chartsToCombine = new List<GenericChart.GenericChart>();
-                    foreach (var prRun in results.GroupBy(p => p.DatasetName))
-                    {
-                        var prRunChart = prRun.ToList()
-                            .GetBulkResultsDifferentFilteringPlot(resultType, filterType, individualFiles)
-                            .WithXAxisStyle(Title.init($"{resultType}", Side: StyleParam.Side.Top))
-                            .WithLegend(false);
-                        chartsToCombine.Add(prRunChart);
-                       // GenericChartExtensions.Show(prRunChart);
-                    }
-
-                    var chart = Chart.Combine(chartsToCombine)
-                        .WithXAxisStyle(Title.init(xAxisTitle, Side: StyleParam.Side.Top, Font: Font.init(null, 36)))
-                        .WithYAxisStyle(Title.init(yAxisTitle, Font: Font.init(null, 36)))
-                        .WithAxisAnchor(i, j)
-                        .WithLayout(PlotlyBase.DefaultLayout)
-                        .WithLegend(false);
-                    chartsToGrid.Add(chart);
-                    //GenericChartExtensions.Show(chart);
-                }
-            }
-
-            var grid = Chart.Grid(chartsToGrid, filters.Length, types.Length)
-                .WithSize(2400, 2400)
-                .WithLegend(true);
-            return grid;
-        }
     }
 }

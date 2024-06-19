@@ -78,6 +78,8 @@ public class JenkinsLikeRunParserTask : BaseResultAnalyzerTask
         Log("Plotting All Aggregated Data");
         allResults.PlotBulkResultsDifferentFilteringTypePlotsForPullRequests();
         allResults.PlotBulkResultsDifferentFilteringTypePlotsForPullRequests(true);
+        allResults.PlotBulkResultsDifferentFilteringTypePlotsForPullRequests_TargetDecoy(false);
+        allResults.PlotBulkResultsDifferentFilteringTypePlotsForPullRequests_TargetDecoy(true);
     }
 
     private AllResults BuildResultsObjects()
@@ -93,7 +95,7 @@ public class JenkinsLikeRunParserTask : BaseResultAnalyzerTask
             var runDirectories = specificRunDirectory.GetDirectories();
 
             // if started running all tasks
-            if (runDirectories.Count(p => !p.Contains("Figure")) == 5) // Searches ran during the test
+            if (runDirectories.Count(p => !p.Contains("Figure")) < 5) // Searches ran during the test TODO: Change to 7 eventually
             {
                 var last = runDirectories.First(p => p.Contains("TopDown"));
                 var topDownDirectories = last.GetDirectories();
@@ -110,7 +112,6 @@ public class JenkinsLikeRunParserTask : BaseResultAnalyzerTask
                 }
                 else
                     continue;
-
             }
             else
                 continue;
@@ -129,8 +130,7 @@ public class JenkinsLikeRunParserTask : BaseResultAnalyzerTask
             var classicInitialDir = classicDir.GetDirectories().First(p => p.Contains("Task1"));
             var classicIntial = new MetaMorpheusResult(classicInitialDir, name, "Classic - Initial");
             var classicPostCalibDir = classicDir.GetDirectories().First(p => p.Contains("Task3"));
-            var classicPostCalib =
-                new MetaMorpheusResult(classicPostCalibDir, name, "Classic - Post Calibration");
+            var classicPostCalib = new MetaMorpheusResult(classicPostCalibDir, name, "Classic - Post Calibration");
             var classicPostGptmdDir = classicDir.GetDirectories().First(p => p.Contains("Task5"));
             var classicPostGptmd = new MetaMorpheusResult(classicPostGptmdDir, name, "Classic - Post GPTMD");
 
@@ -145,6 +145,14 @@ public class JenkinsLikeRunParserTask : BaseResultAnalyzerTask
             var tdPostGPTMDDir = topDownDir.GetDirectories().First(p => p.Contains("Task7"));
             var tdPostGPTMD = new MetaMorpheusResult(tdPostGPTMDDir, name, "TopDown - Post GPTMD");
 
+            var bottomupOpenModernDir = runDirectories.First(p => p.Contains("BottomUpOpenModern"));
+            var buOpenModernSearchDir = bottomupOpenModernDir.GetDirectories().First(p => p.Contains("BottomUpOpenModer"));
+            var buOpenModern = new MetaMorpheusResult(buOpenModernSearchDir, name, "BottomUp OpenModern");
+
+            var topDownOpenModernDir = runDirectories.First(p => p.Contains("TopDownOpenModern"));
+            var tdOpenModernSearchDir = topDownOpenModernDir.GetDirectories().First(p => p.Contains("TopDownOpenModern"));
+            var tdOpenModern = new MetaMorpheusResult(tdOpenModernSearchDir, name, "TopDown OpenModern");
+
             var allMMResults = new List<SingleRunResults>()
                     {
                         semiSpecific,
@@ -156,7 +164,9 @@ public class JenkinsLikeRunParserTask : BaseResultAnalyzerTask
                         tdInitial,
                         tdPostCalib,
                         tdPostAveraging,
-                        tdPostGPTMD
+                        tdPostGPTMD,
+                        buOpenModern,
+                        tdOpenModern,
                     };
 
             var run = new CellLineResults(specificRunDirectory, allMMResults);

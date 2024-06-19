@@ -145,8 +145,8 @@ namespace Test
         [Test]
         public static void PlotChart()
         {
-            AllResults.PlotBulkResultsDifferentFilteringTypePlotsForPullRequests(true);
-            AllResults.PlotBulkResultsDifferentFilteringTypePlotsForPullRequests();
+            AllResults.PlotBulkResultsDifferentFilteringTypePlotsForPullRequests_TargetDecoy(false);
+            AllResults.PlotBulkResultsDifferentFilteringTypePlotsForPullRequests_TargetDecoy(true);
         }
 
         [Test]

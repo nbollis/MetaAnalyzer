@@ -286,44 +286,99 @@ namespace Analyzer.Plotting
                 _ => values
             };
 
-            var decoyValues = new int[results.Count];
+         
+
+            var chart = Chart.Column<int, string, string>(values, keys, Name: condition,
+                MarkerColor: condition.ConvertConditionToColor(), MultiText: values.Select(p => p.ToString()).ToArray());
+            return chart;
+        }
+
+
+        internal static GenericChart.GenericChart GetBulkResultsDifferentFilteringPlotWIthDecoys(
+           this List<BulkResultCountComparisonMultipleFilteringTypes> results, ResultType resultType = ResultType.Psm,
+           FilteringType filteringType = FilteringType.PEPQValue, bool absolute = true)
+        {
+
+            var condition = results.First().DatasetName;
+            var values = new double[results.Count()];
+            var keys = results.Select(p => p.Condition).ToArray();
+            values = resultType switch
+            {
+                ResultType.Psm => filteringType switch
+                {
+                    FilteringType.PEPQValue => results.Select(p => (double)p.PsmCount_PepQValue).ToArray(),
+                    FilteringType.QValue => results.Select(p => (double)p.PsmCount_QValue).ToArray(),
+                    FilteringType.None => results.Select(p => (double)p.PsmCount).ToArray(),
+                    FilteringType.ResultsText => results.Select(p => (double)p.PsmCount_ResultFile).ToArray(),
+                    _ => values
+                },
+                ResultType.Peptide => filteringType switch
+                {
+                    FilteringType.PEPQValue => results.Select(p => (double)p.ProteoformCount_PepQValue).ToArray(),
+                    FilteringType.QValue => results.Select(p => (double)p.ProteoformCount_QValue).ToArray(),
+                    FilteringType.None => results.Select(p => (double)p.ProteoformCount).ToArray(),
+                    FilteringType.ResultsText => results.Select(p => (double)p.ProteinGroupCount_ResultFile).ToArray(),
+                    _ => values
+                },
+                ResultType.Protein => filteringType switch
+                {
+                    FilteringType.PEPQValue => results.Select(p => (double)p.ProteinGroupCount_PepQValue).ToArray(),
+                    FilteringType.QValue => results.Select(p => (double)p.ProteinGroupCount_QValue).ToArray(),
+                    FilteringType.None => results.Select(p => (double)p.ProteinGroupCount).ToArray(),
+                    FilteringType.ResultsText => results.Select(p => (double)p.ProteinGroupCount_ResultFile).ToArray(),
+                    _ => values
+                },
+                _ => values
+            };
+
+            var decoyValues = new double[results.Count];
             decoyValues = resultType switch
             {
                 ResultType.Psm => filteringType switch
                 {
-                    FilteringType.PEPQValue => results.Select(p => p.PsmCountDecoys_PepQValue).ToArray(),
-                    FilteringType.QValue => results.Select(p => p.PsmCountDecoys_QValue).ToArray(),
-                    FilteringType.None => results.Select(p => p.PsmCountDecoys).ToArray(),
-                    FilteringType.ResultsText => results.Select(p => 0).ToArray(),
+                    FilteringType.PEPQValue => results.Select(p => (double)p.PsmCountDecoys_PepQValue).ToArray(),
+                    FilteringType.QValue => results.Select(p => (double)p.PsmCountDecoys_QValue).ToArray(),
+                    FilteringType.None => results.Select(p => (double)p.PsmCountDecoys).ToArray(),
+                    FilteringType.ResultsText => results.Select(p => 0.0).ToArray(),
                     _ => decoyValues
                 },
                 ResultType.Peptide => filteringType switch
                 {
-                    FilteringType.PEPQValue => results.Select(p => p.ProteoformCountDecoys_PepQValue).ToArray(),
-                    FilteringType.QValue => results.Select(p => p.ProteoformCountDecoys_QValue).ToArray(),
-                    FilteringType.None => results.Select(p => p.ProteoformCountDecoys).ToArray(),
-                    FilteringType.ResultsText => results.Select(p => 0).ToArray(),
+                    FilteringType.PEPQValue => results.Select(p => (double)p.ProteoformCountDecoys_PepQValue).ToArray(),
+                    FilteringType.QValue => results.Select(p => (double)p.ProteoformCountDecoys_QValue).ToArray(),
+                    FilteringType.None => results.Select(p => (double)p.ProteoformCountDecoys).ToArray(),
+                    FilteringType.ResultsText => results.Select(p => 0.0).ToArray(),
                     _ => decoyValues
                 },
                 ResultType.Protein => filteringType switch
                 {
-                    FilteringType.PEPQValue => results.Select(p => 0).ToArray(),
-                    FilteringType.QValue => results.Select(p => p.ProteinGroupCountDecoys_QValue).ToArray(),
-                    FilteringType.None => results.Select(p => p.ProteinGroupCountDecoys).ToArray(),
-                    FilteringType.ResultsText => results.Select(p => 0).ToArray(),
+                    FilteringType.PEPQValue => results.Select(p => 0.0).ToArray(),
+                    FilteringType.QValue => results.Select(p => (double)p.ProteinGroupCountDecoys_QValue).ToArray(),
+                    FilteringType.None => results.Select(p => (double)p.ProteinGroupCountDecoys).ToArray(),
+                    FilteringType.ResultsText => results.Select(p => 0.0).ToArray(),
                     _ => decoyValues
                 },
                 _ => decoyValues
             };
 
-            var chart = Chart.Column<int, string, string>(values, keys, Name: condition,
+            if (!absolute)
+            {
+                for (int i = 0; i < values.Length; i++)
+                {
+                    var total = values[i] + decoyValues[i];
+                    values[i] = (values[i] / total * 100).Round(2);
+                    decoyValues[i] = (decoyValues[i] / total * 100).Round(2);
+                }
+            }
+
+            var chart = Chart.StackedColumn<double, string, string>(values, keys, Name: condition,
                 MarkerColor: condition.ConvertConditionToColor(), MultiText: values.Select(p => p.ToString()).ToArray());
-            var decoyChart = Chart.Column<int, string, string>(decoyValues, keys, Name: condition,
+            var decoyChart = Chart.StackedColumn<double, string, string>(decoyValues, keys, Name: condition,
                 MarkerColor: Color.fromKeyword(ColorKeyword.Red), MultiText: decoyValues.Select(p => p.ToString()).ToArray());
             var combined = Chart.Combine(new[] { chart, decoyChart });
+                //.WithXAxisStyle(Title.init(), Side: StyleParam.Side.Bottom, Id: StyleParam.SubPlotId.NewXAxis(1));
             return combined;
         }
-
     }
 
 }
