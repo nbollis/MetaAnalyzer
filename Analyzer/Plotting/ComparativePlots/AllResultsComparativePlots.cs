@@ -506,11 +506,13 @@ namespace Analyzer.Plotting.ComparativePlots
                 : allResults.BulkResultCountComparisonMultipleFilteringTypesFile.Results
                     .GetBulkResultsDifferentFilteringTypePlotsForPullRequests(individualFiles);
 
+            //GenericChartExtensions.Show(chart);
+
             var outName = individualFiles 
                 ? $"{FileIdentifiers.IndividualFileComparativeResultFilteringFigure}_{DateTime.Now:yyMMdd}"
                 : $"{FileIdentifiers.ComparativeResultFilteringFigure}_{DateTime.Now:yyMMdd}";
-            int height = individualFiles ? 2400 : 1600;
-            int width = individualFiles ? 2400 : 1600;
+            int height = individualFiles ? 3000 : 2200;
+            int width = individualFiles ? 3000 : 2200;
             chart.SaveInAllResultsOnly(allResults, outName, width, height);
         }
 
@@ -538,7 +540,7 @@ namespace Analyzer.Plotting.ComparativePlots
                             .WithXAxisStyle(Title.init($"{resultType}", Side: StyleParam.Side.Top))
                             .WithLegend(false);
                         chartsToCombine.Add(prRunChart);
-                        //GenericChartExtensions.Show(prRunChart);
+                       // GenericChartExtensions.Show(prRunChart);
                     }
 
                     var chart = Chart.Combine(chartsToCombine)

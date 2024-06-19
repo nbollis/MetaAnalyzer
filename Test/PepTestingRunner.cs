@@ -113,38 +113,33 @@ namespace Test
         public static void FirstGo()
         {
 
-            foreach (var groupRun in AllResults)
-            {
-                foreach (var singleRunResults in groupRun)
-                {
-                    singleRunResults.Override = true;
-                    var mm = (MetaMorpheusResult)singleRunResults;
-                    mm.GetBulkResultCountComparisonMultipleFilteringTypesFile();
-                    //mm.PlotTargetDecoyCurves(ResultType.Psm, TargetDecoyCurveMode.Score);
-                    //mm.PlotTargetDecoyCurves(ResultType.Peptide, TargetDecoyCurveMode.Score);
-                    singleRunResults.Override = false;
-                }
+            //foreach (var groupRun in AllResults)
+            //{
+            //    //foreach (var singleRunResults in groupRun)
+            //    //{
+            //    //    singleRunResults.Override = true;
+            //    //    var mm = (MetaMorpheusResult)singleRunResults;
+            //    //    mm.GetBulkResultCountComparisonMultipleFilteringTypesFile();
+            //    //    mm.GetIndividualFileResultCountingMultipleFilteringTypesFile();
+            //    //    singleRunResults.Override = false;
+            //    //}
 
-                groupRun.Override = true;
-                groupRun.GetBulkResultCountComparisonMultipleFilteringTypesFile();
-                groupRun.Override = false;
+            //    groupRun.Override = true;
+            //    groupRun.GetBulkResultCountComparisonMultipleFilteringTypesFile();
+            //    groupRun.GetIndividualFileResultCountingMultipleFilteringTypesFile();
+            //    groupRun.Override = false;
 
-                //groupRun.GetIndividualFileComparison();
-                //groupRun.PlotIndividualFileResults(ResultType.Psm, null, false);
-                //groupRun.PlotIndividualFileResults(ResultType.Peptide, null, false);
-                //groupRun.PlotIndividualFileResults(ResultType.Protein, null, false);
-            }
+            //}
 
-            AllResults.Override = true;
-            AllResults.GetBulkResultCountComparisonMultipleFilteringTypesFile();
-            AllResults.Override = false;
+            //AllResults.Override = true;
+            //AllResults.GetBulkResultCountComparisonMultipleFilteringTypesFile();
+            //AllResults.GetIndividualFileResultCountingMultipleFilteringTypesFile();
+            //AllResults.Override = false;
 
 
             AllResults.PlotBulkResultsDifferentFilteringTypePlotsForPullRequests();
+            AllResults.PlotBulkResultsDifferentFilteringTypePlotsForPullRequests(true);
 
-            //AllResults.PlotStackedIndividualFileComparison(ResultType.Psm, false);
-            //AllResults.PlotStackedIndividualFileComparison(ResultType.Peptide, false);
-            //AllResults.PlotStackedIndividualFileComparison(ResultType.Protein, false);
         }
 
         [Test]

@@ -286,8 +286,42 @@ namespace Analyzer.Plotting
                 _ => values
             };
 
-            var chart = Chart.Column<int, string, string>(values, keys, Name: condition, MarkerColor: condition.ConvertConditionToColor());
-            return chart;
+            var decoyValues = new int[results.Count];
+            decoyValues = resultType switch
+            {
+                ResultType.Psm => filteringType switch
+                {
+                    FilteringType.PEPQValue => results.Select(p => p.PsmCountDecoys_PepQValue).ToArray(),
+                    FilteringType.QValue => results.Select(p => p.PsmCountDecoys_QValue).ToArray(),
+                    FilteringType.None => results.Select(p => p.PsmCountDecoys).ToArray(),
+                    FilteringType.ResultsText => results.Select(p => 0).ToArray(),
+                    _ => decoyValues
+                },
+                ResultType.Peptide => filteringType switch
+                {
+                    FilteringType.PEPQValue => results.Select(p => p.ProteoformCountDecoys_PepQValue).ToArray(),
+                    FilteringType.QValue => results.Select(p => p.ProteoformCountDecoys_QValue).ToArray(),
+                    FilteringType.None => results.Select(p => p.ProteoformCountDecoys).ToArray(),
+                    FilteringType.ResultsText => results.Select(p => 0).ToArray(),
+                    _ => decoyValues
+                },
+                ResultType.Protein => filteringType switch
+                {
+                    FilteringType.PEPQValue => results.Select(p => 0).ToArray(),
+                    FilteringType.QValue => results.Select(p => p.ProteinGroupCountDecoys_QValue).ToArray(),
+                    FilteringType.None => results.Select(p => p.ProteinGroupCountDecoys).ToArray(),
+                    FilteringType.ResultsText => results.Select(p => 0).ToArray(),
+                    _ => decoyValues
+                },
+                _ => decoyValues
+            };
+
+            var chart = Chart.Column<int, string, string>(values, keys, Name: condition,
+                MarkerColor: condition.ConvertConditionToColor(), MultiText: values.Select(p => p.ToString()).ToArray());
+            var decoyChart = Chart.Column<int, string, string>(decoyValues, keys, Name: condition,
+                MarkerColor: Color.fromKeyword(ColorKeyword.Red), MultiText: decoyValues.Select(p => p.ToString()).ToArray());
+            var combined = Chart.Combine(new[] { chart, decoyChart });
+            return combined;
         }
 
     }

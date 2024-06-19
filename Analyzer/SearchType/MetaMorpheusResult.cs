@@ -644,18 +644,26 @@ namespace Analyzer.SearchType
         {
             if (!Override && File.Exists(_bultResultCountingDifferentFilteringFilePath))
                 return new BulkResultCountComparisonMultipleFilteringTypesFile(_bultResultCountingDifferentFilteringFilePath);
-            
+
             var psmCount = AllPsms.Count(p => p.DecoyContamTarget == "T");
+            var psmCountDecoys = AllPsms.Count(p => p.DecoyContamTarget == "D");
             var psmCountQValue = AllPsms.Count(p => p is { DecoyContamTarget: "T", QValue: <= 0.01 });
+            var psmCountDecoysQValue = AllPsms.Count(p => p is { DecoyContamTarget: "D", QValue: <= 0.01 });
             var psmCountPepQValue = AllPsms.Count(p => p is { DecoyContamTarget: "T", PEP_QValue: <= 0.01 });
+            var psmCountDecoysPepQValue = AllPsms.Count(p => p is { DecoyContamTarget: "D", PEP_QValue: <= 0.01 });
 
             var peptideCount = AllPeptides.Count(p => p.DecoyContamTarget == "T");
+            var peptideCountDecoys = AllPeptides.Count(p => p.DecoyContamTarget == "D");
             var peptideCountQValue = AllPeptides.Count(p => p is { DecoyContamTarget: "T", QValue: <= 0.01 });
+            var peptideCountDecoysQValue = AllPeptides.Count(p => p is { DecoyContamTarget: "D", QValue: <= 0.01 });
             var peptideCountPepQValue = AllPeptides.Count(p => p is { DecoyContamTarget: "T", PEP_QValue: <= 0.01 });
+            var peptideCountDecoysPepQValue = AllPeptides.Count(p => p is { DecoyContamTarget: "D", PEP_QValue: <= 0.01 });
 
 
             int proteinCount = 0;
+            int proteinCountDecoy = 0;
             int proteinCountQValue = 0;
+            int proteinCountQValueDecoy = 0;
             if (File.Exists(ProteinPath))
             {
                 using (var sw = new StreamReader(File.OpenRead(ProteinPath)))
@@ -663,14 +671,30 @@ namespace Analyzer.SearchType
                     var header = sw.ReadLine();
                     var headerSplit = header.Split('\t');
                     var qValueIndex = Array.IndexOf(headerSplit, "Protein QValue");
+                    var targdecoyIndex = Array.IndexOf(headerSplit, "Protein Decoy/Contaminant/Target");
 
                     while (!sw.EndOfStream)
                     {
                         var line = sw.ReadLine();
                         var values = line.Split('\t');
-                        proteinCount++;
-                        if (double.Parse(values[qValueIndex]) <= 0.01)
-                            proteinCountQValue++;
+                        var targetDecoy = values[targdecoyIndex];
+                        if (targetDecoy == "T")
+                            proteinCount++;
+                        else if (targetDecoy == "D")
+                            proteinCountDecoy++;
+
+                        switch (double.Parse(values[qValueIndex]))
+                        {
+                            case <= 0.01 when targetDecoy == "T":
+                                proteinCountQValue++;
+                                break;
+                            case <= 0.01:
+                            {
+                                if (targetDecoy == "D")
+                                    proteinCountQValueDecoy++;
+                                break;
+                            }
+                        }
                     }
                 }
             }
@@ -696,13 +720,21 @@ namespace Analyzer.SearchType
                         DatasetName = DatasetName,
                         Condition = Condition,
                         PsmCount = psmCount,
+                        PsmCountDecoys = psmCountDecoys,
                         PsmCount_QValue = psmCountQValue,
+                        PsmCountDecoys_QValue = psmCountDecoysQValue,
                         PsmCount_PepQValue = psmCountPepQValue,
+                        PsmCountDecoys_PepQValue = psmCountDecoysPepQValue,
                         ProteoformCount = peptideCount,
+                        ProteoformCountDecoys = peptideCountDecoys,
                         ProteoformCount_QValue = peptideCountQValue,
+                        ProteoformCountDecoys_QValue = peptideCountDecoysQValue,
                         ProteoformCount_PepQValue = peptideCountPepQValue,
+                        ProteoformCountDecoys_PepQValue = peptideCountDecoysPepQValue,
                         ProteinGroupCount = proteinCount,
+                        ProteinGroupCountDecoys = proteinCountDecoy,
                         ProteinGroupCount_QValue = proteinCountQValue,
+                        ProteinGroupCountDecoys_QValue = proteinCountQValueDecoy,
                         PsmCount_ResultFile = resultTextPsms,
                         ProteoformCount_ResultFile = resultTextProteoforms,
                         ProteinGroupCount_ResultFile = resultTextProteins
@@ -735,15 +767,23 @@ namespace Analyzer.SearchType
             foreach (var individualFileResults in IndividualFileResults)
             {
                 var psmCount = individualFileResults.AllPsms.Count(p => p.DecoyContamTarget == "T");
+                var psmCountDecoys = individualFileResults.AllPsms.Count(p => p.DecoyContamTarget == "D");
                 var psmCountQValue = individualFileResults.AllPsms.Count(p => p is { DecoyContamTarget: "T", QValue: <= 0.01 });
+                var psmCountDecoysQValue = individualFileResults.AllPsms.Count(p => p is { DecoyContamTarget: "D", QValue: <= 0.01 });
                 var psmCountPepQValue = individualFileResults.AllPsms.Count(p => p is { DecoyContamTarget: "T", PEP_QValue: <= 0.01 });
+                var psmCountDecoysPepQValue = individualFileResults.AllPsms.Count(p => p is { DecoyContamTarget: "D", PEP_QValue: <= 0.01 });
 
                 var peptideCount = individualFileResults.AllPeptides.Count(p => p.DecoyContamTarget == "T");
+                var peptideCountDecoys = individualFileResults.AllPeptides.Count(p => p.DecoyContamTarget == "D");
                 var peptideCountQValue = individualFileResults.AllPeptides.Count(p => p is { DecoyContamTarget: "T", QValue: <= 0.01 });
+                var peptideCountDecoysQValue = individualFileResults.AllPeptides.Count(p => p is { DecoyContamTarget: "D", QValue: <= 0.01 });
                 var peptideCountPepQValue = individualFileResults.AllPeptides.Count(p => p is { DecoyContamTarget: "T", PEP_QValue: <= 0.01 });
+                var peptideCountDecoysPepQValue = individualFileResults.AllPeptides.Count(p => p is { DecoyContamTarget: "D", PEP_QValue: <= 0.01 });
 
                 int proteinCount = 0;
+                int proteinCountDecoy = 0;
                 int proteinCountQValue = 0;
+                int proteinCountQValueDecoy = 0;
                 if (individualFileResults.ProteinPath is not null)
                 {
                     using (var sw = new StreamReader(File.OpenRead(individualFileResults.ProteinPath)))
@@ -751,14 +791,30 @@ namespace Analyzer.SearchType
                         var header = sw.ReadLine();
                         var headerSplit = header.Split('\t');
                         var qValueIndex = Array.IndexOf(headerSplit, "Protein QValue");
+                        var targdecoyIndex = Array.IndexOf(headerSplit, "Protein Decoy/Contaminant/Target");
 
                         while (!sw.EndOfStream)
                         {
                             var line = sw.ReadLine();
                             var values = line.Split('\t');
-                            proteinCount++;
-                            if (double.Parse(values[qValueIndex]) <= 0.01)
-                                proteinCountQValue++;
+                            var targetDecoy = values[targdecoyIndex];
+                            if (targetDecoy == "T")
+                                proteinCount++;
+                            else if (targetDecoy == "D")
+                                proteinCountDecoy++;
+
+                            switch (double.Parse(values[qValueIndex]))
+                            {
+                                case <= 0.01 when targetDecoy == "T":
+                                    proteinCountQValue++;
+                                    break;
+                                case <= 0.01:
+                                {
+                                    if (targetDecoy == "D")
+                                        proteinCountQValueDecoy++;
+                                    break;
+                                }
+                            }
                         }
                     }
                 }
@@ -810,13 +866,21 @@ namespace Analyzer.SearchType
                     Condition = Condition,
                     FileName = individualFileResults.FileName,
                     PsmCount = psmCount,
+                    PsmCountDecoys = psmCountDecoys,
                     PsmCount_QValue = psmCountQValue,
+                    PsmCountDecoys_QValue = psmCountDecoysQValue,
                     PsmCount_PepQValue = psmCountPepQValue,
+                    PsmCountDecoys_PepQValue = psmCountDecoysPepQValue,
                     ProteoformCount = peptideCount,
+                    ProteoformCountDecoys = peptideCountDecoys,
                     ProteoformCount_QValue = peptideCountQValue,
+                    ProteoformCountDecoys_QValue = peptideCountDecoysQValue,
                     ProteoformCount_PepQValue = peptideCountPepQValue,
+                    ProteoformCountDecoys_PepQValue = peptideCountDecoysPepQValue,
                     ProteinGroupCount = proteinCount,
+                    ProteinGroupCountDecoys = proteinCountDecoy,
                     ProteinGroupCount_QValue = proteinCountQValue,
+                    ProteinGroupCountDecoys_QValue = proteinCountQValueDecoy,
                     PsmCount_ResultFile = resultTextPsms,
                     ProteoformCount_ResultFile = resultTextProteoforms,
                     ProteinGroupCount_ResultFile = resultTextProteins

@@ -10,7 +10,6 @@ public static class PlottingTranslators
         ColorQueue = new Queue<Color>(new[]
         {
             Color.fromKeyword(ColorKeyword.Blue),
-            Color.fromKeyword(ColorKeyword.Red),
             Color.fromKeyword(ColorKeyword.Green),
             Color.fromKeyword(ColorKeyword.Purple),
             Color.fromKeyword(ColorKeyword.Orange),
@@ -42,7 +41,27 @@ public static class PlottingTranslators
             Color.fromKeyword(ColorKeyword.DarkMagenta),
             Color.fromKeyword(ColorKeyword.DarkGrey),
         });
+
+        InvisibleCharacterQueue = new Queue<char>(new[]
+        {
+            '\u0009',
+            '\u0020',
+            '\u00A0',
+            '\u00AD',
+            '\u034F',
+            '\u061C',
+            '\u115F',
+            '\u1160',
+            '\u17B4',
+            '\u17B5',
+            '\u180B',
+            '\u180C',
+            '\u180D',
+            '\u180E',
+        });
+
     }
+
 
     #region Conversion Dictionaries
 
@@ -454,11 +473,21 @@ public static class PlottingTranslators
         {"ProsightPDChimeras_Rep2_15", "ProsightPD\u280015 Chimeras"},
     };
 
+    private static Dictionary<string, char> ConditionToInvidisbleCharacterDictionary = new();
+
     public static Queue<Color> ColorQueue { get; }
+    public static Queue<char> InvisibleCharacterQueue { get; }
 
     #endregion
 
     #region Conversion Methods
+
+    public static char ConvertCondtionToInvisibleCharacterAddition(this string condition)
+    {
+        if (ConditionToInvidisbleCharacterDictionary.TryGetValue(condition, out char val)) return val;
+        ConditionToInvidisbleCharacterDictionary.Add(condition, InvisibleCharacterQueue.Dequeue());
+        return ConditionToInvidisbleCharacterDictionary[condition];
+    }
 
     public static IEnumerable<string> ConvertFileNames(this IEnumerable<string> fileNames)
     {

@@ -23,14 +23,23 @@ namespace Analyzer.FileTypes.Internal
         public int PsmCount { get; set; }
         public int ProteoformCount { get; set; }
         public int ProteinGroupCount { get; set; }
+        [Optional] public int PsmCountDecoys { get; set; }
+        [Optional] public int ProteoformCountDecoys { get; set; }
+        [Optional] public int ProteinGroupCountDecoys { get; set; }
             
         public int PsmCount_QValue { get; set; }
         public int ProteoformCount_QValue { get; set; }
         public int ProteinGroupCount_QValue { get; set; }
+        [Optional] public int PsmCountDecoys_QValue { get; set; }
+        [Optional] public int ProteoformCountDecoys_QValue { get; set; }
+        [Optional] public int ProteinGroupCountDecoys_QValue { get; set; }
+
              
         public int PsmCount_PepQValue { get; set; }
         public int ProteoformCount_PepQValue { get; set; }
         public int ProteinGroupCount_PepQValue { get; set; }
+        [Optional] public int PsmCountDecoys_PepQValue { get; set; }
+        [Optional] public int ProteoformCountDecoys_PepQValue { get; set; }
              
         public int PsmCount_ResultFile { get; set; }
         public int ProteoformCount_ResultFile { get; set; }

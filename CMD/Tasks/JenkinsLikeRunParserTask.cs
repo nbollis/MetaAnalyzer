@@ -31,7 +31,6 @@ public class JenkinsLikeRunParserTask : BaseResultAnalyzerTask
             var mm = (MetaMorpheusResult)singleRunResults;
 
             mm.GetBulkResultCountComparisonMultipleFilteringTypesFile();
-            mm.GetIndividualFileComparison();
             mm.GetIndividualFileResultCountingMultipleFilteringTypesFile();
 
             mm.Override = false;
@@ -58,7 +57,6 @@ public class JenkinsLikeRunParserTask : BaseResultAnalyzerTask
         {
             groupRun.Override = Parameters.Override;
             groupRun.GetBulkResultCountComparisonMultipleFilteringTypesFile();
-            groupRun.GetIndividualFileComparison();
             groupRun.GetIndividualFileResultCountingMultipleFilteringTypesFile();
             groupRun.Override = false;
         }
@@ -74,16 +72,12 @@ public class JenkinsLikeRunParserTask : BaseResultAnalyzerTask
         Log("Parsing All Aggregated Data");
         allResults.Override = Parameters.Override;
         allResults.GetBulkResultCountComparisonMultipleFilteringTypesFile();
-        allResults.IndividualFileComparison();
         allResults.GetIndividualFileResultCountingMultipleFilteringTypesFile();
         allResults.Override = false;
 
         Log("Plotting All Aggregated Data");
         allResults.PlotBulkResultsDifferentFilteringTypePlotsForPullRequests();
         allResults.PlotBulkResultsDifferentFilteringTypePlotsForPullRequests(true);
-        allResults.PlotStackedIndividualFileComparison(ResultType.Psm, false);
-        allResults.PlotStackedIndividualFileComparison(ResultType.Peptide, false);
-        allResults.PlotStackedIndividualFileComparison(ResultType.Protein, false);
     }
 
     private AllResults BuildResultsObjects()
