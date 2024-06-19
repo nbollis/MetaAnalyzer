@@ -112,7 +112,11 @@ namespace Analyzer.SearchType
         public BulkResultCountComparisonFile IndividualFileComparison()
         {
             if (!Override && File.Exists(_individualFileComparisonPath))
-                return new BulkResultCountComparisonFile(_individualFileComparisonPath);
+            {
+                var result = new BulkResultCountComparisonFile(_individualFileComparisonPath);
+                if (result.Results.Count == CellLineResults.Count)
+                    return result;
+            }
 
             List<BulkResultCountComparison> results = new List<BulkResultCountComparison>();
             foreach (var cellLineResult in CellLineResults.Where(p => p.IndividualFileComparisonFile != null))

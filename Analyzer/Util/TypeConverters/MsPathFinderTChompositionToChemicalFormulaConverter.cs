@@ -7,7 +7,7 @@ namespace Analyzer.Util.TypeConverters
 {
     /// <summary>
     /// Converts the chemical formula from MsPathFinderT to MetaMorpheus
-    /// MsPathFinderT: "C(460) H(740) N(136) O(146) S(0)"
+    /// MsPathFinderT: "C(460) H(740) N(136) O(146) Message(0)"
     /// MetaMorpheus: "C460H740N136O146S"
     /// </summary>
     public class MsPathFinderTCompositionToChemicalFormulaConverter : DefaultTypeConverter
