@@ -48,7 +48,7 @@ public class JenkinsLikeRunParserTask : BaseResultAnalyzerTask
             }
             catch (Exception e)
             {
-                Log($"Could not plot PEP features scatter grid {e.Message}");
+                Warn($"Could not plot PEP features scatter grid {e.Message}");
             }
         }
 
