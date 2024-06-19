@@ -21,6 +21,7 @@ namespace Analyzer.Util
     public static partial class FileIdentifiers
     {
         public static string ComparativeResultFilteringFigure => "AllResults_ComparingPRs";
+        public static string IndividualFileComparativeResultFilteringFigure => "AllResults_ComparingPRs_IndividualFile";
     }
 }
 
@@ -497,15 +498,24 @@ namespace Analyzer.Plotting.ComparativePlots
         #endregion
 
 
-        public static void PlotBulkResultsDifferentFilteringTypePlotsForPullRequests(this AllResults allResults)
+        public static void PlotBulkResultsDifferentFilteringTypePlotsForPullRequests(this AllResults allResults, bool individualFiles = false)
         {
-            var chart = allResults.BulkResultCountComparisonMultipleFilteringTypesFile.Results
-                .GetBulkResultsDifferentFilteringTypePlotsForPullRequests();
-            var outName = $"{FileIdentifiers.ComparativeResultFilteringFigure}_{DateTime.Now:yyMMdd}";
-            chart.SaveInAllResultsOnly(allResults, outName, 1600, 1600);
+            var chart = individualFiles 
+                ? allResults.IndividualFileResultCountingMultipleFilteringTypesFile.Results
+                    .GetBulkResultsDifferentFilteringTypePlotsForPullRequests(individualFiles)
+                : allResults.BulkResultCountComparisonMultipleFilteringTypesFile.Results
+                    .GetBulkResultsDifferentFilteringTypePlotsForPullRequests(individualFiles);
+
+            var outName = individualFiles 
+                ? $"{FileIdentifiers.IndividualFileComparativeResultFilteringFigure}_{DateTime.Now:yyMMdd}"
+                : $"{FileIdentifiers.ComparativeResultFilteringFigure}_{DateTime.Now:yyMMdd}";
+            int height = individualFiles ? 2400 : 1600;
+            int width = individualFiles ? 2400 : 1600;
+            chart.SaveInAllResultsOnly(allResults, outName, width, height);
         }
 
-        public static GenericChart.GenericChart GetBulkResultsDifferentFilteringTypePlotsForPullRequests(this List<BulkResultCountComparisonMultipleFilteringTypes> results)
+        internal static GenericChart.GenericChart GetBulkResultsDifferentFilteringTypePlotsForPullRequests(this List<BulkResultCountComparisonMultipleFilteringTypes> results,
+            bool individualFiles = false)
         {
             var chartsToGrid = new List<GenericChart.GenericChart>();
             var types = Enum.GetValues<ResultType>();
@@ -518,38 +528,34 @@ namespace Analyzer.Plotting.ComparativePlots
                     var resultType = types[j];
                     var yAxisTitle = j == 0 ? filterType.ToString() : "";
                     var xAxisTitle = i == filters.Length - 1 ? resultType.ToString() : "";
+
+                    // Generate a single plot in the 3x4 grid
                     var chartsToCombine = new List<GenericChart.GenericChart>();
                     foreach (var prRun in results.GroupBy(p => p.DatasetName))
                     {
                         var prRunChart = prRun.ToList()
-                            .GetBulkResultsDifferentFilteringPlot_ColumnChartByTask(resultType, filterType)
-                            //.WithTitle($"{prRun.Key} {resultType} {filterType}")
+                            .GetBulkResultsDifferentFilteringPlot(resultType, filterType, individualFiles)
                             .WithXAxisStyle(Title.init($"{resultType}", Side: StyleParam.Side.Top))
                             .WithLegend(false);
-                        //GenericChartExtensions.Show(prRunChart);
                         chartsToCombine.Add(prRunChart);
+                        //GenericChartExtensions.Show(prRunChart);
                     }
 
-
                     var chart = Chart.Combine(chartsToCombine)
-                        //.WithTitle($"{resultType}s by {filterType}")
                         .WithXAxisStyle(Title.init(xAxisTitle, Side: StyleParam.Side.Top, Font: Font.init(null, 36)))
                         .WithYAxisStyle(Title.init(yAxisTitle, Font: Font.init(null, 36)))
                         .WithAxisAnchor(i, j)
                         .WithLayout(PlotlyBase.DefaultLayout)
                         .WithLegend(false);
-
-                    //GenericChartExtensions.Show(chart);
                     chartsToGrid.Add(chart);
+                    //GenericChartExtensions.Show(chart);
                 }
             }
 
             var grid = Chart.Grid(chartsToGrid, filters.Length, types.Length)
                 .WithSize(2400, 2400)
                 .WithLegend(true);
-
             return grid;
         }
-
     }
 }

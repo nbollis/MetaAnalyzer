@@ -415,6 +415,11 @@ public static class PlottingTranslators
         {"Ecoli_SEC5_F7","5_07"},
         {"Ecoli_SEC5_F8","5_08"},
         {"Ecoli_SEC5_F9","5_09"},
+
+
+        // Jenkins
+        {"04-30-13_CAST_Frac4_6uL", "Frac4"},
+        {"04-30-13_CAST_Frac5_4uL", "Frac5"},
     };
 
     private static Dictionary<string, string> ConditionNameConversionDictionary = new()

@@ -25,10 +25,36 @@ namespace Test
             get
             {
                 List<CellLineResults> differentRunResults = new();
-                foreach (var specificRunDirectory in Directory.GetDirectories(DirectoryPath).Where(p => !p.Contains("Figures")))
+                foreach (var specificRunDirectory in Directory.GetDirectories(DirectoryPath))
                 {
+                    if (specificRunDirectory.Contains("Figures") || Path.GetFileName(specificRunDirectory).StartsWith("XX"))
+                        continue;
+
                     var name = Path.GetFileName(specificRunDirectory);
                     var runDirectories = specificRunDirectory.GetDirectories();
+
+                    // if started running all tasks
+                    if (runDirectories.Count(p => !p.Contains("Figure")) == 5) // Searches ran during the test
+                    {
+                        var last = runDirectories.First(p => p.Contains("TopDown"));
+                        var topDownDirectories = last.GetDirectories();
+                        // if started running last task
+                        if (topDownDirectories.Count(p => !p.Contains("Figure")) is 7 or 8) // number of top-down tasks ran
+                        {
+                            var postGPTMD = topDownDirectories.First(p => p.Contains("Task7"));
+                            var files = Directory.GetFiles(postGPTMD, "*.psmtsv", SearchOption.AllDirectories);
+
+                            // if last is still running
+                            if (!files.Any(p => p.Contains("AllProteoforms") || p.Contains("AllPSMs")) &&
+                                !files.Any(p => p.Contains("AllProteinGroups")))
+                                continue;
+                        }
+                        else
+                            continue;
+
+                    }
+                    else
+                        continue;
 
                     var semiSpecificDir = runDirectories.First(p => p.Contains("Semispecific"));
                     var semiSpecific = new MetaMorpheusResult(semiSpecificDir, name, "Semi-Specific");
@@ -124,6 +150,7 @@ namespace Test
         [Test]
         public static void PlotChart()
         {
+            AllResults.PlotBulkResultsDifferentFilteringTypePlotsForPullRequests(true);
             AllResults.PlotBulkResultsDifferentFilteringTypePlotsForPullRequests();
         }
 

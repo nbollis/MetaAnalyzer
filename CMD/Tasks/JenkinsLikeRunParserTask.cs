@@ -80,6 +80,7 @@ public class JenkinsLikeRunParserTask : BaseResultAnalyzerTask
 
         Log("Plotting All Aggregated Data");
         allResults.PlotBulkResultsDifferentFilteringTypePlotsForPullRequests();
+        allResults.PlotBulkResultsDifferentFilteringTypePlotsForPullRequests(true);
         allResults.PlotStackedIndividualFileComparison(ResultType.Psm, false);
         allResults.PlotStackedIndividualFileComparison(ResultType.Peptide, false);
         allResults.PlotStackedIndividualFileComparison(ResultType.Protein, false);

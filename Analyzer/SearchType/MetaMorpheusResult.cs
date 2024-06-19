@@ -65,9 +65,9 @@ namespace Analyzer.SearchType
                                  .Replace("_Proteoforms", ""))
                          .ToDictionary(p => p.Key, p => p.ToList()))
             {
-                string psm = individualFile.Value.First(p => p.Contains("PSM"));
-                string peptide = individualFile.Value.First(p => p.Contains("Peptide") || p.Contains("Proteoform"));
-                string? protein = individualFile.Value.FirstOrDefault(p => p.Contains("Protein"));
+                string psm = individualFile.Value.First(p => Path.GetFileNameWithoutExtension(p).Contains("PSM"));
+                string peptide = individualFile.Value.First(p => Path.GetFileNameWithoutExtension(p).Contains("Peptide") || Path.GetFileNameWithoutExtension(p).Contains("Proteoform"));
+                string? protein = individualFile.Value.FirstOrDefault(p => Path.GetFileNameWithoutExtension(p).Contains("Protein"));
 
                 IndividualFileResults.Add(new MetaMorpheusIndividualFileResult(individualFile.Key, psm, peptide, protein));
             }

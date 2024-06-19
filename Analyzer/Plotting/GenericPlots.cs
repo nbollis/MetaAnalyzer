@@ -247,14 +247,16 @@ namespace Analyzer.Plotting
             return chart;
         }
 
-        internal static GenericChart.GenericChart GetBulkResultsDifferentFilteringPlot_ColumnChartByTask(
+        internal static GenericChart.GenericChart GetBulkResultsDifferentFilteringPlot(
             this List<BulkResultCountComparisonMultipleFilteringTypes> results, ResultType resultType = ResultType.Psm,
-            FilteringType filteringType = FilteringType.PEPQValue)
+            FilteringType filteringType = FilteringType.PEPQValue, bool individualFiles = false)
         {
 
             var condition = results.First().DatasetName;
             var values = new int[results.Count()];
-            var keys = results.Select(p => p.Condition).ToArray();
+            var keys = individualFiles
+                ? results.Select(p => p.Condition + " " + p.FileName.ConvertFileName()).ToArray()
+                : results.Select(p => p.Condition).ToArray();
             values = resultType switch
             {
                 ResultType.Psm => filteringType switch
