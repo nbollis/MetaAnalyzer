@@ -155,6 +155,31 @@ namespace Analyzer.SearchType
             return bulkResultCountComparisonFile;
         }
 
+        private string _individualFileComparisonDifferentFilteringTypesPath => Path.Combine(DirectoryPath, $"All_{FileIdentifiers.IndividualFileComparisonMultipleFilters}");
+        private BulkResultCountComparisonMultipleFilteringTypesFile? _individualFileResultCountingMultipleFilteringTypesFile;
+        public BulkResultCountComparisonMultipleFilteringTypesFile IndividualFileResultCountingMultipleFilteringTypesFile =>
+            _individualFileResultCountingMultipleFilteringTypesFile ??= GetIndividualFileResultCountingMultipleFilteringTypesFile();
+
+        public BulkResultCountComparisonMultipleFilteringTypesFile GetIndividualFileResultCountingMultipleFilteringTypesFile()
+        {
+            if (!Override && File.Exists(_individualFileComparisonDifferentFilteringTypesPath))
+            {
+                var result = new BulkResultCountComparisonMultipleFilteringTypesFile(_individualFileComparisonDifferentFilteringTypesPath);
+                if (result.Results.DistinctBy(p => p.Condition).Count() == CellLineResults.Count)
+                    return result;
+            }
+
+            List<BulkResultCountComparisonMultipleFilteringTypes> results = new List<BulkResultCountComparisonMultipleFilteringTypes>();
+            foreach (var result in CellLineResults)
+            {
+                results.AddRange(result.IndividualFileResultCountingMultipleFilteringTypesFile.Results);
+            }
+
+            var bulkResultCountComparisonFile = new BulkResultCountComparisonMultipleFilteringTypesFile(_individualFileComparisonDifferentFilteringTypesPath) { Results = results };
+            bulkResultCountComparisonFile.WriteResults(_individualFileComparisonDifferentFilteringTypesPath);
+            return bulkResultCountComparisonFile;
+        }
+
 
         public IEnumerator<CellLineResults> GetEnumerator()
         {

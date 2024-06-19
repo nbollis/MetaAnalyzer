@@ -26,6 +26,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Analyzer\Analyzer.csproj" />
+    <ProjectReference Include="..\CMD\CMD.csproj" />
   </ItemGroup>
 
   <ItemGroup>

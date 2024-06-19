@@ -6,7 +6,7 @@ using Plotly.NET;
 
 namespace Analyzer.Plotting.ComparativePlots
 {
-    public static class DatasetComparativePlots
+    public static class CellLineComparativePlots
     {
         public static void PlotIndividualFileResults(this CellLineResults cellLine, ResultType? resultType = null,
             string? outputDirectory = null, bool filterByCondition = true)

@@ -9,6 +9,8 @@ using System.Threading.Tasks;
 using Analyzer.Plotting.ComparativePlots;
 using Analyzer.Plotting.IndividualRunPlots;
 using Analyzer.Plotting.Util;
+using CMD.TaskParameters;
+using CMD.Tasks;
 
 namespace Test
 {
@@ -125,6 +127,13 @@ namespace Test
             AllResults.PlotBulkResultsDifferentFilteringTypePlotsForPullRequests();
         }
 
+        [Test]
+        public static void RunFromTask()
+        {
+            JenkinsLikeRunParserTaskParameters parameters = new(DirectoryPath, false);
+            JenkinsLikeRunParserTask task = new(parameters);
+            task.Run();
+        }
 
 
         [Test]

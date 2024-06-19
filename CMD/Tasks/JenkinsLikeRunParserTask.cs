@@ -32,6 +32,7 @@ public class JenkinsLikeRunParserTask : BaseResultAnalyzerTask
 
             mm.GetBulkResultCountComparisonMultipleFilteringTypesFile();
             mm.GetIndividualFileComparison();
+            mm.GetIndividualFileResultCountingMultipleFilteringTypesFile();
 
             mm.Override = false;
         }
@@ -58,6 +59,7 @@ public class JenkinsLikeRunParserTask : BaseResultAnalyzerTask
             groupRun.Override = Parameters.Override;
             groupRun.GetBulkResultCountComparisonMultipleFilteringTypesFile();
             groupRun.GetIndividualFileComparison();
+            groupRun.GetIndividualFileResultCountingMultipleFilteringTypesFile();
             groupRun.Override = false;
         }
 
@@ -73,6 +75,7 @@ public class JenkinsLikeRunParserTask : BaseResultAnalyzerTask
         allResults.Override = Parameters.Override;
         allResults.GetBulkResultCountComparisonMultipleFilteringTypesFile();
         allResults.IndividualFileComparison();
+        allResults.GetIndividualFileResultCountingMultipleFilteringTypesFile();
         allResults.Override = false;
 
         Log("Plotting All Aggregated Data");

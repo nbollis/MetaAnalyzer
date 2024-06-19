@@ -284,6 +284,38 @@ public class CellLineResults : IEnumerable<SingleRunResults>, IDisposable
         return bulkResultCountComparisonFile;
     }
 
+
+    private string _individualFileResultCountingDifferentFilteringFilePath => Path.Combine(DirectoryPath, $"{CellLine}_{FileIdentifiers.IndividualFileComparisonMultipleFilters}");
+    private BulkResultCountComparisonMultipleFilteringTypesFile? _individualFileResultCountingMultipleFilteringTypesFile;
+    public BulkResultCountComparisonMultipleFilteringTypesFile IndividualFileResultCountingMultipleFilteringTypesFile =>
+        _individualFileResultCountingMultipleFilteringTypesFile ??= GetIndividualFileResultCountingMultipleFilteringTypesFile();
+
+    public BulkResultCountComparisonMultipleFilteringTypesFile GetIndividualFileResultCountingMultipleFilteringTypesFile()
+    {
+        if (!Override && File.Exists(_individualFileResultCountingDifferentFilteringFilePath))
+        {
+            var result = new BulkResultCountComparisonMultipleFilteringTypesFile(_individualFileResultCountingDifferentFilteringFilePath);
+            if (result.Results.DistinctBy(p => p.Condition).Count() == Results.Count)
+                return result;
+        }
+
+        List<BulkResultCountComparisonMultipleFilteringTypes> results = new List<BulkResultCountComparisonMultipleFilteringTypes>();
+        foreach (var bulkResult in Results.Where(p => p is IMultiFilterChecker))
+        {
+            var result = (IMultiFilterChecker)bulkResult;
+            if (result.IndividualFileResultCountingMultipleFilteringTypesFile is null)
+                continue;
+            results.AddRange(result.IndividualFileResultCountingMultipleFilteringTypesFile.Results);
+        }
+
+        var bulkResultCountComparisonFile = new BulkResultCountComparisonMultipleFilteringTypesFile(_individualFileResultCountingDifferentFilteringFilePath) { Results = results };
+        bulkResultCountComparisonFile.WriteResults(_individualFileResultCountingDifferentFilteringFilePath);
+        return bulkResultCountComparisonFile;
+    }
+
+
+
+
     private string _maximumChimeraEstimateFilePath =>
         Path.Combine(DirectoryPath, $"{CellLine}_{FileIdentifiers.MaximumChimeraEstimate}");
     private MaximumChimeraEstimationFile? _maximumChimeraEstimationFile;

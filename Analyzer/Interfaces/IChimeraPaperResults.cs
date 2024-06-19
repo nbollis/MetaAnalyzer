@@ -32,8 +32,11 @@ public interface IChimeraPeptideCounter : IChimeraPaperResults
 
 public interface IMultiFilterChecker : IChimeraPaperResults
 {
-    BulkResultCountComparisonMultipleFilteringTypesFile BulkResultCountComparisonMultipleFilteringTypesFile { get; }
+    BulkResultCountComparisonMultipleFilteringTypesFile? BulkResultCountComparisonMultipleFilteringTypesFile { get; }
     BulkResultCountComparisonMultipleFilteringTypesFile GetBulkResultCountComparisonMultipleFilteringTypesFile();
+
+    BulkResultCountComparisonMultipleFilteringTypesFile? IndividualFileResultCountingMultipleFilteringTypesFile { get; }
+    BulkResultCountComparisonMultipleFilteringTypesFile GetIndividualFileResultCountingMultipleFilteringTypesFile();
 }
 
 public interface IRetentionTimePredictionAnalysis

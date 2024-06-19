@@ -1,4 +1,6 @@
-﻿using System.Text.RegularExpressions;
+﻿using System.IO;
+using System.Reflection.Metadata.Ecma335;
+using System.Text.RegularExpressions;
 using Analyzer.FileTypes.Internal;
 using Analyzer.Interfaces;
 using Analyzer.Util;
@@ -96,9 +98,9 @@ namespace Analyzer.SearchType
                 int count = 0;
                 int onePercentCount = 0;
 
-                if (individualFile._proteinPath is not null)
+                if (individualFile.ProteinPath is not null)
                 {
-                    using (var sw = new StreamReader(File.OpenRead(individualFile._proteinPath)))
+                    using (var sw = new StreamReader(File.OpenRead(individualFile.ProteinPath)))
                     {
                         var header = sw.ReadLine();
                         var headerSplit = header.Split('\t');
@@ -633,7 +635,7 @@ namespace Analyzer.SearchType
 
 
         private string _bultResultCountingDifferentFilteringFilePath => Path.Combine(DirectoryPath, $"{DatasetName}_{Condition}_{FileIdentifiers.BulkResultComparisonMultipleFilters}");
-        private BulkResultCountComparisonMultipleFilteringTypesFile _bulkResultCountComparisonMultipleFilteringTypesFile;
+        private BulkResultCountComparisonMultipleFilteringTypesFile? _bulkResultCountComparisonMultipleFilteringTypesFile;
 
         public BulkResultCountComparisonMultipleFilteringTypesFile BulkResultCountComparisonMultipleFilteringTypesFile =>
             _bulkResultCountComparisonMultipleFilteringTypesFile ??= GetBulkResultCountComparisonMultipleFilteringTypesFile();
@@ -661,8 +663,6 @@ namespace Analyzer.SearchType
                     var header = sw.ReadLine();
                     var headerSplit = header.Split('\t');
                     var qValueIndex = Array.IndexOf(headerSplit, "Protein QValue");
-                    int count = 0;
-                    int onePercentCount = 0;
 
                     while (!sw.EndOfStream)
                     {
@@ -714,7 +714,124 @@ namespace Analyzer.SearchType
             return bulkResultCountComparisonMultipleFilteringTypesFile;
         }
 
+        private string _individualFileResultCountingDifferentFilteringFilePath => Path.Combine(DirectoryPath, $"{DatasetName}_{Condition}_{FileIdentifiers.IndividualFileComparisonMultipleFilters}");
+        private BulkResultCountComparisonMultipleFilteringTypesFile? _individualFileResultCountingMultipleFilteringTypesFile;
+        public BulkResultCountComparisonMultipleFilteringTypesFile IndividualFileResultCountingMultipleFilteringTypesFile =>
+            _individualFileResultCountingMultipleFilteringTypesFile ??= GetIndividualFileResultCountingMultipleFilteringTypesFile();
 
+        public BulkResultCountComparisonMultipleFilteringTypesFile GetIndividualFileResultCountingMultipleFilteringTypesFile()
+        {
+            if (!Override && File.Exists(_individualFileResultCountingDifferentFilteringFilePath))
+                return new BulkResultCountComparisonMultipleFilteringTypesFile(_individualFileResultCountingDifferentFilteringFilePath);
+            switch (IndividualFileResults.Count)
+            {
+                case 0 when File.Exists(_individualFileResultCountingDifferentFilteringFilePath):
+                    return new BulkResultCountComparisonMultipleFilteringTypesFile(_individualFileResultCountingDifferentFilteringFilePath);
+                case 0:
+                    return null;
+            }
+
+            var results = new List<BulkResultCountComparisonMultipleFilteringTypes>();
+            foreach (var individualFileResults in IndividualFileResults)
+            {
+                var psmCount = individualFileResults.AllPsms.Count(p => p.DecoyContamTarget == "T");
+                var psmCountQValue = individualFileResults.AllPsms.Count(p => p is { DecoyContamTarget: "T", QValue: <= 0.01 });
+                var psmCountPepQValue = individualFileResults.AllPsms.Count(p => p is { DecoyContamTarget: "T", PEP_QValue: <= 0.01 });
+
+                var peptideCount = individualFileResults.AllPeptides.Count(p => p.DecoyContamTarget == "T");
+                var peptideCountQValue = individualFileResults.AllPeptides.Count(p => p is { DecoyContamTarget: "T", QValue: <= 0.01 });
+                var peptideCountPepQValue = individualFileResults.AllPeptides.Count(p => p is { DecoyContamTarget: "T", PEP_QValue: <= 0.01 });
+
+                int proteinCount = 0;
+                int proteinCountQValue = 0;
+                if (individualFileResults.ProteinPath is not null)
+                {
+                    using (var sw = new StreamReader(File.OpenRead(individualFileResults.ProteinPath)))
+                    {
+                        var header = sw.ReadLine();
+                        var headerSplit = header.Split('\t');
+                        var qValueIndex = Array.IndexOf(headerSplit, "Protein QValue");
+
+                        while (!sw.EndOfStream)
+                        {
+                            var line = sw.ReadLine();
+                            var values = line.Split('\t');
+                            proteinCount++;
+                            if (double.Parse(values[qValueIndex]) <= 0.01)
+                                proteinCountQValue++;
+                        }
+                    }
+                }
+
+                // parse result text
+                bool finished = false;
+                int resultTextProteins = 0;
+                int resultTextPsms = 0;
+                int resultTextProteoforms = 0;
+
+                using (var sr = new StreamReader(File.OpenRead(individualFileResults.ResultsTextPath)))
+                {
+                    while (!sr.EndOfStream)
+                    {
+                        var line = sr.ReadLine();
+                        if (line.IsNullOrEmpty())
+                            continue;
+
+                        if (line!.Contains("target PSMs with", StringComparison.InvariantCultureIgnoreCase) 
+                            && line.Contains(individualFileResults.FileName))
+                        {
+                            resultTextPsms = int.Parse(line.Split(':')[1].Trim());
+                        }
+
+                        if ((line.Contains("Target proteoforms with", StringComparison.InvariantCultureIgnoreCase) 
+                             || line.Contains("Target peptides with", StringComparison.InvariantCultureIgnoreCase))
+                            && line.Contains(individualFileResults.FileName))
+                        {
+                            resultTextProteoforms = int.Parse(line.Split(':')[1].Trim());
+                        }
+
+                        if (line.Contains("Target protein groups", StringComparison.InvariantCultureIgnoreCase) 
+                            && line.Contains(individualFileResults.FileName))
+                        {
+                            resultTextProteins = int.Parse(line.Split(':')[1].Trim());
+                        }
+
+                        if (resultTextProteins != 0 && resultTextProteoforms != 0 && resultTextPsms != 0)
+                            finished = true;
+
+                        if (finished)
+                            break;
+                    }
+                }
+
+                var result = new BulkResultCountComparisonMultipleFilteringTypes()
+                {
+                    DatasetName = DatasetName,
+                    Condition = Condition,
+                    FileName = individualFileResults.FileName,
+                    PsmCount = psmCount,
+                    PsmCount_QValue = psmCountQValue,
+                    PsmCount_PepQValue = psmCountPepQValue,
+                    ProteoformCount = peptideCount,
+                    ProteoformCount_QValue = peptideCountQValue,
+                    ProteoformCount_PepQValue = peptideCountPepQValue,
+                    ProteinGroupCount = proteinCount,
+                    ProteinGroupCount_QValue = proteinCountQValue,
+                    PsmCount_ResultFile = resultTextPsms,
+                    ProteoformCount_ResultFile = resultTextProteoforms,
+                    ProteinGroupCount_ResultFile = resultTextProteins
+                };
+                results.Add(result);
+            }
+
+            var bulkResultCountComparisonMultipleFilteringTypesFile = new BulkResultCountComparisonMultipleFilteringTypesFile(_individualFileResultCountingDifferentFilteringFilePath)
+            {
+                Results = results
+            };
+
+            bulkResultCountComparisonMultipleFilteringTypesFile.WriteResults(_individualFileResultCountingDifferentFilteringFilePath);
+            return bulkResultCountComparisonMultipleFilteringTypesFile;
+        }
 
         public new void Dispose()
         {
@@ -801,7 +918,8 @@ namespace Analyzer.SearchType
         public string FileName { get; }
         private string _psmPath;
         private string _peptidePath;
-        public string? _proteinPath;
+        public string? ProteinPath;
+        public string ResultsTextPath;
 
         private List<PsmFromTsv>? _allPsms;
         public List<PsmFromTsv> AllPsms => _allPsms ??= SpectrumMatchTsvReader.ReadPsmTsv(_psmPath, out _);
@@ -817,7 +935,11 @@ namespace Analyzer.SearchType
             FileName = fileName;
             _psmPath = psmPath;
             _peptidePath = peptidePath;
-            _proteinPath = proteinPath;
+            ProteinPath = proteinPath;
+
+            var individualFileDirectory = Path.GetDirectoryName(psmPath);
+            var searchResultsDirectory = Directory.GetParent(individualFileDirectory).FullName;
+            ResultsTextPath = Directory.GetFiles(searchResultsDirectory).First(p => p.EndsWith("results.txt"));
         }
     }
 }

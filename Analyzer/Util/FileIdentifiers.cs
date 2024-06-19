@@ -16,6 +16,7 @@
         public static string IndividualFileComparisonFigure => "IndividualFileComparison";
         public static string BottomUpResultComparison => "BottomUpResultComparison.csv";
         public static string BulkResultComparisonMultipleFilters => "ResultComparisonManyFilters.csv";
+        public static string IndividualFileComparisonMultipleFilters => "IndividualFileResultComparisonManyFilters.csv";
         public static string MaximumChimeraEstimate => "MaximumChimeraEstimate.csv";
         public static string MaximumChimeraEstimateCalibAveraged => "MaximumChimeraEstimateCalibAveragedHybrid.csv";
         
