@@ -80,6 +80,7 @@ namespace MyApp
                 foreach (var taskType in CommandLineArguments.Tasks)
                 {
                     BaseResultAnalyzerTask task;
+                    // TODO: Figure out a smarter way to build the tasks
                     switch (taskType)
                     {
                         case CommandLineTasks.JenkinsLikeRunParser:
