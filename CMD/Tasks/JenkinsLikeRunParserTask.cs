@@ -44,7 +44,7 @@ public class JenkinsLikeRunParserTask : BaseResultAnalyzerTask
             mm.PlotTargetDecoyCurves(ResultType.Peptide, TargetDecoyCurveMode.Score);
             try
             {
-                mm.PlotPepFeaturesScatterGrid();
+               // mm.PlotPepFeaturesScatterGrid();
             }
             catch (Exception e)
             {
@@ -82,7 +82,7 @@ public class JenkinsLikeRunParserTask : BaseResultAnalyzerTask
         allResults.PlotBulkResultsDifferentFilteringTypePlotsForPullRequests_TargetDecoy(true);
     }
 
-    private AllResults BuildResultsObjects()
+    public AllResults BuildResultsObjects()
     {
         Log("Parsing Input Directory");
         List<CellLineResults> differentRunResults = new();

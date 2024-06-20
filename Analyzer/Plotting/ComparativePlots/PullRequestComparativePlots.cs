@@ -107,8 +107,8 @@ namespace Analyzer.Plotting.ComparativePlots
             var outName = absolute
                 ? $"{DateTime.Now:yyMMdd}_{FileIdentifiers.ComparativeFileResults_TargetDecoyAbsolute}"
                 : $"{DateTime.Now:yyMMdd}_{FileIdentifiers.ComparativeFileResults_TargetDecoyRelative}";
-            int height = 650 * allResults.Select(p => p.DatasetName).Distinct().Count();
-            int width = 450 * 6; 
+            int height = 800 * allResults.Select(p => p.CellLine).Distinct().Count();
+            int width = 2400; 
             chart.SaveInAllResultsOnly(allResults, outName, width, height);
         }
 
