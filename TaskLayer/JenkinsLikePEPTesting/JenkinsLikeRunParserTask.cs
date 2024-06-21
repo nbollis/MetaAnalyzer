@@ -1,17 +1,14 @@
-﻿using Analyzer.SearchType;
-using Analyzer.Util;
-using CMD.TaskParameters;
-using CMD.Util;
-using System.IO;
-using Analyzer.Plotting.ComparativePlots;
+﻿using Analyzer.Plotting.ComparativePlots;
 using Analyzer.Plotting.IndividualRunPlots;
 using Analyzer.Plotting.Util;
+using Analyzer.SearchType;
+using Analyzer.Util;
 
-namespace CMD.Tasks;
+namespace TaskLayer.JenkinsLikePEPTesting;
 
 public class JenkinsLikeRunParserTask : BaseResultAnalyzerTask
 {
-    public override CommandLineTasks MyTask => CommandLineTasks.JenkinsLikeRunParser;
+    public override MyTask MyTask => MyTask.JenkinsLikeRunParser;
     protected override JenkinsLikeRunParserTaskParameters Parameters { get; }
 
     public JenkinsLikeRunParserTask(JenkinsLikeRunParserTaskParameters parameters) : base()
@@ -44,7 +41,7 @@ public class JenkinsLikeRunParserTask : BaseResultAnalyzerTask
             mm.PlotTargetDecoyCurves(ResultType.Peptide, TargetDecoyCurveMode.Score);
             try
             {
-               // mm.PlotPepFeaturesScatterGrid();
+                // mm.PlotPepFeaturesScatterGrid();
             }
             catch (Exception e)
             {
@@ -142,7 +139,7 @@ public class JenkinsLikeRunParserTask : BaseResultAnalyzerTask
                 var classicPostGptmdDir = classicDir.GetDirectories().First(p => p.Contains("Task5"));
                 allMMResults.Add(new MetaMorpheusResult(classicPostGptmdDir, name, "Classic - Post GPTMD"));
             }
-            
+
 
 
             var topDownDir = runDirectories.FirstOrDefault(p => p.Contains("TopDown"));
@@ -161,12 +158,12 @@ public class JenkinsLikeRunParserTask : BaseResultAnalyzerTask
             var bottomupOpenModernDir = runDirectories.FirstOrDefault(p => p.Contains("BottomUpOpenModern"));
             if (bottomupOpenModernDir is not null)
                 allMMResults.Add(new MetaMorpheusResult(bottomupOpenModernDir, name, "BottomUp OpenModern"));
-            
+
 
             var topDownOpenModernDir = runDirectories.FirstOrDefault(p => p.Contains("TopDownOpenModern"));
             if (topDownOpenModernDir is not null)
                 allMMResults.Add(new MetaMorpheusResult(topDownOpenModernDir, name, "TopDown OpenModern"));
-            
+
 
             var run = new CellLineResults(specificRunDirectory, allMMResults);
             differentRunResults.Add(run);

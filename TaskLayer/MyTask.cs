@@ -4,9 +4,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace CMD.Util
+namespace TaskLayer
 {
-    public enum CommandLineTasks
+    public enum MyTask
     {
         JenkinsLikeRunParser = 1,
     }

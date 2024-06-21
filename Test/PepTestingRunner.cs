@@ -9,8 +9,7 @@ using System.Threading.Tasks;
 using Analyzer.Plotting.ComparativePlots;
 using Analyzer.Plotting.IndividualRunPlots;
 using Analyzer.Plotting.Util;
-using CMD.TaskParameters;
-using CMD.Tasks;
+using TaskLayer.JenkinsLikePEPTesting;
 
 namespace Test
 {

@@ -1,12 +1,9 @@
-﻿using System;
-using Analyzer.Plotting.Util;
+﻿using Analyzer.Plotting.Util;
 using CMD;
-using CMD.TaskParameters;
-using CMD.Tasks;
-using CMD.Util;
 using CommandLine;
 using CommandLine.Text;
-using Plotly.NET;
+using TaskLayer;
+using TaskLayer.JenkinsLikePEPTesting;
 
 namespace MyApp
 {
@@ -83,7 +80,7 @@ namespace MyApp
                     // TODO: Figure out a smarter way to build the tasks
                     switch (taskType)
                     {
-                        case CommandLineTasks.JenkinsLikeRunParser:
+                        case MyTask.JenkinsLikeRunParser:
                             var parameters = new JenkinsLikeRunParserTaskParameters(CommandLineArguments.InputDirectory,
                                 CommandLineArguments.OverrideFiles);
                             task = new JenkinsLikeRunParserTask(parameters);

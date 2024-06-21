@@ -177,7 +177,6 @@ namespace Test
             }
 
             BottomUpRunner.RunAllParsing();
-            PepTestingRunner.FirstGo();
             TopDownRunner.RunAllParsing();
             //foreach (var cellLine in AllResults)
             //{

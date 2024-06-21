@@ -1,19 +1,12 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Analyzer.Plotting.Util;
-using CMD.TaskParameters;
-using CMD.Util;
+﻿using Analyzer.Plotting.Util;
 
-namespace CMD.Tasks
+namespace TaskLayer
 {
     public abstract class BaseResultAnalyzerTask
     {
         public static event EventHandler<StringEventArgs> LogHandler;
         public static event EventHandler<StringEventArgs> WarnHandler;
-        public abstract CommandLineTasks MyTask { get; }
+        public abstract MyTask MyTask { get; }
         protected abstract BaseResultAnalyzerTaskParameters Parameters { get; }
 
         protected BaseResultAnalyzerTask() { }
@@ -32,7 +25,7 @@ namespace CMD.Tasks
         protected void Log(string message, int nestLayer = 1)
         {
             string added = string.Join("", Enumerable.Repeat("\t", nestLayer));
-            LogHandler?.Invoke(this, new StringEventArgs(added+message));
+            LogHandler?.Invoke(this, new StringEventArgs(added + message));
         }
 
         protected static void Warn(string v, int nestLayer = 1)

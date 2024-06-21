@@ -1,17 +1,12 @@
-﻿using CMD.Util;
-using CommandLine;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using CommandLine;
+using TaskLayer;
 
 namespace CMD
 {
     internal class CommandLineArguments
     {
 
-        public List<CommandLineTasks> Tasks { get; set; }
+        public List<MyTask> Tasks { get; set; }
 
         [Option('t', HelpText = "The task to run; comma-delimited", Required = true)]
         public IEnumerable<int> _taskIntegers { get; set; }
@@ -30,7 +25,7 @@ namespace CMD
                 throw new Exception("No tasks specified");
             }
 
-            Tasks = _taskIntegers.Select(p => (CommandLineTasks)p).ToList();
+            Tasks = _taskIntegers.Select(p => (MyTask)p).ToList();
 
             if (string.IsNullOrWhiteSpace(InputDirectory))
             {

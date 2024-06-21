@@ -1,4 +1,4 @@
-﻿namespace CMD.TaskParameters;
+﻿namespace TaskLayer.JenkinsLikePEPTesting;
 
 public class JenkinsLikeRunParserTaskParameters : BaseResultAnalyzerTaskParameters
 {
