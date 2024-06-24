@@ -19,19 +19,19 @@ namespace CMD
 
         // Chimera analysis specific
 
-        [Option("rc", HelpText = "The output Directory", Required = false, Default = false)]
+        [Option('b', HelpText = "The output Directory", Required = false, Default = false)]
         public bool RunChimeraBreakdown { get; set; }
 
-        [Option("ra", HelpText = "Run on all", Required = false, Default = false)]
+        [Option('a', HelpText = "Run on all", Required = false, Default = false)]
         public bool RunOnAll { get; set; }
 
-        [Option("rfdr", HelpText = "Run FDR analysis", Required = false, Default = false)]
+        [Option('f', HelpText = "Run FDR analysis", Required = false, Default = false)]
         public bool RunFdrAnalysis { get; set; }
 
-        [Option("rrc", HelpText = "Run result counting", Required = false, Default = false)]
+        [Option('r', HelpText = "Run result counting", Required = false, Default = false)]
         public bool RunResultCounting { get; set; }
 
-        [Option("rcc", HelpText = "Count chimeric results", Required = false, Default = false)]
+        [Option('c', HelpText = "Count chimeric results", Required = false, Default = false)]
         public bool RunChimericCounting { get; set; }
 
 

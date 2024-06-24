@@ -2,7 +2,7 @@
   "profiles": {
     "CMD": {
       "commandName": "Project",
-      "commandLineArgs": "-i B:\\Users\\Nic\\PEPTesting -t 1 -c true"
+      "commandLineArgs": "-i B:\\Users\\Nic\\PEPTesting -t 1 -b true"
     }
   }
 }
