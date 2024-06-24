@@ -87,11 +87,23 @@ namespace MyApp
                                 CommandLineArguments.OverrideFiles, CommandLineArguments.RunChimeraBreakdown);
                             task = new JenkinsLikeRunParserTask(parameters);
                             break;
+
                         case MyTask.ChimeraPaperTopDown:
                             var parameters2 = new ChimeraPaperAnalysisParameters(CommandLineArguments.InputDirectory,
-                                CommandLineArguments.OverrideFiles, CommandLineArguments.RunChimeraBreakdown, CommandLineArguments.RunOnAll,
-                                CommandLineArguments.RunFdrAnalysis, CommandLineArguments.RunResultCounting, CommandLineArguments.RunChimericCounting);
+                                CommandLineArguments.OverrideFiles, CommandLineArguments.RunChimeraBreakdown, 
+                                CommandLineArguments.RunOnAll, CommandLineArguments.RunFdrAnalysis, 
+                                CommandLineArguments.RunResultCounting, CommandLineArguments.RunChimericCounting,
+                                CommandLineArguments.RunModificationAnalysis);
                             task = new ChimeraPaperTopDownTask(parameters2);
+                            break;
+
+                        case MyTask.ChimeraPaperBottomUp:
+                            var parameters3 = new ChimeraPaperAnalysisParameters(CommandLineArguments.InputDirectory,
+                                CommandLineArguments.OverrideFiles, CommandLineArguments.RunChimeraBreakdown,
+                                CommandLineArguments.RunOnAll, CommandLineArguments.RunFdrAnalysis, 
+                                CommandLineArguments.RunResultCounting, CommandLineArguments.RunChimericCounting, 
+                                CommandLineArguments.RunModificationAnalysis);
+                            task = new ChimeraPaperBottomUpTask(parameters3);
                             break;
                     
                         default:

@@ -34,27 +34,27 @@ namespace TaskLayer.ChimeraAnalysis
                 {
                     Log($"Processing {singleRunResult.Condition}", 2);
 
-                    singleRunResult.Override = Parameters.Override;
-                    Log("Counting Chimeric Identifications", 3);
                     if (Parameters.CountChimericResults)
                     {
+                        singleRunResult.Override = Parameters.Override;
+                        Log("Counting Chimeric Identifications", 3);
                         singleRunResult.CountChimericPsms();
                         if (singleRunResult is IChimeraPeptideCounter pc)
                             pc.CountChimericPeptides();
                     }
 
-                    singleRunResult.Override = Parameters.Override;
-                    Log("Counting All Search Results", 3);
                     if (Parameters.RunResultCounting)
                     {
+                        singleRunResult.Override = Parameters.Override;
+                        Log("Counting All Search Results", 3);
                         singleRunResult.GetIndividualFileComparison();
                         singleRunResult.GetBulkResultCountComparisonFile();
                     }
 
-                    singleRunResult.Override = Parameters.Override;
-                    Log("Running FDR Analysis", 3);
                     if (Parameters.RunFdrAnalysis)
                     {
+                        singleRunResult.Override = Parameters.Override;
+                        Log("Running FDR Analysis", 3);
                         if (singleRunResult is MetaMorpheusResult mm)
                         {
                             mm.Override = false;
@@ -67,10 +67,10 @@ namespace TaskLayer.ChimeraAnalysis
                         }
                     }
 
-                    singleRunResult.Override = Parameters.Override;
-                    Log("Running Chimera Breakdown", 3);
                     if (Parameters.RunChimeraBreakdown)
                     {
+                        singleRunResult.Override = Parameters.Override;
+                        Log("Running Chimera Breakdown", 3);
                         if (singleRunResult is IChimeraBreakdownCompatible cb)
                             cb.GetChimeraBreakdownFile();
                     }
@@ -78,37 +78,39 @@ namespace TaskLayer.ChimeraAnalysis
                     singleRunResult.Override = false;
                 }
 
-                cellLine.Override = Parameters.Override;
-                Log("Counting Cell Line Chimeric Identifications", 2);
                 if (Parameters.CountChimericResults)
                 {
+                    cellLine.Override = Parameters.Override;
+                    Log("Counting Cell Line Chimeric Identifications", 2);
                     cellLine.CountChimericPsms();
                     cellLine.CountChimericPeptides();
                 }
 
-                cellLine.Override = Parameters.Override;
-                Log("Counting All Cell Line Search Results", 2);
                 if (Parameters.RunResultCounting)
                 {
+                    cellLine.Override = Parameters.Override;
+                    Log("Counting All Cell Line Search Results", 2);
                     cellLine.GetBulkResultCountComparisonFile();
                     cellLine.GetIndividualFileComparison();
 
                     cellLine.Override = false;
-                    cellLine.PlotIndividualFileResults();
+                    cellLine.PlotIndividualFileResults(ResultType.Psm);
+                    cellLine.PlotIndividualFileResults(ResultType.Peptide);
+                    cellLine.PlotIndividualFileResults(ResultType.Protein);
                 }
 
-                cellLine.Override = Parameters.Override;
-                Log("Running Cell Line FDR Analysis", 2);
                 if (Parameters.RunFdrAnalysis)
                 {
+                    cellLine.Override = Parameters.Override;
+                    Log("Running Cell Line FDR Analysis", 2);
                     cellLine.Override = false;
                     cellLine.PlotCellLineSpectralSimilarity();
                 }
 
-                cellLine.Override = Parameters.Override;
-                Log("Running Cell Line Chimera Breakdown", 2);
                 if (Parameters.RunChimeraBreakdown)
                 {
+                    cellLine.Override = Parameters.Override;
+                    Log("Running Cell Line Chimera Breakdown", 2);
                     cellLine.GetChimeraBreakdownFile();
 
                     cellLine.Override = false;
@@ -116,22 +118,31 @@ namespace TaskLayer.ChimeraAnalysis
                     cellLine.PlotCellLineChimeraBreakdown_TargetDecoy();
                     cellLine.PlotChimeraBreakdownByMassAndCharge();
                 }
+
+                if (Parameters.RunModificationAnalysis)
+                {
+                    cellLine.Override = Parameters.Override;
+                    Log("Running Modification Analysis", 2);
+
+                    cellLine.PlotModificationDistribution();
+                }
             }
 
 
             Log("Running Bulk Result Analysis");
-            allResults.Override = Parameters.Override;
-            Log("Counting Cell Line Chimeric Identifications");
             if (Parameters.CountChimericResults)
             {
+                allResults.Override = Parameters.Override;
+                Log("Counting Bulk Results Chimeric Identifications");
                 allResults.CountChimericPsms();
                 allResults.CountChimericPeptides();
             }
 
-            allResults.Override = Parameters.Override;
-            Log("Counting All Cell Line Search Results");
             if (Parameters.RunResultCounting)
             {
+                allResults.Override = Parameters.Override;
+                Log("Counting All Bulk Results Search Results");
+                allResults.PlotInternalMMComparison();
                 allResults.IndividualFileComparison();
                 allResults.GetBulkResultCountComparisonFile();
 
@@ -140,17 +151,16 @@ namespace TaskLayer.ChimeraAnalysis
                 allResults.PlotStackedIndividualFileComparison();
             }
 
-            allResults.Override = Parameters.Override;
-            Log("Running Cell Line FDR Analysis");
             if (Parameters.RunFdrAnalysis)
             {
-                
+                allResults.Override = Parameters.Override;
+                Log("Running Bulk Results FDR Analysis");
             }
 
-            allResults.Override = Parameters.Override;
-            Log("Running Cell Line Chimera Breakdown");
             if (Parameters.RunChimeraBreakdown)
             {
+                allResults.Override = Parameters.Override;
+                Log("Running Bulk Results Chimera Breakdown");
                 allResults.GetChimeraBreakdownFile();
 
                 allResults.Override = false;

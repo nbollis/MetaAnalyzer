@@ -34,6 +34,9 @@ namespace CMD
         [Option('c', HelpText = "Count chimeric results", Required = false, Default = false)]
         public bool RunChimericCounting { get; set; }
 
+        [Option('m', HelpText = "Run modification analysis", Required = false, Default = false)]
+        public bool RunModificationAnalysis { get; set; }
+
 
         public void ValidateCommandLineSettings()
         {

@@ -13,15 +13,17 @@ namespace TaskLayer.ChimeraAnalysis
         public bool RunFdrAnalysis { get; set; }
         public bool RunResultCounting { get; set; }
         public bool CountChimericResults { get; set; }
+        public bool RunModificationAnalysis { get; set; }
 
         public ChimeraPaperAnalysisParameters(string inputDirectoryPath, bool overrideFiles, bool runChimeraBreakdown, bool runOnAll,
-            bool runFdrAnalysis, bool runResultCounting, bool countChimericResults) : base(inputDirectoryPath, overrideFiles)
+            bool runFdrAnalysis, bool runResultCounting, bool countChimericResults, bool runModificationAnalysis) : base(inputDirectoryPath, overrideFiles)
         {
             RunChimeraBreakdown = runChimeraBreakdown;
             RunOnAll = runOnAll;
             RunFdrAnalysis = runFdrAnalysis;
             RunResultCounting = runResultCounting;
             CountChimericResults = countChimericResults;
+            RunModificationAnalysis = runModificationAnalysis;
         }
     }
 }
