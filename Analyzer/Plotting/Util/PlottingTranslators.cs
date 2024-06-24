@@ -451,6 +451,7 @@ public static class PlottingTranslators
         {"ProsightPDNoChimeras_Rep2", "ProsightPD  No Chimeras"},
         {"ProsightPDChimeras", "ProsightPD \u28007 Chimeras"},
         {"ProsightPDChimeras_Rep2_7_10ppm", "ProsightPD \u28007 Chimeras"},
+        {"ProsightPDChimeras_7", "ProsightPD \u28007 Chimeras"},
         {"ProsightPDChimeras_15", "ProsightPD\u280015 Chimeras"},
         {"ProsightPdChimeras_Rep2_15_10ppm", "ProsightPD\u280015 Chimeras"},
     };

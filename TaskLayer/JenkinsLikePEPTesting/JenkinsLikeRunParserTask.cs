@@ -59,7 +59,10 @@ public class JenkinsLikeRunParserTask : BaseResultAnalyzerTask
             groupRun.GetBulkResultCountComparisonMultipleFilteringTypesFile();
             groupRun.GetIndividualFileResultCountingMultipleFilteringTypesFile();
             if (Parameters.RunChimeraBreakdown)
+            {
+                groupRun.Override = true;
                 groupRun.GetChimeraBreakdownFile();
+            }
             groupRun.Override = false;
 
             Log($"Plotting {groupRun.CellLine}");
@@ -79,7 +82,10 @@ public class JenkinsLikeRunParserTask : BaseResultAnalyzerTask
         allResults.GetBulkResultCountComparisonMultipleFilteringTypesFile();
         allResults.GetIndividualFileResultCountingMultipleFilteringTypesFile();
         if (Parameters.RunChimeraBreakdown)
+        {
+            allResults.Override = true;
             allResults.GetChimeraBreakdownFile();
+        }
         allResults.Override = false;
 
         Log("Plotting All Aggregated Data");

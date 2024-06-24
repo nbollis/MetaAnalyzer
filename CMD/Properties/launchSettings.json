@@ -2,7 +2,7 @@
   "profiles": {
     "CMD": {
       "commandName": "Project",
-      "commandLineArgs": "-i B:\\Users\\Nic\\Chimeras\\TopDown_Analysis -t 4 -o true"
+      "commandLineArgs": "-i B:\\Users\\Nic\\PEPTesting -t 1 -b true"
     }
   }
 }
