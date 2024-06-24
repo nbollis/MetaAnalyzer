@@ -30,6 +30,7 @@ public class CellLineResults : IEnumerable<SingleRunResults>, IDisposable
 
     public string FigureDirectory { get; }
 
+
     public CellLineResults(string directoryPath)
     {
         DirectoryPath = directoryPath;

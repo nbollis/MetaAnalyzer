@@ -29,7 +29,7 @@ namespace Analyzer.SearchType
 
 
         private string _searchResultsTextPath;
-
+        public MetaMorpheusProseFile ProseFile { get; init; }
 
         #endregion
 
@@ -53,7 +53,8 @@ namespace Analyzer.SearchType
             _searchResultsTextPath = Directory.GetFiles(searchDir, "results.txt", SearchOption.AllDirectories).FirstOrDefault();
             _individualFileComparison = null;
             _chimeraPsmFile = null;
-
+            var prosePath = Directory.GetFiles(searchDir, "*Prose.txt", SearchOption.AllDirectories).FirstOrDefault();
+            ProseFile = new MetaMorpheusProseFile(prosePath);
 
             IndividualFileResults = new();
             var indFileDir = Directory.GetDirectories(DirectoryPath, "Individual File Results", SearchOption.AllDirectories);
