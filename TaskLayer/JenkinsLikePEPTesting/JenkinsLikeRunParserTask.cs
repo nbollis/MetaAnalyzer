@@ -1,4 +1,5 @@
-﻿using Analyzer.Plotting.ComparativePlots;
+﻿using Analyzer.Plotting.AggregatePlots;
+using Analyzer.Plotting.ComparativePlots;
 using Analyzer.Plotting.IndividualRunPlots;
 using Analyzer.Plotting.Util;
 using Analyzer.SearchType;
@@ -20,56 +21,65 @@ public class JenkinsLikeRunParserTask : BaseResultAnalyzerTask
     {
         var allResults = BuildResultsObjects();
 
-
-        Log("Parsing All Single Search Data");
-        foreach (var singleRunResults in allResults.SelectMany(p => p.Select(m => m)))
-        {
-            singleRunResults.Override = Parameters.Override;
-            var mm = (MetaMorpheusResult)singleRunResults;
-
-            mm.GetBulkResultCountComparisonMultipleFilteringTypesFile();
-            mm.GetIndividualFileResultCountingMultipleFilteringTypesFile();
-
-            mm.Override = false;
-        }
-
-        Log("Plotting All Single Search Data");
-        foreach (var singleRunResults in allResults.SelectMany(p => p.Select(m => m)))
-        {
-            var mm = (MetaMorpheusResult)singleRunResults;
-            mm.PlotTargetDecoyCurves(ResultType.Psm, TargetDecoyCurveMode.Score);
-            mm.PlotTargetDecoyCurves(ResultType.Peptide, TargetDecoyCurveMode.Score);
-            try
-            {
-                // mm.PlotPepFeaturesScatterGrid();
-            }
-            catch (Exception e)
-            {
-                Warn($"Could not plot PEP features scatter grid {e.Message}");
-            }
-        }
-
-        Log("Parsing All Whole Run Data");
         foreach (var groupRun in allResults)
         {
+            Log($"Starting Processing of {groupRun.CellLine}");
+            foreach (var singleRunResults in groupRun)
+            {
+                Log($"Processing {singleRunResults.Condition}", 2);
+
+                singleRunResults.Override = Parameters.Override;
+                var mm = (MetaMorpheusResult)singleRunResults;
+
+                mm.GetBulkResultCountComparisonMultipleFilteringTypesFile();
+                mm.GetIndividualFileResultCountingMultipleFilteringTypesFile();
+                if (Parameters.RunChimeraBreakdown)
+                    mm.GetChimeraBreakdownFile();
+                
+                singleRunResults.Override = false;
+
+
+                Log($"Plotting {singleRunResults.Condition}", 2);
+                mm.PlotTargetDecoyCurves(ResultType.Psm, TargetDecoyCurveMode.Score);
+                mm.PlotTargetDecoyCurves(ResultType.Peptide, TargetDecoyCurveMode.Score);
+                try
+                {
+                    mm.PlotPepFeaturesScatterGrid();
+                }
+                catch (Exception e)
+                {
+                    Warn($"Could not plot PEP features scatter grid {e.Message}");
+                }
+
+                if (Parameters.RunChimeraBreakdown)
+                    mm.ExportCombinedChimeraTargetDecoyExploration();
+            }
+
             groupRun.Override = Parameters.Override;
             groupRun.GetBulkResultCountComparisonMultipleFilteringTypesFile();
             groupRun.GetIndividualFileResultCountingMultipleFilteringTypesFile();
+            if (Parameters.RunChimeraBreakdown)
+                groupRun.GetChimeraBreakdownFile();
             groupRun.Override = false;
-        }
 
-        Log("Plotting All Whole Run Data");
-        foreach (var groupRun in allResults)
-        {
+            Log($"Plotting {groupRun.CellLine}");
             groupRun.PlotIndividualFileResults(ResultType.Psm, null, false);
             groupRun.PlotIndividualFileResults(ResultType.Peptide, null, false);
             groupRun.PlotIndividualFileResults(ResultType.Protein, null, false);
+            if (Parameters.RunChimeraBreakdown)
+            {
+                groupRun.PlotCellLineChimeraBreakdown();
+                groupRun.PlotCellLineChimeraBreakdown_TargetDecoy();
+            }
         }
+
 
         Log("Parsing All Aggregated Data");
         allResults.Override = Parameters.Override;
         allResults.GetBulkResultCountComparisonMultipleFilteringTypesFile();
         allResults.GetIndividualFileResultCountingMultipleFilteringTypesFile();
+        if (Parameters.RunChimeraBreakdown)
+            allResults.GetChimeraBreakdownFile();
         allResults.Override = false;
 
         Log("Plotting All Aggregated Data");

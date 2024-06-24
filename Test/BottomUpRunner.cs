@@ -29,7 +29,7 @@ namespace Test
         public static void RunAllParsing()
         {
             // Got to K562
-            foreach (CellLineResults cellLine in AllResults.Skip(4))
+            foreach (CellLineResults cellLine in AllResults.Skip(9))
             {
                 foreach (var result in cellLine)
                 {

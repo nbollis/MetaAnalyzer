@@ -144,6 +144,9 @@ namespace Analyzer.FileTypes.Internal
         [Optional]
         public string Proteins { get; set; }
 
+        [Optional]
+        public double MostAbundantPrecursorPeakIntensity { get; set; }
+
         [Ignore] public bool IsDecoy => Label == -1;
     }
 }

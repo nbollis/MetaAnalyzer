@@ -2,8 +2,9 @@
 
 public class JenkinsLikeRunParserTaskParameters : BaseResultAnalyzerTaskParameters
 {
-    public JenkinsLikeRunParserTaskParameters(string inputDirectoryPath, bool overrideFiles) : base(inputDirectoryPath, overrideFiles)
+    public bool RunChimeraBreakdown { get; set; }
+    public JenkinsLikeRunParserTaskParameters(string inputDirectoryPath, bool overrideFiles, bool runChimeraBreakdown = false) : base(inputDirectoryPath, overrideFiles)
     {
-
+        RunChimeraBreakdown = runChimeraBreakdown;
     }
 }

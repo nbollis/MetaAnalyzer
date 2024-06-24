@@ -370,6 +370,8 @@ public class CellLineResults : IEnumerable<SingleRunResults>, IDisposable
                 throw new Exception("Not all raw files found");
 
             string deconDir = useRawFiles ? "FlashDeconv" : "CalibAveragedFlashDeconv";
+            if (!Directory.Exists(deconDir))
+                return null;
             var deconFiles = Directory.GetFiles(Path.Combine(deconDirectory, deconDir), "*ms1.feature", SearchOption.AllDirectories);
             if (deconFiles.Length != 18)
                 return null;

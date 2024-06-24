@@ -82,7 +82,7 @@ namespace MyApp
                     {
                         case MyTask.JenkinsLikeRunParser:
                             var parameters = new JenkinsLikeRunParserTaskParameters(CommandLineArguments.InputDirectory,
-                                CommandLineArguments.OverrideFiles);
+                                CommandLineArguments.OverrideFiles, CommandLineArguments.RunChimeraBreakdown);
                             task = new JenkinsLikeRunParserTask(parameters);
                             break;
                     

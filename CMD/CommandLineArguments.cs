@@ -17,6 +17,9 @@ namespace CMD
         [Option('o', HelpText = "The output Directory", Required = false, Default = false)]
         public bool OverrideFiles { get; set; }
 
+        [Option('c', HelpText = "The output Directory", Required = false, Default = false)]
+        public bool RunChimeraBreakdown { get; set; }
+
 
         public void ValidateCommandLineSettings()
         {
