@@ -42,24 +42,6 @@ public static class PlottingTranslators
             Color.fromKeyword(ColorKeyword.DarkGrey),
         });
 
-        InvisibleCharacterQueue = new Queue<char>(new[]
-        {
-            '\u0009',
-            '\u0020',
-            '\u00A0',
-            '\u00AD',
-            '\u034F',
-            '\u061C',
-            '\u115F',
-            '\u1160',
-            '\u17B4',
-            '\u17B5',
-            '\u180B',
-            '\u180C',
-            '\u180D',
-            '\u180E',
-        });
-
     }
 
 
@@ -468,26 +450,18 @@ public static class PlottingTranslators
         {"ProsightPDNoChimeras", "ProsightPD  No Chimeras"},
         {"ProsightPDNoChimeras_Rep2", "ProsightPD  No Chimeras"},
         {"ProsightPDChimeras", "ProsightPD \u28007 Chimeras"},
-        {"ProsightPDChimeras_Rep2", "ProsightPD \u28007 Chimeras"},
+        {"ProsightPDChimeras_Rep2_7_10ppm", "ProsightPD \u28007 Chimeras"},
         {"ProsightPDChimeras_15", "ProsightPD\u280015 Chimeras"},
-        {"ProsightPDChimeras_Rep2_15", "ProsightPD\u280015 Chimeras"},
+        {"ProsightPdChimeras_Rep2_15_10ppm", "ProsightPD\u280015 Chimeras"},
     };
 
     private static Dictionary<string, char> ConditionToInvidisbleCharacterDictionary = new();
 
     public static Queue<Color> ColorQueue { get; }
-    public static Queue<char> InvisibleCharacterQueue { get; }
 
     #endregion
 
     #region Conversion Methods
-
-    public static char ConvertCondtionToInvisibleCharacterAddition(this string condition)
-    {
-        if (ConditionToInvidisbleCharacterDictionary.TryGetValue(condition, out char val)) return val;
-        ConditionToInvidisbleCharacterDictionary.Add(condition, InvisibleCharacterQueue.Dequeue());
-        return ConditionToInvidisbleCharacterDictionary[condition];
-    }
 
     public static IEnumerable<string> ConvertFileNames(this IEnumerable<string> fileNames)
     {

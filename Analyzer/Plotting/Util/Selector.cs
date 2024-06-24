@@ -18,12 +18,12 @@ namespace Analyzer.Plotting.Util
                 IndividualFileComparisonSelector = new[]
                 {
                     "MetaMorpheusNoChimeras",
-                    "MetaMorpheus_Rep2_WithLibrary", // metamorpheus rep2 with library and old pep
+                    //"MetaMorpheus_Rep2_WithLibrary", // metamorpheus rep2 with library and old pep
                     "MetaMorpheus_Rep2_WithLibrary_NewPEP_NoNorm",
 
                     "MsPathFinderTWithModsNoChimerasRep2", "MsPathFinderTWithMods_7Rep2", "MsPathFinderTWithMods_15Rep2",
 
-                    "ProsightPDChimeras_Rep2", "ProsightPDNoChimeras_Rep2",
+                    /*"ProsightPDChimeras_Rep2",*/ "ProsightPDNoChimeras_Rep2",
                     "ProsightPdChimeras_Rep2_15_10ppm", "ProsightPDChimeras_Rep2_7_10ppm",
                 },
                 InternalMetaMorpheusFileComparisonSelector = new[]
@@ -33,13 +33,13 @@ namespace Analyzer.Plotting.Util
                 BulkResultComparisonSelector = new[]
                 {
                     /*"MetaMorpheus",*/ "MetaMorpheusNoChimeras",/* "MetaMorpheus_FullPEPChimeraIncorporation",*/
-                    "MetaMorpheus_Rep2_WithLibrary", // metamorpheus rep2 with library and old pep
+                    //"MetaMorpheus_Rep2_WithLibrary", // metamorpheus rep2 with library and old pep
                     //"MetaMorpheus_NewPEP_NoNormNoMult",
                     "MetaMorpheus_Rep2_WithLibrary_NewPEP_NoNorm",
 
                     "MsPathFinderTWithModsNoChimerasRep2", "MsPathFinderTWithMods_7Rep2", "MsPathFinderTWithMods_15Rep2",
 
-                    "ProsightPDChimeras_Rep2", "ProsightPDNoChimeras_Rep2","ProsightPDChimeras_Rep2_15",
+                    /*"ProsightPDChimeras_Rep2",*/ "ProsightPDNoChimeras_Rep2", /*"ProsightPDChimeras_Rep2_15",*/
                     "ProsightPdChimeras_Rep2_15_10ppm", "ProsightPDChimeras_Rep2_7_10ppm",
                 },
                 SingleResultSelector = new[] { "MetaMorpheus_Rep2_WithLibrary_NewPEP_NoNorm" }

@@ -92,11 +92,11 @@ namespace Test
             //    cellLine.PlotCellLineChimeraBreakdown_TargetDecoy();
             //}
 
-            AllResults.PlotInternalMMComparison();
+            //AllResults.PlotInternalMMComparison();
             AllResults.PlotBulkResultComparisons();
-            AllResults.PlotStackedIndividualFileComparison();
-            AllResults.PlotBulkResultChimeraBreakDown();
-            AllResults.PlotBulkResultChimeraBreakDown_TargetDecoy();
+            //AllResults.PlotStackedIndividualFileComparison();
+            //AllResults.PlotBulkResultChimeraBreakDown();
+            //AllResults.PlotBulkResultChimeraBreakDown_TargetDecoy();
         }
 
         [Test]
