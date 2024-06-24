@@ -1,4 +1,5 @@
-﻿using Analyzer.Interfaces;
+﻿using Analyzer.FileTypes.Internal;
+using Analyzer.Interfaces;
 using Analyzer.Plotting.Util;
 using Analyzer.SearchType;
 using Analyzer.Util;
@@ -65,17 +66,25 @@ namespace Analyzer.Plotting.AggregatePlots
         public static void PlotCellLineChimeraBreakdown_TargetDecoy(this CellLineResults cellLine, bool absolute = false)
         {
             bool isTopDown = cellLine.First().IsTopDown;
-            var selector = isTopDown.GetSingleResultSelector(cellLine.CellLine);
+            List<ChimeraBreakdownRecord> results;
+            try // plot aggregated cell line result for specific targeted file from the selector
+            {
+                var selector = isTopDown.GetSingleResultSelector(cellLine.CellLine);
+                results = cellLine.Where(p => p is IChimeraBreakdownCompatible && selector.Contains(p.Condition))
+                    .SelectMany(p => ((IChimeraBreakdownCompatible)p).ChimeraBreakdownFile.Results)
+                    .ToList();
+            }
+            catch
+            {
+                results = cellLine.Where(p => p is IChimeraBreakdownCompatible)
+                    .SelectMany(p => ((IChimeraBreakdownCompatible)p).ChimeraBreakdownFile.Results)
+                    .ToList();
+            }
             var smLabel = Labels.GetSpectrumMatchLabel(isTopDown);
             var pepLabel = Labels.GetPeptideLabel(isTopDown);
             string smOutName = $"{FileIdentifiers.ChimeraBreakdownTargetDecoy}_{smLabel}_{cellLine.CellLine}";
             string pepOutName = $"{FileIdentifiers.ChimeraBreakdownTargetDecoy}_{pepLabel}_{cellLine.CellLine}";
 
-
-            var results = cellLine.Results
-                .Where(p => p is MetaMorpheusResult && selector.Contains(p.Condition))
-                .SelectMany(p => ((MetaMorpheusResult)p).ChimeraBreakdownFile)
-                .ToList();
 
             var psmChart =
                 results.GetChimeraBreakDownStackedColumn_TargetDecoy(ResultType.Psm, cellLine.First().IsTopDown, absolute, out int width);
@@ -102,7 +111,19 @@ namespace Analyzer.Plotting.AggregatePlots
         public static void PlotCellLineChimeraBreakdown(this CellLineResults cellLine)
         {
             bool isTopDown = cellLine.First().IsTopDown;
-            var selector = isTopDown.GetSingleResultSelector(cellLine.CellLine);
+            List<ChimeraBreakdownRecord> results;
+            try // plot aggregated cell line result for specific targeted file from the selector
+            {
+                var selector = isTopDown.GetSingleResultSelector(cellLine.CellLine);
+                results = cellLine.Where(p => p is IChimeraBreakdownCompatible && selector.Contains(p.Condition))
+                    .SelectMany(p => ((IChimeraBreakdownCompatible)p).ChimeraBreakdownFile.Results).ToList();
+            }
+            catch
+            {
+                results = cellLine.Where(p => p is IChimeraBreakdownCompatible)
+                    .SelectMany(p => ((IChimeraBreakdownCompatible)p).ChimeraBreakdownFile.Results).ToList();
+            }
+
             var smLabel = Labels.GetSpectrumMatchLabel(isTopDown);
             var pepLabel = Labels.GetPeptideLabel(isTopDown);
             string smOutName = $"{FileIdentifiers.ChimeraBreakdownComparisonFigure}_{smLabel}_{cellLine.CellLine}";
@@ -111,10 +132,6 @@ namespace Analyzer.Plotting.AggregatePlots
             string pepOutName = $"{FileIdentifiers.ChimeraBreakdownComparisonFigure}_{pepLabel}_{cellLine.CellLine}";
             string pepAreaOutName = $"{FileIdentifiers.ChimeraBreakdownComparisonStackedAreaFigure}_{pepLabel}_{cellLine.CellLine}";
             string pepAreaRelativeName = $"{FileIdentifiers.ChimeraBreakdownComparisonStackedAreaPercentFigure}_{pepLabel}_{cellLine.CellLine}";
-
-            // plot aggregated cell line result for specific targeted file from the selector
-            var results = cellLine.Where(p => p is IChimeraBreakdownCompatible && selector.Contains(p.Condition))
-                .SelectMany(p => ((IChimeraBreakdownCompatible)p).ChimeraBreakdownFile.Results).ToList();
 
             var psmChart = results.GetChimeraBreakDownStackedColumn(ResultType.Psm, cellLine.First().IsTopDown, out int width);
             string psmOutPath = Path.Combine(cellLine.FigureDirectory, smOutName);
