@@ -11,5 +11,6 @@ namespace TaskLayer
         JenkinsLikeRunParser = 1,
         ChimeraPaperTopDown = 2,
         ChimeraPaperBottomUp = 3,
+        RunSpecificChimeraPaperProcess = 4,
     }
 }

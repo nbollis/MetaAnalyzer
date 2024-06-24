@@ -85,16 +85,21 @@ namespace Analyzer.Util
                 prsm => prsm.FileID,
                 prsm => prsm.Ms2ScanNumber);
 
-        public static CustomComparer<ProteomeDiscovererPsmRecord> PSPDPrSMDistinctProteoformComparer => 
+        public static CustomComparer<ProteomeDiscovererPsmRecord> PSPDPrSMDistinctPsmComparer => 
             new CustomComparer<ProteomeDiscovererPsmRecord>(
                 prsm => prsm.ProteinAccessions,
                            prsm => prsm.Ms2ScanNumber,
                            prsm => prsm.FileID,
                            prsm => prsm.AnnotatedSequence);
+        //public static CustomComparer<ProteomeDiscovererProteoformRecord> PSPDPrSMDistinctProteoformComparer =>
+        //    new CustomComparer<ProteomeDiscovererProteoformRecord>(
+        //        prsm => prsm.ProteinAccessions,
+        //        prsm => prsm.Sequence,
+        //        prsm => prsm.Modifications);
 
-        public static CustomComparer<ProteomeDiscovererPsmRecord> PSPDPrSMDistinctProteinComparer => 
-        new CustomComparer<ProteomeDiscovererPsmRecord>(
-                           prsm => prsm.ProteinAccessions);
+        //public static CustomComparer<ProteomeDiscovererPsmRecord> PSPDPrSMDistinctProteinComparer => 
+        //new CustomComparer<ProteomeDiscovererPsmRecord>(
+        //                   prsm => prsm.ProteinAccessions);
 
 
 

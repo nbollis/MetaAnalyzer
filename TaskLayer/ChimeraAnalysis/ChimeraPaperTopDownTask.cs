@@ -25,7 +25,7 @@ namespace TaskLayer.ChimeraAnalysis
 
         protected override void RunSpecific()
         {
-            var allResults = BuildResultsObjects();
+            var allResults = BuildChimeraPaperResultsObjects();
 
             foreach (var cellLine in allResults)
             {
@@ -170,28 +170,6 @@ namespace TaskLayer.ChimeraAnalysis
 
         }
 
-        private AllResults BuildResultsObjects()
-        {
-            var allResults = new AllResults(Parameters.InputDirectoryPath);
-            if (Parameters.RunOnAll)
-                return allResults;
-
-            var cellLines = new List<CellLineResults>();
-            foreach (var cellLine in allResults)
-            {
-                var selector = cellLine.GetAllSelectors();
-
-                var runResults = new List<SingleRunResults>();
-                foreach (var singleRunResult in cellLine)
-                {
-                    if (selector.Contains(singleRunResult.Condition))
-                        runResults.Add(singleRunResult);
-                }
-                cellLines.Add(new CellLineResults(cellLine.DirectoryPath, runResults));
-            }
-
-            allResults = new AllResults(Parameters.InputDirectoryPath, cellLines);
-            return allResults;
-        }
+        
     }
 }

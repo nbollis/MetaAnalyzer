@@ -16,7 +16,7 @@ namespace TaskLayer.ChimeraAnalysis
         public bool RunModificationAnalysis { get; set; }
 
         public ChimeraPaperAnalysisParameters(string inputDirectoryPath, bool overrideFiles, bool runChimeraBreakdown, bool runOnAll,
-            bool runFdrAnalysis, bool runResultCounting, bool countChimericResults, bool runModificationAnalysis) : base(inputDirectoryPath, overrideFiles)
+            bool runFdrAnalysis, bool runResultCounting, bool countChimericResults, bool runModificationAnalysis) : base(inputDirectoryPath, overrideFiles, runOnAll)
         {
             RunChimeraBreakdown = runChimeraBreakdown;
             RunOnAll = runOnAll;

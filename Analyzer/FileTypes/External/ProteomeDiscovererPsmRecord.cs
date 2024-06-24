@@ -9,7 +9,7 @@ using Readers;
 
 namespace Analyzer.FileTypes.External
 {
-    public class ProteomeDiscovererPsmRecord
+    public class ProteomeDiscovererPsmRecord : IEquatable<ProteomeDiscovererPsmRecord>
     {
         public static CsvConfiguration CsvConfiguration => new CsvConfiguration(System.Globalization.CultureInfo.InvariantCulture)
         {
@@ -201,6 +201,26 @@ namespace Analyzer.FileTypes.External
 
         [NotMapped] private double? _calculatedMz;
         [NotMapped] public double CalculatedMz => _calculatedMz ??= Mz.ToMz(Charge);
+
+        public bool Equals(ProteomeDiscovererPsmRecord? other)
+        {
+            if (ReferenceEquals(null, other)) return false;
+            if (ReferenceEquals(this, other)) return true;
+            return AnnotatedSequence == other.AnnotatedSequence && ProteinAccessions == other.ProteinAccessions && Ms2ScanNumber == other.Ms2ScanNumber && FileID == other.FileID;
+        }
+
+        public override bool Equals(object? obj)
+        {
+            if (ReferenceEquals(null, obj)) return false;
+            if (ReferenceEquals(this, obj)) return true;
+            if (obj.GetType() != this.GetType()) return false;
+            return Equals((ProteomeDiscovererPsmRecord)obj);
+        }
+
+        public override int GetHashCode()
+        {
+            return HashCode.Combine(AnnotatedSequence, ProteinAccessions, Ms2ScanNumber, FileID);
+        }
     }
 
     public class ProteomeDiscovererPsmFile : ResultFile<ProteomeDiscovererPsmRecord>, IResultFile

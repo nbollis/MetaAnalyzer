@@ -73,8 +73,10 @@ namespace Analyzer.FileTypes.Internal
 
         public override void LoadResults()
         {
-            using var csv = new CsvHelper.CsvReader(new System.IO.StreamReader(FilePath), MaximumChimeraEstimation.CsvConfiguration);
-            Results = csv.GetRecords<MaximumChimeraEstimation>().ToList();
+            using (var csv = new CsvReader(new StreamReader(FilePath), MaximumChimeraEstimation.CsvConfiguration))
+            {
+                Results = csv.GetRecords<MaximumChimeraEstimation>().ToList();
+            }
         }
 
         public override void WriteResults(string outputPath)

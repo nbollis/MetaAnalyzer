@@ -70,7 +70,7 @@ namespace Analyzer.Plotting.Util
 
                     "MsPathFinderTWithModsNoChimeras", "MsPathFinderTWithMods_7", "MsPathFinderTWithMods_15",
 
-                    "ProsightPDChimeras", "ProsightPDNoChimeras", "ProsightPDChimeras_15"
+                    "ProsightPDChimeras_7", "ProsightPDNoChimeras", "ProsightPDChimeras_15"
                 },
                 SingleResultSelector = new[] { "MetaMorpheus_NewPEP_NoNormNoMult" }
             };

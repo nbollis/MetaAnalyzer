@@ -105,7 +105,16 @@ namespace MyApp
                                 CommandLineArguments.RunModificationAnalysis);
                             task = new ChimeraPaperBottomUpTask(parameters3);
                             break;
-                    
+
+                        case MyTask.RunSpecificChimeraPaperProcess:
+                            var parameters4 = new ChimeraPaperAnalysisParameters(CommandLineArguments.InputDirectory,
+                                CommandLineArguments.OverrideFiles, CommandLineArguments.RunChimeraBreakdown,
+                                CommandLineArguments.RunOnAll, CommandLineArguments.RunFdrAnalysis,
+                                CommandLineArguments.RunResultCounting, CommandLineArguments.RunChimericCounting,
+                                CommandLineArguments.RunModificationAnalysis);
+                            task = new RunSpecificChimeraPaperProcess(parameters4);
+                            break;
+
                         default:
                             throw new ArgumentOutOfRangeException();
                     }

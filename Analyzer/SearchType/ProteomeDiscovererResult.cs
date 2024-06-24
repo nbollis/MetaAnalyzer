@@ -129,10 +129,19 @@ namespace Analyzer.SearchType
             var proteinCount = ProteinFile.Count();
 
             // TODO: Consider if this distinct comparer is necessary for the final results to be comparable
-            var onePercentPsmCount = PrsmFile.FilteredResults.DistinctBy(p => p, CustomComparer<ProteomeDiscovererPsmRecord>.PSPDPrSMDistinctProteoformComparer)
-                .Count(p => IsTopDown ? p.NegativeLogEValue >= 5 : p.QValue <= 0.01);
-            var onePercentProteoformCount = ProteoformFile.Count(p => p.QValue <= 0.01);
-            var onePercentProteinCount = ProteinFile.Count(p => p.QValue <= 0.01);
+            var onePercentPsmCount = PrsmFile.FilteredResults
+                .Where(p => IsTopDown ? p.NegativeLogEValue >= 5 : p.QValue <= 0.01)
+                .Distinct()
+                .Count();
+            var onePercentProteoformCount = ProteoformFile
+                .Where(p => p.QValue <= 0.01)
+                .Distinct()
+                .Count();
+
+            var onePercentProteinCount = ProteinFile
+                .Where(p => p.QValue <= 0.01)
+                .Distinct()
+                .Count();
 
             var bulkResultCountComparison = new BulkResultCountComparison()
             {
@@ -203,7 +212,7 @@ namespace Analyzer.SearchType
 
                 //TODO: Consider if this distinct comparer is necessary
                 foreach (var chimeraGroup in fileGroup
-                             .DistinctBy(p => p, CustomComparer<ProteomeDiscovererPsmRecord>.PSPDPrSMDistinctProteoformComparer)
+                             .DistinctBy(p => p, CustomComparer<ProteomeDiscovererPsmRecord>.PSPDPrSMDistinctPsmComparer)
                              .GroupBy(p => p, CustomComparer<ProteomeDiscovererPsmRecord>.PSPDPrSMChimeraComparer)
                              .Select(p => p.ToArray()))
                 {
