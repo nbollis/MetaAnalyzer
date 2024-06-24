@@ -17,8 +17,22 @@ namespace CMD
         [Option('o', HelpText = "The output Directory", Required = false, Default = false)]
         public bool OverrideFiles { get; set; }
 
-        [Option('c', HelpText = "The output Directory", Required = false, Default = false)]
+        // Chimera analysis specific
+
+        [Option("rc", HelpText = "The output Directory", Required = false, Default = false)]
         public bool RunChimeraBreakdown { get; set; }
+
+        [Option("ra", HelpText = "Run on all", Required = false, Default = false)]
+        public bool RunOnAll { get; set; }
+
+        [Option("rfdr", HelpText = "Run FDR analysis", Required = false, Default = false)]
+        public bool RunFdrAnalysis { get; set; }
+
+        [Option("rrc", HelpText = "Run result counting", Required = false, Default = false)]
+        public bool RunResultCounting { get; set; }
+
+        [Option("rcc", HelpText = "Count chimeric results", Required = false, Default = false)]
+        public bool RunChimericCounting { get; set; }
 
 
         public void ValidateCommandLineSettings()

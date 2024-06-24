@@ -144,6 +144,17 @@ namespace Analyzer.Plotting.Util
         public string DatasetName { get; private init; }
         public bool IsTopDown { get; private init; }
 
+        private string[]? _allSelectors;
+
+        public string[] AllSelectors =>
+            _allSelectors ??= IndividualFileComparisonSelector
+                .Concat(InternalMetaMorpheusFileComparisonSelector)
+                .Concat(BulkResultComparisonSelector)
+                .Concat(SingleResultSelector)
+                .Distinct()
+                .ToArray();
+        
+
         #region Chimera Paper
 
         public string[] IndividualFileComparisonSelector { get; private init; }
@@ -178,6 +189,11 @@ namespace Analyzer.Plotting.Util
             return Selector.GetSelector(datasetName, isTopDown).SingleResultSelector;
         }
 
+        public static string[] GetAllSelectors(this bool isTopDown, string datasetName)
+        {
+            return Selector.GetSelector(datasetName, isTopDown).AllSelectors;
+        }
+
         // From Cell Line
         public static string[] GetIndividualFileComparisonSelector(this CellLineResults results)
         {
@@ -199,6 +215,11 @@ namespace Analyzer.Plotting.Util
             return results.First().IsTopDown.GetSingleResultSelector(results.CellLine);
         }
 
+        public static string[] GetAllSelectors(this CellLineResults results)
+        {
+            return results.First().IsTopDown.GetAllSelectors(results.CellLine);
+        }
+
         // From All Results
         public static string[] GetIndividualFileComparisonSelector(this AllResults results)
         {
@@ -218,6 +239,11 @@ namespace Analyzer.Plotting.Util
         public static string[] GetSingleResultSelector(this AllResults results)
         {
             return results.SelectMany(p => p.GetSingleResultSelector()).ToArray();
+        }
+
+        public static string[] GetAllSelectors(this AllResults results)
+        {
+            return results.SelectMany(p => p.GetAllSelectors()).Distinct().ToArray();
         }
 
     }

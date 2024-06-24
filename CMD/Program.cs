@@ -3,6 +3,7 @@ using CMD;
 using CommandLine;
 using CommandLine.Text;
 using TaskLayer;
+using TaskLayer.ChimeraAnalysis;
 using TaskLayer.JenkinsLikePEPTesting;
 
 namespace MyApp
@@ -62,6 +63,7 @@ namespace MyApp
                 Console.WriteLine("Result Analyzer encountered the following error:" + Environment.NewLine + e.Message);
                 errorCode = 2;
 
+                CrashHandler(e, errorCode);
                 return errorCode;
             }
 
@@ -85,6 +87,12 @@ namespace MyApp
                                 CommandLineArguments.OverrideFiles, CommandLineArguments.RunChimeraBreakdown);
                             task = new JenkinsLikeRunParserTask(parameters);
                             break;
+                        case MyTask.ChimeraPaperTopDown:
+                            var parameters2 = new ChimeraPaperAnalysisParameters(CommandLineArguments.InputDirectory,
+                                CommandLineArguments.OverrideFiles, CommandLineArguments.RunChimeraBreakdown, CommandLineArguments.RunOnAll,
+                                CommandLineArguments.RunFdrAnalysis, CommandLineArguments.RunResultCounting, CommandLineArguments.RunChimericCounting);
+                            task = new ChimeraPaperTopDownTask(parameters2);
+                            break;
                     
                         default:
                             throw new ArgumentOutOfRangeException();
@@ -101,6 +109,7 @@ namespace MyApp
                 Console.WriteLine("Result Analyzer encountered the following error:" + Environment.NewLine + e.Message);
                 errorCode = 3;
 
+                CrashHandler(e, errorCode);
                 return errorCode;
             }
 
@@ -119,6 +128,7 @@ namespace MyApp
                 var message = "Run failed, Exception: " + e.Message;
                 Console.WriteLine("Result Analyzer encountered the following error:" + message);
                 errorCode = 4;
+                CrashHandler(e, errorCode);
                 return errorCode;
             }
 
@@ -133,6 +143,21 @@ namespace MyApp
         private static void WarnHandler(object? sender, StringEventArgs e)
         {
             Console.WriteLine($"{DateTime.Now:T}: {e.Message}");
+        }
+
+        private static void CrashHandler(Exception e, int errorCode)
+        {
+            string path = Path.Combine(CommandLineArguments.InputDirectory, "ErrorLog.txt");
+            using (var sw = new StreamWriter(File.Create(path)))
+            {
+                sw.WriteLine($"Exception was thrown with error code {errorCode}");
+                sw.WriteLine();
+                sw.WriteLine(e.Message);
+                sw.WriteLine();
+                sw.WriteLine("Stack Trace: ");
+                sw.WriteLine();
+                sw.WriteLine(e.StackTrace);
+            }
         }
     }
 }

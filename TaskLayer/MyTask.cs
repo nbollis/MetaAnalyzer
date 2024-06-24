@@ -9,5 +9,7 @@ namespace TaskLayer
     public enum MyTask
     {
         JenkinsLikeRunParser = 1,
+        ChimeraPaperTopDown = 2,
+        ChimeraPaperBottomUp = 3,
     }
 }
