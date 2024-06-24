@@ -167,7 +167,7 @@ namespace TaskLayer.ChimeraAnalysis
                 return allResults;
 
             var cellLines = new List<CellLineResults>();
-            foreach (var cellLine in cellLines)
+            foreach (var cellLine in allResults)
             {
                 var selector = cellLine.GetAllSelectors();
 
