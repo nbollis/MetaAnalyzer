@@ -1,4 +1,5 @@
-﻿using Analyzer.Plotting.Util;
+﻿using System.Diagnostics;
+using Analyzer.Plotting.Util;
 using CMD;
 using CommandLine;
 using CommandLine.Text;
@@ -145,6 +146,8 @@ namespace MyApp
                 {
                     e = e.InnerException;
                 }
+
+                Debugger.Break();
 
                 var message = "Run failed, Exception: " + e.Message;
                 Console.WriteLine("Result Analyzer encountered the following error:" + message);

@@ -168,18 +168,21 @@ public class CellLineResults : IEnumerable<SingleRunResults>, IDisposable
             return new ChimeraBreakdownFile(_chimeraBreakdownFilePath);
         
         List<ChimeraBreakdownRecord> results = new List<ChimeraBreakdownRecord>();
-        foreach (var bulkResult in Results.Where(p => p is MetaMorpheusResult))
+        string[]? selector;
+        try
         {
-            var result = (MetaMorpheusResult)bulkResult;
-            switch (result.IsTopDown)
-            {
-                case true when result.Condition != "MetaMorpheus":
-                case false when result.Condition != "MetaMorpheusWithLibrary":
-                    continue;
-                default:
-                    results.AddRange(result.ChimeraBreakdownFile.Results);
-                    break;
-            }
+            selector = this.GetSingleResultSelector();
+        }
+        catch
+        {
+            selector = null;
+        }
+        foreach (var singleRunResult in Results.Where(p => p is MetaMorpheusResult))
+        {
+            var result = (MetaMorpheusResult)singleRunResult;
+            if (selector is not null && !selector.Contains(result.Condition))
+                continue;
+            results.AddRange(result.ChimeraBreakdownFile.Results);
         }
 
         var chimeraBreakdownFile = new ChimeraBreakdownFile(_chimeraBreakdownFilePath) { Results = results };

@@ -2,7 +2,7 @@
   "profiles": {
     "CMD": {
       "commandName": "Project",
-      "commandLineArgs": "-i B:\\Users\\Nic\\PEPTesting -t 1 -b true"
+      "commandLineArgs": "-i B:\\Users\\Nic\\Chimeras\\Mann_11cell_analysis -t 3 -b true -f true -r true -c true -m true"
     }
   }
 }
