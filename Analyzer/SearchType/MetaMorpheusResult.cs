@@ -54,7 +54,11 @@ namespace Analyzer.SearchType
             _individualFileComparison = null;
             _chimeraPsmFile = null;
             var prosePath = Directory.GetFiles(searchDir, "*Prose.txt", SearchOption.AllDirectories).FirstOrDefault();
-            ProseFile = new MetaMorpheusProseFile(prosePath);
+            if (prosePath is not null)
+            {
+                ProseFile = new MetaMorpheusProseFile(prosePath);
+                DataFilePaths = ProseFile.SpectraFilePaths;
+            }
 
             IndividualFileResults = new();
             var indFileDir = Directory.GetDirectories(DirectoryPath, "Individual File Results", SearchOption.AllDirectories);
