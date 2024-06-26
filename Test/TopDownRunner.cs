@@ -5,6 +5,7 @@ using Analyzer.Plotting.IndividualRunPlots;
 using Analyzer.Plotting.Util;
 using Analyzer.SearchType;
 using Analyzer.Util;
+using Proteomics.PSM;
 using UsefulProteomicsDatabases;
 
 namespace Test
@@ -124,98 +125,34 @@ namespace Test
         }
 
 
-
-        /// <summary>
-        /// Overnight I will:
-        /// Rerun all individual file results for MM due to the unique by base sequence issue
-        /// Replot all individual file results
-        ///
-        /// Run get maximum chimera estimation file
-        /// rerun every plot with new selectors
-        /// </summary>
         [Test]
-        public static void OvernightRunner()
+        public static void DetermineChimericResultsScanPercentForPaper()
         {
-            //foreach (var cellLine in AllResults )
-            //{
-            //    foreach (var result in cellLine)
-            //    {
-            //        if (result is MetaMorpheusResult mm)
-            //        {
-            //            if (cellLine.GetSingleResultSelector().Contains(mm.Condition))
-            //            {
-            //                mm.PlotTargetDecoyCurves(ResultType.Psm, TargetDecoyCurveMode.Score, false);
-            //                mm.PlotTargetDecoyCurves(ResultType.Psm, TargetDecoyCurveMode.Score, true);
-            //                mm.PlotTargetDecoyCurves(ResultType.Peptide, TargetDecoyCurveMode.Score, false);
-            //                mm.PlotTargetDecoyCurves(ResultType.Peptide, TargetDecoyCurveMode.Score, true);
-            //            }
-            //        }
-            //    }
-            //    //cellLine.PlotModificationDistribution();
-            //    //cellLine.PlotModificationDistribution(ResultType.Peptide);
+            // get the single result selector result file from each cell line
+            var data =
+                AllResults.SelectMany(p => p.Where(m => p.GetSingleResultSelector().Contains(m.Condition))).ToList();
+            data.AddRange(BottomUpRunner.AllResults.SelectMany(p => p.Where(m => p.GetSingleResultSelector().Contains(m.Condition))).ToList());
 
-            //}
-           
-            foreach (var cellLine in BottomUpRunner.AllResults)
-            {
-                //cellLine.PlotModificationDistribution();
-                //cellLine.PlotModificationDistribution(ResultType.Peptide);
-                //cellLine.PlotCellLineRetentionTimeVsChronologerPredictionBubble();
-                //foreach (var result in cellLine)
-                //{
-                //    if (result is MetaMorpheusResult mm)
-                //    {
-                //        if (Selector.BottomUpMann11Selector.SingleResultSelector.Contains(mm.Condition))
-                //        {
-                //            mm.PlotTargetDecoyCurves(ResultType.Psm, TargetDecoyCurveMode.Score, false);
-                //            mm.PlotTargetDecoyCurves(ResultType.Psm, TargetDecoyCurveMode.Score, true);
-                //            mm.PlotTargetDecoyCurves(ResultType.Peptide, TargetDecoyCurveMode.Score, false);
-                //            mm.PlotTargetDecoyCurves(ResultType.Peptide, TargetDecoyCurveMode.Score, true);
-                //        }
-                //    }
-                //}
-            }
-
-            BottomUpRunner.RunAllParsing();
-            TopDownRunner.RunAllParsing();
-            //foreach (var cellLine in AllResults)
-            //{
-            //    foreach (var result in cellLine.Where(p => true.GetSingleResultSelector(cellLine.CellLine).Contains(p.Condition)))
-            //    {
-            //        (result as MetaMorpheusResult)?.GetChimeraBreakdownFile();
-            //    }
-            //    // These require the masses and charges
-            //    //cellLine.PlotChimeraBreakdownByMassAndCharge();
-            //    cellLine.Dispose();
-            //}
+            var results = data.ToDictionary(p => (p.Condition, p.DatasetName),
+                        p => ((MetaMorpheusResult)p).AllPsms
+                            .Where(p => p is { DecoyContamTarget: "T", PEP_QValue: <= 0.01 })
+                            .ToChimeraGroupedDictionary());
 
 
+            var percentResults = results.ToDictionary(p => p.Key,
+                p => p.Value
+                    .OrderBy(n => n.Key)
+                    .ToDictionary(
+                    m => m.Key, 
+                    m => m.Value.Count / (double)p.Value.Sum(p => p.Value.Count) * 100));
 
-            //foreach (var cellLine in BottomUpRunner.AllResults)
-            //{
-            //    //cellLine.PlotChronologerDeltaPlotBoxAndWhisker();
-            //    //cellLine.PlotChronologerDeltaRangePlot();
+            var singles = percentResults.Select(p => (p.Key.Item1, p.Key.Item2, p.Value[1])).ToList();
+            
+            var topDown = singles.Take(AllResults.Count());
+            var bottomUp = singles.Skip(AllResults.Count());
 
-            //    foreach (var result in cellLine.Where(p => false.GetSingleResultSelector(cellLine.CellLine).Contains(p.Condition)))
-            //    {
-            //        (result as MetaMorpheusResult)?.GetChimeraBreakdownFile();
-            //    }
-            //    // These require the masses and charges
-            //    cellLine.PlotChimeraBreakdownByMassAndCharge();
-
-
-            //    //cellLine.Override = true;
-            //    //cellLine.GetMaximumChimeraEstimationFile(false);
-            //    //cellLine.Override = false;
-            //    //cellLine.PlotAverageRetentionTimeShiftPlotKernelPdf(false);
-            //    //cellLine.PlotAverageRetentionTimeShiftPlotHistogram(false);
-            //    //cellLine.PlotAllRetentionTimeShiftPlots(false);
-            //    cellLine.Dispose();
-            //}
-            ////BottomUpRunner.AllResults.PlotBulkChronologerDeltaPlotKernalPDF();
-            ////BottomUpRunner.AllResults.PlotGridChronologerDeltaPlotKernalPDF();
-
-
+            var topDownAveragePercent = topDown.Average(p => p.Item3);
+            var bottomUpAveragePercent = bottomUp.Average(p => p.Item3);
         }
     
 
@@ -225,23 +162,8 @@ namespace Test
         [Test]
         public static void IsabellaData()
         {
-            string path = @"B:\Users\AlexanderS_Bison\240515_DataFromITW";
-            var results = (from dirpath in Directory.GetDirectories(path)
-                    where !dirpath.Contains("Fig")
-                    where dirpath.Contains("Ecoli")
-                    select new MetaMorpheusResult(dirpath))
-                .Cast<SingleRunResults>()
-                .ToList();
 
-
-            var cellLine = new CellLineResults(path, results);
-            cellLine.Override = true;
-            cellLine.GetBulkResultCountComparisonFile();
-            cellLine.GetIndividualFileComparison();
-            cellLine.GetBulkResultCountComparisonMultipleFilteringTypesFile();
-            cellLine.PlotIndividualFileResults(ResultType.Psm, null, false);
-            cellLine.PlotIndividualFileResults(ResultType.Peptide, null, false);
-            cellLine.PlotIndividualFileResults(ResultType.Protein, null, false);
+            AllResults.PlotInternalMMComparison();
         }
 
 

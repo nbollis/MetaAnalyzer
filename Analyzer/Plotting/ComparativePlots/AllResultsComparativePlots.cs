@@ -1,4 +1,5 @@
-﻿using System.Runtime.InteropServices.WindowsRuntime;
+﻿using System.Diagnostics;
+using System.Runtime.InteropServices.WindowsRuntime;
 using Analyzer.FileTypes.Internal;
 using Analyzer.Interfaces;
 using Analyzer.Plotting.AggregatePlots;
@@ -47,35 +48,57 @@ namespace Analyzer.Plotting.ComparativePlots
         public static void PlotInternalMMComparison(this AllResults allResults)
         {
             bool isTopDown = allResults.First().First().IsTopDown;
-            var results = allResults.SelectMany(p => p.BulkResultCountComparisonFile.Results)
-                .Where(p => allResults.GetInternalMetaMorpheusFileComparisonSelector().Contains(p.Condition))
-                .ToList();
-            var labels = results.Select(p => p.DatasetName).Distinct().ConvertConditionNames().ToList();
+            var noChimeras = new List<BulkResultCountComparison>();
+            var withChimeras = new List<BulkResultCountComparison>();
+            var labels = new List<string>();
 
-            var noChimeras = results.Where(p => p.Condition.Contains("NoChimeras")).ToList();
-            var withChimeras = results.Where(p => !p.Condition.Contains("NoChimeras")).ToList();
-
-            // Recalculate No Chimeras from the chimeric results accepting only one Psm per spectrum
-            if (isTopDown)
+            foreach (var cellLine in allResults)
             {
+                labels.Add(cellLine.CellLine);
+                var selector = cellLine.GetInternalMetaMorpheusFileComparisonSelector();
+                var results = cellLine.Where(p => selector.Contains(p.Condition)).ToArray();
 
-                noChimeras.Clear();
-                foreach (var singleRunResults in allResults.SelectMany(m =>
-                                 m.Where(p => allResults.GetInternalMetaMorpheusFileComparisonSelector().Contains(p.Condition)))
-                             .Where(p => !p.Condition.Contains("NoChimeras")))
+                var chimeric = results.First(p => !p.Condition.Contains("NoChimeras"));
+                withChimeras.Add(chimeric.BulkResultCountComparisonFile.First());
+
+
+                // Recalculate No Chimeras from the chimeric results accepting only one Psm per spectrum
+                if (isTopDown)
                 {
-                    var chimericResult = (MetaMorpheusResult)singleRunResults;
 
-                    var psmCount = chimericResult.AllPsms.Where(p => p is { DecoyContamTarget: "T", PEP_QValue: <= 0.01 })
+
+                    var psmCount = ((MetaMorpheusResult)chimeric).AllPsms.Where(p => p is { DecoyContamTarget: "T", PEP_QValue: <= 0.01 })
                         .GroupBy(p => p, CustomComparer<PsmFromTsv>.ChimeraComparer).Count();
-                    var peptides = chimericResult.AllPeptides.Where(p => p is { DecoyContamTarget: "T", PEP_QValue: <= 0.01 })
+                    var peptides = ((MetaMorpheusResult)chimeric).AllPeptides.Where(p => p is { DecoyContamTarget: "T", PEP_QValue: <= 0.01 })
                         .GroupBy(p => p, CustomComparer<PsmFromTsv>.ChimeraComparer).ToArray();
                     var peptideCount = peptides.Length;
-                    var proteinCount = peptides.SelectMany(p => p.MinBy(m => m.PEP_QValue)?.Accession).Distinct().Count();
+                    var accessions = peptides
+                        .Select(p => p.MinBy(m => m.PEP_QValue)?.Accession).ToArray();
+
+                    List<string> proteins = new();
+                    using (var sw = new StreamReader(File.OpenRead(((MetaMorpheusResult)chimeric).ProteinPath)))
+                    {
+                        var header = sw.ReadLine();
+                        var headerSplit = header.Split('\t');
+                        var qValueIndex = Array.IndexOf(headerSplit, "Protein QValue");
+                        var targdecoyIndex = Array.IndexOf(headerSplit, "Protein Decoy/Contaminant/Target");
+                        var accessionIndex = Array.IndexOf(headerSplit, "Protein Accession");
+
+
+                        while (!sw.EndOfStream)
+                        {
+                            var line = sw.ReadLine();
+                            var values = line.Split('\t');
+                            if (values[targdecoyIndex] == "T" && double.Parse(values[qValueIndex]) <= 0.01)
+                                proteins.Add(values[accessionIndex]);
+                        }
+                    }
+
+                    var proteinCount = proteins.Count(p => accessions.Contains(p));
 
                     var bulkResultCountComparison = new BulkResultCountComparison()
                     {
-                        DatasetName = chimericResult.DatasetName,
+                        DatasetName = chimeric.DatasetName,
                         Condition = "Non-Chimeric",
                         FileName = "Combined",
                         OnePercentPeptideCount = peptideCount,
@@ -85,15 +108,23 @@ namespace Analyzer.Plotting.ComparativePlots
 
                     noChimeras.Add(bulkResultCountComparison);
                 }
+                else
+                {
+                    var nonChimeric = results.First(p => p.Condition.Contains("NoChimeras"));
+                    noChimeras.Add(nonChimeric.BulkResultCountComparisonFile.First());
+                }
             }
+
 
 
             var psmChart = Chart.Combine(new[]
             {
                 Chart2D.Chart.Column<int, string, string, int, int>(noChimeras.Select(p => p.OnePercentPsmCount),
-                    labels, null, "No Chimeras", MarkerColor: noChimeras.First().Condition.ConvertConditionToColor()),
+                    labels, null, "No Chimeras", MarkerColor: noChimeras.First().Condition.ConvertConditionToColor(),
+                    MultiText: noChimeras.Select(p => p.OnePercentPsmCount.ToString()).ToArray()),
                 Chart2D.Chart.Column<int, string, string, int, int>(withChimeras.Select(p => p.OnePercentPsmCount),
-                    labels, null, "Chimeras", MarkerColor: withChimeras.First().Condition.ConvertConditionToColor()),
+                    labels, null, "Chimeras", MarkerColor: withChimeras.First().Condition.ConvertConditionToColor(),
+                    MultiText: withChimeras.Select(p => p.OnePercentPsmCount.ToString()).ToArray()),
                 //Chart2D.Chart.Column<int, string, string, int, int>(others.Select(chimeraGroup => chimeraGroup.OnePercentPsmCount),
                 //    labels, null, "Others", MarkerColor: ConditionToColorDictionary[others.First().Condition])
             });
@@ -109,9 +140,11 @@ namespace Analyzer.Plotting.ComparativePlots
             var peptideChart = Chart.Combine(new[]
             {
                 Chart2D.Chart.Column<int, string, string, int, int>(noChimeras.Select(p => p.OnePercentPeptideCount),
-                    labels, null, "No Chimeras", MarkerColor: noChimeras.First().Condition.ConvertConditionToColor()),
+                    labels, null, "No Chimeras", MarkerColor: noChimeras.First().Condition.ConvertConditionToColor(),
+                    MultiText: noChimeras.Select(p => p.OnePercentPeptideCount.ToString()).ToArray()),
                 Chart2D.Chart.Column<int, string, string, int, int>(withChimeras.Select(p => p.OnePercentPeptideCount),
-                    labels, null, "Chimeras", MarkerColor: withChimeras.First().Condition.ConvertConditionToColor()),
+                    labels, null, "Chimeras", MarkerColor: withChimeras.First().Condition.ConvertConditionToColor(),
+                    MultiText: withChimeras.Select(p => p.OnePercentPeptideCount.ToString()).ToArray()),
                 //Chart2D.Chart.Column<int, string, string, int, int>(others.Select(chimeraGroup => chimeraGroup.OnePercentPeptideCount),
                 //    labels, null, "Others", MarkerColor: ConditionToColorDictionary[others.First().Condition])
             });
@@ -127,10 +160,12 @@ namespace Analyzer.Plotting.ComparativePlots
             {
                 Chart2D.Chart.Column<int, string, string, int, int>(
                     noChimeras.Select(p => p.OnePercentProteinGroupCount),
-                    labels, null, "No Chimeras", MarkerColor: noChimeras.First().Condition.ConvertConditionToColor()),
+                    labels, null, "No Chimeras", MarkerColor: noChimeras.First().Condition.ConvertConditionToColor(),
+                    MultiText: noChimeras.Select(p => p.OnePercentProteinGroupCount.ToString()).ToArray()),
                 Chart2D.Chart.Column<int, string, string, int, int>(
                     withChimeras.Select(p => p.OnePercentProteinGroupCount),
-                    labels, null, "Chimeras", MarkerColor: withChimeras.First().Condition.ConvertConditionToColor()),
+                    labels, null, "Chimeras", MarkerColor: withChimeras.First().Condition.ConvertConditionToColor(),
+                    MultiText: withChimeras.Select(p => p.OnePercentProteinGroupCount.ToString()).ToArray()),
                 //Chart2D.Chart.Column<int, string, string, int, int>(others.Select(chimeraGroup => chimeraGroup.OnePercentProteinGroupCount),
                 //    labels, null, "Chimeras", MarkerColor: ConditionToColorDictionary[others.First().Condition]),
             });

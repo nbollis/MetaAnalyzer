@@ -62,7 +62,8 @@ namespace Analyzer.Plotting
             List<GenericChart.GenericChart> charts = results.Select(result =>
                 Chart2D.Chart.Column<int, string, string, int, int>(result.Select(ResultSelector(resultType)), labels, null,
                     result.Results.First().Condition.ConvertConditionName(),
-                    MarkerColor: result.First().Condition.ConvertConditionToColor())).ToList();
+                    MarkerColor: result.First().Condition.ConvertConditionToColor(), 
+                    MultiText: result.Select(ResultSelector(resultType)).Select(p => p.ToString()).ToArray())).ToList();
 
             width = Math.Max(50 * labels.Count + 10 * results.Count, 800);
             height = PlotlyBase.DefaultHeight;
@@ -131,7 +132,7 @@ namespace Analyzer.Plotting
                 var conditionToWrite = condition.ConvertConditionName();
                 charts.Add(Chart2D.Chart.Column<int, string, string, int, int>(
                     conditionSpecificResults.Select(ResultSelector(resultType)), labels, null, conditionToWrite,
-                    MarkerColor: condition.ConvertConditionToColor()));
+                    MarkerColor: condition.ConvertConditionToColor(), MultiText: conditionSpecificResults.Select(ResultSelector(resultType)).Select(p => p.ToString()).ToArray()));
             }
 
             return Chart.Combine(charts).WithTitle($"1% FDR {Labels.GetLabel(isTopDown, resultType)}")

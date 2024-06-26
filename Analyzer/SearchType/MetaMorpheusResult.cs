@@ -263,7 +263,7 @@ namespace Analyzer.SearchType
             return bulkComparisonFile;
         }
 
-        public override BulkResultCountComparisonFile GetBulkResultCountComparisonFile(string path = null)
+        public override BulkResultCountComparisonFile GetBulkResultCountComparisonFile(string? path = null)
         {
             path ??= _bulkResultCountComparisonPath;
             if (!Override && File.Exists(path))

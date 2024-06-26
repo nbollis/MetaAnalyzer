@@ -172,7 +172,7 @@ namespace Analyzer.Plotting.IndividualRunPlots
         public static void PlotCellLineRetentionTimeVsChronologerPredictionBubble(this CellLineResults cellLine)
         {
             var plot = cellLine.GetChronologerRetentionTimePredictionsBubble();
-            GenericChartExtensions.Show(plot);
+            //GenericChartExtensions.Show(plot);
             plot.SaveInCellLineOnly(cellLine, $"{FileIdentifiers.ChronologerFigureACN}_{cellLine.CellLine}_Bubble", 1000, PlotlyBase.DefaultHeight);
         }
         

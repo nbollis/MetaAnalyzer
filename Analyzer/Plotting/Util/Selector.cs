@@ -17,14 +17,14 @@ namespace Analyzer.Plotting.Util
                 IsTopDown = true,
                 IndividualFileComparisonSelector = new[]
                 {
-                    "MetaMorpheusNoChimeras",
+                    //"MetaMorpheusNoChimeras",
                     //"MetaMorpheus_Rep2_WithLibrary", // metamorpheus rep2 with library and old pep
                     "MetaMorpheus_Rep2_WithLibrary_NewPEP_NoNorm",
 
-                    "MsPathFinderTWithModsNoChimerasRep2", "MsPathFinderTWithMods_7Rep2", "MsPathFinderTWithMods_15Rep2",
+                    /*"MsPathFinderTWithModsNoChimerasRep2", "MsPathFinderTWithMods_7Rep2", */"MsPathFinderTWithMods_15Rep2",
 
-                    /*"ProsightPDChimeras_Rep2",*/ "ProsightPDNoChimeras_Rep2",
-                    "ProsightPdChimeras_Rep2_15_10ppm", "ProsightPDChimeras_Rep2_7_10ppm",
+                    /*"ProsightPDChimeras_Rep2",*/ /*"ProsightPDNoChimeras_Rep2",*/
+                    "ProsightPdChimeras_Rep2_15_10ppm", /*"ProsightPDChimeras_Rep2_7_10ppm",*/
                 },
                 InternalMetaMorpheusFileComparisonSelector = new[]
                 {
@@ -51,21 +51,21 @@ namespace Analyzer.Plotting.Util
                 IsTopDown = true,
                 IndividualFileComparisonSelector = new[]
                 {
-                    "MetaMorpheus", "MetaMorpheusNoChimeras",
+                    //"MetaMorpheus", "MetaMorpheusNoChimeras",
                     "MetaMorpheus_NewPEP_NoNorm", // ecoli ran with new pep
-                    //"MetaMorpheus_NewPEP_NoNormNoMult", // ecoli ran with new pep no mult
+                    "MetaMorpheus_NewPEP_NoNormNoMult", // ecoli ran with new pep no mult
 
-                    "MsPathFinderTWithModsNoChimeras", "MsPathFinderTWithMods_7", "MsPathFinderTWithMods_15",
+                    /*"MsPathFinderTWithModsNoChimeras", "MsPathFinderTWithMods_7", */"MsPathFinderTWithMods_15",
 
-                    "ProsightPDChimeras", "ProsightPDNoChimeras", "ProsightPDChimeras_7", "ProsightPDChimeras_15"
+                    /*"ProsightPDNoChimeras", "ProsightPDChimeras_7",*/ "ProsightPDChimeras_15"
                 },
                 InternalMetaMorpheusFileComparisonSelector = new[]
                 {
-                    "MetaMorpheus",
                     "MetaMorpheusNoChimeras",
+                    "MetaMorpheus_NewPEP_NoNormNoMult",
                 },
                 BulkResultComparisonSelector = new[] {
-                    "MetaMorpheus", "MetaMorpheusNoChimeras",
+                    "MetaMorpheus_NewPEP_NoNorm", "MetaMorpheusNoChimeras",
                     //"MetaMorpheus_NewPEP_NoNorm", // ecoli ran with new pep
 
                     "MsPathFinderTWithModsNoChimeras", "MsPathFinderTWithMods_7", "MsPathFinderTWithMods_15",
@@ -83,7 +83,7 @@ namespace Analyzer.Plotting.Util
                 {
                     //"MetaMorpheusWithLibrary", "MetaMorpheusNoChimerasWithLibrary", "MetaMorpheus_NoNormalization",
 
-                    "MetaMorpheusFraggerEquivalentChimeras_IndividualFiles",
+                    //"MetaMorpheusFraggerEquivalentChimeras_IndividualFiles",
                     "MetaMorpheusFraggerEquivalent_IndividualFilesFraggerEquivalentNoChimeras",
                     "MetaMorpheusFraggerEquivalent_IndividualFilesFraggerEquivalentWithChimeras",
 
@@ -98,6 +98,7 @@ namespace Analyzer.Plotting.Util
                 {
                     "MetaMorpheusFraggerEquivalent_IndividualFilesFraggerEquivalentNoChimeras",
                     "MetaMorpheusFraggerEquivalent_IndividualFilesFraggerEquivalentWithChimeras",
+
                     "ReviewdDatabaseNoPhospho_MsFraggerDDA+", "ReviewdDatabaseNoPhospho_MsFragger",
                     //"Chimerys"
                 },

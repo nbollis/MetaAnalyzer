@@ -7,6 +7,7 @@ using Analyzer.Interfaces;
 using Analyzer.Plotting.ComparativePlots;
 using Analyzer.Plotting.Util;
 using Analyzer.SearchType;
+using Analyzer.Util;
 
 namespace TaskLayer.ChimeraAnalysis
 {
@@ -40,7 +41,9 @@ namespace TaskLayer.ChimeraAnalysis
 
                     if (singleRunResult is ProteomeDiscovererResult pd)
                     {
-                        
+                        singleRunResult.Override = true;
+                        singleRunResult.GetBulkResultCountComparisonFile();
+                        singleRunResult.Override = false;
                     }
 
                     if (singleRunResult is MsPathFinderTResults mspt)
@@ -56,6 +59,9 @@ namespace TaskLayer.ChimeraAnalysis
 
                 cellLine.Override = Parameters.Override;
                 cellLine.GetBulkResultCountComparisonFile();
+                cellLine.PlotIndividualFileResults(ResultType.Psm);
+                cellLine.PlotIndividualFileResults(ResultType.Peptide);
+                cellLine.PlotIndividualFileResults(ResultType.Protein);
                 cellLine.Override = false;
             }
 
@@ -63,6 +69,10 @@ namespace TaskLayer.ChimeraAnalysis
             allResults.GetBulkResultCountComparisonFile();
             allResults.Override = false;
             allResults.PlotBulkResultComparisons();
+            allResults.PlotInternalMMComparison();
+            allResults.PlotStackedIndividualFileComparison(ResultType.Psm);
+            allResults.PlotStackedIndividualFileComparison(ResultType.Peptide);
+            allResults.PlotStackedIndividualFileComparison(ResultType.Protein);
         }
 
      

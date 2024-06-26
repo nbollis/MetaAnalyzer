@@ -90,6 +90,7 @@ public static class PlottingTranslators
         {"MetaMorpheusNoChimeras", Color.fromKeyword(ColorKeyword.Plum) }, // shared
         {"MetaMorpheus_Rep2_WithLibrary", Color.fromKeyword(ColorKeyword.MediumOrchid)}, // jurkat
         {"MetaMorpheus_Rep2_WithLibrary_NewPEP_NoNorm", Color.fromKeyword(ColorKeyword.Purple)},
+        {"MetaMorpheus_NewPEP_NoNormNoMult", Color.fromKeyword(ColorKeyword.Purple)},
 
         {"MsPathFinderTWithModsNoChimeras", Color.fromKeyword(ColorKeyword.Moccasin)}, // ecoli
         {"MsPathFinderTWithMods_7", Color.fromKeyword(ColorKeyword.Gold)},
@@ -428,8 +429,8 @@ public static class PlottingTranslators
         // Bottom up
         { "MetaMorpheusWithLibrary", "MetaMorpheus⠀" }, // old
         { "MetaMorpheusNoChimerasWithLibrary", "MetaMorpheus No Chimeras" }, // old
-        //{ "MetaMorpheusFraggerEquivalent_IndividualFilesFraggerEquivalentWithChimeras", "MetaMorpheus⠀" },
-        //{ "MetaMorpheusFraggerEquivalent_IndividualFilesFraggerEquivalentNoChimeras", "MetaMorpheus No Chimeras" },
+        { "MetaMorpheusFraggerEquivalent_IndividualFilesFraggerEquivalentWithChimeras", "MetaMorpheus⠀" },
+        { "MetaMorpheusFraggerEquivalent_IndividualFilesFraggerEquivalentNoChimeras", "MetaMorpheus No Chimeras" },
         { "ReviewdDatabaseNoPhospho_MsFragger", "MsFragger" },
         { "ReviewdDatabaseNoPhospho_MsFraggerDDA", "MsFragger" },
         { "ReviewdDatabaseNoPhospho_MsFraggerDDA+", "MsFraggerDDA+" },
@@ -438,6 +439,8 @@ public static class PlottingTranslators
         // Top Down
         { "MetaMorpheus", "MetaMorpheus\u2800" },
         { "MetaMorpheus_Rep2_WithLibrary", "MetaMorpheus\u2800" }, // temp until actual final is finished
+        { "MetaMorpheus_Rep2_WithLibrary_NewPEP_NoNorm", "MetaMorpheus\u2800" }, // temp until actual final is finished
+        { "MetaMorpheus_NewPEP_NoNormNoMult", "MetaMorpheus\u2800" }, // temp until actual final is finished
         { "MetaMorpheusNoChimeras", "MetaMorpheus No Chimeras" },
 
         { "MsPathFinderTWithModsNoChimeras", "MsPathFinderT  No Chimeras" },
