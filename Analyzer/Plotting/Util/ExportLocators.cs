@@ -1,4 +1,5 @@
 ﻿using Analyzer.SearchType;
+using Analyzer.Util;
 using Plotly.NET;
 using Plotly.NET.ImageExport;
 
@@ -26,6 +27,14 @@ namespace Analyzer.Plotting.Util
             string exportName, int? width = null, int? height = null)
         {
             var allResultsDirectory = allResults.GetChimeraPaperFigureDirectory();
+            chart.SavePNG(Path.Combine(allResultsDirectory, exportName), null, width, height);
+        }
+
+        public static void SaveInAllResultsOnly(this GenericChart.GenericChart chart, CellLineResults cellLine,
+            string exportName, int? width = null, int? height = null)
+        {
+            var allResultsDirectory = Path.GetDirectoryName(cellLine.DirectoryPath).GetDirectories()
+                .First(p => p.Contains("Figures"));
             chart.SavePNG(Path.Combine(allResultsDirectory, exportName), null, width, height);
         }
 

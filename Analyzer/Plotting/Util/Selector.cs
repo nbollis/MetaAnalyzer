@@ -65,7 +65,7 @@ namespace Analyzer.Plotting.Util
                     "MetaMorpheus_NewPEP_NoNormNoMult",
                 },
                 BulkResultComparisonSelector = new[] {
-                    "MetaMorpheus_NewPEP_NoNorm", "MetaMorpheusNoChimeras",
+                    "MetaMorpheus_NewPEP_NoNormNoMult", "MetaMorpheusNoChimeras",
                     //"MetaMorpheus_NewPEP_NoNorm", // ecoli ran with new pep
 
                     "MsPathFinderTWithModsNoChimeras", "MsPathFinderTWithMods_7", "MsPathFinderTWithMods_15",

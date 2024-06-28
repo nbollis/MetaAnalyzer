@@ -163,7 +163,7 @@ namespace Test
         public static void IsabellaData()
         {
 
-            AllResults.PlotInternalMMComparison();
+            AllResults.PlotBulkResultComparisons();
         }
 
 

@@ -73,6 +73,7 @@ public class JenkinsLikeRunParserTask : BaseResultAnalyzerTask
             {
                 groupRun.PlotCellLineChimeraBreakdown();
                 groupRun.PlotCellLineChimeraBreakdown_TargetDecoy();
+                groupRun.PlotJenkinsLikeRunSummary();
             }
         }
 
