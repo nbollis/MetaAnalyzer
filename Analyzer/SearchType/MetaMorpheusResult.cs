@@ -1001,6 +1001,7 @@ namespace Analyzer.SearchType
                                 PrecursorMass = chimericPsm.PrecursorMass,
                                 PrecursorMz = chimericPsm.PrecursorMz,
                                 IsDecoy = chimericPsm.DecoyContamTarget == "D",
+                                IsChimeric = psms.Count(p => p.PEP_QValue <= 0.01) > 1,
                                 PossibleFeatureCount = possibleFeatureCount,
                                 IdPerSpectrum = psms.Length,
                                 FractionalIntensity = fractionalIntensity
@@ -1068,6 +1069,7 @@ namespace Analyzer.SearchType
                                 PrecursorMass = chimericPeptide.PrecursorMass,
                                 PrecursorMz = chimericPeptide.PrecursorMz,
                                 IsDecoy = chimericPeptide.DecoyContamTarget == "D",
+                                IsChimeric = peptides.Count(p => p.PEP_QValue <= 0.01) > 1,
                                 PossibleFeatureCount = possibleFeatureCount,
                                 IdPerSpectrum = psms.Length,
                                 FractionalIntensity = fractionalIntensity

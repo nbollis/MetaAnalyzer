@@ -10,7 +10,7 @@ internal class CommandLineArguments
     [Option('o', HelpText = "The output Directory", Required = false, Default = false)]
     public bool OverrideFiles { get; set; }
 
-    [Option('o', HelpText = "[Optional] Output folder", Required = true)]
+    [Option('d', HelpText = "[Optional] Output folder", Required = true)]
     public string OutputFolder { get; set; }
 
     [Option('z', HelpText = "[Optional] Maximum charge state to consider", Required = false, Default = 60)]

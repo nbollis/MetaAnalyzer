@@ -28,17 +28,18 @@ namespace ChimericSpectrumConverter
             {
                 if (!File.Exists(inputFile))
                     throw new ArgumentException($"Spectra File Not Found: {inputFile}");
-                var outputFilename = inputFile.Replace(Path.GetExtension(inputFile), "_SetPrecursor.mzML");
+                var inputFileName = Path.GetFileName(inputFile);
+                var outFileName = Path.Combine(parameters.OutputDirectory,
+                    inputFileName.Replace(Path.GetExtension(inputFile), "_SetPrecursor.mzML"));
 
-                if (File.Exists(outputFilename) && !parameters.Override)
+                if (File.Exists(outFileName) && !parameters.Override)
                 {
-                    Warn($"File already exists: {outputFilename}");
+                    Warn($"File already exists: {outFileName}");
                     continue;
                 }
-                InputOutputPaths.Add((inputFile, outputFilename));
+                InputOutputPaths.Add((inputFile, outFileName));
             }
         }
-
 
         protected override void RunSpecific()
         {
@@ -53,14 +54,22 @@ namespace ChimericSpectrumConverter
                 dataFileTask.Wait();
                 var dataFile = dataFileTask.Result;
                 if (inputPath != InputOutputPaths.Last().InputPath)
-                    dataFileTask = LoadMsDataFileAsync(InputOutputPaths[i+1].InputPath);
+                {
+                    dataFileTask = LoadMsDataFileAsync(InputOutputPaths[i + 1].InputPath);
+                    dataFileTask.Start();
+                }
 
-                List<MsDataScan> newScanList = new();
-                var ms1ToDeconvolutedEnvelopeDictionary = dataFile.Scans.ToDictionary(p => p.OneBasedScanNumber,
+                Log($"Deconvoluting MS1 Scans File: {Path.GetFileNameWithoutExtension(inputPath)}");
+                var ms1ToDeconvolutedEnvelopeDictionary = dataFile.Scans.Where(p => p.MsnOrder == 1)
+                    .ToDictionary(p => p.OneBasedScanNumber,
                     p => Deconvoluter.Deconvolute(p, Parameters.PrecursorDeconvolutionParameters, p.ScanWindowRange)
                         .OrderBy(m => m.Score)
                         .ToArray());
 
+                Log($"Processing File: {Path.GetFileNameWithoutExtension(inputPath)}");
+                int replacedPrecursor = 0;
+                int didNotReplacePrecursor = 0;
+                List<MsDataScan> newScanList = new();
                 foreach (var scan in dataFile.Scans)
                 {
                     if (scan.MsnOrder != 2)
@@ -72,25 +81,32 @@ namespace ChimericSpectrumConverter
                     var isolationMz = scan.IsolationMz ?? throw new ArgumentException();
                     var isolationWindow = scan.IsolationRange ?? throw new ArgumentException();
                     var envelopes = ms1ToDeconvolutedEnvelopeDictionary[scan.OneBasedPrecursorScanNumber!.Value]
-                        .Where(p => p.Peaks.Any(peak => isolationWindow.Contains(peak.mz))).ToArray();
+                        .Where(p => p.Peaks.Any(peak => isolationWindow.Minimum <= peak.mz && isolationWindow.Maximum >= peak.mz))
+                        .ToArray();
 
                     if (envelopes.Any())
                     {
                         var ordered = envelopes.OrderBy(p =>
                                 Math.Abs(p.Peaks.MaxBy(peak => peak.intensity).mz - isolationMz).Round(2))
-                            .ThenBy(p => p.Score);
+                            .ThenByDescending(p => p.Score);
                         var newPrecursor = ordered.First();
                         var newMz = newPrecursor.MonoisotopicMass.ToMz(newPrecursor.Charge);
                         var newInt = newPrecursor.TotalIntensity;
 
                         var newMs2Scan = scan.CloneWithNewPrecursor(newMz, newPrecursor.Charge, newInt);
                         newScanList.Add(newMs2Scan);
+                        replacedPrecursor++;
                     }
                     else
-                        Debugger.Break();
-
+                    {
+                        didNotReplacePrecursor++;
+                        newScanList.Add(scan);
+                        //Debugger.Break();
+                    }
                 }
 
+                Log($"Finsihed Processing File: {Path.GetFileNameWithoutExtension(inputPath)}");
+                Log($"Replaced {replacedPrecursor}//{replacedPrecursor + didNotReplacePrecursor} Precursors in MS2 Scans");
                 var convertedDataFile = new GenericMsDataFile(newScanList.ToArray(), dataFile.GetSourceFile());
                 if (outputTask is null)
                     outputTask = WriteSpectraFileAsync(convertedDataFile, outputPath);
@@ -100,9 +116,7 @@ namespace ChimericSpectrumConverter
                     outputTask = WriteSpectraFileAsync(convertedDataFile, outputPath);
                 }
                 outputTask.Start();
-
             }
-
             outputTask?.Wait();
         }
 
@@ -110,7 +124,7 @@ namespace ChimericSpectrumConverter
         {
             return new Task<MsDataFile>(() =>
             {
-                Log($"Reading File: {Path.GetFileNameWithoutExtension(inputPath)}, 2");
+                Log($"Reading File: {Path.GetFileNameWithoutExtension(inputPath)}");
                 return MsDataFileReader.GetDataFile(inputPath).LoadAllStaticData();
             });
         }
@@ -119,7 +133,7 @@ namespace ChimericSpectrumConverter
         {
             return new Task(() =>
             {
-                Log($"Writing File: {Path.GetFileNameWithoutExtension(outputPath)}, 2");
+                Log($"Writing File: {Path.GetFileNameWithoutExtension(outputPath)}");
                 toExport.ExportAsMzML(outputPath, true);
             });
         }

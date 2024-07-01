@@ -40,6 +40,7 @@ namespace Analyzer.FileTypes.Internal
         public double PrecursorMass { get; set; }
         public double PEP_QValue { get; set; }
         public double FractionalIntensity { get; set; }
+        public bool IsChimeric { get; set; }
         public bool IsDecoy { get; set; }
         public bool IsParent { get; set; }
         public bool IsUniqueForm { get; set; }

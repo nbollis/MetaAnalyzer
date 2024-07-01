@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "ChimericSpectrumConverter": {
+      "commandName": "Project",
+      "commandLineArgs": "-s B:\\Users\\Nic\\Chimeras\\TopDown_Analysis\\Jurkat\\DataFiles\\02-18-20_jurkat_td_rep2_fract7.raw B:\\Users\\Nic\\Chimeras\\TopDown_Analysis\\Jurkat\\DataFiles\\02-18-20_jurkat_td_rep2_fract8.raw -d B:\\Users\\Nic\\Chimeras\\TopDown_Analysis\\Jurkat\\DataFiles\\TestChimericConversion"
+    }
+  }
+}
