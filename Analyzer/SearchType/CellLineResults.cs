@@ -377,8 +377,7 @@ public class CellLineResults : IEnumerable<SingleRunResults>, IDisposable
             if (!Directory.Exists(deconDir))
                 return null;
             var deconFiles = Directory.GetFiles(Path.Combine(deconDirectory, deconDir), "*ms1.feature", SearchOption.AllDirectories);
-            if (deconFiles.Length != 18)
-                return null;
+
             foreach (var deconFile in deconFiles)
             {
                 var massSpecFile = massSpecFiles.FirstOrDefault(p =>

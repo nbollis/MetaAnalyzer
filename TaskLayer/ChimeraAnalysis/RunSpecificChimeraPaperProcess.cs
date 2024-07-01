@@ -16,7 +16,7 @@ namespace TaskLayer.ChimeraAnalysis
         public override MyTask MyTask => MyTask.RunSpecificChimeraPaperProcess;
         protected override ChimeraPaperAnalysisParameters Parameters { get; }
 
-        public RunSpecificChimeraPaperProcess(ChimeraPaperAnalysisParameters parameters) : base()
+        public RunSpecificChimeraPaperProcess(ChimeraPaperAnalysisParameters parameters)
         {
             Parameters = parameters;
         }

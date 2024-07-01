@@ -12,7 +12,7 @@ public class JenkinsLikeRunParserTask : BaseResultAnalyzerTask
     public override MyTask MyTask => MyTask.JenkinsLikeRunParser;
     protected override JenkinsLikeRunParserTaskParameters Parameters { get; }
 
-    public JenkinsLikeRunParserTask(JenkinsLikeRunParserTaskParameters parameters) : base()
+    public JenkinsLikeRunParserTask(JenkinsLikeRunParserTaskParameters parameters)
     {
         Parameters = parameters;
     }

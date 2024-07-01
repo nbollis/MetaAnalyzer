@@ -7,12 +7,14 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Test", "Test\Test.csproj", 
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Analyzer", "Analyzer\Analyzer.csproj", "{FC445E70-EE71-4158-A065-BB4F87F206DD}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CMD", "CMD\CMD.csproj", "{9A97C73A-30D6-406C-A541-BADD3E6C726A}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CMD", "CMD\CMD.csproj", "{9A97C73A-30D6-406C-A541-BADD3E6C726A}"
 	ProjectSection(ProjectDependencies) = postProject
 		{FC445E70-EE71-4158-A065-BB4F87F206DD} = {FC445E70-EE71-4158-A065-BB4F87F206DD}
 	EndProjectSection
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TaskLayer", "TaskLayer\TaskLayer.csproj", "{E2D08567-F3C9-47B3-AC66-62A3D2F1D4CC}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TaskLayer", "TaskLayer\TaskLayer.csproj", "{E2D08567-F3C9-47B3-AC66-62A3D2F1D4CC}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ChimericSpectrumConverter", "ChimericSpectrumConverter\ChimericSpectrumConverter.csproj", "{5679FE8C-3BCE-4863-9C97-4E7835DF667C}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -36,6 +38,10 @@ Global
 		{E2D08567-F3C9-47B3-AC66-62A3D2F1D4CC}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{E2D08567-F3C9-47B3-AC66-62A3D2F1D4CC}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{E2D08567-F3C9-47B3-AC66-62A3D2F1D4CC}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5679FE8C-3BCE-4863-9C97-4E7835DF667C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5679FE8C-3BCE-4863-9C97-4E7835DF667C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5679FE8C-3BCE-4863-9C97-4E7835DF667C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5679FE8C-3BCE-4863-9C97-4E7835DF667C}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

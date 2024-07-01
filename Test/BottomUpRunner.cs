@@ -143,20 +143,34 @@ namespace Test
         {
             string cellLineString = "A549";
             //var cellLine = AllResults.First(p => p.CellLine == cellLineString);
-            var cellLine = new CellLineResults(Path.Combine(DirectoryPath, "A549"));
+            //var cellLine = new CellLineResults(Path.Combine(DirectoryPath, "A549"));
             
-            AllResults.PlotBulkChronologerDeltaPlotKernalPDF();
-            //cellLine.PlotIndividualFileResults();
-            //cellLine.PlotIndividualFileResults(ResultType.Psm);
-            //cellLine.PlotIndividualFileResults(ResultType.Protein);
-            //cellLine.PlotCellLineChimeraBreakdown();
-            //cellLine.PlotCellLineRetentionTimePredictions();
-            //cellLine.GetChronologerDeltaPlotKernelPDF();
-            //cellLine.GetMaximumChimeraEstimationFile();
-            //cellLine.GetChronologerDeltaHistogram();
-            //cellLine.PlotCellLineSpectralSimilarity();
-            //cellLine.PlotCellLineChimeraBreakdown();
-            //cellLine.PlotCellLineChimeraBreakdown_TargetDecoy();
+
+            foreach (var cellLine in AllResults)
+            {
+                var run = (MetaMorpheusResult)cellLine.First(p => cellLine.GetSingleResultSelector().Contains(p.Condition));
+                var file = run.GetChimericSpectrumSummaryFile();
+
+
+
+
+                var maxEstDict = cellLine.MaximumChimeraEstimationFile?.Results
+                    .GroupBy(p => p.FileName)
+                    .ToDictionary(p => p.Key, p => p.ToArray());
+                foreach (var summary in file.GroupBy(p => p.Ms2ScanNumber))
+                {
+                    var representative = summary.First();
+
+                    foreach (var chimericSpectrumSummary in summary)
+                    {
+                        chimericSpectrumSummary.PossibleFeatureCount =
+                            maxEstDict?[representative.FileName]
+                                .FirstOrDefault(p => p.Ms2ScanNumber == representative.Ms2ScanNumber)?
+                                .PossibleFeatureCount ?? 0;
+                    }
+                }
+                file.WriteResults(run._chimericSpectrumSummaryFilePath);
+            }
         }
 
 

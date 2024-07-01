@@ -10,8 +10,6 @@ namespace TaskLayer
         public abstract MyTask MyTask { get; }
         protected abstract BaseResultAnalyzerTaskParameters Parameters { get; }
 
-        protected BaseResultAnalyzerTask() { }
-
         public void Run()
         {
             Log($"Running Task {MyTask}", 0);

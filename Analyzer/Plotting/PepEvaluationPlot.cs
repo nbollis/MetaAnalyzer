@@ -92,7 +92,7 @@ namespace Analyzer.Plotting
                 new PepSplomData("PeaksInPrecursorEnvelope", true),
                 new PepSplomData("PrecursorEnvelopeScore", false),
                 new PepSplomData("ChimeraCount", true),
-                new PepSplomData("ChimeraDecoyRatio", false),
+                new PepSplomData("MostAbundantPrecursorPeakIntensity", false),
 
                 new PepSplomData("HasSpectralAngle", true),
                 new PepSplomData("SpectralAngle", false),
