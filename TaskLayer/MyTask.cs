@@ -13,5 +13,6 @@ namespace TaskLayer
         ChimeraPaperBottomUp = 3,
         RunSpecificChimeraPaperProcess = 4,
         ChimericSpectrumConversion = 5,
+        SpectralAngleComparisonTask = 6,
     }
 }

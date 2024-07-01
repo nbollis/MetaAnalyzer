@@ -77,11 +77,11 @@ namespace Analyzer.Plotting
         }
 
         public static GenericChart.GenericChart SpectralAngleChimeraComparisonViolinPlot(double[] chimeraAngles,
-            double[] nonChimeraAngles, string identifier = "", bool isTopDown = false)
+            double[] nonChimeraAngles, string identifier = "", bool isTopDown = false, ResultType resultType = ResultType.Psm)
         {
-            var chimeraLabels = Enumerable.Repeat("Chimeras", chimeraAngles.Length).ToArray();
-            var nonChimeraLabels = Enumerable.Repeat("No Chimeras", nonChimeraAngles.Length).ToArray();
-            string resultType = Labels.GetSpectrumMatchLabel(isTopDown);
+            var chimeraLabels = Enumerable.Repeat("Chimeric", chimeraAngles.Length).ToArray();
+            var nonChimeraLabels = Enumerable.Repeat("Non-Chimeric", nonChimeraAngles.Length).ToArray();
+            string label = Labels.GetLabel(isTopDown, resultType);
             var violin = Chart.Combine(new[]
                 {
                     // chimeras
@@ -92,7 +92,7 @@ namespace Analyzer.Plotting
                         MeanLine: MeanLine.init(true,  "No Chimeras".ConvertConditionToColor()), ShowLegend: false)
 
                 })
-                .WithTitle($"{identifier} Spectral Angle Distribution (1% {resultType})")
+                .WithTitle($"{identifier} Spectral Angle Distribution (1% {label})")
                 .WithYAxisStyle(Title.init("Spectral Angle"))
                 .WithLayout(PlotlyBase.DefaultLayout)
                 .WithSize(1000, 600);

@@ -106,13 +106,16 @@ namespace ChimericSpectrumConverter
                 }
 
                 Log($"Finsihed Processing File: {Path.GetFileNameWithoutExtension(inputPath)}");
-                Log($"Replaced {replacedPrecursor}//{replacedPrecursor + didNotReplacePrecursor} Precursors in MS2 Scans");
-                var convertedDataFile = new GenericMsDataFile(newScanList.ToArray(), dataFile.GetSourceFile());
+                Log($"Replaced {replacedPrecursor}/{replacedPrecursor + didNotReplacePrecursor} Precursors in MS2 Scans", 2);
                 if (outputTask is null)
+                {
+                    var convertedDataFile = new GenericMsDataFile(newScanList.ToArray(), dataFile.GetSourceFile());
                     outputTask = WriteSpectraFileAsync(convertedDataFile, outputPath);
+                }
                 else
                 {
                     outputTask.Wait();
+                    var convertedDataFile = new GenericMsDataFile(newScanList.ToArray(), dataFile.GetSourceFile());
                     outputTask = WriteSpectraFileAsync(convertedDataFile, outputPath);
                 }
                 outputTask.Start();

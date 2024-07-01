@@ -303,7 +303,7 @@ namespace Analyzer.Plotting.ComparativePlots
 
             double[] chimeraAngles = results.Where(p => p.IsChimeric).Select(p => p.SpectralAngle).ToArray();
             double[] nonChimeraAngles = results.Where(p => !p.IsChimeric).Select(p => p.SpectralAngle).ToArray();
-            var violin = GenericPlots.SpectralAngleChimeraComparisonViolinPlot(chimeraAngles, nonChimeraAngles, "AllResults", isTopDown)
+            var violin = GenericPlots.SpectralAngleChimeraComparisonViolinPlot(chimeraAngles, nonChimeraAngles, "AllResults", isTopDown, ResultType.Peptide)
                 .WithTitle($"All Results Spectral Angle Distribution (1% {Labels.GetPeptideLabel(isTopDown)})")
                 .WithYAxisStyle(Title.init("Spectral Angle"))
                 .WithLayout(PlotlyBase.DefaultLayout)

@@ -1,5 +1,6 @@
 ﻿using System.Diagnostics;
 using Analyzer.Plotting.Util;
+using Analyzer.SearchType;
 using CMD;
 using CommandLine;
 using CommandLine.Text;
@@ -114,6 +115,12 @@ namespace MyApp
                                 CommandLineArguments.RunResultCounting, CommandLineArguments.RunChimericCounting,
                                 CommandLineArguments.RunModificationAnalysis);
                             task = new RunSpecificChimeraPaperProcess(parameters4);
+                            break;
+
+                        case MyTask.SpectralAngleComparisonTask:
+                            var parameters5 = new SingleRunAnalysisParameters(CommandLineArguments.InputDirectory,
+                                                               CommandLineArguments.OverrideFiles, CommandLineArguments.RunOnAll, new MetaMorpheusResult(CommandLineArguments.InputDirectory));
+                            task = new ChimeraPaperSpectralAngleComparisonTask(parameters5);
                             break;
 
                         default:

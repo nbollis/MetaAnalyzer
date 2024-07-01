@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Analyzer.SearchType;
 
 namespace TaskLayer.ChimeraAnalysis
 {
@@ -24,6 +25,15 @@ namespace TaskLayer.ChimeraAnalysis
             RunResultCounting = runResultCounting;
             CountChimericResults = countChimericResults;
             RunModificationAnalysis = runModificationAnalysis;
+        }
+    }
+
+    public class SingleRunAnalysisParameters : BaseResultAnalyzerTaskParameters
+    {
+        public SingleRunResults RunResult { get; init; }
+        public SingleRunAnalysisParameters(string inputDirectoryPath, bool overrideFiles, bool runOnAll, SingleRunResults runResult) : base(inputDirectoryPath, overrideFiles, runOnAll)
+        {
+            RunResult = runResult;
         }
     }
 }
