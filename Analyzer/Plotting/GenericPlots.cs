@@ -173,7 +173,7 @@ namespace Analyzer.Plotting
         public static GenericChart.GenericChart Histogram(List<double> values, string title, string xTitle = "",
             string yTitle = "", bool normalize = false)
         {
-            var chart = Chart.Histogram<double, double, string>(values, Name: title, MarkerColor: title.ConvertConditionToColor(),
+            var chart = Chart.Histogram<double, double, string>(values,  Name: title, MarkerColor: title.ConvertConditionToColor(),
                                    HistNorm: normalize ? StyleParam.HistNorm.Percent : StyleParam.HistNorm.None)
                 .WithSize(400, 400)
                 .WithTitle(title)
@@ -186,9 +186,10 @@ namespace Analyzer.Plotting
         public static GenericChart.GenericChart BoxPlot(List<double> values, string title, string xTitle = "",
             string yTitle = "", bool showOutliers = true)
         {
-            var chart = Chart.BoxPlot<double, string, string>(values, Name: title, MarkerColor: title.ConvertConditionToColor(), 
-                                   BoxPoints: showOutliers ? StyleParam.BoxPoints.Outliers :StyleParam.BoxPoints.False, 
-                                   Orientation: StyleParam.Orientation.Vertical)
+            var chart = Chart.BoxPlot<string, double, string>(X: Enumerable.Repeat(title, values.Count()).ToArray(),
+                    Y: values, Name: title, MarkerColor: title.ConvertConditionToColor(), Jitter: 0.1,
+                                   BoxPoints: showOutliers ? StyleParam.BoxPoints.Outliers : StyleParam.BoxPoints.False
+                                  /* Orientation: StyleParam.Orientation.Vertical*/)
                 .WithSize(400, 400)
                 .WithTitle(title)
                 .WithXAxisStyle(Title.init(xTitle))

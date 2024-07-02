@@ -9,8 +9,82 @@ namespace Analyzer.Plotting.Util
         public static Selector TopDownJurkatSelector { get; }
         public static Selector BottomUpMann11Selector { get; }
         public static Selector TopDownEcoliSelector { get; }
+        public static Selector PaperTopDownJurkatSelector { get; }
+        public static Selector PaperTopDownEcoliSelector { get; }
+        public static Selector PaperBottomUpMann11Selector { get; }
+
+
         static Selector()
         {
+            PaperTopDownJurkatSelector = new Selector()
+            {
+                DatasetName = "Jurkat",
+                IsTopDown = true,
+                IndividualFileComparisonSelector = new[]
+                {
+                    "MetaMorpheus_Chimeras",
+                    "MsPathFinderTWithMods_15Rep2",
+                    "ProsightPdChimeras_Rep2_15_10ppm",
+                },
+                InternalMetaMorpheusFileComparisonSelector = new[]
+                {
+                    "MetaMorpheus_Chimeras", "MetaMorpheus_NoChimeras"
+                },
+                BulkResultComparisonSelector = new[]
+                {
+                    "MetaMorpheus_NoChimeras", "MetaMorpheus_Chimeras",
+                    "MsPathFinderT_NoChimeras", "MsPathFinderT_7", "MsPathFinderT_15",
+                    "ProsightPD_NoChimeras", "ProsightPD_7", "ProsightPD_15",
+                },
+                SingleResultSelector = new[] { "MetaMorpheus_Chimeras" }
+            };
+
+            PaperTopDownEcoliSelector = new Selector()
+            {
+                DatasetName = "Ecoli",
+                IsTopDown = true,
+                IndividualFileComparisonSelector = new[]
+                {
+                    "MetaMorpheus_Chimeras",
+                    "MsPathFinderTWithMods_15Rep2",
+                    "ProsightPdChimeras_Rep2_15_10ppm",
+                },
+                InternalMetaMorpheusFileComparisonSelector = new[]
+                {
+                    "MetaMorpheus_Chimeras", "MetaMorpheus_NoChimeras"
+                },
+                BulkResultComparisonSelector = new[]
+                {
+                    "MetaMorpheus_NoChimeras", "MetaMorpheus_Chimeras",
+                    "MsPathFinderT_NoChimeras", "MsPathFinderT_7", "MsPathFinderT_15",
+                    "ProsightPD_NoChimeras", "ProsightPD_7", "ProsightPD_15",
+                },
+                SingleResultSelector = new[] { "MetaMorpheus_Chimeras" }
+            };
+
+            PaperBottomUpMann11Selector = new Selector()
+            {
+                DatasetName = "Mann_11cell_analysis",
+                IsTopDown = false,
+                IndividualFileComparisonSelector = new[]
+                {
+                    "MetaMorpheus_ExternalComparison_NoChimeras", "MetaMorpheus_ExternalComparison_Chimeras",
+                    "MsFraggerDDA", "MsFraggerDDA+",
+                    "Chimerys"
+                },
+                InternalMetaMorpheusFileComparisonSelector = new[]
+                {
+                    "MetaMorpheus_Chimeras", "MetaMorpheus_NoChimeras"
+                },
+                BulkResultComparisonSelector = new[]
+                {
+                    "MetaMorpheus_ExternalComparison_NoChimeras", "MetaMorpheus_ExternalComparison_Chimeras",
+                    "MsFraggerDDA", "MsFraggerDDA+",
+                    "Chimerys"
+                },
+                SingleResultSelector = new[] { "MetaMorpheus_Chimeras" }
+            };
+
             TopDownJurkatSelector = new Selector()
             {
                 DatasetName = "Jurkat",
@@ -44,7 +118,6 @@ namespace Analyzer.Plotting.Util
                 },
                 SingleResultSelector = new[] { "MetaMorpheus_Rep2_WithLibrary_NewPEP_NoNorm" }
             };
-
             TopDownEcoliSelector = new Selector()
             {
                 DatasetName = "Ecoli",
@@ -74,7 +147,6 @@ namespace Analyzer.Plotting.Util
                 },
                 SingleResultSelector = new[] { "MetaMorpheus_NewPEP_NoNormNoMult" }
             };
-
             BottomUpMann11Selector = new Selector()
             {
                 DatasetName = "Mann_11cell_analysis",

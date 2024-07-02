@@ -61,24 +61,24 @@ namespace TaskLayer.ChimeraAnalysis
                 case DistributionPlotTypes.BoxPlot:
                     peptidePlot = Chart.Combine(new[]
                     {
-                        GenericPlots.BoxPlot(peptideChimericAngles, "Chimeric",  "Chimeric", "Spectral Angle" ),
-                        GenericPlots.BoxPlot(peptideNonChimericAngles, "Non-Chimeric", "Non-Chimeric", "Spectral Angle")
+                        GenericPlots.BoxPlot(peptideChimericAngles, "Chimeric",  "", "Spectral Angle" ),
+                        GenericPlots.BoxPlot(peptideNonChimericAngles, "Non-Chimeric", "", "Spectral Angle")
                     });
                     outName = $"FdrAnalysis_{Labels.GetLabel(mm.IsTopDown, ResultType.Peptide)}_{FileIdentifiers.SpectralAngleFigure}_BoxPlot";
                     break;
                 case DistributionPlotTypes.KernelDensity:
                     peptidePlot = Chart.Combine(new[]
                     {
-                        GenericPlots.KernelDensityPlot(peptideChimericAngles, "Chimeric",  "Chimeric", "Spectral Angle" ),
-                        GenericPlots.KernelDensityPlot(peptideNonChimericAngles, "Non-Chimeric", "Non-Chimeric", "Spectral Angle")
+                        GenericPlots.KernelDensityPlot(peptideChimericAngles, "Chimeric",  "Spectral Angle", "Density", 0.02),
+                        GenericPlots.KernelDensityPlot(peptideNonChimericAngles, "Non-Chimeric", "Spectral Angle", "Density", 0.02)
                     });
                     outName = $"FdrAnalysis_{Labels.GetLabel(mm.IsTopDown, ResultType.Peptide)}_{FileIdentifiers.SpectralAngleFigure}_KernelDensity";
                     break;
                 case DistributionPlotTypes.Histogram:
                     peptidePlot = Chart.Combine(new[]
                     {
-                        GenericPlots.Histogram(peptideChimericAngles, "Chimeric",  "Chimeric", "Spectral Angle" ),
-                        GenericPlots.Histogram(peptideNonChimericAngles, "Non-Chimeric", "Non-Chimeric", "Spectral Angle")
+                        GenericPlots.Histogram(peptideChimericAngles, "Chimeric",  "Spectral Angle", "Count" ),
+                        GenericPlots.Histogram(peptideNonChimericAngles, "Non-Chimeric", "Spectral Angle", "Count")
                     });
                     outName = $"FdrAnalysis_{Labels.GetLabel(mm.IsTopDown, ResultType.Peptide)}_{FileIdentifiers.SpectralAngleFigure}_Histogram";
                     break;
@@ -87,7 +87,7 @@ namespace TaskLayer.ChimeraAnalysis
             }
 
             peptidePlot = peptidePlot.WithTitle(
-                    $"{mm.DatasetName} MetaMorpheus 1% {Labels.GetLabel(mm.IsTopDown, ResultType.Peptide)} Spectral Angle Distribution");
+                    $"MetaMorpheus 1% {Labels.GetLabel(mm.IsTopDown, ResultType.Peptide)} Spectral Angle Distribution");
             peptidePlot.SaveInRunResultOnly(mm, outName, 600, 600);
 
 
@@ -117,7 +117,7 @@ namespace TaskLayer.ChimeraAnalysis
             switch (Parameters.PlotType)
             {
                 case DistributionPlotTypes.ViolinPlot:
-                    psmPlot = GenericPlots.SpectralAngleChimeraComparisonViolinPlot(peptideChimericAngles.ToArray(), peptideNonChimericAngles.ToArray(),
+                    psmPlot = GenericPlots.SpectralAngleChimeraComparisonViolinPlot(psmChimericAngles.ToArray(), psmNonChimericAngles.ToArray(),
                         "", mm.IsTopDown, ResultType.Peptide);
                     outName = $"FdrAnalysis_{Labels.GetLabel(mm.IsTopDown, ResultType.Psm)}_{FileIdentifiers.SpectralAngleFigure}_ViolinPlot";
                     break;
@@ -125,24 +125,24 @@ namespace TaskLayer.ChimeraAnalysis
                 case DistributionPlotTypes.BoxPlot:
                     psmPlot = Chart.Combine(new[]
                     {
-                        GenericPlots.BoxPlot(peptideChimericAngles, "Chimeric",  "Chimeric", "Spectral Angle" ),
-                        GenericPlots.BoxPlot(peptideNonChimericAngles, "Non-Chimeric", "Non-Chimeric", "Spectral Angle")
+                        GenericPlots.BoxPlot(psmChimericAngles, "Chimeric",  "Chimeric", "Spectral Angle" ),
+                        GenericPlots.BoxPlot(psmNonChimericAngles, "Non-Chimeric", "Non-Chimeric", "Spectral Angle")
                     });
                     outName = $"FdrAnalysis_{Labels.GetLabel(mm.IsTopDown, ResultType.Psm)}_{FileIdentifiers.SpectralAngleFigure}_BoxPlot";
                     break;
                 case DistributionPlotTypes.KernelDensity:
                     psmPlot = Chart.Combine(new[]
                     {
-                        GenericPlots.KernelDensityPlot(peptideChimericAngles, "Chimeric",  "Chimeric", "Spectral Angle" ),
-                        GenericPlots.KernelDensityPlot(peptideNonChimericAngles, "Non-Chimeric", "Non-Chimeric", "Spectral Angle")
+                        GenericPlots.KernelDensityPlot(psmChimericAngles, "Chimeric",  "Spectral Angle", "Density", 0.02),
+                        GenericPlots.KernelDensityPlot(psmNonChimericAngles, "Non-Chimeric", "Spectral Angle", "Density", 0.02)
                     });
                     outName = $"FdrAnalysis_{Labels.GetLabel(mm.IsTopDown, ResultType.Psm)}_{FileIdentifiers.SpectralAngleFigure}_KernelDensity";
                     break;
                 case DistributionPlotTypes.Histogram:
                     psmPlot = Chart.Combine(new[]
                     {
-                        GenericPlots.Histogram(peptideChimericAngles, "Chimeric",  "Chimeric", "Spectral Angle" ),
-                        GenericPlots.Histogram(peptideNonChimericAngles, "Non-Chimeric", "Non-Chimeric", "Spectral Angle")
+                        GenericPlots.Histogram(psmChimericAngles, "Chimeric",  "Spectral Angle", "Count" ),
+                        GenericPlots.Histogram(psmNonChimericAngles, "Non-Chimeric", "Spectral Angle", "Count")
                     });
                     outName = $"FdrAnalysis_{Labels.GetLabel(mm.IsTopDown, ResultType.Psm)}_{FileIdentifiers.SpectralAngleFigure}_Histogram";
                     break;
