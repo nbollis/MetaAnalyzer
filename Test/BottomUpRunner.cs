@@ -149,8 +149,9 @@ namespace Test
             foreach (var cellLine in AllResults)
             {
                 var run = (MetaMorpheusResult)cellLine.First(p => cellLine.GetSingleResultSelector().Contains(p.Condition));
+                run.Override = true;
                 var file = run.GetChimericSpectrumSummaryFile();
-
+                run.Override = false;
 
 
 

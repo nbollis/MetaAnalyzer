@@ -2,7 +2,7 @@
   "profiles": {
     "CMD": {
       "commandName": "Project",
-      "commandLineArgs": "-i B:\\Users\\Nic\\Chimeras\\SumbissionDirectory\\FdrAnalysis\\UseProvidedLibraryOnAllFiles -t 6 -o true",
+      "commandLineArgs": "-i B:\\Users\\Nic\\Chimeras\\SumbissionDirectory\\FdrAnalysis\\UseProvidedLibraryOnAllFiles_Mann11 -t 6 -o true",
       "environmentVariables": {
         "%topdownpath%": "B:\\Users\\Nic\\Chimeras\\TopDown_Analysis",
         "%bottomuppath%": "B:\\Users\\Nic\\Chimeras\\Mann_11cell_analysis"
