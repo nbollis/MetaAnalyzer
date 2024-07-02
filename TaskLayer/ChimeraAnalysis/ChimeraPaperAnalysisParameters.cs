@@ -10,7 +10,6 @@ namespace TaskLayer.ChimeraAnalysis
 {
     public class ChimeraPaperAnalysisParameters : BaseResultAnalyzerTaskParameters
     {
-        public bool RunOnAll { get; set; }
         public bool RunChimeraBreakdown { get; set; }
         public bool RunFdrAnalysis { get; set; }
         public bool RunResultCounting { get; set; }
@@ -21,22 +20,10 @@ namespace TaskLayer.ChimeraAnalysis
             bool runFdrAnalysis, bool runResultCounting, bool countChimericResults, bool runModificationAnalysis) : base(inputDirectoryPath, overrideFiles, runOnAll)
         {
             RunChimeraBreakdown = runChimeraBreakdown;
-            RunOnAll = runOnAll;
             RunFdrAnalysis = runFdrAnalysis;
             RunResultCounting = runResultCounting;
             CountChimericResults = countChimericResults;
             RunModificationAnalysis = runModificationAnalysis;
-        }
-    }
-
-    public class SingleRunAnalysisParameters : BaseResultAnalyzerTaskParameters
-    {
-        public DistributionPlotTypes PlotType { get; set; }
-        public SingleRunResults RunResult { get; init; }
-        public SingleRunAnalysisParameters(string inputDirectoryPath, bool overrideFiles, bool runOnAll, SingleRunResults runResult, DistributionPlotTypes plotType = DistributionPlotTypes.ViolinPlot) : base(inputDirectoryPath, overrideFiles, runOnAll)
-        {
-            RunResult = runResult;
-            PlotType = plotType;
         }
     }
 }
