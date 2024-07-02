@@ -41,7 +41,6 @@ public static class PlottingTranslators
             Color.fromKeyword(ColorKeyword.DarkMagenta),
             Color.fromKeyword(ColorKeyword.DarkGrey),
         });
-
     }
 
 
@@ -59,11 +58,15 @@ public static class PlottingTranslators
     {
         // Bottom Up
         {"MetaMorpheusWithLibrary", Color.fromKeyword(ColorKeyword.Purple) },
+        {"MetaMorpheus_Chimeras", Color.fromKeyword(ColorKeyword.Purple) },
         {"MetaMorpheusNoChimerasWithLibrary", Color.fromKeyword(ColorKeyword.Plum) },
+        {"MetaMorpheus_NoChimeras", Color.fromKeyword(ColorKeyword.Plum) },
         { "MetaMorpheusFraggerEquivalent_IndividualFilesFraggerEquivalentWithChimeras", Color.fromKeyword(ColorKeyword.Purple) },
+        { "MetaMorpheus_ExternalComparison_Chimeras", Color.fromKeyword(ColorKeyword.Purple) },
         { "MetaMorpheusFraggerEquivalent_IndividualFilesFraggerEquivalentNoChimeras", Color.fromKeyword(ColorKeyword.Plum)  },
-        //{"MsFragger", Color.fromKeyword(ColorKeyword.LightAkyBlue) }, // Old fragger params
-        //{"MsFraggerDDA+", Color.fromKeyword(ColorKeyword.RoyalBlue) },
+        { "MetaMorpheus_ExternalComparison_NoChimeras", Color.fromKeyword(ColorKeyword.Plum)  },
+        {"MsFraggerDDA", Color.fromKeyword(ColorKeyword.LightAkyBlue) }, // Old fragger params
+        {"MsFraggerDDA+", Color.fromKeyword(ColorKeyword.RoyalBlue) },
         {"ReviewdDatabaseNoPhospho_MsFraggerDDA", Color.fromKeyword(ColorKeyword.LightAkyBlue) },
         {"ReviewdDatabaseNoPhospho_MsFragger", Color.fromKeyword(ColorKeyword.LightAkyBlue) },
         {"ReviewdDatabaseNoPhospho_MsFraggerDDA+", Color.fromKeyword(ColorKeyword.RoyalBlue) },
@@ -93,8 +96,11 @@ public static class PlottingTranslators
         {"MetaMorpheus_NewPEP_NoNormNoMult", Color.fromKeyword(ColorKeyword.Purple)},
 
         {"MsPathFinderTWithModsNoChimeras", Color.fromKeyword(ColorKeyword.Moccasin)}, // ecoli
+        {"MsPathFinderT_NoChimeras", Color.fromKeyword(ColorKeyword.Moccasin)}, // ecoli
         {"MsPathFinderTWithMods_7", Color.fromKeyword(ColorKeyword.Gold)},
+        {"MsPathFinderT_7", Color.fromKeyword(ColorKeyword.Gold)},
         {"MsPathFinderTWithMods_15", Color.fromKeyword(ColorKeyword.GoldenRod)},
+        {"MsPathFinderT_15", Color.fromKeyword(ColorKeyword.GoldenRod)},
         {"MsPathFinderTWithModsNoChimerasRep2", Color.fromKeyword(ColorKeyword.Moccasin)}, // jurkat
         {"MsPathFinderTWithMods_7Rep2", Color.fromKeyword(ColorKeyword.Gold)},
         {"MsPathFinderTWithMods_15Rep2", Color.fromKeyword(ColorKeyword.GoldenRod)},
@@ -104,10 +110,13 @@ public static class PlottingTranslators
         {"ProsightPDChimeras_7", Color.fromKeyword(ColorKeyword.Red)},
         {"ProsightPDChimeras_15", Color.fromKeyword(ColorKeyword.Red)},
         {"ProsightPDNoChimeras_Rep2", Color.fromKeyword(ColorKeyword.PaleVioletRed)}, // jurkat
+        {"ProsightPD_NoChimeras", Color.fromKeyword(ColorKeyword.PaleVioletRed)}, // jurkat
         {"ProsightPDChimeras_Rep2", Color.fromKeyword(ColorKeyword.IndianRed)},
         {"ProsightPDChimeras_Rep2_7", Color.fromKeyword(ColorKeyword.IndianRed)},
+        {"ProsightPD_7", Color.fromKeyword(ColorKeyword.IndianRed)},
         {"ProsightPDChimeras_Rep2_7_10ppm", Color.fromKeyword(ColorKeyword.IndianRed)},
         {"ProsightPDChimeras_Rep2_15", Color.fromKeyword(ColorKeyword.DarkRed)},
+        {"ProsightPD_15", Color.fromKeyword(ColorKeyword.DarkRed)},
         {"ProsightPDChimeras_Rep2_15_10ppm", Color.fromKeyword(ColorKeyword.DarkRed)},
 
 
@@ -428,35 +437,48 @@ public static class PlottingTranslators
     {
         // Bottom up
         { "MetaMorpheusWithLibrary", "MetaMorpheus⠀" }, // old
+        { "MetaMorpheus_Chimeras", "MetaMorpheus⠀" }, // old
         { "MetaMorpheusNoChimerasWithLibrary", "MetaMorpheus No Chimeras" }, // old
+        { "MetaMorpheus_NoChimeras", "MetaMorpheus No Chimeras" }, // old
         { "MetaMorpheusFraggerEquivalent_IndividualFilesFraggerEquivalentWithChimeras", "MetaMorpheus⠀" },
+        { "MetaMorpheus_ExternalComparison_Chimeras", "MetaMorpheus⠀" },
         { "MetaMorpheusFraggerEquivalent_IndividualFilesFraggerEquivalentNoChimeras", "MetaMorpheus No Chimeras" },
+        { "MetaMorpheus_ExternalComparison_NoChimeras", "MetaMorpheus No Chimeras" },
         { "ReviewdDatabaseNoPhospho_MsFragger", "MsFragger" },
         { "ReviewdDatabaseNoPhospho_MsFraggerDDA", "MsFragger" },
+        { "MsFraggerDDA", "MsFraggerDDA" },
         { "ReviewdDatabaseNoPhospho_MsFraggerDDA+", "MsFraggerDDA+" },
+        { "MsFraggerDDA+", "MsFraggerDDA+" },
         { "Chimerys", "\u2800Chimerys"},
 
         // Top Down
         { "MetaMorpheus", "MetaMorpheus\u2800" },
         { "MetaMorpheus_Rep2_WithLibrary", "MetaMorpheus\u2800" }, // temp until actual final is finished
         { "MetaMorpheus_Rep2_WithLibrary_NewPEP_NoNorm", "MetaMorpheus\u2800" }, // temp until actual final is finished
+        { "MetaMorpheus_Chimeras", "MetaMorpheus\u2800" }, // temp until actual final is finished
         { "MetaMorpheus_NewPEP_NoNormNoMult", "MetaMorpheus\u2800" }, // temp until actual final is finished
         { "MetaMorpheusNoChimeras", "MetaMorpheus No Chimeras" },
+        { "MetaMorpheus_NoChimeras", "MetaMorpheus No Chimeras" },
 
         { "MsPathFinderTWithModsNoChimeras", "MsPathFinderT  No Chimeras" },
         { "MsPathFinderTWithModsNoChimerasRep2", "MsPathFinderT  No Chimeras" },
-        { "MsPathFinderTWithMods_7", "MsPathFinderT \u28007" },
+        { "MsPathFinderT_NoChimeras", "MsPathFinderT \u28007" },
         { "MsPathFinderTWithMods_7Rep2", "MsPathFinderT \u28007" },
+        { "MsPathFinderT_7", "MsPathFinderT \u28007" },
         { "MsPathFinderTWithMods_15", "MsPathFinderT\u280015" },
         { "MsPathFinderTWithMods_15Rep2", "MsPathFinderT\u280015" },
+        { "MsPathFinderT_15", "MsPathFinderT\u280015" },
 
         {"ProsightPDNoChimeras", "ProsightPD  No Chimeras"},
+        {"ProsightPD_NoChimeras", "ProsightPD  No Chimeras"},
         {"ProsightPDNoChimeras_Rep2", "ProsightPD  No Chimeras"},
         {"ProsightPDChimeras", "ProsightPD \u28007 Chimeras"},
         {"ProsightPDChimeras_Rep2_7_10ppm", "ProsightPD \u28007 Chimeras"},
+        {"ProsightPD_7", "ProsightPD \u28007 Chimeras"},
         {"ProsightPDChimeras_7", "ProsightPD \u28007 Chimeras"},
         {"ProsightPDChimeras_15", "ProsightPD\u280015 Chimeras"},
         {"ProsightPdChimeras_Rep2_15_10ppm", "ProsightPD\u280015 Chimeras"},
+        {"ProsightPD_15", "ProsightPD\u280015 Chimeras"},
     };
 
     private static Dictionary<string, char> ConditionToInvidisbleCharacterDictionary = new();
