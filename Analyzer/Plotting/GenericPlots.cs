@@ -142,12 +142,12 @@ namespace Analyzer.Plotting
         }
 
 
-        internal static GenericChart.GenericChart KernelDensityPlot(List<double> values, string title,
+        public static GenericChart.GenericChart KernelDensityPlot(List<double> values, string title,
             string xTitle = "", string yTitle = "", double bandwidth = 0.2, Kernels kernel = Kernels.Gaussian)
         {
             List<(double, double)> data = new List<(double, double)>();
 
-            foreach (var sample in values.DistinctBy(p => p.Round(3)))
+            foreach (var sample in values.DistinctBy(p => p.Round(3)).OrderBy(p => p))
             {
                 var pdf = kernel switch
                 {
@@ -167,6 +167,33 @@ namespace Analyzer.Plotting
                     .WithXAxisStyle(Title.init(xTitle)/*, new FSharpOption<Tuple<IConvertible, IConvertible>>(new Tuple<IConvertible, IConvertible>(-15, 15))*/)
                     .WithYAxisStyle(Title.init(yTitle))
                     .WithLayout(PlotlyBase.DefaultLayoutWithLegend);
+            return chart;
+        }
+
+        public static GenericChart.GenericChart Histogram(List<double> values, string title, string xTitle = "",
+            string yTitle = "", bool normalize = false)
+        {
+            var chart = Chart.Histogram<double, double, string>(values, Name: title, MarkerColor: title.ConvertConditionToColor(),
+                                   HistNorm: normalize ? StyleParam.HistNorm.Percent : StyleParam.HistNorm.None)
+                .WithSize(400, 400)
+                .WithTitle(title)
+                .WithXAxisStyle(Title.init(xTitle))
+                .WithYAxisStyle(Title.init(yTitle))
+                .WithLayout(PlotlyBase.DefaultLayoutWithLegend);
+            return chart;
+        }
+
+        public static GenericChart.GenericChart BoxPlot(List<double> values, string title, string xTitle = "",
+            string yTitle = "", bool showOutliers = true)
+        {
+            var chart = Chart.BoxPlot<double, string, string>(values, Name: title, MarkerColor: title.ConvertConditionToColor(), 
+                                   BoxPoints: showOutliers ? StyleParam.BoxPoints.Outliers :StyleParam.BoxPoints.False, 
+                                   Orientation: StyleParam.Orientation.Vertical)
+                .WithSize(400, 400)
+                .WithTitle(title)
+                .WithXAxisStyle(Title.init(xTitle))
+                .WithYAxisStyle(Title.init(yTitle))
+                .WithLayout(PlotlyBase.DefaultLayoutWithLegend);
             return chart;
         }
 

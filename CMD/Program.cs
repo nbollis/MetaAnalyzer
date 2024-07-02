@@ -87,7 +87,7 @@ namespace MyApp
                         case MyTask.JenkinsLikeRunParser:
                             var parameters = new JenkinsLikeRunParserTaskParameters(CommandLineArguments.InputDirectory,
                                 CommandLineArguments.OverrideFiles, CommandLineArguments.RunChimeraBreakdown);
-                            task = new JenkinsLikeRunParserTask(parameters);
+                            allTasks.Add(new JenkinsLikeRunParserTask(parameters));
                             break;
 
                         case MyTask.ChimeraPaperTopDown:
@@ -96,7 +96,7 @@ namespace MyApp
                                 CommandLineArguments.RunOnAll, CommandLineArguments.RunFdrAnalysis, 
                                 CommandLineArguments.RunResultCounting, CommandLineArguments.RunChimericCounting,
                                 CommandLineArguments.RunModificationAnalysis);
-                            task = new ChimeraPaperTopDownTask(parameters2);
+                            allTasks.Add(new ChimeraPaperTopDownTask(parameters2));
                             break;
 
                         case MyTask.ChimeraPaperBottomUp:
@@ -105,7 +105,7 @@ namespace MyApp
                                 CommandLineArguments.RunOnAll, CommandLineArguments.RunFdrAnalysis, 
                                 CommandLineArguments.RunResultCounting, CommandLineArguments.RunChimericCounting, 
                                 CommandLineArguments.RunModificationAnalysis);
-                            task = new ChimeraPaperBottomUpTask(parameters3);
+                            allTasks.Add(new ChimeraPaperBottomUpTask(parameters3));
                             break;
 
                         case MyTask.RunSpecificChimeraPaperProcess:
@@ -114,21 +114,35 @@ namespace MyApp
                                 CommandLineArguments.RunOnAll, CommandLineArguments.RunFdrAnalysis,
                                 CommandLineArguments.RunResultCounting, CommandLineArguments.RunChimericCounting,
                                 CommandLineArguments.RunModificationAnalysis);
-                            task = new RunSpecificChimeraPaperProcess(parameters4);
+                            allTasks.Add(new RunSpecificChimeraPaperProcess(parameters4));
                             break;
 
                         case MyTask.SpectralAngleComparisonTask:
-                            var parameters5 = new SingleRunAnalysisParameters(CommandLineArguments.InputDirectory,
-                                                               CommandLineArguments.OverrideFiles, CommandLineArguments.RunOnAll, new MetaMorpheusResult(CommandLineArguments.InputDirectory));
-                            task = new ChimeraPaperSpectralAngleComparisonTask(parameters5);
+                            var mmResult = new MetaMorpheusResult(CommandLineArguments.InputDirectory);
+                            if (CommandLineArguments.RunOnAll)
+                            {
+                                foreach (var distribPlotTypes in Enum.GetValues<DistributionPlotTypes>())
+                                {
+                                    var parameters5 = new SingleRunAnalysisParameters(
+                                        CommandLineArguments.InputDirectory,
+                                        CommandLineArguments.OverrideFiles, CommandLineArguments.RunOnAll, mmResult,
+                                        distribPlotTypes);
+                                    allTasks.Add(new ChimeraPaperSpectralAngleComparisonTask(parameters5));
+                                }
+                            }
+                            else
+                            {
+                                var parameters5 = new SingleRunAnalysisParameters(
+                                    CommandLineArguments.InputDirectory,
+                                    CommandLineArguments.OverrideFiles, CommandLineArguments.RunOnAll, mmResult,
+                                    CommandLineArguments.PlotType);
+                                allTasks.Add(new ChimeraPaperSpectralAngleComparisonTask(parameters5));
+                            }
                             break;
 
                         default:
                             throw new ArgumentOutOfRangeException();
                     }
-
-
-                    allTasks.Add(task);
                 }
 
                 runner = new(allTasks);

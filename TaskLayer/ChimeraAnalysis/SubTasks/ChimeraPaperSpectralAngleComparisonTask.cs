@@ -2,6 +2,7 @@
 using Analyzer.Plotting.Util;
 using Analyzer.SearchType;
 using Analyzer.Util;
+using Plotly.NET;
 using Proteomics.PSM;
 
 namespace TaskLayer.ChimeraAnalysis
@@ -45,13 +46,49 @@ namespace TaskLayer.ChimeraAnalysis
                 }
             }
 
+
+            string outName;
+            GenericChart.GenericChart peptidePlot = null;
             Log("Plotting Peptide Angles");
-            var peptidePlot = GenericPlots.SpectralAngleChimeraComparisonViolinPlot(peptideChimericAngles.ToArray(), peptideNonChimericAngles.ToArray(),
-                "", mm.IsTopDown, ResultType.Peptide);
-            var outName = $"FdrAnalysis_{Labels.GetLabel(mm.IsTopDown, ResultType.Peptide)}_{FileIdentifiers.SpectralAngleFigure}";
+            switch (Parameters.PlotType)
+            {
+                case DistributionPlotTypes.ViolinPlot:
+                    peptidePlot = GenericPlots.SpectralAngleChimeraComparisonViolinPlot(peptideChimericAngles.ToArray(), peptideNonChimericAngles.ToArray(),
+                                               "", mm.IsTopDown, ResultType.Peptide);
+                    outName = $"FdrAnalysis_{Labels.GetLabel(mm.IsTopDown, ResultType.Peptide)}_{FileIdentifiers.SpectralAngleFigure}_ViolinPlot";
+                    break;
+
+                case DistributionPlotTypes.BoxPlot:
+                    peptidePlot = Chart.Combine(new[]
+                    {
+                        GenericPlots.BoxPlot(peptideChimericAngles, "Chimeric",  "Chimeric", "Spectral Angle" ),
+                        GenericPlots.BoxPlot(peptideNonChimericAngles, "Non-Chimeric", "Non-Chimeric", "Spectral Angle")
+                    });
+                    outName = $"FdrAnalysis_{Labels.GetLabel(mm.IsTopDown, ResultType.Peptide)}_{FileIdentifiers.SpectralAngleFigure}_BoxPlot";
+                    break;
+                case DistributionPlotTypes.KernelDensity:
+                    peptidePlot = Chart.Combine(new[]
+                    {
+                        GenericPlots.KernelDensityPlot(peptideChimericAngles, "Chimeric",  "Chimeric", "Spectral Angle" ),
+                        GenericPlots.KernelDensityPlot(peptideNonChimericAngles, "Non-Chimeric", "Non-Chimeric", "Spectral Angle")
+                    });
+                    outName = $"FdrAnalysis_{Labels.GetLabel(mm.IsTopDown, ResultType.Peptide)}_{FileIdentifiers.SpectralAngleFigure}_KernelDensity";
+                    break;
+                case DistributionPlotTypes.Histogram:
+                    peptidePlot = Chart.Combine(new[]
+                    {
+                        GenericPlots.Histogram(peptideChimericAngles, "Chimeric",  "Chimeric", "Spectral Angle" ),
+                        GenericPlots.Histogram(peptideNonChimericAngles, "Non-Chimeric", "Non-Chimeric", "Spectral Angle")
+                    });
+                    outName = $"FdrAnalysis_{Labels.GetLabel(mm.IsTopDown, ResultType.Peptide)}_{FileIdentifiers.SpectralAngleFigure}_Histogram";
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException();
+            }
+
+            peptidePlot = peptidePlot.WithTitle(
+                    $"{mm.DatasetName} MetaMorpheus 1% {Labels.GetLabel(mm.IsTopDown, ResultType.Peptide)} Spectral Angle Distribution");
             peptidePlot.SaveInRunResultOnly(mm, outName, 600, 600);
-
-
 
 
             Log("Reading Psm File");
@@ -75,10 +112,46 @@ namespace TaskLayer.ChimeraAnalysis
                 }
             }
 
+            GenericChart.GenericChart psmPlot = null;
             Log("Plotting Psm Angles");
-            var psmPlot = GenericPlots.SpectralAngleChimeraComparisonViolinPlot(psmChimericAngles.ToArray(), psmNonChimericAngles.ToArray(),
-                "", mm.IsTopDown, ResultType.Psm);
-            outName = $"FdrAnalysis_{Labels.GetLabel(mm.IsTopDown, ResultType.Psm)}_{FileIdentifiers.SpectralAngleFigure}";
+            switch (Parameters.PlotType)
+            {
+                case DistributionPlotTypes.ViolinPlot:
+                    psmPlot = GenericPlots.SpectralAngleChimeraComparisonViolinPlot(peptideChimericAngles.ToArray(), peptideNonChimericAngles.ToArray(),
+                        "", mm.IsTopDown, ResultType.Peptide);
+                    outName = $"FdrAnalysis_{Labels.GetLabel(mm.IsTopDown, ResultType.Psm)}_{FileIdentifiers.SpectralAngleFigure}_ViolinPlot";
+                    break;
+
+                case DistributionPlotTypes.BoxPlot:
+                    psmPlot = Chart.Combine(new[]
+                    {
+                        GenericPlots.BoxPlot(peptideChimericAngles, "Chimeric",  "Chimeric", "Spectral Angle" ),
+                        GenericPlots.BoxPlot(peptideNonChimericAngles, "Non-Chimeric", "Non-Chimeric", "Spectral Angle")
+                    });
+                    outName = $"FdrAnalysis_{Labels.GetLabel(mm.IsTopDown, ResultType.Psm)}_{FileIdentifiers.SpectralAngleFigure}_BoxPlot";
+                    break;
+                case DistributionPlotTypes.KernelDensity:
+                    psmPlot = Chart.Combine(new[]
+                    {
+                        GenericPlots.KernelDensityPlot(peptideChimericAngles, "Chimeric",  "Chimeric", "Spectral Angle" ),
+                        GenericPlots.KernelDensityPlot(peptideNonChimericAngles, "Non-Chimeric", "Non-Chimeric", "Spectral Angle")
+                    });
+                    outName = $"FdrAnalysis_{Labels.GetLabel(mm.IsTopDown, ResultType.Psm)}_{FileIdentifiers.SpectralAngleFigure}_KernelDensity";
+                    break;
+                case DistributionPlotTypes.Histogram:
+                    psmPlot = Chart.Combine(new[]
+                    {
+                        GenericPlots.Histogram(peptideChimericAngles, "Chimeric",  "Chimeric", "Spectral Angle" ),
+                        GenericPlots.Histogram(peptideNonChimericAngles, "Non-Chimeric", "Non-Chimeric", "Spectral Angle")
+                    });
+                    outName = $"FdrAnalysis_{Labels.GetLabel(mm.IsTopDown, ResultType.Psm)}_{FileIdentifiers.SpectralAngleFigure}_Histogram";
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException();
+            }
+
+            psmPlot = psmPlot.WithTitle(
+                                   $"MetaMorpheus 1% {Labels.GetLabel(mm.IsTopDown, ResultType.Psm)} Spectral Angle Distribution");
             psmPlot.SaveInRunResultOnly(mm, outName, 600, 600);
         }
     }

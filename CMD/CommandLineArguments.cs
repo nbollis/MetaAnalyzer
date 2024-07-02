@@ -1,4 +1,5 @@
-﻿using CommandLine;
+﻿using Analyzer.Plotting.Util;
+using CommandLine;
 using TaskLayer;
 
 namespace CMD
@@ -36,6 +37,9 @@ namespace CMD
 
         [Option('m', HelpText = "Run modification analysis", Required = false, Default = false)]
         public bool RunModificationAnalysis { get; set; }
+
+        [Option('p', HelpText = "The plot type", Required = false, Default = DistributionPlotTypes.ViolinPlot)]
+        public DistributionPlotTypes PlotType { get; set; }
 
 
         public void ValidateCommandLineSettings()

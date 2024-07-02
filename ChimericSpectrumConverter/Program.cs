@@ -86,7 +86,7 @@ internal class Program
         {
             runner = new(new List<BaseResultAnalyzerTask>()
             {
-                new ChimericSpectrumConverterTask(new ChimericSpectrumConverterParameters(null, CommandLineArguments.OutputFolder, CommandLineArguments.Spectra, CommandLineArguments.MaxCharge, CommandLineArguments.OverrideFiles, true))
+                new ChimericSpectrumConverterTask(new ChimericSpectrumConverterParameters(null, CommandLineArguments.OutputFolder, CommandLineArguments.Spectra, CommandLineArguments.MaxCharge, CommandLineArguments.OverrideFiles, true, CommandLineArguments.MaxDegreeOfParallelism))
             });
         }
         catch (Exception e)

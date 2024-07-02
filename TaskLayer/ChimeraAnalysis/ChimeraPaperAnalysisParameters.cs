@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Analyzer.Plotting.Util;
 using Analyzer.SearchType;
 
 namespace TaskLayer.ChimeraAnalysis
@@ -30,10 +31,12 @@ namespace TaskLayer.ChimeraAnalysis
 
     public class SingleRunAnalysisParameters : BaseResultAnalyzerTaskParameters
     {
+        public DistributionPlotTypes PlotType { get; set; }
         public SingleRunResults RunResult { get; init; }
-        public SingleRunAnalysisParameters(string inputDirectoryPath, bool overrideFiles, bool runOnAll, SingleRunResults runResult) : base(inputDirectoryPath, overrideFiles, runOnAll)
+        public SingleRunAnalysisParameters(string inputDirectoryPath, bool overrideFiles, bool runOnAll, SingleRunResults runResult, DistributionPlotTypes plotType = DistributionPlotTypes.ViolinPlot) : base(inputDirectoryPath, overrideFiles, runOnAll)
         {
             RunResult = runResult;
+            PlotType = plotType;
         }
     }
 }

@@ -16,6 +16,9 @@ internal class CommandLineArguments
     [Option('z', HelpText = "[Optional] Maximum charge state to consider", Required = false, Default = 60)]
     public int MaxCharge { get; set; }
 
+    [Option('p', HelpText = "[Optional] Maximum degree of parallelism", Required = false, Default = 2)]
+    public int MaxDegreeOfParallelism { get; set; }
+
     public void ValidateCommandLineSettings()
     {
         if (_spectra == null)
