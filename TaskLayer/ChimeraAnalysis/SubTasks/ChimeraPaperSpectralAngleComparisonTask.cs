@@ -95,14 +95,14 @@ namespace TaskLayer.ChimeraAnalysis
 
 
             Log("Reading Psm File");
-            var psms = mm.AllPsms.Where(p => p is { PEP_QValue: <= 0.01, DecoyContamTarget: "T" }).ToArray();
+            var psms = mm.AllPsms.Where(p =>  p is { PEP_QValue: <= 0.01 }).ToArray();
 
             var psmChimericAngles = new List<double>();
             var psmNonChimericAngles = new List<double>();
             Log("Parsing Psm Angles");
             foreach (var chimeraGroup in psms.GroupBy(p => p, CustomComparer<PsmFromTsv>.ChimeraComparer))
             {
-                var filtered = chimeraGroup.Where(p => !p.SpectralAngle.Equals(-1.0) && !p.SpectralAngle.Equals(double.NaN) && !p.SpectralAngle.Equals(null)).ToArray();
+                var filtered = chimeraGroup.Where(p => !p.IsDecoy() && !p.SpectralAngle.Equals(-1.0) && !p.SpectralAngle.Equals(double.NaN) && !p.SpectralAngle.Equals(null)).ToArray();
 
                 if (!filtered.Any()) continue;
                 if (chimeraGroup.Count() == 1)
