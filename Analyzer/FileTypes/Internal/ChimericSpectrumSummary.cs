@@ -4,12 +4,7 @@ using CsvHelper.Configuration;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using CsvHelper;
-using CsvHelper.Configuration.Attributes;
-using Easy.Common.Interfaces;
 using Readers;
 
 namespace Analyzer.FileTypes.Internal
@@ -26,7 +21,7 @@ namespace Analyzer.FileTypes.Internal
         public string Dataset { get; set; }
         public string FileName { get; set; }
         public string Condition { get; set; }
-        public ResultType Type { get; set; }
+        public string Type { get; set; }
 
         // Scan Information
         public int Ms1ScanNumber { get; set; }
@@ -91,7 +86,7 @@ namespace Analyzer.FileTypes.Internal
                          new CustomComparer<ChimericSpectrumSummary>(p => p.Ms2ScanNumber, p => p.FileName, p => p.Type)))
             {
 
-                if (chimeraGroup.First().Type is ResultType.Psm)
+                if (Enum.Parse<ResultType>(chimeraGroup.First().Type) is ResultType.Psm)
                 {
                     yield return new ChimeraBreakdownRecord()
                     {
@@ -99,7 +94,7 @@ namespace Analyzer.FileTypes.Internal
                         FileName = chimeraGroup.First().FileName,
                         Condition = chimeraGroup.First().Condition,
                         Ms2ScanNumber = chimeraGroup.First().Ms2ScanNumber,
-                        Type = chimeraGroup.First().Type,
+                        Type = Enum.Parse<ResultType>(chimeraGroup.First().Type),
                         IsolationMz = chimeraGroup.First().IsolationMz,
                         IdsPerSpectra = chimeraGroup.Count(),
                         Parent = chimeraGroup.Count(p => p.IsParent),
@@ -112,7 +107,7 @@ namespace Analyzer.FileTypes.Internal
                         PsmMasses = chimeraGroup.Select(p => p.PrecursorMass).ToArray(),
                     };
                 }
-                else
+                else if (Enum.Parse<ResultType>(chimeraGroup.First().Type) is ResultType.Peptide)
                 {
                     yield return new ChimeraBreakdownRecord()
                     {
@@ -120,7 +115,7 @@ namespace Analyzer.FileTypes.Internal
                         FileName = chimeraGroup.First().FileName,
                         Condition = chimeraGroup.First().Condition,
                         Ms2ScanNumber = chimeraGroup.First().Ms2ScanNumber,
-                        Type = chimeraGroup.First().Type,
+                        Type = Enum.Parse<ResultType>(chimeraGroup.First().Type),
                         IsolationMz = chimeraGroup.First().IsolationMz,
                         IdsPerSpectra = chimeraGroup.Count(),
                         Parent = chimeraGroup.Count(p => p.IsParent),

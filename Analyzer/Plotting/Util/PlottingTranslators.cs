@@ -437,9 +437,7 @@ public static class PlottingTranslators
     {
         // Bottom up
         { "MetaMorpheusWithLibrary", "MetaMorpheus⠀" }, // old
-        { "MetaMorpheus_Chimeras", "MetaMorpheus⠀" }, // old
         { "MetaMorpheusNoChimerasWithLibrary", "MetaMorpheus No Chimeras" }, // old
-        { "MetaMorpheus_NoChimeras", "MetaMorpheus No Chimeras" }, // old
         { "MetaMorpheusFraggerEquivalent_IndividualFilesFraggerEquivalentWithChimeras", "MetaMorpheus⠀" },
         { "MetaMorpheus_ExternalComparison_Chimeras", "MetaMorpheus⠀" },
         { "MetaMorpheusFraggerEquivalent_IndividualFilesFraggerEquivalentNoChimeras", "MetaMorpheus No Chimeras" },

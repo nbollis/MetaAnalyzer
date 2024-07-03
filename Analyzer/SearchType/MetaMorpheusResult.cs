@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
 using System.Reflection.Metadata.Ecma335;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -9,11 +10,12 @@ using Analyzer.Util;
 using Chemistry;
 using Easy.Common.Extensions;
 using MassSpectrometry;
+using MathNet.Numerics;
 using Proteomics.ProteolyticDigestion;
 using Proteomics.PSM;
 using Proteomics.RetentionTimePrediction;
 using Readers;
-using ThermoFisher.CommonCore.Data.Business;
+using Ms1FeatureFile = Analyzer.FileTypes.External.Ms1FeatureFile;
 
 namespace Analyzer.SearchType
 {
@@ -920,21 +922,69 @@ namespace Analyzer.SearchType
             if (!Override && File.Exists(_chimericSpectrumSummaryFilePath))
                 return new ChimericSpectrumSummaryFile(_chimericSpectrumSummaryFilePath);
 
-            List<string> massSpecFiles = Directory.GetFiles(
-                Path.Combine(@"B:\RawSpectraFiles\Mann_11cell_lines", DatasetName, "CalibratedAveraged"), "*.mzML",
-                SearchOption.AllDirectories).ToList();
-            if (massSpecFiles.Count != 18)
-                throw new ArgumentException("Not all raw files found");
+            // get mass spec files
+            List<string> massSpecFiles = new();
+            List<string> deconFiles = new();
+            var deconDir = Directory.GetDirectories(Path.GetDirectoryName(Path.GetDirectoryName(DirectoryPath)!)!).FirstOrDefault(p => p.Contains("Decon"));
+            string specificDir = IsTopDown ? "" : "FlashDeconv";
+            var fullDeconDirectory = Path.Combine(deconDir, specificDir);
+            switch (DatasetName)
+            {
+                case "Ecoli":
+                    massSpecFiles = Directory
+                        .GetFiles(@"B:\Users\Nic\Chimeras\TopDown_Analysis\Ecoli\SearchResults\MetaMorpheus\Task2-AveragingTask",
+                            "*.mzML").ToList();
+                    deconFiles = Directory.GetFiles(fullDeconDirectory, "*ms1.feature", SearchOption.AllDirectories).ToList();
+
+                    if (massSpecFiles.Count != 43)
+                        throw new ArgumentException("Not all mass spec files were found");
+                    if (deconFiles.Count != 43)
+                        throw new ArgumentException("Not all decon files were found");
+                    break;
+
+                case "Jurkat" when IsTopDown:
+                    massSpecFiles = Directory.GetFiles(@"B:\Users\Nic\Chimeras\TopDown_Analysis\Jurkat\SearchResults\MetaMorpheus\Task2-AveragingTask", "*.mzML",
+                                               SearchOption.AllDirectories).Where(p => p.Contains("rep2")).ToList();
+                    deconFiles = Directory.GetFiles(fullDeconDirectory, "*ms1.feature", SearchOption.AllDirectories).ToList();
+
+                    if (massSpecFiles.Count != 10)
+                        throw new ArgumentException("Not all mass spec files were found");
+                    if (deconFiles.Count != 10)
+                        throw new ArgumentException("Not all decon files were found");
+                    break;
+
+                default: // all bottom up
+                    massSpecFiles = Directory.GetFiles(Path.Combine(@"B:\RawSpectraFiles\Mann_11cell_lines", DatasetName, "CalibratedAveraged"), "*.mzML",
+                        SearchOption.AllDirectories).ToList();
+                    deconFiles = Directory.GetFiles(fullDeconDirectory, "*ms1.feature", SearchOption.AllDirectories).ToList();
+
+                    if (massSpecFiles.Count != 18)
+                        throw new ArgumentException("Not all mass spec files were found");
+
+                    if (deconFiles.Count != 18)
+                        throw new ArgumentException("Not all decon files were found");
+                    break;
+            }
+
+    
+            if (massSpecFiles.Count != deconFiles.Count)
+                throw new ArgumentException("Decon and Mass Spec File count discrepancy");
 
             var chimericSpectra = new List<ChimericSpectrumSummary>();
             foreach (var individualFile in massSpecFiles)
             {
+                // Setup
                 MsDataFile dataFile = FileReader.ReadFile<MsDataFileToResultFileAdapter>(individualFile).LoadAllStaticData();
                 string fileName = Path.GetFileNameWithoutExtension(dataFile.FilePath).ConvertFileName();
                 MetaMorpheusIndividualFileResult? mmResult = IndividualFileResults.FirstOrDefault(p =>
                     p.FileName.Contains(Path.GetFileNameWithoutExtension(dataFile.FilePath).Replace("-calib", "")
                         .Replace("-averaged", ""))) ?? null;
 
+                var deconFilePath = deconFiles.FirstOrDefault(p => p.Contains(
+                    Path.GetFileNameWithoutExtension(dataFile.FilePath)
+                        .Replace("-calib", "")
+                        .Replace("-averaged", "")));
+                Ms1FeatureFile deconFile = new Ms1FeatureFile(deconFilePath);
                 if (mmResult is null)
                     continue;
 
@@ -946,22 +996,33 @@ namespace Analyzer.SearchType
                     .GroupBy(p => p, CustomComparer<PsmFromTsv>.ChimeraComparer)
                     .ToDictionary(p => p.Key.Ms2ScanNumber, p => p.OrderByDescending(p => p.Score)
                         .ThenBy(p => Math.Abs(double.Parse(p.MassDiffDa.Split('|')[0].Trim()))).ToArray());
-                var ms2ScanToDeconResultDictionary = psmDictionaryByScanNumber.SelectMany(p =>
-                        p.Value.Select(m => (m.PrecursorScanNum, m.Ms2ScanNumber)))
-                    .Distinct()
-                    .ToDictionary(p => p.Ms2ScanNumber,
-                        p =>
-                        {
-                            var ms1Scan = dataFile.GetOneBasedScan(p.PrecursorScanNum);
-                            var ms2Scan = dataFile.GetOneBasedScan(p.Ms2ScanNumber);
-                            var envelopes = Deconvoluter.Deconvolute(ms1Scan,
-                                                               new ClassicDeconvolutionParameters(1, 40, 20, 3), ms2Scan.IsolationRange).ToArray();
-                            var minXIndex = ms1Scan.MassSpectrum.GetClosestPeakIndex(ms2Scan.IsolationRange.Minimum);
-                            var maxXIndex = ms1Scan.MassSpectrum.GetClosestPeakIndex(ms2Scan.IsolationRange.Maximum);
-                            var sumOfIntensity = ms1Scan.MassSpectrum.YArray[minXIndex..maxXIndex].Sum();
-                            return (envelopes, sumOfIntensity);
-                        });
 
+                Dictionary<int, (IsotopicEnvelope[] envelopes, double sumOfIntensity)> ms2ScanToMetaMorpheusDeconResultDictionary = new();
+                Dictionary<int, int> ms2canToFlashDeconvResultDictionary = new();
+                var deconParams = new ClassicDeconvolutionParameters(1, IsTopDown ? 60 : 30, 20, 3);
+                dataFile.Scans.Where(p => p.MsnOrder == 2)
+                    .Select(p => (p.OneBasedScanNumber, p.OneBasedPrecursorScanNumber))
+                    .ForEach(scanInformation =>
+                    {
+                        var ms1Scan = dataFile.GetOneBasedScan(scanInformation.OneBasedPrecursorScanNumber!.Value);
+                        var ms2Scan = dataFile.GetOneBasedScan(scanInformation.OneBasedScanNumber);
+                        var envelopes = Deconvoluter.Deconvolute(ms1Scan, deconParams, ms2Scan.IsolationRange)
+                            .ToArray();
+                        var minXIndex = ms1Scan.MassSpectrum.GetClosestPeakIndex(ms2Scan.IsolationRange.Minimum);
+                        var maxXIndex = ms1Scan.MassSpectrum.GetClosestPeakIndex(ms2Scan.IsolationRange.Maximum);
+                        var sumOfIntensity = ms1Scan.MassSpectrum.YArray[minXIndex..maxXIndex].Sum();
+
+                        ms2ScanToMetaMorpheusDeconResultDictionary.Add(scanInformation.OneBasedScanNumber,
+                            (envelopes, sumOfIntensity));
+
+                        int possibleFeatureCount = 0;
+                        foreach (var rtMatchingFeature in deconFile.Where(feature => feature.RetentionTimeBegin <= ms1Scan.RetentionTime && feature.RetentionTimeEnd >= ms1Scan.RetentionTime))
+                            for (int i = rtMatchingFeature.ChargeStateMin; i < rtMatchingFeature.ChargeStateMax; i++)
+                                if (ms2Scan.IsolationRange!.Contains(rtMatchingFeature.Mass.ToMz(i)))
+                                    possibleFeatureCount++;
+
+                        ms2canToFlashDeconvResultDictionary.Add(scanInformation.OneBasedScanNumber, possibleFeatureCount);
+                    });
 
                 foreach (var scan in dataFile.Scans)
                 {
@@ -971,15 +1032,15 @@ namespace Analyzer.SearchType
                     var isolationRange = scan.IsolationRange;
                     if (isolationRange is null)
                         continue;
-
-                    // Determine potential features for this scan
-                    int possibleFeatureCount = 0;
-
                     // if we have chimericPsm identifications for this ms2 scan
                     if (psmDictionaryByScanNumber.TryGetValue(scan.OneBasedScanNumber, out PsmFromTsv[] psms))
                     {
                         PsmFromTsv? parent = null;
-                        var ms1ScanInfo = ms2ScanToDeconResultDictionary[scan.OneBasedScanNumber];
+                        var ms1ScanInfo = ms2ScanToMetaMorpheusDeconResultDictionary[scan.OneBasedScanNumber];
+                        int possibleFeatureCount = ms2canToFlashDeconvResultDictionary[scan.OneBasedScanNumber];
+                        int idPerSpectrum = psms.Count(p => p is { DecoyContamTarget: "T", PEP_QValue: <= 0.01 });
+                        bool isChimeric = idPerSpectrum > 1;
+
                         foreach (var chimericPsm in psms.OrderBy(p => Math.Abs(p.PrecursorMz - scan.IsolationMz.Value)))
                         {
                             var envelope = ms1ScanInfo.envelopes.MinBy(p => Math.Abs(p.MonoisotopicMass - chimericPsm.PrecursorMass));
@@ -992,21 +1053,25 @@ namespace Analyzer.SearchType
                                 Dataset = DatasetName,
                                 FileName = fileName,
                                 Condition = Condition,
-                                Type = Util.ResultType.Psm,
+                                IsChimeric = isChimeric,
+                                PossibleFeatureCount = possibleFeatureCount,
+                                IdPerSpectrum = idPerSpectrum,
+                                Type = Util.ResultType.Psm.ToString(),
                                 Ms2ScanNumber = scan.OneBasedScanNumber,
-                                Ms1ScanNumber = scan.OneBasedPrecursorScanNumber.Value,
-                                IsolationMz = scan.IsolationMz.Value,
+                                Ms1ScanNumber = scan.OneBasedPrecursorScanNumber!.Value,
+                                IsolationMz = scan.IsolationMz!.Value,
+
                                 PEP_QValue = chimericPsm.PEP_QValue,
                                 PrecursorCharge = chimericPsm.PrecursorCharge,
                                 PrecursorMass = chimericPsm.PrecursorMass,
                                 PrecursorMz = chimericPsm.PrecursorMz,
                                 IsDecoy = chimericPsm.DecoyContamTarget == "D",
-                                IsChimeric = psms.Count(p => p.PEP_QValue <= 0.01) > 1,
-                                PossibleFeatureCount = possibleFeatureCount,
-                                IdPerSpectrum = psms.Length,
                                 FractionalIntensity = fractionalIntensity
                             };
 
+                            if (chimericPsm.IsDecoy())
+                                continue;
+                            
                             if (parent is null)
                             {
                                 parent = chimericPsm;
@@ -1027,27 +1092,15 @@ namespace Analyzer.SearchType
                             chimericSpectra.Add(resultToWrite);
                         }
                     }
-                    else
-                    {
-                        var psmResult = new ChimericSpectrumSummary()
-                        {
-                            Dataset = DatasetName,
-                            FileName = fileName,
-                            Condition = Condition,
-                            Type = Util.ResultType.Psm,
-                            Ms2ScanNumber = scan.OneBasedScanNumber,
-                            Ms1ScanNumber = scan.OneBasedPrecursorScanNumber.Value,
-                            IsolationMz = scan.IsolationMz.Value,
-                            PossibleFeatureCount = possibleFeatureCount,
-                        };
-                        chimericSpectra.Add(psmResult);
-                    }
 
                     // repeat for peptides/proteoforms
                     if (peptideDictionaryByScanNumber.TryGetValue(scan.OneBasedScanNumber, out PsmFromTsv[] peptides))
                     {
                         PsmFromTsv? parent = null;
-                        var ms1ScanInfo = ms2ScanToDeconResultDictionary[scan.OneBasedScanNumber];
+                        var ms1ScanInfo = ms2ScanToMetaMorpheusDeconResultDictionary[scan.OneBasedScanNumber];
+                        int possibleFeatureCount = ms2canToFlashDeconvResultDictionary[scan.OneBasedScanNumber];
+                        int idPerSpectrum = peptides.Count(p => p is { DecoyContamTarget: "T", PEP_QValue: <= 0.01 });
+                        bool isChimeric = idPerSpectrum > 1;
                         foreach (var chimericPeptide in peptides.OrderBy(p => Math.Abs(p.PrecursorMz - scan.IsolationMz.Value)))
                         {
                             var envelope = ms1ScanInfo.envelopes.MinBy(p => Math.Abs(p.MonoisotopicMass - chimericPeptide.PrecursorMass));
@@ -1060,20 +1113,24 @@ namespace Analyzer.SearchType
                                 Dataset = DatasetName,
                                 FileName = fileName,
                                 Condition = Condition,
-                                Type = Util.ResultType.Peptide,
+                                IsChimeric = isChimeric,
+                                PossibleFeatureCount = possibleFeatureCount,
+                                IdPerSpectrum = idPerSpectrum,
+                                Type = Util.ResultType.Peptide.ToString(),
                                 Ms2ScanNumber = scan.OneBasedScanNumber,
-                                Ms1ScanNumber = scan.OneBasedPrecursorScanNumber.Value,
-                                IsolationMz = scan.IsolationMz.Value,
+                                Ms1ScanNumber = scan.OneBasedPrecursorScanNumber!.Value,
+                                IsolationMz = scan.IsolationMz!.Value,
+
                                 PEP_QValue = chimericPeptide.PEP_QValue,
                                 PrecursorCharge = chimericPeptide.PrecursorCharge,
                                 PrecursorMass = chimericPeptide.PrecursorMass,
                                 PrecursorMz = chimericPeptide.PrecursorMz,
                                 IsDecoy = chimericPeptide.DecoyContamTarget == "D",
-                                IsChimeric = peptides.Count(p => p.PEP_QValue <= 0.01) > 1,
-                                PossibleFeatureCount = possibleFeatureCount,
-                                IdPerSpectrum = psms.Length,
                                 FractionalIntensity = fractionalIntensity
                             };
+
+                            if (chimericPeptide.IsDecoy())
+                                continue;
 
                             if (parent is null)
                             {
@@ -1095,18 +1152,31 @@ namespace Analyzer.SearchType
                             chimericSpectra.Add(resultToWrite);
                         }
                     }
-                    else
+
+                    if (!peptideDictionaryByScanNumber.TryGetValue(scan.OneBasedScanNumber, out _) &&
+                        !psmDictionaryByScanNumber.TryGetValue(scan.OneBasedScanNumber, out _))
                     {
+                        var envelope = ms2ScanToMetaMorpheusDeconResultDictionary[scan.OneBasedScanNumber].envelopes
+                            .OrderBy(p =>
+                                Math.Abs(p.Peaks.MaxBy(m => m.intensity).mz - scan.IsolationMz!.Value).Round(2))
+                            .ThenByDescending(p => p.Score)
+                            .FirstOrDefault();
+
+                        double fractionalIntensity = 0.0;
+                        if (envelope is not null)
+                            fractionalIntensity = envelope.TotalIntensity / ms2ScanToMetaMorpheusDeconResultDictionary[scan.OneBasedScanNumber].sumOfIntensity;
+
                         var psmResult = new ChimericSpectrumSummary()
                         {
                             Dataset = DatasetName,
                             FileName = fileName,
                             Condition = Condition,
-                            Type = Util.ResultType.Peptide,
+                            Type = "No ID",
                             Ms2ScanNumber = scan.OneBasedScanNumber,
-                            Ms1ScanNumber = scan.OneBasedPrecursorScanNumber.Value,
-                            IsolationMz = scan.IsolationMz.Value,
-                            PossibleFeatureCount = possibleFeatureCount,
+                            Ms1ScanNumber = scan.OneBasedPrecursorScanNumber!.Value,
+                            IsolationMz = scan.IsolationMz!.Value,
+                            PossibleFeatureCount = ms2canToFlashDeconvResultDictionary[scan.OneBasedScanNumber],
+                            FractionalIntensity = fractionalIntensity
                         };
                         chimericSpectra.Add(psmResult);
                     }
@@ -1114,14 +1184,17 @@ namespace Analyzer.SearchType
             }
 
 
-            var file = new ChimericSpectrumSummaryFile(_chimericSpectrumSummaryFilePath) { Results = chimericSpectra };
+            var file = new ChimericSpectrumSummaryFile(_chimericSpectrumSummaryFilePath)
+            {
+                Results = chimericSpectra
+                    .OrderBy(p => p.Dataset)
+                    .ThenBy(p => p.FileName)
+                    .ThenBy(p => p.Type)
+                    .ToList()
+            };
             file.WriteResults(_chimericSpectrumSummaryFilePath);
             return file;
         }
-
-
-
-
 
         public new void Dispose()
         {

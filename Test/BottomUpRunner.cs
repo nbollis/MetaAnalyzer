@@ -155,22 +155,22 @@ namespace Test
 
 
 
-                var maxEstDict = cellLine.MaximumChimeraEstimationFile?.Results
-                    .GroupBy(p => p.FileName)
-                    .ToDictionary(p => p.Key, p => p.ToArray());
-                foreach (var summary in file.GroupBy(p => p.Ms2ScanNumber))
-                {
-                    var representative = summary.First();
+                //var maxEstDict = cellLine.MaximumChimeraEstimationFile?.Results
+                //    .GroupBy(p => p.FileName)
+                //    .ToDictionary(p => p.Key, p => p.ToArray());
+                //foreach (var summary in file.GroupBy(p => p.Ms2ScanNumber))
+                //{
+                //    var representative = summary.First();
 
-                    foreach (var chimericSpectrumSummary in summary)
-                    {
-                        chimericSpectrumSummary.PossibleFeatureCount =
-                            maxEstDict?[representative.FileName]
-                                .FirstOrDefault(p => p.Ms2ScanNumber == representative.Ms2ScanNumber)?
-                                .PossibleFeatureCount ?? 0;
-                    }
-                }
-                file.WriteResults(run._chimericSpectrumSummaryFilePath);
+                //    foreach (var chimericSpectrumSummary in summary)
+                //    {
+                //        chimericSpectrumSummary.PossibleFeatureCount =
+                //            maxEstDict?[representative.FileName]
+                //                .FirstOrDefault(p => p.Ms2ScanNumber == representative.Ms2ScanNumber)?
+                //                .PossibleFeatureCount ?? 0;
+                //    }
+                //}
+                //file.WriteResults(run._chimericSpectrumSummaryFilePath);
             }
         }
 

@@ -18,7 +18,7 @@
         public static string BulkResultComparisonMultipleFilters => "ResultComparisonManyFilters.csv";
         public static string IndividualFileComparisonMultipleFilters => "IndividualFileResultComparisonManyFilters.csv";
         public static string MaximumChimeraEstimate => "MaximumChimeraEstimate.csv";
-        public static string ChimericSpectrumSummary => "ChimericSpectrumSummar.csv";
+        public static string ChimericSpectrumSummary => "ChimericSpectrumSummary.csv";
         public static string MaximumChimeraEstimateCalibAveraged => "MaximumChimeraEstimateCalibAveragedHybrid.csv";
         
         
