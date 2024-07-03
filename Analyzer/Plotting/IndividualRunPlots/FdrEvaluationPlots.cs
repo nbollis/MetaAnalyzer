@@ -193,7 +193,7 @@ namespace Analyzer.Plotting.IndividualRunPlots
         {
             string exportPath = $"{FileIdentifiers.PepGridChartFigure}_{results.DatasetName}_{condition ?? results.Condition}";
             var plot = results.GetPepFeaturesScatterGrid(condition);
-            plot.SaveInRunResultOnly(results, exportPath, 800, 800);
+            plot.SaveInRunResultOnly(results, exportPath, 1200, 1600);
         }
 
         internal static GenericChart.GenericChart GetPepFeaturesScatterGrid(this MetaMorpheusResult results,

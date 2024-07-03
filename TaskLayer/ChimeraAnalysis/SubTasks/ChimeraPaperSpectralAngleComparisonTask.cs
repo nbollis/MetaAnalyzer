@@ -26,6 +26,7 @@ namespace TaskLayer.ChimeraAnalysis
             if (Parameters.RunResult is not MetaMorpheusResult mm)
                 return;
 
+            // TODO: Make this operate on individual file results as opposed to the global
             Log("Reading Peptides File");
             var peptides = mm.AllPeptides.Where(p => p is { PEP_QValue: <= 0.01}).ToArray();
 

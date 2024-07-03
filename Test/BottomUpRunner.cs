@@ -146,11 +146,12 @@ namespace Test
             //var cellLine = new CellLineResults(Path.Combine(DirectoryPath, "A549"));
             
 
-            foreach (var cellLine in AllResults.Skip(1))
+            foreach (var cellLine in AllResults)
             {
                 var run = (MetaMorpheusResult)cellLine.First(p => cellLine.GetSingleResultSelector().Contains(p.Condition));
                 run.Override = true;
-                var file = run.GetChimericSpectrumSummaryFile();
+                _ = run.GetChimericSpectrumSummaryFile();
+                _ = run.GetChimeraBreakdownFile();
                 run.Override = false;
 
 

@@ -354,7 +354,7 @@ namespace Analyzer.SearchType
             bool useIsolation;
             List<ChimeraBreakdownRecord> chimeraBreakDownRecords = new();
             // PSMs or PrSMs
-            foreach (var fileGroup in AllPsms
+            foreach (var fileGroup in IndividualFileResults.SelectMany(p => p.AllPsms)
                          .Where(p => p.PEP_QValue <= 0.01)
                          .GroupBy(p => p.FileNameWithoutExtension))
             {
@@ -441,7 +441,7 @@ namespace Analyzer.SearchType
 
 
             // Peptides or Proteoforms
-            foreach (var fileGroup in AllPeptides
+            foreach (var fileGroup in IndividualFileResults.SelectMany(p => p.AllPeptides)
                          .Where(p => p.PEP_QValue <= 0.01)
                          .GroupBy(p => p.FileNameWithoutExtension))
             {

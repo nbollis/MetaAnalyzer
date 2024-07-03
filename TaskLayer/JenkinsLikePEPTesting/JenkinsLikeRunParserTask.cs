@@ -21,7 +21,7 @@ public class JenkinsLikeRunParserTask : BaseResultAnalyzerTask
     {
         var allResults = BuildResultsObjects();
 
-        foreach (var groupRun in allResults.Skip(3))
+        foreach (var groupRun in allResults)
         {
             Log($"Starting Processing of {groupRun.CellLine}");
             foreach (var singleRunResults in groupRun)
