@@ -51,7 +51,7 @@ namespace Analyzer.Plotting
             var columns = 3;
             var rows = (int)Math.Ceiling(totalPlots / (double)columns);
 
-            exportHeight = 300 * rows;
+            exportHeight = 400 * rows;
             exportWidth = 300 * columns;
             var grid = Chart.Grid(scatters, rows, columns)
                 .WithSize(exportWidth, exportHeight);
@@ -93,6 +93,7 @@ namespace Analyzer.Plotting
                 new PepSplomData("PrecursorEnvelopeScore", false),
                 new PepSplomData("ChimeraCount", true),
                 new PepSplomData("MostAbundantPrecursorPeakIntensity", false),
+                new PepSplomData("PrecursorFractionalIntensity", false),
 
                 new PepSplomData("HasSpectralAngle", true),
                 new PepSplomData("SpectralAngle", false),

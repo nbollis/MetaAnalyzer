@@ -146,7 +146,7 @@ namespace Test
             //var cellLine = new CellLineResults(Path.Combine(DirectoryPath, "A549"));
             
 
-            foreach (var cellLine in AllResults)
+            foreach (var cellLine in AllResults.Skip(1))
             {
                 var run = (MetaMorpheusResult)cellLine.First(p => cellLine.GetSingleResultSelector().Contains(p.Condition));
                 run.Override = true;

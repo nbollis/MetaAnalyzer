@@ -148,6 +148,10 @@ namespace Analyzer.FileTypes.Internal
         [Name("MostAbundantPrecursorPeakIntensity")]
         public double MostAbundantPrecursorPeakIntensity { get; set; }
 
+        [Optional]
+        [Name("PrecursorFractionalIntensity")]
+        public double PrecursorFractionalIntensity { get; set; }
+
         [Ignore] public bool IsDecoy => Label == -1;
     }
 }

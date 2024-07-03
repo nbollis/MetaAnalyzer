@@ -2,6 +2,7 @@
 using Analyzer.Plotting.Util;
 using Analyzer.SearchType;
 using Analyzer.Util;
+using Easy.Common.Extensions;
 using Plotly.NET;
 using Proteomics.PSM;
 
@@ -26,19 +27,21 @@ namespace TaskLayer.ChimeraAnalysis
                 return;
 
             Log("Reading Peptides File");
-            var peptides = mm.AllPeptides.Where(p => p is { PEP_QValue: <= 0.01, DecoyContamTarget: "T" }).ToArray();
+            var peptides = mm.AllPeptides.Where(p => p is { PEP_QValue: <= 0.01}).ToArray();
 
             var peptideChimericAngles = new List<double>();
             var peptideNonChimericAngles = new List<double>();
             Log("Parsing Peptide Spectral Angles");
             foreach (var chimeraGroup in peptides.GroupBy(p => p, CustomComparer<PsmFromTsv>.ChimeraComparer))
             {
-                var filtered = chimeraGroup.Where(p => !p.SpectralAngle.Equals(-1.0) && !p.SpectralAngle.Equals(double.NaN) && !p.SpectralAngle.Equals(null)).ToArray();
+                var filtered = chimeraGroup.Where(p => !p.IsDecoy() && !p.SpectralAngle.Equals(-1.0) && !p.SpectralAngle.Equals(double.NaN) && !p.SpectralAngle.Equals(null)).ToArray();
 
                 if (!filtered.Any()) continue;
                 if (chimeraGroup.Count() == 1)
                 {
-                    peptideNonChimericAngles.AddRange(filtered.Select(p => p.SpectralAngle!.Value));
+                    var first = filtered.First();
+                    if (first.SpectralAngle.HasValue)
+                        peptideNonChimericAngles.Add(first.SpectralAngle!.Value);
                 }
                 else
                 {

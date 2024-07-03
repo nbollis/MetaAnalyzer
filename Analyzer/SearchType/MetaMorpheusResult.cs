@@ -983,7 +983,8 @@ namespace Analyzer.SearchType
                 var deconFilePath = deconFiles.FirstOrDefault(p => p.Contains(
                     Path.GetFileNameWithoutExtension(dataFile.FilePath)
                         .Replace("-calib", "")
-                        .Replace("-averaged", "")));
+                        .Replace("-averaged", "")
+                        .Replace("_101229143203", "")));
                 Ms1FeatureFile deconFile = new Ms1FeatureFile(deconFilePath);
                 if (mmResult is null)
                     continue;
