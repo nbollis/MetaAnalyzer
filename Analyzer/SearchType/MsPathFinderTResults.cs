@@ -200,8 +200,6 @@ namespace Analyzer.SearchType
             sw.Dispose();
         }
 
-
-
         private string _chimeraBreakDownPath => Path.Combine(DirectoryPath, $"{DatasetName}_{Condition}_{FileIdentifiers.ChimeraBreakdownComparison}");
         private ChimeraBreakdownFile? _chimeraBreakdownFile;
         public ChimeraBreakdownFile ChimeraBreakdownFile => _chimeraBreakdownFile ??= GetChimeraBreakdownFile();

@@ -19,20 +19,20 @@ namespace Analyzer.SearchType
         private MsFraggerProteinFile _proteinFile;
         public MsFraggerProteinFile CombinedProteins => _proteinFile ??= new MsFraggerProteinFile(ProteinPath);
 
-        #region Base Sequence Only Filtering
+        //#region Base Sequence Only Filtering
 
-        private string _peptideBaseSeqPath;
+        //private string _peptideBaseSeqPath;
 
-        private MsFraggerPeptideFile _peptideBaseSeqFile;
-        public MsFraggerPeptideFile CombinedPeptideBaseSeq => _peptideBaseSeqFile ??= CombinePeptideFiles(_peptideBaseSeqPath);
+        //private MsFraggerPeptideFile _peptideBaseSeqFile;
+        //public MsFraggerPeptideFile CombinedPeptideBaseSeq => _peptideBaseSeqFile ??= CombinePeptideFiles(_peptideBaseSeqPath);
 
-        #endregion
+        //#endregion
 
         public MsFraggerResult(string directoryPath) : base(directoryPath)
         {
             PsmPath = Path.Combine(DirectoryPath, "Combined_psm.tsv");
             PeptidePath = Path.Combine(DirectoryPath, "combined_peptide.tsv");
-            _peptideBaseSeqPath = Path.Combine(DirectoryPath, "Combined_BaseSequence_peptide.tsv");
+            //_peptideBaseSeqPath = Path.Combine(DirectoryPath, "Combined_BaseSequence_peptide.tsv");
             ProteinPath = Path.Combine(DirectoryPath, "combined_protein.tsv");
 
             IndividualFileResults = new List<MsFraggerIndividualFileResult>();
@@ -55,10 +55,6 @@ namespace Analyzer.SearchType
             if (!Override && File.Exists(PsmPath))
                 return new MsFraggerPsmFile(PsmPath);
 
-            var msFraggerResultFiles =
-                Directory.GetFiles(DirectoryPath, "*psm.tsv", SearchOption.AllDirectories)
-                    .Where(p => !p.Contains("Combined"));
-
             var results = new List<MsFraggerPsm>();
             foreach (var file in IndividualFileResults.Select(p => p.PsmFile))
             {
@@ -69,32 +65,6 @@ namespace Analyzer.SearchType
             var combinedMsFraggerPsmFile = new MsFraggerPsmFile(PsmPath) { Results = results };
             combinedMsFraggerPsmFile.WriteResults(PsmPath);
             return combinedMsFraggerPsmFile;
-        }
-
-        public MsFraggerPeptideFile CombinePeptideFiles(string path = null)
-        {
-            path ??= PeptidePath;
-            if (!Override && File.Exists(path))
-                return new MsFraggerPeptideFile(path);
-
-            var results = new List<MsFraggerPeptide>();
-            foreach (var file in IndividualFileResults.Select(p => p.PeptideFile))
-            {
-                file.LoadResults();
-                results.AddRange(file.Results);
-            }
-
-            var distinct = path.Contains("BaseS") 
-                ? results.GroupBy(p => p.BaseSequence)
-                .Select(p => p.MaxBy(result => result.Probability))
-                .ToList()
-                : results.GroupBy(p => p, CustomComparer<MsFraggerPeptide>.MsFraggerPeptideDistinctComparer)
-                .Select(p => p.MaxBy(result => result.Probability))
-                .ToList();
-
-            var combinedMsFraggerPeptideFile = new MsFraggerPeptideFile(path) { Results = distinct };
-            combinedMsFraggerPeptideFile.WriteResults(path);
-            return combinedMsFraggerPeptideFile;
         }
 
         /// <summary>
@@ -179,7 +149,7 @@ namespace Analyzer.SearchType
             if (!Override && File.Exists(path))
                 return new BulkResultCountComparisonFile(path);
 
-            var peptideFile = path.Contains("BaseS") ? CombinedPeptideBaseSeq : CombinedPeptides;
+            var peptideFile = /*path.Contains("BaseS") ? CombinedPeptideBaseSeq :*/ CombinedPeptides;
             var psmsCount = CombinedPsms.Results.Count;
             var peptidesCount = peptideFile.Results.Count;
 

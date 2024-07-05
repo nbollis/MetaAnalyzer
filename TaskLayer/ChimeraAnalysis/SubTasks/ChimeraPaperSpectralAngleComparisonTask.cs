@@ -26,30 +26,29 @@ namespace TaskLayer.ChimeraAnalysis
             if (Parameters.RunResult is not MetaMorpheusResult mm)
                 return;
 
-            // TODO: Make this operate on individual file results as opposed to the global
-            Log("Reading Peptides File");
-            var peptides = mm.AllPeptides.Where(p => p is { PEP_QValue: <= 0.01}).ToArray();
-
             var peptideChimericAngles = new List<double>();
             var peptideNonChimericAngles = new List<double>();
             Log("Parsing Peptide Spectral Angles");
-            foreach (var chimeraGroup in peptides.GroupBy(p => p, CustomComparer<PsmFromTsv>.ChimeraComparer))
+            foreach (var individualFileResult in mm.IndividualFileResults)
             {
-                var filtered = chimeraGroup.Where(p => !p.IsDecoy() && !p.SpectralAngle.Equals(-1.0) && !p.SpectralAngle.Equals(double.NaN) && !p.SpectralAngle.Equals(null)).ToArray();
+                foreach (var chimeraGroup in individualFileResult.AllPeptides.Where(p => p is { PEP_QValue: <= 0.01 })
+                             .GroupBy(p => p, CustomComparer<PsmFromTsv>.ChimeraComparer))
+                {
+                    var filtered = chimeraGroup.Where(p => !p.IsDecoy() && !p.SpectralAngle.Equals(-1.0) && !p.SpectralAngle.Equals(double.NaN) && !p.SpectralAngle.Equals(null)).ToArray();
 
-                if (!filtered.Any()) continue;
-                if (chimeraGroup.Count() == 1)
-                {
-                    var first = filtered.First();
-                    if (first.SpectralAngle.HasValue)
-                        peptideNonChimericAngles.Add(first.SpectralAngle!.Value);
-                }
-                else
-                {
-                    peptideChimericAngles.AddRange(filtered.Select(p => p.SpectralAngle!.Value));
+                    if (!filtered.Any()) continue;
+                    if (chimeraGroup.Count() == 1)
+                    {
+                        var first = filtered.First();
+                        if (first.SpectralAngle.HasValue)
+                            peptideNonChimericAngles.Add(first.SpectralAngle!.Value);
+                    }
+                    else
+                    {
+                        peptideChimericAngles.AddRange(filtered.Select(p => p.SpectralAngle!.Value));
+                    }
                 }
             }
-
 
             string outName;
             GenericChart.GenericChart peptidePlot = null;
@@ -95,24 +94,27 @@ namespace TaskLayer.ChimeraAnalysis
             peptidePlot.SaveInRunResultOnly(mm, outName, 600, 600);
 
 
-            Log("Reading Psm File");
-            var psms = mm.AllPsms.Where(p =>  p is { PEP_QValue: <= 0.01 }).ToArray();
-
             var psmChimericAngles = new List<double>();
             var psmNonChimericAngles = new List<double>();
             Log("Parsing Psm Angles");
-            foreach (var chimeraGroup in psms.GroupBy(p => p, CustomComparer<PsmFromTsv>.ChimeraComparer))
+            foreach (var individualFileResult in mm.IndividualFileResults)
             {
-                var filtered = chimeraGroup.Where(p => !p.IsDecoy() && !p.SpectralAngle.Equals(-1.0) && !p.SpectralAngle.Equals(double.NaN) && !p.SpectralAngle.Equals(null)).ToArray();
+                foreach (var chimeraGroup in individualFileResult.AllPsms.Where(p => p is { PEP_QValue: <= 0.01 })
+                             .GroupBy(p => p, CustomComparer<PsmFromTsv>.ChimeraComparer))
+                {
+                    var filtered = chimeraGroup.Where(p =>
+                        !p.IsDecoy() && !p.SpectralAngle.Equals(-1.0) && !p.SpectralAngle.Equals(double.NaN) &&
+                        !p.SpectralAngle.Equals(null)).ToArray();
 
-                if (!filtered.Any()) continue;
-                if (chimeraGroup.Count() == 1)
-                {
-                    psmNonChimericAngles.AddRange(filtered.Select(p => p.SpectralAngle!.Value));
-                }
-                else
-                {
-                    psmChimericAngles.AddRange(filtered.Select(p => p.SpectralAngle!.Value));
+                    if (!filtered.Any()) continue;
+                    if (chimeraGroup.Count() == 1)
+                    {
+                        psmNonChimericAngles.AddRange(filtered.Select(p => p.SpectralAngle!.Value));
+                    }
+                    else
+                    {
+                        psmChimericAngles.AddRange(filtered.Select(p => p.SpectralAngle!.Value));
+                    }
                 }
             }
 

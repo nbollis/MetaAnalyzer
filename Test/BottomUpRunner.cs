@@ -144,9 +144,10 @@ namespace Test
             string cellLineString = "A549";
             //var cellLine = AllResults.First(p => p.CellLine == cellLineString);
             //var cellLine = new CellLineResults(Path.Combine(DirectoryPath, "A549"));
-            
+            AllResults.CellLineResults[1].PlotCellLineChimeraBreakdown();
+            AllResults.CellLineResults[1].PlotCellLineChimeraBreakdown_TargetDecoy();
 
-            foreach (var cellLine in AllResults)
+            foreach (var cellLine in AllResults.Skip(2))
             {
                 var run = (MetaMorpheusResult)cellLine.First(p => cellLine.GetSingleResultSelector().Contains(p.Condition));
                 run.Override = true;
@@ -156,22 +157,6 @@ namespace Test
 
 
 
-                //var maxEstDict = cellLine.MaximumChimeraEstimationFile?.Results
-                //    .GroupBy(p => p.FileName)
-                //    .ToDictionary(p => p.Key, p => p.ToArray());
-                //foreach (var summary in file.GroupBy(p => p.Ms2ScanNumber))
-                //{
-                //    var representative = summary.First();
-
-                //    foreach (var chimericSpectrumSummary in summary)
-                //    {
-                //        chimericSpectrumSummary.PossibleFeatureCount =
-                //            maxEstDict?[representative.FileName]
-                //                .FirstOrDefault(p => p.Ms2ScanNumber == representative.Ms2ScanNumber)?
-                //                .PossibleFeatureCount ?? 0;
-                //    }
-                //}
-                //file.WriteResults(run._chimericSpectrumSummaryFilePath);
             }
         }
 

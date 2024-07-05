@@ -29,6 +29,32 @@ namespace Analyzer.FileTypes.Internal
         [Optional] public int OnePercentUnambiguousPsmCount { get; set; }
         [Optional] public int OnePercentUnambiguousPeptideCount { get; set; }
 
+
+        // addition operator to sum all integer components
+        public static BulkResultCountComparison operator +(BulkResultCountComparison a, BulkResultCountComparison b)
+        {
+            if (a.DatasetName != b.DatasetName)
+                throw new System.ArgumentException("Datasets must be the same to add counts");
+            
+            if (a.Condition != b.Condition)
+                throw new System.ArgumentException("Conditions must be the same to add counts");
+
+            return new BulkResultCountComparison
+            {
+                DatasetName = a.DatasetName,
+                FileName = "Summed",
+                Condition = a.Condition,
+                PsmCount = a.PsmCount + b.PsmCount,
+                PeptideCount = a.PeptideCount + b.PeptideCount,
+                ProteinGroupCount = a.ProteinGroupCount + b.ProteinGroupCount,
+                OnePercentPsmCount = a.OnePercentPsmCount + b.OnePercentPsmCount,
+                OnePercentPeptideCount = a.OnePercentPeptideCount + b.OnePercentPeptideCount,
+                OnePercentProteinGroupCount = a.OnePercentProteinGroupCount + b.OnePercentProteinGroupCount,
+                OnePercentUnambiguousPsmCount = a.OnePercentUnambiguousPsmCount + b.OnePercentUnambiguousPsmCount,
+                OnePercentUnambiguousPeptideCount = a.OnePercentUnambiguousPeptideCount + b.OnePercentUnambiguousPeptideCount
+            };
+        }
+
         public bool Equals(BulkResultCountComparison? other)
         {
             if (ReferenceEquals(null, other)) return false;

@@ -163,14 +163,31 @@ namespace Analyzer.SearchType
             if (File.Exists(_chimeraPsmPath))
                 return new ChimeraCountingFile(_chimeraPsmPath);
 
-            var psms = AllPsms.Where(p => p.DecoyContamTarget == "T").ToList();
-            var allPsmCounts = psms.ToChimeraGroupedDictionary()
-                .ToDictionary(p => p.Key, p => p.Value.Count());
-            var onePercentFdrPsmCounts = psms.Where(p => p.PEP_QValue <= 0.01)
-                .ToChimeraGroupedDictionary()
-                .ToDictionary(p => p.Key, p => p.Value.Count());
-            var results = allPsmCounts.Keys.Select(count => new ChimeraCountingResult(count, allPsmCounts[count],
-                onePercentFdrPsmCounts.TryGetValue(count, out var psmCount) ? psmCount : 0, DatasetName, Condition)).ToList();
+            Dictionary<int, int> allPsmsCount = new();
+            Dictionary<int, int> onePercentPsmCount = new();
+            foreach (var individualFile in IndividualFileResults)
+            {
+                var targets = individualFile.AllPsms.Where(p => p.DecoyContamTarget == "T").ToList();
+                foreach (var chimeraGroup in targets.ToChimeraGroupedDictionary())
+                {
+                    if (allPsmsCount.ContainsKey(chimeraGroup.Key))
+                        allPsmsCount[chimeraGroup.Key] += chimeraGroup.Value.Count;
+                    else
+                        allPsmsCount.Add(chimeraGroup.Key, chimeraGroup.Value.Count);
+                }
+
+                foreach (var onePercentChimeraGroup in targets.Where(p => p.PEP_QValue <= 0.01).ToChimeraGroupedDictionary())
+                {
+                    if (onePercentPsmCount.ContainsKey(onePercentChimeraGroup.Key))
+                        onePercentPsmCount[onePercentChimeraGroup.Key] += onePercentChimeraGroup.Value.Count;
+                    else
+                        onePercentPsmCount.Add(onePercentChimeraGroup.Key, onePercentChimeraGroup.Value.Count);
+                }
+            }
+
+
+            var results = allPsmsCount.Keys.Select(count => new ChimeraCountingResult(count, allPsmsCount[count],
+                onePercentPsmCount.GetValueOrDefault(count, 0), DatasetName, Condition)).ToList();
 
             var chimeraCountingFile = new ChimeraCountingFile(_chimeraPsmPath) { Results = results };
             chimeraCountingFile.WriteResults(_chimeraPsmPath);
@@ -185,91 +202,38 @@ namespace Analyzer.SearchType
             if (!Override && File.Exists(_chimeraPeptidePath))
                 return new ChimeraCountingFile(_chimeraPeptidePath);
 
-            var peptides = AllPeptides.Where(p => p.DecoyContamTarget == "T").ToList();
-            var allPeptideCounts = peptides.ToChimeraGroupedDictionary()
-                .ToDictionary(p => p.Key, p => p.Value.Count());
-            var onePercentFdrPeptideCounts = peptides.Where(p => p.PEP_QValue <= 0.01)
-                .ToChimeraGroupedDictionary()
-                .ToDictionary(p => p.Key, p => p.Value.Count());
-            var results = allPeptideCounts.Keys.Select(count => new ChimeraCountingResult(count, allPeptideCounts[count],
-                               onePercentFdrPeptideCounts.TryGetValue(count, out var peptideCount) ? peptideCount : 0, DatasetName, Condition)).ToList();
+
+            Dictionary<int, int> allPeptideCount = new();
+            Dictionary<int, int> onePercentPeptideCount = new();
+            foreach (var individualFile in IndividualFileResults)
+            {
+                var targets = individualFile.AllPeptides.Where(p => p.DecoyContamTarget == "T").ToList();
+                foreach (var chimeraGroup in targets.ToChimeraGroupedDictionary())
+                {
+                    if (allPeptideCount.ContainsKey(chimeraGroup.Key))
+                        allPeptideCount[chimeraGroup.Key] += chimeraGroup.Value.Count;
+                    else
+                        allPeptideCount.Add(chimeraGroup.Key, chimeraGroup.Value.Count);
+                }
+
+                foreach (var onePercentChimeraGroup in targets.Where(p => p.PEP_QValue <= 0.01).ToChimeraGroupedDictionary())
+                {
+                    if (onePercentPeptideCount.ContainsKey(onePercentChimeraGroup.Key))
+                        onePercentPeptideCount[onePercentChimeraGroup.Key] += onePercentChimeraGroup.Value.Count;
+                    else
+                        onePercentPeptideCount.Add(onePercentChimeraGroup.Key, onePercentChimeraGroup.Value.Count);
+                }
+            }
+
+
+            var results = allPeptideCount.Keys.Select(count => new ChimeraCountingResult(count, allPeptideCount[count],
+                onePercentPeptideCount.GetValueOrDefault(count, 0), DatasetName, Condition)).ToList();
 
             var chimeraCountingFile = new ChimeraCountingFile(_chimeraPeptidePath) { Results = results };
             chimeraCountingFile.WriteResults(_chimeraPeptidePath);
             return chimeraCountingFile;
         }
-        public BulkResultCountComparisonFile CountIndividualFilesForFengChaoComparison()
-        {
-            if (!Override && File.Exists(_baseSeqIndividualFilePath))
-                return new BulkResultCountComparisonFile(_baseSeqIndividualFilePath);
-
-            var indFileDir =
-                Directory.GetDirectories(DirectoryPath, "Individual File Results", SearchOption.AllDirectories);
-            if (indFileDir.Length == 0)
-                return null;
-            
-            var indFileDirectory = indFileDir.First();
-                
-            var fileNames = Directory.GetFiles(indFileDirectory, "*tsv");
-            List<BulkResultCountComparison> results = new List<BulkResultCountComparison>();
-            foreach (var individualFile in fileNames.GroupBy(p => Path.GetFileNameWithoutExtension(p).Split('-')[0])
-                         .ToDictionary(p => p.Key, p => p.ToList()))
-            {
-                string psm = individualFile.Value.First(p => p.Contains("PSM"));
-                string peptide = individualFile.Value.First(p => p.Contains("Peptide"));
-                string protein = individualFile.Value.First(p => p.Contains("Protein"));
-
-                var spectralmatches = AllPsms
-                    .Where(p => p.DecoyContamTarget == "T").ToList();
-                var peptides = SpectrumMatchTsvReader.ReadPsmTsv(peptide, out _)
-                    .Where(p => p.DecoyContamTarget == "T")
-                    .DistinctBy(p => p.BaseSeq).ToList();
-
-                int count = 0;
-                int onePercentCount = 0;
-                using (var sw = new StreamReader(File.OpenRead(protein)))
-                {
-                    var header = sw.ReadLine();
-                    var headerSplit = header.Split('\t');
-                    var qValueIndex = Array.IndexOf(headerSplit, "Protein QValue");
-                    
-
-                    while (!sw.EndOfStream)
-                    {
-                        var line = sw.ReadLine();
-                        var values = line.Split('\t');
-                        count++;
-                        if (double.Parse(values[qValueIndex]) <= 0.01)
-                            onePercentCount++;
-                    }
-                }
-
-                int psmCount = spectralmatches.Count;
-                int onePercentPsmCount = spectralmatches.Count(p => p.PEP_QValue <= 0.01);
-                int peptideCount = peptides.Count;
-                int onePercentPeptideCount = peptides.Count(p => p.PEP_QValue <= 0.01);
-                int onePercentPeptideCountQ = peptides.Count(p => p.QValue <= 0.01);
-
-                results.Add( new BulkResultCountComparison()
-                {
-                    DatasetName = DatasetName,
-                    Condition = Condition,
-                    FileName = individualFile.Key,
-                    PsmCount = psmCount,
-                    PeptideCount = peptideCount,
-                    ProteinGroupCount = count,
-                    OnePercentPsmCount = onePercentPsmCount,
-                    OnePercentPeptideCount = onePercentPeptideCountQ,
-                    OnePercentProteinGroupCount = onePercentCount
-                });
-            }
-            var bulkComparisonFile = new BulkResultCountComparisonFile(_baseSeqIndividualFilePath)
-            {
-                Results = results
-            };
-            bulkComparisonFile.WriteResults(_baseSeqIndividualFilePath);
-            return bulkComparisonFile;
-        }
+        
 
         public override BulkResultCountComparisonFile GetBulkResultCountComparisonFile(string? path = null)
         {
@@ -646,6 +610,80 @@ namespace Analyzer.SearchType
 
         #endregion
 
+        #region Multiple Filtering Types
+
+        public BulkResultCountComparisonFile CountIndividualFilesForFengChaoComparison()
+        {
+            if (!Override && File.Exists(_baseSeqIndividualFilePath))
+                return new BulkResultCountComparisonFile(_baseSeqIndividualFilePath);
+
+            var indFileDir =
+                Directory.GetDirectories(DirectoryPath, "Individual File Results", SearchOption.AllDirectories);
+            if (indFileDir.Length == 0)
+                return null;
+
+            var indFileDirectory = indFileDir.First();
+
+            var fileNames = Directory.GetFiles(indFileDirectory, "*tsv");
+            List<BulkResultCountComparison> results = new List<BulkResultCountComparison>();
+            foreach (var individualFile in fileNames.GroupBy(p => Path.GetFileNameWithoutExtension(p).Split('-')[0])
+                         .ToDictionary(p => p.Key, p => p.ToList()))
+            {
+                string psm = individualFile.Value.First(p => p.Contains("PSM"));
+                string peptide = individualFile.Value.First(p => p.Contains("Peptide"));
+                string protein = individualFile.Value.First(p => p.Contains("Protein"));
+
+                var spectralmatches = AllPsms
+                    .Where(p => p.DecoyContamTarget == "T").ToList();
+                var peptides = SpectrumMatchTsvReader.ReadPsmTsv(peptide, out _)
+                    .Where(p => p.DecoyContamTarget == "T")
+                    .DistinctBy(p => p.BaseSeq).ToList();
+
+                int count = 0;
+                int onePercentCount = 0;
+                using (var sw = new StreamReader(File.OpenRead(protein)))
+                {
+                    var header = sw.ReadLine();
+                    var headerSplit = header.Split('\t');
+                    var qValueIndex = Array.IndexOf(headerSplit, "Protein QValue");
+
+
+                    while (!sw.EndOfStream)
+                    {
+                        var line = sw.ReadLine();
+                        var values = line.Split('\t');
+                        count++;
+                        if (double.Parse(values[qValueIndex]) <= 0.01)
+                            onePercentCount++;
+                    }
+                }
+
+                int psmCount = spectralmatches.Count;
+                int onePercentPsmCount = spectralmatches.Count(p => p.PEP_QValue <= 0.01);
+                int peptideCount = peptides.Count;
+                int onePercentPeptideCount = peptides.Count(p => p.PEP_QValue <= 0.01);
+                int onePercentPeptideCountQ = peptides.Count(p => p.QValue <= 0.01);
+
+                results.Add(new BulkResultCountComparison()
+                {
+                    DatasetName = DatasetName,
+                    Condition = Condition,
+                    FileName = individualFile.Key,
+                    PsmCount = psmCount,
+                    PeptideCount = peptideCount,
+                    ProteinGroupCount = count,
+                    OnePercentPsmCount = onePercentPsmCount,
+                    OnePercentPeptideCount = onePercentPeptideCountQ,
+                    OnePercentProteinGroupCount = onePercentCount
+                });
+            }
+            var bulkComparisonFile = new BulkResultCountComparisonFile(_baseSeqIndividualFilePath)
+            {
+                Results = results
+            };
+            bulkComparisonFile.WriteResults(_baseSeqIndividualFilePath);
+            return bulkComparisonFile;
+        }
 
         private string _bultResultCountingDifferentFilteringFilePath => Path.Combine(DirectoryPath, $"{DatasetName}_{Condition}_{FileIdentifiers.BulkResultComparisonMultipleFilters}");
         private BulkResultCountComparisonMultipleFilteringTypesFile? _bulkResultCountComparisonMultipleFilteringTypesFile;
@@ -912,6 +950,7 @@ namespace Analyzer.SearchType
             return bulkResultCountComparisonMultipleFilteringTypesFile;
         }
 
+        #endregion 
 
         public string _chimericSpectrumSummaryFilePath => Path.Combine(DirectoryPath, $"{DatasetName}_{Condition}_{FileIdentifiers.ChimericSpectrumSummary}");
         private ChimericSpectrumSummaryFile? _chimericSpectrumSummaryFile;
@@ -984,7 +1023,9 @@ namespace Analyzer.SearchType
                     Path.GetFileNameWithoutExtension(dataFile.FilePath)
                         .Replace("-calib", "")
                         .Replace("-averaged", "")
-                        .Replace("_101229143203", "")));
+                        .Replace("_101229143203", "")
+                        .Replace("_101230100451", "")
+                    ));
                 Ms1FeatureFile deconFile = new Ms1FeatureFile(deconFilePath);
                 if (mmResult is null)
                     continue;
