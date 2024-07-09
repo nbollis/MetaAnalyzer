@@ -18,7 +18,7 @@ namespace ChimericSpectrumConverter
     {
         internal List<(string InputPath, string OutputPath)> InputOutputPaths { get; init; }
         public override MyTask MyTask => MyTask.ChimericSpectrumConversion;
-        protected override ChimericSpectrumConverterParameters Parameters { get; }
+        public override ChimericSpectrumConverterParameters Parameters { get; }
 
         public ChimericSpectrumConverterTask(ChimericSpectrumConverterParameters parameters)
         {

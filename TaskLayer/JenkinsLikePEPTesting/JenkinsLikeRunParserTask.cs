@@ -10,7 +10,7 @@ namespace TaskLayer.JenkinsLikePEPTesting;
 public class JenkinsLikeRunParserTask : BaseResultAnalyzerTask
 {
     public override MyTask MyTask => MyTask.JenkinsLikeRunParser;
-    protected override JenkinsLikeRunParserTaskParameters Parameters { get; }
+    public override JenkinsLikeRunParserTaskParameters Parameters { get; }
 
     public JenkinsLikeRunParserTask(JenkinsLikeRunParserTaskParameters parameters)
     {
