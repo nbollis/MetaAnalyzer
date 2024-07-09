@@ -31,10 +31,10 @@ namespace TaskLayer.ChimeraAnalysis
             Log("Parsing Peptide Spectral Angles");
             foreach (var individualFileResult in mm.IndividualFileResults)
             {
-                foreach (var chimeraGroup in individualFileResult.AllPeptides.Where(p => p is { PEP_QValue: <= 0.01 })
+                foreach (var chimeraGroup in individualFileResult.AllPeptides.Where(p => p is { PEP_QValue: <= 0.01, DecoyContamTarget: "T" })
                              .GroupBy(p => p, CustomComparer<PsmFromTsv>.ChimeraComparer))
                 {
-                    var filtered = chimeraGroup.Where(p => !p.IsDecoy() && !p.SpectralAngle.Equals(-1.0) && !p.SpectralAngle.Equals(double.NaN) && !p.SpectralAngle.Equals(null)).ToArray();
+                    var filtered = chimeraGroup.Where(p => !p.SpectralAngle.Equals(-1.0) && !p.SpectralAngle.Equals(double.NaN) && !p.SpectralAngle.Equals(null)).ToArray();
 
                     if (!filtered.Any()) continue;
                     if (chimeraGroup.Count() == 1)
@@ -99,11 +99,10 @@ namespace TaskLayer.ChimeraAnalysis
             Log("Parsing Psm Angles");
             foreach (var individualFileResult in mm.IndividualFileResults)
             {
-                foreach (var chimeraGroup in individualFileResult.AllPsms.Where(p => p is { PEP_QValue: <= 0.01 })
+                foreach (var chimeraGroup in individualFileResult.AllPsms.Where(p => p is { PEP_QValue: <= 0.01, DecoyContamTarget: "T" })
                              .GroupBy(p => p, CustomComparer<PsmFromTsv>.ChimeraComparer))
                 {
-                    var filtered = chimeraGroup.Where(p =>
-                        !p.IsDecoy() && !p.SpectralAngle.Equals(-1.0) && !p.SpectralAngle.Equals(double.NaN) &&
+                    var filtered = chimeraGroup.Where(p =>!p.SpectralAngle.Equals(-1.0) && !p.SpectralAngle.Equals(double.NaN) &&
                         !p.SpectralAngle.Equals(null)).ToArray();
 
                     if (!filtered.Any()) continue;

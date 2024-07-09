@@ -403,7 +403,6 @@ namespace Analyzer.SearchType
                     dataFile.CloseDynamicConnection();
             }
 
-
             // Peptides or Proteoforms
             foreach (var fileGroup in IndividualFileResults.SelectMany(p => p.AllPeptides)
                          .Where(p => p.PEP_QValue <= 0.01)
@@ -965,7 +964,7 @@ namespace Analyzer.SearchType
             List<string> massSpecFiles = new();
             List<string> deconFiles = new();
             var deconDir = Directory.GetDirectories(Path.GetDirectoryName(Path.GetDirectoryName(DirectoryPath)!)!).FirstOrDefault(p => p.Contains("Decon"));
-            string specificDir = IsTopDown ? "" : "FlashDeconv";
+            string specificDir = IsTopDown ? "TopFD" : "FlashDeconv";
             var fullDeconDirectory = Path.Combine(deconDir, specificDir);
             switch (DatasetName)
             {
@@ -1243,6 +1242,7 @@ namespace Analyzer.SearchType
             base.Dispose();
             _chimeraBreakdownFile = null;
             _chimeraPeptideFile = null;
+            _chimericSpectrumSummaryFile = null;
         }
     }
 
