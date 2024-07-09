@@ -16,5 +16,6 @@ namespace TaskLayer
         SpectralAngleComparisonTask = 6,
         RetentionTimeComparison = 7,
         ChimericSpectrumSummary = 8,
+        RetentionTimeAlignment = 9,
     }
 }

@@ -99,7 +99,7 @@ public class FileLogger
             myOutput.Add(s);
         }
 
-        File.WriteAllLines(@"D:\UnCalibratedFiles_OLS_loops10_filtredBy2.tsv", myOutput);
+        //File.WriteAllLines(@"D:\UnCalibratedFiles_OLS_loops10_filtredBy2.tsv", myOutput);
 
         FileWiseCalibrations = grouped;
     }
@@ -180,7 +180,7 @@ public class FileLogger
         }
     }
 
-    public void WriteOutput()
+    public void WriteOutput(string outputPath)
     {
         List<string> myOutput = new List<string>();
 
@@ -192,7 +192,6 @@ public class FileLogger
             myOutput.Add(s);
         }
 
-        // TODO: pull output directory from coomand line parameters
-        File.WriteAllLines(@"D:\CalibratedFiles_OLS_loops10_filtered2.tsv", myOutput);
+        File.WriteAllLines(outputPath, myOutput);
     }
 }

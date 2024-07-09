@@ -1,5 +1,6 @@
 ﻿using Proteomics.PSM;
 using Readers;
+using ThermoFisher.CommonCore.Data;
 
 namespace Calibrator;
 
@@ -20,24 +21,16 @@ public class CalibratorClass
 
     public CalibratorClass(List<string> filesPaths)
     {
+        List<PsmFromTsv> allPsms = new();
         foreach (var filePath in filesPaths)
-        {
-            // read the psmtsv psmFile
-            var psmtsv = new PsmFromTsvFile(filePath);
-            psmtsv.LoadResults();
+            allPsms.AddRange(new PsmFromTsvFile(filePath).Results);
 
-            // make the calibration logger
-            FileLoggers.Add(new FileLogger(psmtsv));
-        }
-    }
-
-    // TODO: constructo from psm objects
-    public CalibratorClass(List<PsmFromTsv> allPsms)
-    {
-        foreach (var psmFromTsvs in allPsms.GroupBy(p => p.FileNameWithoutExtension))
+        var tempFile = new PsmFromTsvFile("dont yell at me please")
         {
-            
-        }
+            Results = allPsms
+        };
+
+        FileLoggers.Add(new FileLogger(tempFile));
     }
 
     public void Calibrate()
@@ -46,6 +39,11 @@ public class CalibratorClass
         {
             fileLogger.Calibrate();
         }
+    }
+
+    public void WriteFile(string outPath)
+    {
+        FileLoggers.First().WriteOutput(outPath);
     }
 
    

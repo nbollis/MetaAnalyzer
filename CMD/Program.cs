@@ -1,6 +1,7 @@
 ﻿using System.Diagnostics;
 using Analyzer.Plotting.Util;
 using Analyzer.SearchType;
+using Calibrator;
 using CMD;
 using CommandLine;
 using CommandLine.Text;
@@ -173,6 +174,12 @@ namespace MyApp
                             allTasks.Add(new SingleRunChimericSpectrumSummaryTask(parameters6));
                             break;
 
+                        case MyTask.RetentionTimeAlignment:
+                            var cellLine = new CellLineResults(CommandLineArguments.InputDirectory);
+                            var parameters7 = new CellLineAnalysisParameters(CommandLineArguments.InputDirectory,
+                                CommandLineArguments.OverrideFiles, CommandLineArguments.RunOnAll, cellLine);
+                            allTasks.Add(new CellLineRetentionTimeCalibrationTask(parameters7));
+                            break;
                         default:
                             throw new ArgumentOutOfRangeException();
                     }

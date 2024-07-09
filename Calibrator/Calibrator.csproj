@@ -14,4 +14,9 @@
     <PackageReference Include="mzLib" Version="1.0.547" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\Analyzer\Analyzer.csproj" />
+    <ProjectReference Include="..\TaskLayer\TaskLayer.csproj" />
+  </ItemGroup>
+
 </Project>

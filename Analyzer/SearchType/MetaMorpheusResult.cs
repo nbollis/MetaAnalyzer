@@ -1349,25 +1349,25 @@ namespace Analyzer.SearchType
     public class MetaMorpheusIndividualFileResult
     {
         public string FileName { get; }
-        private string _psmPath;
-        private string _peptidePath;
+        public string PsmPath { get; init; }
+        public string PeptidePath { get; init; }
         public string? ProteinPath;
         public string ResultsTextPath;
 
         private List<PsmFromTsv>? _allPsms;
-        public List<PsmFromTsv> AllPsms => _allPsms ??= SpectrumMatchTsvReader.ReadPsmTsv(_psmPath, out _);
+        public List<PsmFromTsv> AllPsms => _allPsms ??= SpectrumMatchTsvReader.ReadPsmTsv(PsmPath, out _);
 
         private List<PsmFromTsv>? _filteredPsms;
         public List<PsmFromTsv> FilteredPsms => _filteredPsms ??= AllPsms.Where(p => p is { DecoyContamTarget: "T", PEP_QValue: <= 0.01 }).ToList();
 
         private List<PsmFromTsv>? _allPeptides;
-        public List<PsmFromTsv> AllPeptides => _allPeptides ??= SpectrumMatchTsvReader.ReadPsmTsv(_peptidePath, out _);
+        public List<PsmFromTsv> AllPeptides => _allPeptides ??= SpectrumMatchTsvReader.ReadPsmTsv(PeptidePath, out _);
 
         public MetaMorpheusIndividualFileResult(string fileName, string psmPath, string peptidePath, string? proteinPath)
         {
             FileName = fileName;
-            _psmPath = psmPath;
-            _peptidePath = peptidePath;
+            PsmPath = psmPath;
+            PeptidePath = peptidePath;
             ProteinPath = proteinPath;
 
             var individualFileDirectory = Path.GetDirectoryName(psmPath);
