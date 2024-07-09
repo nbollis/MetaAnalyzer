@@ -4,6 +4,11 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Analyzer.Plotting;
+using Analyzer.Plotting.Util;
+using Analyzer.Util;
+using MathNet.Numerics;
+using Plotly.NET;
 
 namespace TaskLayer.ChimeraAnalysis
 {
@@ -22,9 +27,82 @@ namespace TaskLayer.ChimeraAnalysis
             if (Parameters.RunResult is not MetaMorpheusResult mm)
                 return;
 
+            // Run the parsing
             mm.Override = Parameters.Override;
-            _ = mm.GetChimericSpectrumSummaryFile();
+            var summary = mm.GetChimericSpectrumSummaryFile();
             mm.Override = false;
+
+            // Plot the results
+            var dataDictionary = summary.GroupBy(p => p.Type)
+                .ToDictionary(p => p.Key,
+                    p => p.GroupBy(m => m.IsChimeric)
+                        .ToDictionary(n => n.Key,
+                            n => n.Select(b => (b.PossibleFeatureCount, b.IdPerSpectrum, b.FractionalIntensity))
+                                .ToArray()));
+
+            
+            // Features per MS2 Isolation Window Histograms
+            Log("Creating Feature Count Plots");
+            var psmHist = Chart.Combine(new[]
+            {
+                GenericPlots.Histogram(
+                    dataDictionary[ResultType.Psm.ToString()][true].Select(p => (double)p.PossibleFeatureCount).ToList(),
+                    "Chimeric", "Features per Isolation Window", "Number of Spectra"),
+                GenericPlots.Histogram(
+                    dataDictionary[ResultType.Psm.ToString()][false].Select(p => (double)p.PossibleFeatureCount).ToList(),
+                    "Non-Chimeric", "Features per Isolation Window", "Number of Spectra")
+            })
+            .WithTitle($"1% {Labels.GetLabel(mm.IsTopDown, ResultType.Psm)} Detected Features Per MS2 Isolation Window");
+            var outname = $"SpectrumSummary_FeatureCount_{Labels.GetLabel(mm.IsTopDown, ResultType.Psm)}_Histogram";
+            psmHist.SaveInRunResultOnly(mm, outname);
+
+            var peptideHist = Chart.Combine(new[]
+            {
+                GenericPlots.Histogram(
+                                       dataDictionary[ResultType.Peptide.ToString()][true].Select(p => (double)p.PossibleFeatureCount).ToList(),
+                                                          "Chimeric", "Features per Isolation Window", "Number of Spectra"),
+                GenericPlots.Histogram(
+                                       dataDictionary[ResultType.Peptide.ToString()][false].Select(p => (double)p.PossibleFeatureCount).ToList(),
+                                                          "Non-Chimeric", "Features per Isolation Window", "Number of Spectra")
+            })
+            .WithTitle($"1% {Labels.GetLabel(mm.IsTopDown, ResultType.Peptide)} Detected Features Per MS2 Isolation Window");
+            outname = $"SpectrumSummary_FeatureCount_{Labels.GetLabel(mm.IsTopDown, ResultType.Peptide)}_Histogram";
+            peptideHist.SaveInRunResultOnly(mm, outname);
+
+
+
+
+
+
+
+            // Fractional Intensity Histograms
+            Log("Creating Fractional Intensity Plots");
+            psmHist = Chart.Combine(new[]
+                {
+                    GenericPlots.Histogram(
+                        dataDictionary[ResultType.Psm.ToString()][true].Select(p => p.FractionalIntensity.Round(2)).ToList(),
+                        "Chimeric", "Fractional Intensity", "Number of Spectra"),
+                    GenericPlots.Histogram(
+                        dataDictionary[ResultType.Psm.ToString()][false].Select(p => p.FractionalIntensity.Round(2)).ToList(),
+                        "Non-Chimeric", "Fractional Intensity", "Number of Spectra")
+                })
+                .WithTitle($"1% {Labels.GetLabel(mm.IsTopDown, ResultType.Psm)} Detected Features Per MS2 Isolation Window");
+            outname = $"SpectrumSummary_PrecursorFractionalIntensity_{Labels.GetLabel(mm.IsTopDown, ResultType.Psm)}_Histogram";
+            psmHist.SaveInRunResultOnly(mm, outname);
+
+            peptideHist = Chart.Combine(new[]
+                {
+                    GenericPlots.Histogram(
+                        dataDictionary[ResultType.Peptide.ToString()][true].Select(p => p.FractionalIntensity.Round(2)).ToList(),
+                        "Chimeric", "Fractional Intensity", "Number of Spectra"),
+                    GenericPlots.Histogram(
+                        dataDictionary[ResultType.Peptide.ToString()][false].Select(p => p.FractionalIntensity.Round(2)).ToList(),
+                        "Non-Chimeric", "Fractional Intensity", "Number of Spectra")
+                })
+                .WithTitle($"1% {Labels.GetLabel(mm.IsTopDown, ResultType.Peptide)} Precursor Fractional Intensity");
+            outname = $"SpectrumSummary_PrecursorFractionalIntensity_{Labels.GetLabel(mm.IsTopDown, ResultType.Peptide)}_Histogram";
+            peptideHist.SaveInRunResultOnly(mm, outname);
+
         }
     }
 }

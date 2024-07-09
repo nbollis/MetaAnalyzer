@@ -989,7 +989,7 @@ namespace Analyzer.SearchType
                     break;
 
                 case "Jurkat" when IsTopDown:
-                case "Chimeras":
+                case "Chimeras" when IsTopDown:
                     massSpecFiles = Directory.GetFiles(@"B:\Users\Nic\Chimeras\TopDown_Analysis\Jurkat\SearchResults\MetaMorpheus\Task2-AveragingTask", "*.mzML",
                                                SearchOption.AllDirectories).Where(p => p.Contains("rep2")).ToList();
                     deconFiles = Directory.GetFiles(fullDeconDirectory, "*ms1.feature", SearchOption.AllDirectories).ToList();

@@ -75,8 +75,8 @@ public static class PlottingTranslators
         // General
         {"Chimeras", Color.fromKeyword(ColorKeyword.Purple) }, // (128,0,128)
         {"Chimeric", Color.fromKeyword(ColorKeyword.Purple) }, //  	(221,160,221)
-        {"No Chimeras", Color.fromKeyword(ColorKeyword.Plum) },
-        {"Non-Chimeric", Color.fromKeyword(ColorKeyword.Plum) },
+        {"No Chimeras", Color.fromKeyword(ColorKeyword.SeaGreen) },
+        {"Non-Chimeric", Color.fromKeyword(ColorKeyword.SeaGreen) },
 
         // RT shift plot
         {"Chimeric All Psms", Color.fromKeyword(ColorKeyword.Purple) },
