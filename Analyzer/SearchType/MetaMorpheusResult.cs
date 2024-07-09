@@ -964,7 +964,14 @@ namespace Analyzer.SearchType
             Log($"Parsing Directories for run {Condition}");
             List<string> massSpecFiles = new();
             List<string> deconFiles = new();
-            var deconDir = Directory.GetDirectories(Path.GetDirectoryName(Path.GetDirectoryName(DirectoryPath)!)!).FirstOrDefault(p => p.Contains("Decon"));
+            var deconDir = Directory.GetDirectories(Path.GetDirectoryName(Path.GetDirectoryName(DirectoryPath)!)!)
+                .FirstOrDefault(p => p.Contains("Decon"));
+            if (deconDir is null)
+            {
+                deconDir = @"B:\Users\Nic\Chimeras\TopDown_Analysis\Jurkat\DeconResults";
+            }
+            
+            // TODO: just set the directories in the switch
             string specificDir = IsTopDown ? "TopFD" : "FlashDeconv";
             var fullDeconDirectory = Path.Combine(deconDir, specificDir);
             switch (DatasetName)
@@ -982,6 +989,7 @@ namespace Analyzer.SearchType
                     break;
 
                 case "Jurkat" when IsTopDown:
+                case "Chimeras":
                     massSpecFiles = Directory.GetFiles(@"B:\Users\Nic\Chimeras\TopDown_Analysis\Jurkat\SearchResults\MetaMorpheus\Task2-AveragingTask", "*.mzML",
                                                SearchOption.AllDirectories).Where(p => p.Contains("rep2")).ToList();
                     deconFiles = Directory.GetFiles(fullDeconDirectory, "*ms1.feature", SearchOption.AllDirectories).ToList();
@@ -1242,7 +1250,7 @@ namespace Analyzer.SearchType
                 }
             }
 
-            Log($"Writing Results", 2);
+            Log($"Writing Results");
             var file = new ChimericSpectrumSummaryFile(_chimericSpectrumSummaryFilePath)
             {
                 Results = chimericSpectra
