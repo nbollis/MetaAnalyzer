@@ -14,7 +14,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CMD", "CMD\CMD.csproj", "{9
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TaskLayer", "TaskLayer\TaskLayer.csproj", "{E2D08567-F3C9-47B3-AC66-62A3D2F1D4CC}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ChimericSpectrumConverter", "ChimericSpectrumConverter\ChimericSpectrumConverter.csproj", "{5679FE8C-3BCE-4863-9C97-4E7835DF667C}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ChimericSpectrumConverter", "ChimericSpectrumConverter\ChimericSpectrumConverter.csproj", "{5679FE8C-3BCE-4863-9C97-4E7835DF667C}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Calibrator", "Calibrator\Calibrator.csproj", "{67F6A206-3CFF-4AE0-AE7F-DAA90EC56DCF}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -42,6 +44,10 @@ Global
 		{5679FE8C-3BCE-4863-9C97-4E7835DF667C}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{5679FE8C-3BCE-4863-9C97-4E7835DF667C}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{5679FE8C-3BCE-4863-9C97-4E7835DF667C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{67F6A206-3CFF-4AE0-AE7F-DAA90EC56DCF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{67F6A206-3CFF-4AE0-AE7F-DAA90EC56DCF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{67F6A206-3CFF-4AE0-AE7F-DAA90EC56DCF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{67F6A206-3CFF-4AE0-AE7F-DAA90EC56DCF}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
