@@ -16,7 +16,7 @@ namespace TaskLayer.ChimeraAnalysis
     public class ChimeraPaperTopDownTask : BaseResultAnalyzerTask
     {
         public override MyTask MyTask => MyTask.ChimeraPaperTopDown;
-        protected override ChimeraPaperAnalysisParameters Parameters { get; }
+        public override ChimeraPaperAnalysisParameters Parameters { get; }
 
         public ChimeraPaperTopDownTask(ChimeraPaperAnalysisParameters parameters)
         {

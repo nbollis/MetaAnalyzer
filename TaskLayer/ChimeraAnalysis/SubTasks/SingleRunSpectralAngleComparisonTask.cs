@@ -8,12 +8,12 @@ using Proteomics.PSM;
 
 namespace TaskLayer.ChimeraAnalysis
 {
-    public class ChimeraPaperSpectralAngleComparisonTask : BaseResultAnalyzerTask
+    public class SingleRunSpectralAngleComparisonTask : BaseResultAnalyzerTask
     {
         public override MyTask MyTask => MyTask.SpectralAngleComparisonTask;
-        protected override SingleRunAnalysisParameters Parameters { get; }
+        public override SingleRunAnalysisParameters Parameters { get; }
 
-        public ChimeraPaperSpectralAngleComparisonTask(SingleRunAnalysisParameters parameters)
+        public SingleRunSpectralAngleComparisonTask(SingleRunAnalysisParameters parameters)
         {
             Parameters = parameters;
         }

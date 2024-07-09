@@ -8,7 +8,7 @@ namespace TaskLayer
         public static event EventHandler<StringEventArgs> LogHandler;
         public static event EventHandler<StringEventArgs> WarnHandler;
         public abstract MyTask MyTask { get; }
-        protected abstract BaseResultAnalyzerTaskParameters Parameters { get; }
+        public abstract BaseResultAnalyzerTaskParameters Parameters { get; }
 
         public void Run()
         {

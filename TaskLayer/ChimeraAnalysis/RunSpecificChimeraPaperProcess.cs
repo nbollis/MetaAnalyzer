@@ -14,7 +14,7 @@ namespace TaskLayer.ChimeraAnalysis
     public class RunSpecificChimeraPaperProcess : BaseResultAnalyzerTask
     {
         public override MyTask MyTask => MyTask.RunSpecificChimeraPaperProcess;
-        protected override ChimeraPaperAnalysisParameters Parameters { get; }
+        public override ChimeraPaperAnalysisParameters Parameters { get; }
 
         public RunSpecificChimeraPaperProcess(ChimeraPaperAnalysisParameters parameters)
         {

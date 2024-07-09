@@ -961,6 +961,7 @@ namespace Analyzer.SearchType
                 return new ChimericSpectrumSummaryFile(_chimericSpectrumSummaryFilePath);
 
             // get mass spec files
+            Log($"Parsing Directories for run {Condition}");
             List<string> massSpecFiles = new();
             List<string> deconFiles = new();
             var deconDir = Directory.GetDirectories(Path.GetDirectoryName(Path.GetDirectoryName(DirectoryPath)!)!).FirstOrDefault(p => p.Contains("Decon"));
@@ -1011,6 +1012,8 @@ namespace Analyzer.SearchType
             var chimericSpectra = new List<ChimericSpectrumSummary>();
             foreach (var individualFile in massSpecFiles)
             {
+                Log($"Starting {Path.GetFileNameWithoutExtension(individualFile).ConvertFileName()}");
+                Log($"Loading in Files", 2);
                 // Setup
                 MsDataFile dataFile = FileReader.ReadFile<MsDataFileToResultFileAdapter>(individualFile).LoadAllStaticData();
                 string fileName = Path.GetFileNameWithoutExtension(dataFile.FilePath).ConvertFileName();
@@ -1029,6 +1032,15 @@ namespace Analyzer.SearchType
                 if (mmResult is null)
                     continue;
 
+                deconFile.ForEach(p =>
+                {
+                    p.RetentionTimeBegin  /= 60.0;
+                    p.RetentionTimeEnd /= 60.0;
+                    p.RetentionTimeApex /= 60;
+                });
+
+
+                Log($"Parsing Psms, Peptides, and Deconvoluted Features", 2);
                 var psmDictionaryByScanNumber = mmResult.AllPsms
                     .GroupBy(p => p, CustomComparer<PsmFromTsv>.ChimeraComparer)
                     .ToDictionary(p => p.Key.Ms2ScanNumber, p => p.OrderByDescending(p => p.Score)
@@ -1065,6 +1077,8 @@ namespace Analyzer.SearchType
                         ms2canToFlashDeconvResultDictionary.Add(scanInformation.OneBasedScanNumber, possibleFeatureCount);
                     });
 
+
+                Log($"Iterating through Scans", 2);
                 foreach (var scan in dataFile.Scans)
                 {
                     if (scan.MsnOrder is 1 or > 2)
@@ -1101,6 +1115,7 @@ namespace Analyzer.SearchType
                                 Ms2ScanNumber = scan.OneBasedScanNumber,
                                 Ms1ScanNumber = scan.OneBasedPrecursorScanNumber!.Value,
                                 IsolationMz = scan.IsolationMz!.Value,
+                                RetentionTime = scan.RetentionTime,
 
                                 PEP_QValue = chimericPsm.PEP_QValue,
                                 PrecursorCharge = chimericPsm.PrecursorCharge,
@@ -1161,6 +1176,7 @@ namespace Analyzer.SearchType
                                 Ms2ScanNumber = scan.OneBasedScanNumber,
                                 Ms1ScanNumber = scan.OneBasedPrecursorScanNumber!.Value,
                                 IsolationMz = scan.IsolationMz!.Value,
+                                RetentionTime = scan.RetentionTime,
 
                                 PEP_QValue = chimericPeptide.PEP_QValue,
                                 PrecursorCharge = chimericPeptide.PrecursorCharge,
@@ -1216,6 +1232,8 @@ namespace Analyzer.SearchType
                             Ms2ScanNumber = scan.OneBasedScanNumber,
                             Ms1ScanNumber = scan.OneBasedPrecursorScanNumber!.Value,
                             IsolationMz = scan.IsolationMz!.Value,
+                            RetentionTime = scan.RetentionTime,
+
                             PossibleFeatureCount = ms2canToFlashDeconvResultDictionary[scan.OneBasedScanNumber],
                             FractionalIntensity = fractionalIntensity
                         };
@@ -1224,7 +1242,7 @@ namespace Analyzer.SearchType
                 }
             }
 
-
+            Log($"Writing Results", 2);
             var file = new ChimericSpectrumSummaryFile(_chimericSpectrumSummaryFilePath)
             {
                 Results = chimericSpectra

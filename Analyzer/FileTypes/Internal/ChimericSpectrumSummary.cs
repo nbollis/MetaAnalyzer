@@ -28,6 +28,7 @@ namespace Analyzer.FileTypes.Internal
         public int Ms2ScanNumber { get; set; }
         public double IsolationMz { get; set; }
         public double IdPerSpectrum { get; set; }
+        public double RetentionTime { get; set; }
 
         // Identification Information
         public double PrecursorMz { get; set; }

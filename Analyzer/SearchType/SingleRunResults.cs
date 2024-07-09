@@ -1,11 +1,30 @@
 ﻿using Analyzer.FileTypes.Internal;
 using Analyzer.Interfaces;
+using Analyzer.Plotting.Util;
 using Analyzer.Util;
 
 namespace Analyzer.SearchType
 {
     public abstract class SingleRunResults : IChimeraPaperResults, IDisposable
     {
+        #region Command Line
+
+        public static event EventHandler<StringEventArgs>? LogHandler;
+        public static event EventHandler<StringEventArgs>? WarnHandler;
+        protected void Log(string message, int nestLayer = 1)
+        {
+            string added = string.Join("", Enumerable.Repeat("\t", nestLayer));
+            LogHandler?.Invoke(this, new StringEventArgs(added + message));
+        }
+
+        protected static void Warn(string v, int nestLayer = 1)
+        {
+            string added = string.Join("", Enumerable.Repeat("\t", nestLayer));
+            WarnHandler?.Invoke(null, new StringEventArgs($"{added}Error (Nonfatal): {v}"));
+        }
+
+        #endregion
+
         public string DirectoryPath { get; set; }
         public string DatasetName { get; set; }
         public string Condition { get; set; }

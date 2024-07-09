@@ -71,7 +71,8 @@ namespace MyApp
 
             BaseResultAnalyzerTask.LogHandler += LogHandler;
             BaseResultAnalyzerTask.WarnHandler += WarnHandler;
-
+            SingleRunResults.LogHandler += LogHandler;
+            SingleRunResults.WarnHandler += WarnHandler;
 
             // construct tasks
             TaskCollectionRunner runner;
@@ -80,7 +81,6 @@ namespace MyApp
                 List<BaseResultAnalyzerTask> allTasks = new();
                 foreach (var taskType in CommandLineArguments.Tasks)
                 {
-                    BaseResultAnalyzerTask task;
                     // TODO: Figure out a smarter way to build the tasks
                     switch (taskType)
                     {
@@ -127,7 +127,7 @@ namespace MyApp
                                         CommandLineArguments.InputDirectory,
                                         CommandLineArguments.OverrideFiles, CommandLineArguments.RunOnAll, mmResult,
                                         distribPlotTypes);
-                                    allTasks.Add(new ChimeraPaperSpectralAngleComparisonTask(parameters5));
+                                    allTasks.Add(new SingleRunSpectralAngleComparisonTask(parameters5));
                                 }
                             }
                             else
@@ -136,8 +136,41 @@ namespace MyApp
                                     CommandLineArguments.InputDirectory,
                                     CommandLineArguments.OverrideFiles, CommandLineArguments.RunOnAll, mmResult,
                                     CommandLineArguments.PlotType);
-                                allTasks.Add(new ChimeraPaperSpectralAngleComparisonTask(parameters5));
+                                allTasks.Add(new SingleRunSpectralAngleComparisonTask(parameters5));
                             }
+                            break;
+
+                        case MyTask.RetentionTimeComparison:
+                            var mmResult2 = new MetaMorpheusResult(CommandLineArguments.InputDirectory);
+                            if (CommandLineArguments.RunOnAll)
+                            {
+                                foreach (var distribPlotTypes in Enum.GetValues<DistributionPlotTypes>())
+                                {
+                                    var parameters5 = new SingleRunAnalysisParameters(
+                                        CommandLineArguments.InputDirectory,
+                                        CommandLineArguments.OverrideFiles, CommandLineArguments.RunOnAll, mmResult2,
+                                        distribPlotTypes);
+                                    allTasks.Add(new SingleRunChimeraRetentionTimeDistribution(parameters5));
+                                }
+                            }
+                            else
+                            {
+                                var parameters5 = new SingleRunAnalysisParameters(
+                                    CommandLineArguments.InputDirectory,
+                                    CommandLineArguments.OverrideFiles, CommandLineArguments.RunOnAll, mmResult2,
+                                    CommandLineArguments.PlotType);
+                                allTasks.Add(new SingleRunChimeraRetentionTimeDistribution(parameters5));
+                            }
+                            break;
+
+                        case MyTask.ChimericSpectrumSummary:
+                            var mmResult3 = new MetaMorpheusResult(CommandLineArguments.InputDirectory);
+                        
+                            var parameters6 = new SingleRunAnalysisParameters(
+                                    CommandLineArguments.InputDirectory,
+                                    CommandLineArguments.OverrideFiles, CommandLineArguments.RunOnAll, mmResult3,
+                                    CommandLineArguments.PlotType);
+                            allTasks.Add(new SingleRunChimericSpectrumSummaryTask(parameters6));
                             break;
 
                         default:
