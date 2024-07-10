@@ -12,7 +12,7 @@ public class FileLogger
     public List<RawFileLogger> FollowingRawFiles = new();
     public Dictionary<string, RawFileLogger> RawFiles = new Dictionary<string, RawFileLogger>();
 
-    public Dictionary<string, Dictionary<string, double?>> FullSequencesPresentInFile;
+    public Dictionary<string, List<(string, double?)>> FullSequencesPresentInFile;
 
     /// <summary>
     /// Key: Full Sequence
@@ -37,7 +37,7 @@ public class FileLogger
         // Get a list of all the full sequences present in the psmFile
         FullSequencesPresentInFile = psmFile.Results.Select(p => p.FullSequence)
             .Distinct()
-            .ToDictionary(p => p, p => new Dictionary<string, double?>());
+            .ToDictionary(p => p, p => new List<(string, double?)>());
 
         // pick the leading raw psmFile and set the follower raw files
         LeadingRawFile = RawFiles.Values.OrderBy(r => r.Psms.Count()).First();
@@ -53,19 +53,17 @@ public class FileLogger
 
     private void DeleteFileValues(string fileName)
     {
-        Dictionary<string, List<(string, double)>>
-            swapDictionary = new Dictionary<string, List<(string, double)>>();
+        //Dictionary<string, List<(string, double)>>
+        //    swapDictionary = new Dictionary<string, List<(string, double)>>();
 
         foreach (var pair in FileWiseCalibrations)
         {
-            List<(string, double)> t = pair.Value;
-
-            if (t.Select(s => s.Item1).ToList().Contains(fileName))
+            if (pair.Value.Select(s => s.Item1).ToList().Contains(fileName))
             {
-                t.RemoveAll(v => v.Item1 == fileName);
+                FileWiseCalibrations[pair.Key].RemoveAll(v => v.Item1 == fileName);
             }
 
-            swapDictionary.Add(pair.Key, t);
+            //swapDictionary.Add(pair.Key, t);
         }
     }
 
@@ -73,6 +71,7 @@ public class FileLogger
     {
         for (int i = 0; i < 10; i++)
         {
+            var temp = FileWiseCalibrations.ToRecords().ToList();
             foreach (var filename in RawFiles)
             {
                 DeleteFileValues(filename.Key);
@@ -87,19 +86,6 @@ public class FileLogger
             .ToDictionary(p => p.Key,
                 p => p.DistinctBy(x => x.FileNameWithoutExtension)
                     .Select(x => (x.FileNameWithoutExtension, x.RetentionTime.Value)).ToList());
-
-        List<string> myOutput = new List<string>();
-
-        foreach (var pair in grouped)
-
-        {
-            List<double> times = pair.Value.Select(s => s.Value).ToList();
-            string s = pair.Key + "\t" + times.Median() + "\t" + string.Join("\t", times);
-            myOutput.Add(s);
-        }
-
-        //File.WriteAllLines(@"D:\UnCalibratedFiles_OLS_loops10_filtredBy2.tsv", myOutput);
-
         FileWiseCalibrations = grouped;
     }
 
@@ -181,16 +167,11 @@ public class FileLogger
 
     public void WriteOutput(string outputPath)
     {
-        List<string> myOutput = new List<string>();
-
-        foreach (var pair in FileWiseCalibrations)
-
+        var results = FileWiseCalibrations.ToRecords();
+        var file = new CalibratedRetentionTimeFile(outputPath)
         {
-            List<double> times = pair.Value.Select(s => s.retentionTime).ToList();
-            string s = pair.Key + "\t" + times.Median() + "\t" + string.Join("\t", times);
-            myOutput.Add(s);
-        }
-
-        File.WriteAllLines(outputPath, myOutput);
+            Results = results.ToList()
+        };
+        file.WriteResults(outputPath);
     }
 }

@@ -4,6 +4,8 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Analyzer.SearchType;
+using Calibrator;
+using Microsoft.ML.Calibrators;
 using TaskLayer.ChimeraAnalysis;
 
 namespace Test
@@ -12,6 +14,9 @@ namespace Test
     {
         public static string Man11FDRRunPath =>
             @"B:\Users\Nic\Chimeras\FdrAnalysis\UseProvidedLibraryOnAllFiles_Mann11_Ind";
+
+        public static string Man11AllResultsPath => BottomUpRunner.DirectoryPath;
+        public static string TopDownDirectoryPath => TopDownRunner.DirectoryPath;
 
         [Test]
         public static void SpectrumSimilarityTaskRunner()
@@ -32,6 +37,18 @@ namespace Test
             var task = new SingleRunChimericSpectrumSummaryTask(parameters);
 
             task.Run();
+        }
+
+        [Test]
+        public static void RunRetentionTimeAdjustmentTask()
+        {
+            var allResults = new AllResults(Man11AllResultsPath);
+            foreach (var cellLine in allResults)
+            {
+                var parameters = new CellLineAnalysisParameters(cellLine.DirectoryPath, false, true, cellLine);
+                var task = new CellLineRetentionTimeCalibrationTask(parameters);
+                task.Run();
+            }
         }
     }
 }
