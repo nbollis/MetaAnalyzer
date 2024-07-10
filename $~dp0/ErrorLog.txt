@@ -1,0 +1,9 @@
+Exception was thrown with error code 3
+
+Sequence contains no elements
+
+Stack Trace: 
+
+   at System.Linq.ThrowHelper.ThrowNoElementsException()
+   at Analyzer.SearchType.MetaMorpheusResult..ctor(String directoryPath, String datasetName, String condition) in C:\Users\Nic\source\repos\ResultAnalyzer\Analyzer\SearchType\MetaMorpheusResult.cs:line 72
+   at MyApp.Program.Run(CommandLineArguments settings) in C:\Users\Nic\source\repos\ResultAnalyzer\CMD\Program.cs:line 122

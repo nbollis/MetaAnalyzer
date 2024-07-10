@@ -11,6 +11,7 @@ namespace Analyzer.SearchType
 
         public static event EventHandler<StringEventArgs>? LogHandler;
         public static event EventHandler<StringEventArgs>? WarnHandler;
+        public static event EventHandler<StringEventArgs>? CrashHandler; 
         protected void Log(string message, int nestLayer = 1)
         {
             string added = string.Join("", Enumerable.Repeat("\t", nestLayer));
@@ -21,6 +22,12 @@ namespace Analyzer.SearchType
         {
             string added = string.Join("", Enumerable.Repeat("\t", nestLayer));
             WarnHandler?.Invoke(null, new StringEventArgs($"{added}Error (Nonfatal): {v}"));
+        }
+
+        protected static void ReportCrash(string message, int nestLayer = 1)
+        {
+            string added = string.Join("", Enumerable.Repeat("\t", nestLayer));
+            CrashHandler?.Invoke(null, new StringEventArgs($"{added}Error (Fatal): {message}"));
         }
 
         #endregion

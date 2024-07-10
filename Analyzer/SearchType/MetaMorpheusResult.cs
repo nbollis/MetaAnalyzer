@@ -974,6 +974,7 @@ namespace Analyzer.SearchType
             // TODO: just set the directories in the switch
             string specificDir = IsTopDown ? "TopFD" : "FlashDeconv";
             var fullDeconDirectory = Path.Combine(deconDir, specificDir);
+            // chimeras is for the use provided precursor set
             switch (DatasetName)
             {
                 case "Ecoli":
@@ -1000,6 +1001,40 @@ namespace Analyzer.SearchType
                         throw new ArgumentException("Not all decon files were found");
                     break;
 
+                // for mann 11 cell lines fdr run, we need to get the files from the chimeras directory
+                case "Chimeras" when !IsTopDown:
+                    massSpecFiles = DataFilePaths.ToList();
+                    var trimmedFileNames = massSpecFiles.Select(p => 
+                            Path.GetFileNameWithoutExtension(p).Replace("-calib", "").Replace("-averaged", "")
+                            .Replace("_101230100451", "").Replace("_101229143203", ""))
+                        .ToList();
+                    foreach (var man11Directory in Directory.GetDirectories(@"B:\Users\Nic\Chimeras\Mann_11cell_analysis"))
+                    {
+                        if (man11Directory.Contains("Figures") || man11Directory.Contains("Pros"))
+                            continue;
+                        deconDir = Path.Combine(man11Directory, "DeconResults", "FlashDeconv");
+                        if (!Directory.Exists(deconDir))
+                            continue;
+
+                        foreach (var deconFile in Directory.GetFiles(deconDir, "*_ms1.feature"))
+                        {
+                            var toCompare = Path.GetFileNameWithoutExtension(deconFile).Replace("_ms1", "");
+                            if (toCompare.Equals("20101227_Velos1_TaGe_SA_GAMG1"))
+                            {
+                                deconFiles.Add(deconFile);
+                                trimmedFileNames.Remove("20101227_Velos1_TaGe_SA_GAMG");
+                                continue;
+                            }
+                            string? massSpecFile = trimmedFileNames.FirstOrDefault(p => p.Contains(toCompare));
+                            if (massSpecFile is null)
+                                continue;
+
+                            deconFiles.Add(deconFile);
+                            trimmedFileNames.Remove(massSpecFile);
+                        }
+                    }
+
+                    break;
                 default: // all bottom up
                     massSpecFiles = Directory.GetFiles(Path.Combine(@"B:\RawSpectraFiles\Mann_11cell_lines", DatasetName, "CalibratedAveraged"), "*.mzML",
                         SearchOption.AllDirectories).ToList();

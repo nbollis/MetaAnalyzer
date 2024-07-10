@@ -340,7 +340,7 @@ namespace Analyzer.Plotting.IndividualRunPlots
             chart.SaveInCellLineOnly(cellLine, $"{FileIdentifiers.ChronologerDeltaKdeFigure}_{cellLine.CellLine}", 600, 600);
         }
 
-        internal static GenericChart.GenericChart GetChronologerDeltaPlotKernelPDF(this CellLineResults cellLine, Kernels kernel = Kernels.Gaussian)
+        public static GenericChart.GenericChart GetChronologerDeltaPlotKernelPDF(this CellLineResults cellLine, Kernels kernel = Kernels.Gaussian)
         {
             var individualFiles = cellLine.Results
                 .Where(p => false.GetSingleResultSelector(cellLine.CellLine).Contains(p.Condition))

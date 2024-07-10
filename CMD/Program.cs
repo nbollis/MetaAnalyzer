@@ -74,6 +74,8 @@ namespace MyApp
             BaseResultAnalyzerTask.WarnHandler += WarnHandler;
             SingleRunResults.LogHandler += LogHandler;
             SingleRunResults.WarnHandler += WarnHandler;
+            SingleRunResults.CrashHandler += CrashHandler;
+            TaskCollectionRunner.CrashHandler += CrashHandler;
 
             // construct tasks
             TaskCollectionRunner runner;
@@ -226,6 +228,11 @@ namespace MyApp
         }
 
         private static void WarnHandler(object? sender, StringEventArgs e)
+        {
+            Console.WriteLine($"{DateTime.Now:T}: {e.Message}");
+        }
+
+        private static void CrashHandler(object? sender, StringEventArgs e)
         {
             Console.WriteLine($"{DateTime.Now:T}: {e.Message}");
         }

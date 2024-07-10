@@ -6,7 +6,9 @@ using Analyzer.Plotting.IndividualRunPlots;
 using Analyzer.Plotting.Util;
 using Analyzer.SearchType;
 using Analyzer.Util;
+using Calibrator;
 using Readers;
+using TaskLayer.ChimeraAnalysis;
 using UsefulProteomicsDatabases;
 
 namespace Test
@@ -101,7 +103,6 @@ namespace Test
         [Test]
         public static void PlotAllFigures()
         {
-
             foreach (CellLineResults cellLine in AllResults)
             {
                 cellLine.PlotIndividualFileResults(ResultType.Psm);
@@ -141,6 +142,14 @@ namespace Test
         [Test]
         public static void WeekendRunner()
         {
+
+            //foreach (var cellLine in AllResults)
+            //{
+            //    var cellLineParams = new CellLineAnalysisParameters(cellLine.DirectoryPath, false, false, cellLine);
+            //    CellLineRetentionTimeCalibrationTask task = new(cellLineParams);
+            //    task.Run();
+            //}
+
 
             List<string> errors = new();
             foreach (var cellLine in AllResults)
@@ -221,7 +230,7 @@ namespace Test
 
 
 
-            foreach (var cellLine in TopDownRunner.AllResults.Skip(1))
+            foreach (var cellLine in TopDownRunner.AllResults)
             {
                 foreach (var result in cellLine.Where(p => cellLine.GetAllSelectors().Contains(p.Condition)))
                 {
@@ -296,6 +305,14 @@ namespace Test
             //TopDownRunner.AllResults.Override = false;
         }
 
+        [Test]
+        public static void TESTNAME()
+        {
+            var temp = AllResults.First();
+            var parameters = new CellLineAnalysisParameters(temp.DirectoryPath, false, false, temp);
+            var task = new CellLineRetentionTimeCalibrationTask(parameters);
+            task.Run();
+        }
 
         [Test]
         public static void GeneParserForBurke()

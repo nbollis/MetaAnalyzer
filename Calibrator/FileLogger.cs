@@ -12,8 +12,7 @@ public class FileLogger
     public List<RawFileLogger> FollowingRawFiles = new();
     public Dictionary<string, RawFileLogger> RawFiles = new Dictionary<string, RawFileLogger>();
 
-    public Dictionary<string, List<(string, double?)>> FullSequencesPresentInFile =
-        new Dictionary<string, List<(string, double?)>>();
+    public Dictionary<string, Dictionary<string, double?>> FullSequencesPresentInFile;
 
     /// <summary>
     /// Key: Full Sequence
@@ -38,7 +37,7 @@ public class FileLogger
         // Get a list of all the full sequences present in the psmFile
         FullSequencesPresentInFile = psmFile.Results.Select(p => p.FullSequence)
             .Distinct()
-            .ToDictionary(p => p, p => new List<(string, double?)>());
+            .ToDictionary(p => p, p => new Dictionary<string, double?>());
 
         // pick the leading raw psmFile and set the follower raw files
         LeadingRawFile = RawFiles.Values.OrderBy(r => r.Psms.Count()).First();
