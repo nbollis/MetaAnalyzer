@@ -57,22 +57,52 @@ namespace TaskLayer.ChimeraAnalysis
             psmHist.SaveInRunResultOnly(mm, outname);
 
             var peptideHist = Chart.Combine(new[]
-            {
-                GenericPlots.Histogram(
-                                       dataDictionary[ResultType.Peptide.ToString()][true].Select(p => (double)p.PossibleFeatureCount).ToList(),
-                                                          "Chimeric", "Features per Isolation Window", "Number of Spectra"),
-                GenericPlots.Histogram(
-                                       dataDictionary[ResultType.Peptide.ToString()][false].Select(p => (double)p.PossibleFeatureCount).ToList(),
-                                                          "Non-Chimeric", "Features per Isolation Window", "Number of Spectra")
-            })
-            .WithTitle($"1% {Labels.GetLabel(mm.IsTopDown, ResultType.Peptide)} Detected Features Per MS2 Isolation Window");
+                {
+                    GenericPlots.Histogram(
+                        dataDictionary[ResultType.Peptide.ToString()][true].Select(p => (double)p.PossibleFeatureCount)
+                            .ToList(),
+                        "Chimeric", "Features per Isolation Window", "Number of Spectra"),
+                    GenericPlots.Histogram(
+                        dataDictionary[ResultType.Peptide.ToString()][false].Select(p => (double)p.PossibleFeatureCount)
+                            .ToList(),
+                        "Non-Chimeric", "Features per Isolation Window", "Number of Spectra")
+                })
+                .WithTitle(
+                    $"1% {Labels.GetLabel(mm.IsTopDown, ResultType.Peptide)} Detected Features Per MS2 Isolation Window");
             outname = $"SpectrumSummary_FeatureCount_{Labels.GetLabel(mm.IsTopDown, ResultType.Peptide)}_Histogram";
             peptideHist.SaveInRunResultOnly(mm, outname);
 
+            var psmKDE = Chart.Combine(new[]
+                {
+                    GenericPlots.KernelDensityPlot(
+                        dataDictionary[ResultType.Psm.ToString()][true].Select(p => (double)p.PossibleFeatureCount)
+                            .ToList(),
+                        "Chimeric", "Features per Isolation Window", "Density"),
+                    GenericPlots.KernelDensityPlot(
+                        dataDictionary[ResultType.Psm.ToString()][false].Select(p => (double)p.PossibleFeatureCount)
+                            .ToList(),
+                        "Non-Chimeric", "Features per Isolation Window", "Density")
+                })
+                .WithTitle(
+                    $"1% {Labels.GetLabel(mm.IsTopDown, ResultType.Psm)} Detected Features Per MS2 Isolation Window");
+            outname = $"SpectrumSummary_FeatureCount_{Labels.GetLabel(mm.IsTopDown, ResultType.Psm)}_KernelDensity";
+            psmKDE.SaveInRunResultOnly(mm, outname);
 
-
-
-
+            var peptideKDE = Chart.Combine(new[]
+                {
+                    GenericPlots.KernelDensityPlot(
+                        dataDictionary[ResultType.Peptide.ToString()][true].Select(p => (double)p.PossibleFeatureCount)
+                            .ToList(),
+                        "Chimeric", "Features per Isolation Window", "Density"),
+                    GenericPlots.KernelDensityPlot(
+                        dataDictionary[ResultType.Peptide.ToString()][false].Select(p => (double)p.PossibleFeatureCount)
+                            .ToList(),
+                        "Non-Chimeric", "Features per Isolation Window", "Density")
+                })
+                .WithTitle(
+                    $"1% {Labels.GetLabel(mm.IsTopDown, ResultType.Peptide)} Detected Features Per MS2 Isolation Window");
+            outname = $"SpectrumSummary_FeatureCount_{Labels.GetLabel(mm.IsTopDown, ResultType.Peptide)}_KernelDensity";
+            peptideKDE.SaveInRunResultOnly(mm, outname);
 
 
             // Fractional Intensity Histograms
@@ -103,6 +133,37 @@ namespace TaskLayer.ChimeraAnalysis
             outname = $"SpectrumSummary_PrecursorFractionalIntensity_{Labels.GetLabel(mm.IsTopDown, ResultType.Peptide)}_Histogram";
             peptideHist.SaveInRunResultOnly(mm, outname);
 
+            psmKDE = Chart.Combine(new[]
+                {
+                    GenericPlots.KernelDensityPlot(
+                        dataDictionary[ResultType.Psm.ToString()][true].Select(p => p.FractionalIntensity)
+                            .ToList(),
+                        "Chimeric", "Fractional Intensity", "Density"),
+                    GenericPlots.KernelDensityPlot(
+                        dataDictionary[ResultType.Psm.ToString()][false].Select(p => p.FractionalIntensity)
+                            .ToList(),
+                        "Non-Chimeric", "Fractional Intensity", "Density")
+                })
+                .WithTitle($"1% {Labels.GetLabel(mm.IsTopDown, ResultType.Psm)} Precursor Fractional Intensity");
+            outname =
+                $"SpectrumSummary_PrecursorFractionalIntensity_{Labels.GetLabel(mm.IsTopDown, ResultType.Psm)}_KernelDensity";
+            psmKDE.SaveInRunResultOnly(mm, outname);
+
+            peptideKDE = Chart.Combine(new[]
+                {
+                    GenericPlots.KernelDensityPlot(
+                        dataDictionary[ResultType.Peptide.ToString()][true].Select(p => p.FractionalIntensity)
+                            .ToList(),
+                        "Chimeric", "Fractional Intensity", "Density"),
+                    GenericPlots.KernelDensityPlot(
+                        dataDictionary[ResultType.Peptide.ToString()][false].Select(p => p.FractionalIntensity)
+                            .ToList(),
+                        "Non-Chimeric", "Fractional Intensity", "Density")
+                })
+                .WithTitle($"1% {Labels.GetLabel(mm.IsTopDown, ResultType.Peptide)} Precursor Fractional Intensity");
+            outname =
+                $"SpectrumSummary_PrecursorFractionalIntensity_{Labels.GetLabel(mm.IsTopDown, ResultType.Peptide)}_KernelDensity";
+            peptideKDE.SaveInRunResultOnly(mm, outname);
         }
     }
 }
