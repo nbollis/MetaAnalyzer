@@ -28,6 +28,7 @@
     <ProjectReference Include="..\Analyzer\Analyzer.csproj" />
     <ProjectReference Include="..\Calibrator\Calibrator.csproj" />
     <ProjectReference Include="..\CMD\CMD.csproj" />
+    <ProjectReference Include="..\RetentionTimePrediction\RetentionTimePrediction.csproj" />
   </ItemGroup>
 
   <ItemGroup>

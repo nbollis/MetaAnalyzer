@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Analyzer.SearchType;
 using Calibrator;
 using Microsoft.ML.Calibrators;
+using RetentionTimePrediction;
 using TaskLayer.ChimeraAnalysis;
 
 namespace Test
@@ -68,5 +69,26 @@ namespace Test
             var task = new SingleRunChimericSpectrumSummaryTask(parameters);
             task.Run();
         }
+
+        #region On the fly tests
+
+        [Test]
+        public static void RunChronologer()
+        {
+            var allResults = new AllResults(Man11AllResultsPath);
+            // figures found at B:\Users\Nic\Chimeras\Mann_11cell_analysis\A549\Figures
+            foreach (var cellLine in allResults)
+            {
+                var mm = (MetaMorpheusResult)cellLine.First(p => p is MetaMorpheusResult);
+                var peptides = mm.AllPeptides;
+                var results = peptides
+                    .Where(p => p is {PEP_QValue: <= 0.01, DecoyContamTarget: "T"} && !p.FullSequence.Contains("Metal"))
+                    .Select(p => (p.FullSequence, p.RetentionTime, ChronologerEstimator.PredictRetentionTime(p.BaseSeq, p.FullSequence))).ToArray();
+
+                var notDone = results.Where(p => p.Item3 is null).ToArray();
+            }
+        }
+
+        #endregion
     }
 }

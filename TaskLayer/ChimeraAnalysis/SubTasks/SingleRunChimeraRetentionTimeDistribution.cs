@@ -154,8 +154,5 @@ namespace TaskLayer.ChimeraAnalysis
                                    $"MetaMorpheus 1% {Labels.GetLabel(mm.IsTopDown, ResultType.Psm)} Retention Time Distribution");
             psmPlot.SaveInRunResultOnly(mm, outName, 600, 600);
         }
-
-
-
     }
 }

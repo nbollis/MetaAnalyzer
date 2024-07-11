@@ -117,10 +117,10 @@ namespace Calibrator
             
 
             Log("Making Pretty Pictures");
-            //GenerateChronologerVsRtScatterRemovingIntersectionPoints(dataFromOriginalPredictions, dataFromAdjustedRetentionTimes);
             GenerateChronologerDeltaRtKde(dataFromOriginalPredictions, dataFromAdjustedRetentionTimes);
             GenerateChronologerDeltaRtHistogram(dataFromOriginalPredictions, dataFromAdjustedRetentionTimes);
             GenerateChronologerVsRtScatter(dataFromOriginalPredictions, dataFromAdjustedRetentionTimes);
+            GenerateChronologerShiftPlot(dataFromOriginalPredictions, dataFromAdjustedRetentionTimes);
 
         }
 
@@ -255,11 +255,40 @@ namespace Calibrator
             adjustedRetentionTimeScatterPlot.SaveInCellLineOnly(Parameters.CellLine, outName, 1200, 600);
         }
 
+        private void GenerateChronologerShiftPlot(
+            List<(string FullSequence, bool IsChimeric, double ChronologerToRetentionTime, double RetentionTime)>
+                dataFromOriginalPredictions,
+            List<(string FullSequence, bool IsChimeric, double ChronologerToRetentionTime, double RetentionTime)>
+                dataFromAdjustedRetentionTimes)
+        {
+            Dictionary<bool, List<double>> chimericToShiftDictionary = new()
+            {
+                { true, new List<double>() },
+                { false, new List<double>() }
+            };
+
+            var adjustedDict = dataFromAdjustedRetentionTimes
+                .ToDictionary(p => p.FullSequence, p => p.RetentionTime);
+            foreach (var original in dataFromOriginalPredictions)
+                if (adjustedDict.TryGetValue(original.FullSequence, out var adjustedValue))
+                    chimericToShiftDictionary[original.IsChimeric].Add(original.RetentionTime - adjustedValue);
+
+            var hist = Chart.Combine(new[]
+            {
+                GenericPlots.Histogram(chimericToShiftDictionary[true], "Chimeric", "Adjustment", "Count"),
+                GenericPlots.Histogram(chimericToShiftDictionary[false], "Non-Chimeric", "Adjustment", "Count")
+            });
+            string outname = $"RetentionTimeCalibration_{Parameters.CellLine.CellLine}_ShiftHistogram";
+            hist.SaveInCellLineOnly(Parameters.CellLine, outname, 600, 600);
+        }
+
+        #region Unused
+
         private void GenerateChronologerVsRtScatterRemovingIntersectionPoints(
-            List<(string FullSequence, bool IsChimeric, double ChronologerToRetentionTime, double RetentionTime)>
-                original,
-            List<(string FullSequence, bool IsChimeric, double ChronologerToRetentionTime, double RetentionTime)>
-                adjusted)
+           List<(string FullSequence, bool IsChimeric, double ChronologerToRetentionTime, double RetentionTime)>
+               original,
+           List<(string FullSequence, bool IsChimeric, double ChronologerToRetentionTime, double RetentionTime)>
+               adjusted)
         {
             var dataFromOriginalPredictions = new List<(string FullSequence, bool IsChimeric, double ChronologerToRetentionTime, double RetentionTime)>();
             foreach (var fullSeqGroup in original.GroupBy(p => p.FullSequence))
@@ -270,7 +299,7 @@ namespace Calibrator
             foreach (var fullSeqGroup in adjusted.GroupBy(p => p.FullSequence))
                 if (fullSeqGroup.Any(p => p.IsChimeric) && fullSeqGroup.Any(p => !p.IsChimeric))
                     dataFromAdjustedRetentionTimes.AddRange(fullSeqGroup);
-            
+
             var originalRetentionTimeScatterPlot = Chart.Combine(new[]
             {
 
@@ -315,16 +344,6 @@ namespace Calibrator
             adjustedRetentionTimeScatterPlot.SaveInCellLineOnly(Parameters.CellLine, outName, 1200, 600);
         }
 
-        private void GenerateChronologerShiftPlot(
-            List<(string FullSequence, bool IsChimeric, double ChronologerToRetentionTime, double RetentionTime)>
-                dataFromOriginalPredictions,
-            List<(string FullSequence, bool IsChimeric, double ChronologerToRetentionTime, double RetentionTime)>
-                dataFromAdjustedRetentionTimes)
-        {
-            foreach (var original in dataFromOriginalPredictions)
-            {
-                
-            }
-        }
+        #endregion
     }
 }
