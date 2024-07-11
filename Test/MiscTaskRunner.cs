@@ -82,7 +82,9 @@ namespace Test
                 var mm = (MetaMorpheusResult)cellLine.First(p => p is MetaMorpheusResult);
                 var peptides = mm.AllPeptides;
                 var results = peptides
-                    .Where(p => p is {PEP_QValue: <= 0.01, DecoyContamTarget: "T"} && !p.FullSequence.Contains("Metal"))
+                    .Where(p => p is {PEP_QValue: <= 0.01, DecoyContamTarget: "T"} 
+                                && !p.FullSequence.Contains("Metal")
+                                && !p.BaseSeq.Contains('U'))
                     .Select(p => (p.FullSequence, p.RetentionTime, ChronologerEstimator.PredictRetentionTime(p.BaseSeq, p.FullSequence))).ToArray();
 
                 var notDone = results.Where(p => p.Item3 is null).ToArray();

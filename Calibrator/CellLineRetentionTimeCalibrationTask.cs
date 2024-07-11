@@ -120,8 +120,7 @@ namespace Calibrator
             GenerateChronologerDeltaRtKde(dataFromOriginalPredictions, dataFromAdjustedRetentionTimes);
             GenerateChronologerDeltaRtHistogram(dataFromOriginalPredictions, dataFromAdjustedRetentionTimes);
             GenerateChronologerVsRtScatter(dataFromOriginalPredictions, dataFromAdjustedRetentionTimes);
-            GenerateChronologerShiftPlot(dataFromOriginalPredictions, dataFromAdjustedRetentionTimes);
-
+            GenerateChronologerShiftPlots(dataFromOriginalPredictions, dataFromAdjustedRetentionTimes);
         }
 
         private void GenerateChronologerDeltaRtKde(
@@ -255,7 +254,7 @@ namespace Calibrator
             adjustedRetentionTimeScatterPlot.SaveInCellLineOnly(Parameters.CellLine, outName, 1200, 600);
         }
 
-        private void GenerateChronologerShiftPlot(
+        private void GenerateChronologerShiftPlots(
             List<(string FullSequence, bool IsChimeric, double ChronologerToRetentionTime, double RetentionTime)>
                 dataFromOriginalPredictions,
             List<(string FullSequence, bool IsChimeric, double ChronologerToRetentionTime, double RetentionTime)>
@@ -280,6 +279,14 @@ namespace Calibrator
             });
             string outname = $"RetentionTimeCalibration_{Parameters.CellLine.CellLine}_ShiftHistogram";
             hist.SaveInCellLineOnly(Parameters.CellLine, outname, 600, 600);
+
+            var kde = Chart.Combine(new[]
+            {
+                GenericPlots.KernelDensityPlot(chimericToShiftDictionary[true], "Chimeric", "Adjustment", "Density", 0.5),
+                GenericPlots.KernelDensityPlot(chimericToShiftDictionary[false], "Non-Chimeric", "Adjustment", "Density", 0.5)
+            });
+            outname = $"RetentionTimeCalibration_{Parameters.CellLine.CellLine}_ShiftKDE";
+            kde.SaveInCellLineOnly(Parameters.CellLine, outname, 600, 600);
         }
 
         #region Unused

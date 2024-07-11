@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using TorchSharp;
+﻿using TorchSharp;
 
 namespace RetentionTimePrediction
 {
@@ -37,6 +32,11 @@ namespace RetentionTimePrediction
         /// <returns></returns>
         public static double? PredictRetentionTime(string baseSequence, string fullSequence)
         {
+            if (fullSequence.Contains("[Metal"))
+                return null;
+            if (baseSequence.Contains('U'))
+                return null;
+
             var tensor = Tensorize(baseSequence, fullSequence);
             if (tensor is null)
                 return null;
