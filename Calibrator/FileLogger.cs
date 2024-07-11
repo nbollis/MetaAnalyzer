@@ -48,36 +48,23 @@ public class FileLogger
     {
         GetFullSequencesPresentFileWise();
         RemoveAndRecalibrateAllFiles();
-        //WriteOutput();
     }
 
     private void DeleteFileValues(string fileName)
     {
-        //Dictionary<string, List<(string, double)>>
-        //    swapDictionary = new Dictionary<string, List<(string, double)>>();
-
         foreach (var pair in FileWiseCalibrations)
-        {
             if (pair.Value.Select(s => s.Item1).ToList().Contains(fileName))
-            {
                 FileWiseCalibrations[pair.Key].RemoveAll(v => v.Item1 == fileName);
-            }
-
-            //swapDictionary.Add(pair.Key, t);
-        }
     }
 
     private void RemoveAndRecalibrateAllFiles()
     {
         for (int i = 0; i < 10; i++)
-        {
-            var temp = FileWiseCalibrations.ToRecords().ToList();
             foreach (var filename in RawFiles)
             {
                 DeleteFileValues(filename.Key);
                 PairwiseCalibration(filename.Value);
             }
-        }
     }
 
     private void GetFullSequencesPresentFileWise()
@@ -118,12 +105,6 @@ public class FileLogger
 
         var dataView = mlContext.Data.LoadFromEnumerable<Anchor>(data.ToArray());
 
-        //var pipeline = mlContext.Transforms
-        //    .CopyColumns("Label", nameof(Anchor.LeaderRetentionTime))
-        //    .Append(mlContext.Transforms.Concatenate("Features", nameof(Anchor.FollowerRetentionTime)))
-        //    .Append(mlContext.Regression.Trainers.Sdca(labelColumnName: "Label", featureColumnName: "Features"));
-
-
         var pipeline = mlContext.Transforms
             .CopyColumns("Label", nameof(Anchor.LeaderRetentionTime))
             .Append(mlContext.Transforms.Concatenate("Features", nameof(Anchor.FollowerRetentionTime)))
@@ -152,17 +133,15 @@ public class FileLogger
                 prediction.TransformedRetentionTime));
         }
 
-        // for each full sequence in the leading raw psmFile, insert those that are not present in the following raw psmFile
-
-        foreach (var fullSequence in LeadingRawFile.FullSequenceWithScanRetentionTime)
-        {
-            if (!FileWiseCalibrations.ContainsKey(fullSequence.Key))
-            {
-                FileWiseCalibrations.Add(fullSequence.Key, new List<(string, double)>());
-            }
-
-            FileWiseCalibrations[fullSequence.Key].Add((LeadingRawFile.RawFileName, fullSequence.Value));
-        }
+        //foreach (var fullSequence in LeadingRawFile.FullSequenceWithScanRetentionTime)
+        //{
+        //    if (!FileWiseCalibrations.ContainsKey(fullSequence.Key))
+        //    {
+        //        FileWiseCalibrations.Add(fullSequence.Key, new List<(string, double)>());
+        //    }
+        //    if (!FileWiseCalibrations[fullSequence.Key].Contains((LeadingRawFile.RawFileName, fullSequence.Value)))
+        //        FileWiseCalibrations[fullSequence.Key].Add((LeadingRawFile.RawFileName, fullSequence.Value));
+        //}
     }
 
     public void WriteOutput(string outputPath)

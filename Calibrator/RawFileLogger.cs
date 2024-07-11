@@ -12,10 +12,7 @@ public class RawFileLogger
     {
         RawFileName = rawFileName;
         // TODO Filter the psms
-        Psms = psms.Where(p => p.QValue <= 0.01 &
-                               p.PEP <= 0.5 &
-                               p.AmbiguityLevel == "1" &
-                               p.DecoyContamTarget == "T").ToList();
+        Psms = psms.Where(p => p is { PEP_QValue: <= 0.01, DecoyContamTarget: "T" }).ToList();
 
         // Get the median retention time for each full sequence that are repeated in the raw psmFile
         var fullSequences = Psms.GroupBy(p => p.FullSequence);

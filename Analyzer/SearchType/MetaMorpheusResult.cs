@@ -957,8 +957,12 @@ namespace Analyzer.SearchType
 
         public ChimericSpectrumSummaryFile GetChimericSpectrumSummaryFile()
         {
-            if (!Override && File.Exists(_chimericSpectrumSummaryFilePath))
-                return new ChimericSpectrumSummaryFile(_chimericSpectrumSummaryFilePath);
+            if (_chimericSpectrumSummaryFilePath.TryGetFile<ChimericSpectrumSummaryFile>(out var loadedFile))
+                if (!Override && loadedFile != null)
+                {
+                    Log("Summary File Found, loading in file");
+                    return loadedFile;
+                }
 
             // get mass spec files
             Log($"Parsing Directories for run {Condition}");

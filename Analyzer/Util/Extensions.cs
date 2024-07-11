@@ -1,5 +1,6 @@
 ﻿using CsvHelper;
 using Proteomics.PSM;
+using Readers;
 
 namespace Analyzer.Util
 {
@@ -100,7 +101,26 @@ namespace Analyzer.Util
             return result;
         }
 
-       
 
+        public static bool TryGetFile<T>(this string filePath, out T? result) 
+            where T : IResultFile, new()
+        {
+            result = default(T);
+            if (File.Exists(filePath))
+            {
+                try
+                {
+                    result = FileReader.ReadFile<T>(filePath);
+                    return true;
+                }
+                catch (Exception e)
+                {
+                    Console.WriteLine(e);
+                    return false;
+                }
+            }
+
+            return false;
+        }
     }
 }

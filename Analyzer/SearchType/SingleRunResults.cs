@@ -2,6 +2,7 @@
 using Analyzer.Interfaces;
 using Analyzer.Plotting.Util;
 using Analyzer.Util;
+using Readers;
 
 namespace Analyzer.SearchType
 {
@@ -117,6 +118,7 @@ namespace Analyzer.SearchType
         public abstract BulkResultCountComparisonFile? GetIndividualFileComparison(string path = null);
         public abstract ChimeraCountingFile CountChimericPsms();
         public abstract BulkResultCountComparisonFile GetBulkResultCountComparisonFile(string path = null);
+
         
 
         public override string ToString()

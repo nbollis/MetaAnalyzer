@@ -52,6 +52,7 @@ namespace Calibrator
             }
 
             Results = results;
+            sr.Dispose();
         }
 
         public override void WriteResults(string outputPath)
@@ -61,7 +62,7 @@ namespace Calibrator
             var header = "FullSequence,";
             var toAdd = Results.SelectMany(p => p.AdjustedRetentionTimes.Keys)
                 .Distinct().ToArray();
-            var newHeader = string.Join(',', header + toAdd);
+            var newHeader = header + string.Join(',', toAdd);
             sw.WriteLine(newHeader);
 
             foreach (var result in Results)
@@ -70,7 +71,7 @@ namespace Calibrator
                 for (int i = 0; i < toAdd.Length; i++)
                 {
                     if (result.AdjustedRetentionTimes.TryGetValue(toAdd[i], out double val))
-                        resultText += val;
+                        resultText += $"{val},";
                     else
                         resultText += ',';
                 }

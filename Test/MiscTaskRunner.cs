@@ -18,6 +18,9 @@ namespace Test
         public static string Man11AllResultsPath => BottomUpRunner.DirectoryPath;
         public static string TopDownDirectoryPath => TopDownRunner.DirectoryPath;
 
+        public static string TopDownJurkatFDRRunPath =>
+            @"B:\Users\Nic\Chimeras\FdrAnalysis\UseProvidedLibraryOnAllFiles_JurkatTD";
+
         [Test]
         public static void SpectrumSimilarityTaskRunner()
         {
@@ -43,12 +46,27 @@ namespace Test
         public static void RunRetentionTimeAdjustmentTask()
         {
             var allResults = new AllResults(Man11AllResultsPath);
+            // figures found at B:\Users\Nic\Chimeras\Mann_11cell_analysis\A549\Figures
             foreach (var cellLine in allResults)
             {
-                var parameters = new CellLineAnalysisParameters(cellLine.DirectoryPath, false, true, cellLine);
+                var parameters = new CellLineAnalysisParameters(cellLine.DirectoryPath, true, true, cellLine);
                 var task = new CellLineRetentionTimeCalibrationTask(parameters);
                 task.Run();
             }
+        }
+
+
+
+     
+
+        [Test]
+        public static void RunSpectrumSummaryTask()
+        {
+            var path = TopDownJurkatFDRRunPath;
+            var mmRun = new MetaMorpheusResult(path);
+            var parameters = new SingleRunAnalysisParameters(path, false, true, mmRun);
+            var task = new SingleRunChimericSpectrumSummaryTask(parameters);
+            task.Run();
         }
     }
 }

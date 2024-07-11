@@ -2,12 +2,16 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Reflection.Metadata.Ecma335;
 using System.Text;
 using System.Threading.Tasks;
 using Analyzer.Plotting;
 using Analyzer.Plotting.IndividualRunPlots;
 using Analyzer.Plotting.Util;
 using Analyzer.SearchType;
+using Analyzer.Util;
+using MathNet.Numerics;
+using Microsoft.FSharp.Core;
 using Plotly.NET;
 using Plotly.NET.CSharp;
 using GenericChartExtensions = Plotly.NET.CSharp.GenericChartExtensions;
@@ -44,7 +48,7 @@ namespace Calibrator
             if (!mm.IndividualFileResults.Any())
                 throw new ArgumentException("Selected run does not contain any individual file results");
 
-            string retentionTimeAdjustmentFilePath = Path.Combine(Parameters.CellLine.DirectoryPath, $"{Parameters.CellLine.CellLine}_AdjustedRetentionTimes.csv");
+            string retentionTimeAdjustmentFilePath = Path.Combine(mm.DirectoryPath, $"{Parameters.CellLine.CellLine}_{mm.Condition}_AdjustedRetentionTimes.csv");
             Dictionary<string, List<(string fileName, double retentionTime)>> results;
             if (File.Exists(retentionTimeAdjustmentFilePath))
             {
@@ -79,124 +83,248 @@ namespace Calibrator
 
 
             Log("Parsing out original and adjusted retention times");
-            var dataFromOriginalPredictions = mm.RetentionTimePredictionFile.Where(p => p.ChronologerPrediction != 0 && p.PeptideModSeq != "")
-                .Select(p => (p.FullSequence, p.IsChimeric, p.ChronologerToRetentionTime, p.RetentionTime, p.FileNameWithoutExtension))
+            var dataFromOriginalPredictionsWithFileNames = mm.RetentionTimePredictionFile.Where(p => p.ChronologerPrediction != 0 && p.PeptideModSeq != "")
+                .Select(p => (p.FullSequence, p.IsChimeric, p.ChronologerToRetentionTime, p.RetentionTime, p.FileNameWithoutExtension.ConvertFileName()))
                 .ToList();
-            var dataFromAdjustedRetentionTimes = dataFromOriginalPredictions.Select(p =>
+            int misMatchCount = 0;
+            int missingFullSeqCount = 0;
+            var dataFromAdjustedRetentionTimes =
+                new List<(string FullSequence, bool IsChimeric, double ChronologerToRetentionTime, double RetentionTime)>();
+            foreach (var originalPsm in dataFromOriginalPredictionsWithFileNames)
             {
-                var peptide = results[p.FullSequence];
-                (string FileName, double RetentionTime)? fileSpecific = peptide.FirstOrDefault(m => m.fileName == p.FileNameWithoutExtension);
-                if (fileSpecific == default((string, double)))
-                    Debugger.Break();
+                if (!results.TryGetValue(originalPsm.FullSequence, out var peptide))
+                {
+                    missingFullSeqCount++;
+                    continue;
+                }
 
-                return (p.FullSequence, p.IsChimeric, p.ChronologerToRetentionTime, fileSpecific.Value.RetentionTime);
-            })
-                .ToArray();
+                (string FileName, double RetentionTime)? fileSpecific = peptide
+                    .FirstOrDefault(adjustedPsm => adjustedPsm.fileName.ConvertFileName() == originalPsm.Item5);
+
+                if (fileSpecific == default((string, double)))
+                {
+                    misMatchCount++;
+                    continue;
+                }
+                dataFromAdjustedRetentionTimes.Add((originalPsm.FullSequence, originalPsm.IsChimeric, originalPsm.ChronologerToRetentionTime, fileSpecific.Value.RetentionTime));
+            }
+
+            var dataFromOriginalPredictions = dataFromOriginalPredictionsWithFileNames
+                .Select(p => (p.FullSequence, p.IsChimeric, p.ChronologerToRetentionTime, p.RetentionTime))
+                .OrderBy(p => p.RetentionTime).ToList();
+            dataFromAdjustedRetentionTimes = dataFromAdjustedRetentionTimes.OrderBy(p => p.RetentionTime).ToList();
+
+            
 
             Log("Making Pretty Pictures");
+            //GenerateChronologerVsRtScatterRemovingIntersectionPoints(dataFromOriginalPredictions, dataFromAdjustedRetentionTimes);
+            GenerateChronologerDeltaRtKde(dataFromOriginalPredictions, dataFromAdjustedRetentionTimes);
+            GenerateChronologerDeltaRtHistogram(dataFromOriginalPredictions, dataFromAdjustedRetentionTimes);
+            GenerateChronologerVsRtScatter(dataFromOriginalPredictions, dataFromAdjustedRetentionTimes);
 
+        }
+
+        private void GenerateChronologerDeltaRtKde(
+            List<(string FullSequence, bool IsChimeric, double ChronologerToRetentionTime, double RetentionTime)>
+                dataFromOriginalPredictions,
+            List<(string FullSequence, bool IsChimeric, double ChronologerToRetentionTime, double RetentionTime)>
+                dataFromAdjustedRetentionTimes)
+        {
             var originalRetentionTimeKDE = Chart.Combine(new[]
-            {
-                GenericPlots.KernelDensityPlot(
-                    dataFromOriginalPredictions.Where(p => p.IsChimeric)
-                        .Select(p => p.RetentionTime - p.ChronologerToRetentionTime).ToList(),
-                    "Chimeric", "Retention Time Error", "Density"),
-                GenericPlots.KernelDensityPlot(
-                    dataFromOriginalPredictions.Where(p => !p.IsChimeric)
-                        .Select(p => p.RetentionTime - p.ChronologerToRetentionTime).ToList(),
-                    "Non-Chimeric", "Retention Time Error", "Density")
-            });
+                {
+                    GenericPlots.KernelDensityPlot(
+                        dataFromOriginalPredictions.Where(p => p.IsChimeric)
+                            .Select(p => p.RetentionTime - p.ChronologerToRetentionTime).ToList(),
+                        "Chimeric", "Retention Time Error", "Original Density"),
+                    GenericPlots.KernelDensityPlot(
+                        dataFromOriginalPredictions.Where(p => !p.IsChimeric)
+                            .Select(p => p.RetentionTime - p.ChronologerToRetentionTime).ToList(),
+                        "Non-Chimeric", "Retention Time Error", "Original Density")
+                })
+                .WithXAxisStyle(Title.init("Retention Time Error"),
+                    new FSharpOption<Tuple<IConvertible, IConvertible>>(new Tuple<IConvertible, IConvertible>(-80, 80)));
 
             var adjustedRetetionTimeKDE = Chart.Combine(new[]
-            {
-                GenericPlots.KernelDensityPlot(
-                    dataFromAdjustedRetentionTimes.Where(p => p.IsChimeric)
-                        .Select(p => p.RetentionTime - p.ChronologerToRetentionTime).ToList(),
-                    "Chimeric", "Retention Time Error", "Density"),
-                GenericPlots.KernelDensityPlot(
-                    dataFromAdjustedRetentionTimes.Where(p => !p.IsChimeric)
-                        .Select(p => p.RetentionTime - p.ChronologerToRetentionTime).ToList(),
-                    "Non-Chimeric", "Retention Time Error", "Density")
-            });
+                {
+                    GenericPlots.KernelDensityPlot(
+                        dataFromAdjustedRetentionTimes.Where(p => p.IsChimeric)
+                            .Select(p => p.RetentionTime - p.ChronologerToRetentionTime).ToList(),
+                        "Chimeric", "Retention Time Error", "Adjusted Density"),
+                    GenericPlots.KernelDensityPlot(
+                        dataFromAdjustedRetentionTimes.Where(p => !p.IsChimeric)
+                            .Select(p => p.RetentionTime - p.ChronologerToRetentionTime).ToList(),
+                        "Non-Chimeric", "Retention Time Error", "Adjusted Density")
+                })
+                .WithXAxisStyle(Title.init("Retention Time Error"),
+                    new FSharpOption<Tuple<IConvertible, IConvertible>>(new Tuple<IConvertible, IConvertible>(-80, 80)));
 
-            var kde = Chart.Grid(new[] { originalRetentionTimeKDE, adjustedRetetionTimeKDE }, 2, 1)
+            var kde = Chart.Grid(new[] { originalRetentionTimeKDE, adjustedRetetionTimeKDE }, 1, 2)
                 .WithTitle($"{Parameters.CellLine.CellLine} 1% Peptides Chronolger Delta Kernel Density");
             var outName = $"RetentionTimeCalibration_{Parameters.CellLine.CellLine}_KDE";
             kde.SaveInCellLineOnly(Parameters.CellLine, outName, 1200, 600);
+        }
 
+        private void GenerateChronologerDeltaRtHistogram(
+            List<(string FullSequence, bool IsChimeric, double ChronologerToRetentionTime, double RetentionTime)>
+                dataFromOriginalPredictions,
+            List<(string FullSequence, bool IsChimeric, double ChronologerToRetentionTime, double RetentionTime)>
+                dataFromAdjustedRetentionTimes)
+        {
+            var originalRetentionTimeHistogram = Chart.Combine(new[]
+                {
+                    GenericPlots.Histogram(
+                        dataFromOriginalPredictions.Where(p => p.IsChimeric)
+                            .Select(p => p.RetentionTime - p.ChronologerToRetentionTime).ToList(),
+                        "Chimeric", "Retention Time Error", "Original Count"),
+                    GenericPlots.Histogram(
+                        dataFromOriginalPredictions.Where(p => !p.IsChimeric)
+                            .Select(p => p.RetentionTime - p.ChronologerToRetentionTime).ToList(),
+                        "Non-Chimeric", "Retention Time Error", "Original Count")
+                })
+                .WithXAxisStyle(Title.init("Retention Time Error"),
+                    new FSharpOption<Tuple<IConvertible, IConvertible>>(
+                        new Tuple<IConvertible, IConvertible>(-80, 80)));
 
+            var adjustedRetentionTimeHistogram = Chart.Combine(new[]
+                {
+                    GenericPlots.Histogram(
+                        dataFromAdjustedRetentionTimes.Where(p => p.IsChimeric)
+                            .Select(p => p.RetentionTime - p.ChronologerToRetentionTime).ToList(),
+                        "Chimeric", "Retention Time Error", "Adjusted Count"),
+                    GenericPlots.Histogram(
+                        dataFromAdjustedRetentionTimes.Where(p => !p.IsChimeric)
+                            .Select(p => p.RetentionTime - p.ChronologerToRetentionTime).ToList(),
+                        "Non-Chimeric", "Retention Time Error", "Adjusted Count")
+                })
+                .WithXAxisStyle(Title.init("Retention Time Error"),
+                    new FSharpOption<Tuple<IConvertible, IConvertible>>(new Tuple<IConvertible, IConvertible>(-80, 80)));
+
+            var histogram = Chart.Grid(new[] { originalRetentionTimeHistogram, adjustedRetentionTimeHistogram }, 1, 2)
+                .WithTitle($"{Parameters.CellLine.CellLine} 1% Peptides Chronolger Delta Histogram");
+            var outName = $"RetentionTimeCalibration_{Parameters.CellLine.CellLine}_Histogram";
+            histogram.SaveInCellLineOnly(Parameters.CellLine, outName, 1200, 600);
+        }
+
+        private void GenerateChronologerVsRtScatter(
+            List<(string FullSequence, bool IsChimeric, double ChronologerToRetentionTime, double RetentionTime)>
+                dataFromOriginalPredictions,
+            List<(string FullSequence, bool IsChimeric, double ChronologerToRetentionTime, double RetentionTime)>
+                dataFromAdjustedRetentionTimes)
+        {
             var originalRetentionTimeScatterPlot = Chart.Combine(new[]
             {
+
                 Chart2D.Chart.Scatter<double, double, string>(
-                    MarkerColor: "Chimeric".ConvertConditionToColor(),
-                    X: dataFromOriginalPredictions.Where(p => p.IsChimeric).Select(p => p.RetentionTime).ToArray(),
-                    Y: dataFromOriginalPredictions.Where(p => p.IsChimeric).Select(p => p.ChronologerToRetentionTime).ToArray())
-                    .WithXAxisStyle( Title.init("RetentionTime"))
-                    .WithYAxisStyle(Title.init("Chronologer Prediction")),
-                Chart2D.Chart.Scatter<double, double, string>(
-                    MarkerColor: "Non-Chimeric".ConvertConditionToColor(),
+                    MarkerColor: "Non-Chimeric".ConvertConditionToColor(), Mode: StyleParam.Mode.Markers, Name: "Non-Chimeric",
                     X: dataFromOriginalPredictions.Where(p => !p.IsChimeric).Select(p => p.RetentionTime).ToArray(),
                     Y: dataFromOriginalPredictions.Where(p => !p.IsChimeric).Select(p => p.ChronologerToRetentionTime).ToArray())
-                    .WithXAxisStyle(Title.init("RetentionTime"))
+                    .WithXAxisStyle(Title.init("Original RetentionTime"))
+                    .WithYAxisStyle(Title.init("Chronologer Prediction")),
+                Chart2D.Chart.Scatter<double, double, string>( Name: "Chimeric",
+                        MarkerColor: "Chimeric".ConvertConditionToColor(), Mode: StyleParam.Mode.Markers,
+                        X: dataFromOriginalPredictions.Where(p => p.IsChimeric).Select(p => p.RetentionTime).ToArray(),
+                        Y: dataFromOriginalPredictions.Where(p => p.IsChimeric).Select(p => p.ChronologerToRetentionTime).ToArray())
+                    .WithXAxisStyle( Title.init("Original RetentionTime"))
                     .WithYAxisStyle(Title.init("Chronologer Prediction"))
-            });
+            }).WithTitle($"{Parameters.CellLine.CellLine} 1% Peptides Original Chronolger Delta Scatter")
+            .WithLayout(PlotlyBase.DefaultLayoutWithLegend);
+            var outName = $"RetentionTimeCalibration_{Parameters.CellLine.CellLine}_Scatter_Orignal";
+            originalRetentionTimeScatterPlot.SaveInCellLineOnly(Parameters.CellLine, outName, 1200, 600);
 
             var adjustedRetentionTimeScatterPlot = Chart.Combine(new[]
             {
-                Chart2D.Chart.Scatter<double, double, string>(
-                        MarkerColor: "Chimeric".ConvertConditionToColor(),
-                        X: dataFromAdjustedRetentionTimes.Where(p => p.IsChimeric).Select(p => p.RetentionTime)
-                            .ToArray(),
-                        Y: dataFromAdjustedRetentionTimes.Where(p => p.IsChimeric)
-                            .Select(p => p.ChronologerToRetentionTime).ToArray())
-                    .WithXAxisStyle(Title.init("RetentionTime"))
-                    .WithYAxisStyle(Title.init("Chronologer Prediction")),
-                Chart2D.Chart.Scatter<double, double, string>(
-                        MarkerColor: "Non-Chimeric".ConvertConditionToColor(),
+                Chart2D.Chart.Scatter<double, double, string>( Name: "Non-Chimeric",
+                        MarkerColor: "Non-Chimeric".ConvertConditionToColor(), Mode: StyleParam.Mode.Markers,
                         X: dataFromAdjustedRetentionTimes.Where(p => !p.IsChimeric).Select(p => p.RetentionTime)
                             .ToArray(),
                         Y: dataFromAdjustedRetentionTimes.Where(p => !p.IsChimeric)
                             .Select(p => p.ChronologerToRetentionTime).ToArray())
-                    .WithXAxisStyle(Title.init("RetentionTime"))
+                    .WithXAxisStyle(Title.init("Adjusted RetentionTime"))
+                    .WithYAxisStyle(Title.init("Chronologer Prediction")),
+                Chart2D.Chart.Scatter<double, double, string>(Name: "Chimeric",
+                        MarkerColor: "Chimeric".ConvertConditionToColor(), Mode: StyleParam.Mode.Markers,
+                        X: dataFromAdjustedRetentionTimes.Where(p => p.IsChimeric).Select(p => p.RetentionTime)
+                            .ToArray(),
+                        Y: dataFromAdjustedRetentionTimes.Where(p => p.IsChimeric)
+                            .Select(p => p.ChronologerToRetentionTime).ToArray())
+                    .WithXAxisStyle(Title.init("Adjusted RetentionTime"))
+                    .WithYAxisStyle(Title.init("Chronologer Prediction")),
+            }).WithTitle($"{Parameters.CellLine.CellLine} 1% Peptides Adjusted Chronolger Delta Scatter")
+            .WithLayout(PlotlyBase.DefaultLayoutWithLegend);
+            outName = $"RetentionTimeCalibration_{Parameters.CellLine.CellLine}_Scatter_Adjusted";
+            adjustedRetentionTimeScatterPlot.SaveInCellLineOnly(Parameters.CellLine, outName, 1200, 600);
+        }
+
+        private void GenerateChronologerVsRtScatterRemovingIntersectionPoints(
+            List<(string FullSequence, bool IsChimeric, double ChronologerToRetentionTime, double RetentionTime)>
+                original,
+            List<(string FullSequence, bool IsChimeric, double ChronologerToRetentionTime, double RetentionTime)>
+                adjusted)
+        {
+            var dataFromOriginalPredictions = new List<(string FullSequence, bool IsChimeric, double ChronologerToRetentionTime, double RetentionTime)>();
+            foreach (var fullSeqGroup in original.GroupBy(p => p.FullSequence))
+                if (fullSeqGroup.Any(p => p.IsChimeric) && fullSeqGroup.Any(p => !p.IsChimeric))
+                    dataFromOriginalPredictions.AddRange(fullSeqGroup);
+
+            var dataFromAdjustedRetentionTimes = new List<(string FullSequence, bool IsChimeric, double ChronologerToRetentionTime, double RetentionTime)>();
+            foreach (var fullSeqGroup in adjusted.GroupBy(p => p.FullSequence))
+                if (fullSeqGroup.Any(p => p.IsChimeric) && fullSeqGroup.Any(p => !p.IsChimeric))
+                    dataFromAdjustedRetentionTimes.AddRange(fullSeqGroup);
+            
+            var originalRetentionTimeScatterPlot = Chart.Combine(new[]
+            {
+
+                Chart2D.Chart.Scatter<double, double, string>(
+                    MarkerColor: "Non-Chimeric".ConvertConditionToColor(), Mode: StyleParam.Mode.Markers, Name: "Non-Chimeric",
+                    X: dataFromOriginalPredictions.Where(p => !p.IsChimeric).Select(p => p.RetentionTime).ToArray(),
+                    Y: dataFromOriginalPredictions.Where(p => !p.IsChimeric).Select(p => p.ChronologerToRetentionTime).ToArray())
+                    .WithXAxisStyle(Title.init("Original RetentionTime"))
+                    .WithYAxisStyle(Title.init("Chronologer Prediction")),
+                Chart2D.Chart.Scatter<double, double, string>( Name: "Chimeric",
+                        MarkerColor: "Chimeric".ConvertConditionToColor(), Mode: StyleParam.Mode.Markers,
+                        X: dataFromOriginalPredictions.Where(p => p.IsChimeric).Select(p => p.RetentionTime).ToArray(),
+                        Y: dataFromOriginalPredictions.Where(p => p.IsChimeric).Select(p => p.ChronologerToRetentionTime).ToArray())
+                    .WithXAxisStyle( Title.init("Original RetentionTime"))
                     .WithYAxisStyle(Title.init("Chronologer Prediction"))
-            });
+            }).WithTitle($"{Parameters.CellLine.CellLine} 1% Peptides Original Chronolger Delta Scatter")
+            .WithLayout(PlotlyBase.DefaultLayoutWithLegend);
+            var outName = $"RetentionTimeCalibration_{Parameters.CellLine.CellLine}_Scatter_RemovedIntersection_Orignal";
+            originalRetentionTimeScatterPlot.SaveInCellLineOnly(Parameters.CellLine, outName, 1200, 600);
 
-            var scatter = Chart.Grid(new[] { originalRetentionTimeScatterPlot, adjustedRetentionTimeScatterPlot }, 2, 1)
-                .WithTitle($"{Parameters.CellLine.CellLine} 1% Peptides Chronolger Delta Scatter")
-                .WithXAxisStyle(Title.init("RetentionTime"))
-                .WithYAxisStyle(Title.init("Chronologer Prediction"));
-            outName = $"RetentionTimeCalibration_{Parameters.CellLine.CellLine}_Scatter";
-            scatter.SaveInCellLineOnly(Parameters.CellLine, outName, 1200, 600);
-
-
-            var originalRetentionTimeHistogram = Chart.Combine(new[]
+            var adjustedRetentionTimeScatterPlot = Chart.Combine(new[]
             {
-                GenericPlots.Histogram(
-                    dataFromOriginalPredictions.Where(p => p.IsChimeric)
-                        .Select(p => p.RetentionTime - p.ChronologerToRetentionTime).ToList(),
-                    "Chimeric", "Retention Time Error", "Count"),
-                GenericPlots.Histogram(
-                    dataFromOriginalPredictions.Where(p => !p.IsChimeric)
-                        .Select(p => p.RetentionTime - p.ChronologerToRetentionTime).ToList(),
-                    "Non-Chimeric", "Retention Time Error", "Count")
-            });
+                Chart2D.Chart.Scatter<double, double, string>( Name: "Non-Chimeric",
+                        MarkerColor: "Non-Chimeric".ConvertConditionToColor(), Mode: StyleParam.Mode.Markers,
+                        X: dataFromAdjustedRetentionTimes.Where(p => !p.IsChimeric).Select(p => p.RetentionTime)
+                            .ToArray(),
+                        Y: dataFromAdjustedRetentionTimes.Where(p => !p.IsChimeric)
+                            .Select(p => p.ChronologerToRetentionTime).ToArray())
+                    .WithXAxisStyle(Title.init("Adjusted RetentionTime"))
+                    .WithYAxisStyle(Title.init("Chronologer Prediction")),
+                Chart2D.Chart.Scatter<double, double, string>(Name: "Chimeric",
+                        MarkerColor: "Chimeric".ConvertConditionToColor(), Mode: StyleParam.Mode.Markers,
+                        X: dataFromAdjustedRetentionTimes.Where(p => p.IsChimeric).Select(p => p.RetentionTime)
+                            .ToArray(),
+                        Y: dataFromAdjustedRetentionTimes.Where(p => p.IsChimeric)
+                            .Select(p => p.ChronologerToRetentionTime).ToArray())
+                    .WithXAxisStyle(Title.init("Adjusted RetentionTime"))
+                    .WithYAxisStyle(Title.init("Chronologer Prediction")),
+            }).WithTitle($"{Parameters.CellLine.CellLine} 1% Peptides Adjusted Chronolger Delta Scatter")
+            .WithLayout(PlotlyBase.DefaultLayoutWithLegend);
+            outName = $"RetentionTimeCalibration_{Parameters.CellLine.CellLine}_Scatter_RemovedIntersection_Adjusted";
+            adjustedRetentionTimeScatterPlot.SaveInCellLineOnly(Parameters.CellLine, outName, 1200, 600);
+        }
 
-            var adjustedRetentionTimeHistogram = Chart.Combine(new[]
+        private void GenerateChronologerShiftPlot(
+            List<(string FullSequence, bool IsChimeric, double ChronologerToRetentionTime, double RetentionTime)>
+                dataFromOriginalPredictions,
+            List<(string FullSequence, bool IsChimeric, double ChronologerToRetentionTime, double RetentionTime)>
+                dataFromAdjustedRetentionTimes)
+        {
+            foreach (var original in dataFromOriginalPredictions)
             {
-                GenericPlots.Histogram(
-                    dataFromAdjustedRetentionTimes.Where(p => p.IsChimeric)
-                        .Select(p => p.RetentionTime - p.ChronologerToRetentionTime).ToList(),
-                    "Chimeric", "Retention Time Error", "Count"),
-                GenericPlots.Histogram(
-                    dataFromAdjustedRetentionTimes.Where(p => !p.IsChimeric)
-                        .Select(p => p.RetentionTime - p.ChronologerToRetentionTime).ToList(),
-                    "Non-Chimeric", "Retention Time Error", "Count")
-            });
-
-            var histogram = Chart.Grid(new[] { originalRetentionTimeHistogram, adjustedRetentionTimeHistogram }, 2, 1)
-                .WithTitle($"{Parameters.CellLine.CellLine} 1% Peptides Chronolger Delta Histogram");
-            outName = $"RetentionTimeCalibration_{Parameters.CellLine.CellLine}_Histogram";
-            histogram.SaveInCellLineOnly(Parameters.CellLine, outName, 1200, 600);
+                
+            }
         }
     }
 }

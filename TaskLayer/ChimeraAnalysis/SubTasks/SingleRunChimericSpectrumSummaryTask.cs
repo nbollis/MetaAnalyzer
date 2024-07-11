@@ -77,11 +77,11 @@ namespace TaskLayer.ChimeraAnalysis
                     GenericPlots.KernelDensityPlot(
                         dataDictionary[ResultType.Psm.ToString()][true].Select(p => (double)p.PossibleFeatureCount)
                             .ToList(),
-                        "Chimeric", "Features per Isolation Window", "Density"),
+                        "Chimeric", "Features per Isolation Window", "Density", 0.5),
                     GenericPlots.KernelDensityPlot(
                         dataDictionary[ResultType.Psm.ToString()][false].Select(p => (double)p.PossibleFeatureCount)
                             .ToList(),
-                        "Non-Chimeric", "Features per Isolation Window", "Density")
+                        "Non-Chimeric", "Features per Isolation Window", "Density", 0.5)
                 })
                 .WithTitle(
                     $"1% {Labels.GetLabel(mm.IsTopDown, ResultType.Psm)} Detected Features Per MS2 Isolation Window");
@@ -93,11 +93,11 @@ namespace TaskLayer.ChimeraAnalysis
                     GenericPlots.KernelDensityPlot(
                         dataDictionary[ResultType.Peptide.ToString()][true].Select(p => (double)p.PossibleFeatureCount)
                             .ToList(),
-                        "Chimeric", "Features per Isolation Window", "Density"),
+                        "Chimeric", "Features per Isolation Window", "Density", 0.5),
                     GenericPlots.KernelDensityPlot(
                         dataDictionary[ResultType.Peptide.ToString()][false].Select(p => (double)p.PossibleFeatureCount)
                             .ToList(),
-                        "Non-Chimeric", "Features per Isolation Window", "Density")
+                        "Non-Chimeric", "Features per Isolation Window", "Density", 0.5)
                 })
                 .WithTitle(
                     $"1% {Labels.GetLabel(mm.IsTopDown, ResultType.Peptide)} Detected Features Per MS2 Isolation Window");
@@ -138,11 +138,11 @@ namespace TaskLayer.ChimeraAnalysis
                     GenericPlots.KernelDensityPlot(
                         dataDictionary[ResultType.Psm.ToString()][true].Select(p => p.FractionalIntensity)
                             .ToList(),
-                        "Chimeric", "Fractional Intensity", "Density"),
+                        "Chimeric", "Fractional Intensity", "Density", 0.02),
                     GenericPlots.KernelDensityPlot(
                         dataDictionary[ResultType.Psm.ToString()][false].Select(p => p.FractionalIntensity)
                             .ToList(),
-                        "Non-Chimeric", "Fractional Intensity", "Density")
+                        "Non-Chimeric", "Fractional Intensity", "Density", 0.02)
                 })
                 .WithTitle($"1% {Labels.GetLabel(mm.IsTopDown, ResultType.Psm)} Precursor Fractional Intensity");
             outname =
@@ -154,11 +154,11 @@ namespace TaskLayer.ChimeraAnalysis
                     GenericPlots.KernelDensityPlot(
                         dataDictionary[ResultType.Peptide.ToString()][true].Select(p => p.FractionalIntensity)
                             .ToList(),
-                        "Chimeric", "Fractional Intensity", "Density"),
+                        "Chimeric", "Fractional Intensity", "Density", 0.02),
                     GenericPlots.KernelDensityPlot(
                         dataDictionary[ResultType.Peptide.ToString()][false].Select(p => p.FractionalIntensity)
                             .ToList(),
-                        "Non-Chimeric", "Fractional Intensity", "Density")
+                        "Non-Chimeric", "Fractional Intensity", "Density", 0.02)
                 })
                 .WithTitle($"1% {Labels.GetLabel(mm.IsTopDown, ResultType.Peptide)} Precursor Fractional Intensity");
             outname =
