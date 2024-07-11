@@ -5,7 +5,7 @@ using TorchSharp.Modules;
 
 namespace RetentionTimePrediction
 {
-    public class Chronologer : torch.nn.Module<torch.Tensor, torch.Tensor>
+    internal class Chronologer : torch.nn.Module<torch.Tensor, torch.Tensor>
     {
         public Chronologer() : this(Path.Combine(AppDomain.CurrentDomain.BaseDirectory,
             "Chronologer_20220601193755_TorchSharp.dat"))
