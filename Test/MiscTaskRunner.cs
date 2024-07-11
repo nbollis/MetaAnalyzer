@@ -50,7 +50,8 @@ namespace Test
             // figures found at B:\Users\Nic\Chimeras\Mann_11cell_analysis\A549\Figures
             foreach (var cellLine in allResults)
             {
-                var parameters = new CellLineAnalysisParameters(cellLine.DirectoryPath, true, true, cellLine);
+                var parameters = new CellLineAnalysisParameters(cellLine.DirectoryPath,
+                    false, true, cellLine);
                 var task = new CellLineRetentionTimeCalibrationTask(parameters);
                 task.Run();
             }

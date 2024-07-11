@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using Analyzer.FileTypes.External;
 using CsvHelper;
 using CsvHelper.Configuration;
+using Easy.Common.Extensions;
 using Readers;
 
 namespace Calibrator
@@ -25,6 +26,7 @@ namespace Calibrator
             using var sr = new StreamReader(FilePath);
             List<CalibratedRetentionTimeRecord> results = new();
             bool foundHeader = false;
+            Dictionary<int, string> header = new();
             while (!sr.EndOfStream)
             {
                 var line = sr.ReadLine();
@@ -33,19 +35,19 @@ namespace Calibrator
                 if (foundHeader == false)
                 {
                     foundHeader = true;
+                    var splits = line.Split(',');
+                    header = splits.Skip(1).ToDictionary(p => splits.IndexOf(p), p => p);
                     continue;
                 }
                 var values = line.Split(',');
-                if (values.Length < 2)
-                    continue;
+       
                 var fullSequence = values[0];
                 var adjustedRetentionTimes = new List<(string FileName, double AdjustedRetentionTime)>();
                 for (int i = 1; i < values.Length; i++)
                 {
                     if (string.IsNullOrEmpty(values[i]))
                         continue;
-                    adjustedRetentionTimes.Add((values[i], double.Parse(values[i + 1])));
-                    i++;
+                    adjustedRetentionTimes.Add((header[i], double.Parse(values[i])));
                 }
 
                 results.Add(new CalibratedRetentionTimeRecord(fullSequence, adjustedRetentionTimes));
@@ -61,7 +63,9 @@ namespace Calibrator
 
             var header = "FullSequence,";
             var toAdd = Results.SelectMany(p => p.AdjustedRetentionTimes.Keys)
-                .Distinct().ToArray();
+                .Distinct()
+                .OrderBy(p => p)
+                .ToArray();
             var newHeader = header + string.Join(',', toAdd);
             sw.WriteLine(newHeader);
 
@@ -78,10 +82,7 @@ namespace Calibrator
 
                 sw.WriteLine(resultText);
             }
-            
         }
-
-        
     }
 
     public class CalibratedRetentionTimeRecord
