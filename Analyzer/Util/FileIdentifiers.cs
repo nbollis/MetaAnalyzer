@@ -32,6 +32,7 @@
         public static string RetentionTimePredictionReady => "RetentionTimePredictionReady.tsv";
         public static string ChronologerReadyFile => "ChronologerReady.tsv";
         public static string ChoronologerResults => "ChronologerOut.tsv";
+        public static string CalibratedRetentionTimeFile => "AdjustedRetentionTimes.csv";
         
         
        

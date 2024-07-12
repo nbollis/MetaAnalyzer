@@ -5,6 +5,7 @@ using System.Linq;
 using System.Reflection.Metadata.Ecma335;
 using System.Text;
 using System.Threading.Tasks;
+using Analyzer.Interfaces;
 using Analyzer.Plotting;
 using Analyzer.Plotting.IndividualRunPlots;
 using Analyzer.Plotting.Util;
@@ -42,21 +43,20 @@ namespace Calibrator
 
             var run = potentialRuns.First();
 
-            if (run is not MetaMorpheusResult mm)
+            if (run is not IRetentionTimePredictionAnalysis rtp)
                 throw new ArgumentException("Selected run is not from MetaMorpheus");
 
-            if (!mm.IndividualFileResults.Any())
+            if (!rtp.IndividualFilePeptidePaths.Any())
                 throw new ArgumentException("Selected run does not contain any individual file results");
 
-            string retentionTimeAdjustmentFilePath = Path.Combine(mm.DirectoryPath, $"{Parameters.CellLine.CellLine}_{mm.Condition}_AdjustedRetentionTimes.csv");
+            string retentionTimeAdjustmentFilePath = rtp.CalibratedRetentionTimeFilePath;
             Dictionary<string, List<(string fileName, double retentionTime)>> results;
             if (File.Exists(retentionTimeAdjustmentFilePath))
             {
                 if (Parameters.Override)
                 {
                     Log("Retention Time Adjustment file found, overriding it");
-                    var peptideFilePaths = mm.IndividualFileResults.Select(p => p.PeptidePath).ToList();
-                    var calibrator = new CalibratorClass(peptideFilePaths);
+                    var calibrator = new CalibratorClass(rtp.IndividualFilePeptidePaths);
                     calibrator.Calibrate();
                     Log("Writing Retention Time Calibration");
                     calibrator.WriteFile(retentionTimeAdjustmentFilePath);
@@ -72,18 +72,15 @@ namespace Calibrator
             else
             {
                 Log($"Running Retention Time Calibration");
-                var peptideFilePaths = mm.IndividualFileResults.Select(p => p.PeptidePath).ToList();
-                var calibrator = new CalibratorClass(peptideFilePaths);
+                var calibrator = new CalibratorClass(rtp.IndividualFilePeptidePaths);
                 calibrator.Calibrate();
                 Log("Writing Retention Time Calibration");
                 calibrator.WriteFile(retentionTimeAdjustmentFilePath);
                 results = calibrator.FileLoggers.First().FileWiseCalibrations;
             }
-            
-
 
             Log("Parsing out original and adjusted retention times");
-            var dataFromOriginalPredictionsWithFileNames = mm.RetentionTimePredictionFile.Where(p => p.ChronologerPrediction != 0 && p.PeptideModSeq != "")
+            var dataFromOriginalPredictionsWithFileNames = rtp.RetentionTimePredictionFile.Where(p => p.ChronologerPrediction != 0 && p.PeptideModSeq != "")
                 .Select(p => (p.FullSequence, p.IsChimeric, p.ChronologerToRetentionTime, p.RetentionTime, p.FileNameWithoutExtension.ConvertFileName()))
                 .ToList();
             int misMatchCount = 0;

@@ -19,7 +19,7 @@ public class CalibratorClass
         FileLoggers.Add(new FileLogger(psmtsv));
     }
 
-    public CalibratorClass(List<string> filesPaths)
+    public CalibratorClass(IEnumerable<string> filesPaths)
     {
         List<PsmFromTsv> allPsms = new();
         foreach (var filePath in filesPaths)

@@ -41,7 +41,8 @@ public interface IMultiFilterChecker : IChimeraPaperResults
 
 public interface IRetentionTimePredictionAnalysis
 {
+    public string[] IndividualFilePeptidePaths { get; }
+    public string CalibratedRetentionTimeFilePath { get; }
     public RetentionTimePredictionFile RetentionTimePredictionFile { get; }
-    public void CreateRetentionTimePredictionReadyFile();
-    public void AppendChronologerPrediction();
+    public void CreateRetentionTimePredictionFile();
 }

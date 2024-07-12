@@ -33,7 +33,10 @@ namespace Analyzer.FileTypes.Internal
         public double PEP { get; set; }
         public double SpectralAngle { get; set; }
         public double SSRCalcPrediction { get; set; }
-        [Optional] public double ChronologerPrediction { get; set; }
+
+        [Optional]
+        [Default(0)]
+        public double ChronologerPrediction { get; set; }
         public string PeptideModSeq { get; set; }
 
 

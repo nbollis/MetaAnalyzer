@@ -15,6 +15,7 @@ using Proteomics.ProteolyticDigestion;
 using Proteomics.PSM;
 using Proteomics.RetentionTimePrediction;
 using Readers;
+using RetentionTimePrediction;
 using Ms1FeatureFile = Analyzer.FileTypes.External.Ms1FeatureFile;
 
 namespace Analyzer.SearchType
@@ -532,6 +533,11 @@ namespace Analyzer.SearchType
 
         #region Retention Time Predictions
 
+        // for calibration
+        public string[] IndividualFilePeptidePaths => IndividualFileResults.Select(p => p.PeptidePath).ToArray();
+        public string CalibratedRetentionTimeFilePath => Path.Combine(DirectoryPath, $"{DatasetName}_{Condition}_{FileIdentifiers.CalibratedRetentionTimeFile}");
+        
+        // for prediction
         private string _retentionTimePredictionPath => Path.Combine(DirectoryPath, $"{DatasetName}_MM_{FileIdentifiers.RetentionTimePredictionReady}");
         private string _chronologerRunningFilePath => Path.Combine(DirectoryPath, $"{DatasetName}_{FileIdentifiers.ChronologerReadyFile}");
         private RetentionTimePredictionFile _retentionTimePredictionFile;
@@ -547,21 +553,21 @@ namespace Analyzer.SearchType
                 }
                 else
                 {
-                    CreateRetentionTimePredictionReadyFile();
+                    CreateRetentionTimePredictionFile();
                     _retentionTimePredictionFile ??= new RetentionTimePredictionFile() { FilePath = _retentionTimePredictionPath };
                     return _retentionTimePredictionFile;
                 }
             }
         }
 
-        public void CreateRetentionTimePredictionReadyFile()
+        public void CreateRetentionTimePredictionFile()
         {
             string outpath = _retentionTimePredictionPath;
             if (File.Exists(outpath) || !DirectoryPath.Contains("MetaMorpheusWithLibrary"))
                 return;
             var modDict = GlobalVariables.AllModsKnown.ToDictionary(p => p.IdWithMotif, p => p.MonoisotopicMass.Value);
             var peptides = AllPeptides
-                .Where(p => p.DecoyContamTarget == "T" && p.PEP_QValue <= 0.01)
+                .Where(p => p is { DecoyContamTarget: "T", PEP_QValue: <= 0.01 })
                 .ToList();
             var calc = new SSRCalc3("SSRCalc 3.0 (300A)", SSRCalc3.Column.A300);
             List<RetentionTimePredictionEntry> retentionTimePredictions = new List<RetentionTimePredictionEntry>();
@@ -572,7 +578,10 @@ namespace Analyzer.SearchType
                     new RetentionTimePredictionEntry(p.FileNameWithoutExtension, p.Ms2ScanNumber, p.PrecursorScanNum,
                         p.RetentionTime.Value, p.BaseSeq, p.FullSequence, p.PeptideModSeq(modDict), p.QValue,
                         p.PEP_QValue, p.PEP, p.SpectralAngle ?? -1, isChimeric)
-                    { SSRCalcPrediction = calc.ScoreSequence(new PeptideWithSetModifications(p.FullSequence.Split('|')[0], GlobalVariables.AllModsKnownDictionary)) }));
+                    {
+                        SSRCalcPrediction = calc.ScoreSequence(new PeptideWithSetModifications(p.FullSequence.Split('|')[0], GlobalVariables.AllModsKnownDictionary)),
+                        ChronologerPrediction = ChronologerEstimator.PredictRetentionTime(p.BaseSeq, p.FullSequence) ?? 0
+                    }));
             }
             var retentionTimePredictionFile = new RetentionTimePredictionFile() { FilePath = outpath, Results = retentionTimePredictions };
             retentionTimePredictionFile.WriteResults(outpath);

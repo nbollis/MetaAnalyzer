@@ -8,6 +8,7 @@ using Analyzer.Plotting.Util;
 using Analyzer.SearchType;
 using Analyzer.Util;
 using MathNet.Numerics;
+using Easy.Common.Extensions;
 using Plotly.NET;
 using Plotly.NET.ImageExport;
 using Plotly.NET.LayoutObjects;
