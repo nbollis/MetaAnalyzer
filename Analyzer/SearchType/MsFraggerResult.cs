@@ -218,7 +218,7 @@ namespace Analyzer.SearchType
                 .SelectMany(p => p.PsmFile.Results.Where(psm => psm.PeptideProphetProbability > 0.99))
                 .ToList();
 
-            Log("Making Retention time predctions with chronologer", 2);
+            Log($"{Condition}: Making Retention time predctions with chronologer", 2);
             var sequenceToPredictionDictionary = psms.Select(p => (p.BaseSequence, p.ModifiedSequence))
                 .Distinct()
                 .ToDictionary(p => p, p => ChronologerEstimator.PredictRetentionTime(p.BaseSequence, p.ModifiedSequence));
@@ -238,7 +238,7 @@ namespace Analyzer.SearchType
             var retentionTimePredictionFile = new RetentionTimePredictionFile(_retentionTimePredictionPath) { Results = results };
             retentionTimePredictionFile.WriteResults(_retentionTimePredictionPath);
 
-            Log("Finished Retention time predctions with chronologer", 2);
+            Log($"{Condition}: Finished Retention time predctions with chronologer", 2);
             return retentionTimePredictionFile;
         }
     }
