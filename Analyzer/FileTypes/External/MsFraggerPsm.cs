@@ -50,7 +50,14 @@ namespace Analyzer.FileTypes.External
         public int Charge { get; set; }
 
         [Name("Retention")]
-        public double RetentionTime { get; set; }
+        public double RetentionTimeInSeconds { get; set; }
+
+        [Ignore] private double? _retentionTime;
+        [Ignore] public double RetentionTime
+        {
+            get => _retentionTime ??= RetentionTimeInSeconds / 60;
+            set => _retentionTime = value;
+        }
 
         [Name("Observed Mass")]
         public double ObservedMass { get; set; }
