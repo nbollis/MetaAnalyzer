@@ -113,6 +113,10 @@ namespace MyApp
                             break;
 
                         case MyTask.RunSpecificChimeraPaperProcess:
+
+                            CommandLineArguments.RunOnAll = false;
+
+
                             var parameters4 = new ChimeraPaperAnalysisParameters(CommandLineArguments.InputDirectory,
                                 CommandLineArguments.OverrideFiles, CommandLineArguments.RunChimeraBreakdown,
                                 CommandLineArguments.RunOnAll, CommandLineArguments.RunFdrAnalysis,

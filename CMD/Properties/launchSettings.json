@@ -2,7 +2,7 @@
   "profiles": {
     "CMD": {
       "commandName": "Project",
-      "commandLineArgs": "-i B:\\Users\\Nic\\Chimeras\\FdrAnalysis\\UseProvidedLibraryOnAllFiles_JurkatTD -t 8 -a true",
+      "commandLineArgs": "-i B:\\Users\\Nic\\Chimeras\\Mann_11cell_analysis -t 4 -a false",
       "environmentVariables": {
         "%topdownpath%": "B:\\Users\\Nic\\Chimeras\\TopDown_Analysis",
         "%bottomuppath%": "B:\\Users\\Nic\\Chimeras\\Mann_11cell_analysis"
