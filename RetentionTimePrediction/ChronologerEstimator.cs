@@ -54,6 +54,15 @@ namespace RetentionTimePrediction
         /// <param name="baseSequence"></param>
         /// <param name="fullSequence"></param>
         /// <returns></returns>
+        /// <summary>
+        /// Takes the base sequence and the full peptide sequence and returns a tensor for the Chronologer model.
+        /// The base sequence is the sequence without modifications and the full peptide sequence is the sequence with modifications.
+        /// The model is intended to be used with sequences of length 50 or less, and only supports modifications present in the Chronologer dictionary.
+        /// Unvalid sequences will return null.
+        /// </summary>
+        /// <param name="baseSequence"></param>
+        /// <param name="fullSequence"></param>
+        /// <returns></returns>
         private static torch.Tensor Tensorize(string baseSequence, string fullSequence)
         {
             var fullSeq = fullSequence.Split(new[] { '[', ']' })
@@ -75,7 +84,6 @@ namespace RetentionTimePrediction
             {
                 var tensor = torch.zeros(1, 52, torch.ScalarType.Int64);
 
-                tensor[0][0] = 38; //C-terminus
                 var tensorCounter = 1; //skips the first element which is the C-terminus in the tensor
                 char modID = ' '; //takes the target aa from inside the loop to hold it for the next loop
 
@@ -86,6 +94,12 @@ namespace RetentionTimePrediction
                     //if mod, enter
                     if (mod)
                     {
+                        if (subString.Contains("Acetyl"))
+                            tensor[0][0] = 45; //N-terminus
+                        else
+                        {
+                            tensor[0][0] = 44; //AcetlatedN-terminus
+                        }
                         mod = false; //next iteration is not a mod
                         continue;
                     }
@@ -106,7 +120,7 @@ namespace RetentionTimePrediction
                     mod = true;
                 }
 
-                tensor[0][tensorCounter] = 44; //N-terminus
+                tensor[0][tensorCounter] = 38; //C-terminus
 
                 return tensor;
             }

@@ -108,21 +108,6 @@ namespace Analyzer.FileTypes.External
             IntensityByFile = new();
         }
 
-        [NotMapped] private string? _fullSequence;
-
-        [NotMapped]
-        public string FullSequence
-        {
-            get
-            {
-                if (_fullSequence != null)
-                    return _fullSequence;
-
-
-
-
-                return _fullSequence;
-            }
-        }
+        
     }
 }

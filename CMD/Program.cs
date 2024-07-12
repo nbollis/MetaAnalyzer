@@ -1,4 +1,5 @@
 ﻿using System.Diagnostics;
+using Analyzer.Interfaces;
 using Analyzer.Plotting.Util;
 using Analyzer.SearchType;
 using Calibrator;
@@ -118,6 +119,18 @@ namespace MyApp
                                 CommandLineArguments.RunResultCounting, CommandLineArguments.RunChimericCounting,
                                 CommandLineArguments.RunModificationAnalysis);
                             allTasks.Add(new RunSpecificChimeraPaperProcess(parameters4));
+
+                            // TODO: Delete the below
+                            var temp = BaseResultAnalyzerTask.BuildChimeraPaperResultsObjects(
+                                CommandLineArguments.InputDirectory, CommandLineArguments.RunOnAll);
+                            foreach (var cellLone in temp)
+                                foreach (var run in cellLone.Where(p => p is IRetentionTimePredictionAnalysis))
+                                {
+                                    var parameteres =
+                                        new SingleRunAnalysisParameters(run.DirectoryPath, false, false, run);
+                                    var task = new CellLineRetentionTimeCalibrationTask(parameteres);
+                                    allTasks.Add(task);
+                                }
                             break;
 
                         case MyTask.SpectralAngleComparisonTask:
@@ -177,9 +190,17 @@ namespace MyApp
                             break;
 
                         case MyTask.RetentionTimeAlignment:
-                            var cellLine = new CellLineResults(CommandLineArguments.InputDirectory);
-                            var parameters7 = new CellLineAnalysisParameters(CommandLineArguments.InputDirectory,
-                                CommandLineArguments.OverrideFiles, CommandLineArguments.RunOnAll, cellLine);
+                            SingleRunResults result;
+                            if (CommandLineArguments.InputDirectory.Contains("MetaM", StringComparison.InvariantCultureIgnoreCase))
+                                result = new MetaMorpheusResult(CommandLineArguments.InputDirectory);
+                            else if (CommandLineArguments.InputDirectory.Contains("Fragger",
+                                         StringComparison.InvariantCultureIgnoreCase))
+                                result = new MsFraggerResult(CommandLineArguments.InputDirectory);
+                            else
+                                throw new Exception("Could not determine the search type of the input directory");
+
+                            var parameters7 = new SingleRunAnalysisParameters(CommandLineArguments.InputDirectory,
+                                CommandLineArguments.OverrideFiles, CommandLineArguments.RunOnAll, result);
                             allTasks.Add(new CellLineRetentionTimeCalibrationTask(parameters7));
                             break;
                         default:

@@ -308,10 +308,11 @@ namespace Test
         [Test]
         public static void TESTNAME()
         {
-            var temp = AllResults.First();
-            var parameters = new CellLineAnalysisParameters(temp.DirectoryPath, false, false, temp);
-            var task = new CellLineRetentionTimeCalibrationTask(parameters);
-            task.Run();
+            var cellLine = AllResults.First();
+            var frag = (MsFraggerResult)cellLine.First(p => p.Condition.Contains("ReviewdDatabaseNoPhospho_MsFraggerDDA+"));
+            //frag.CreateRetentionTimePredictionFile();
+            frag.PlotChronologerDeltaKernelPDF();
+
         }
 
         [Test]

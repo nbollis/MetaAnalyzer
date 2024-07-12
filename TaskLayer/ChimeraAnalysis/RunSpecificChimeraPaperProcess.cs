@@ -41,9 +41,7 @@ namespace TaskLayer.ChimeraAnalysis
 
                     if (singleRunResult is ProteomeDiscovererResult pd)
                     {
-                        singleRunResult.Override = true;
-                        singleRunResult.GetBulkResultCountComparisonFile();
-                        singleRunResult.Override = false;
+                        
                     }
 
                     if (singleRunResult is MsPathFinderTResults mspt)
@@ -55,24 +53,30 @@ namespace TaskLayer.ChimeraAnalysis
                     {
 
                     }
+
+                    if (singleRunResult is IRetentionTimePredictionAnalysis rt)
+                    {
+                        rt.CreateRetentionTimePredictionFile();
+                    }
                 }
 
-                cellLine.Override = Parameters.Override;
-                cellLine.GetBulkResultCountComparisonFile();
-                cellLine.PlotIndividualFileResults(ResultType.Psm);
-                cellLine.PlotIndividualFileResults(ResultType.Peptide);
-                cellLine.PlotIndividualFileResults(ResultType.Protein);
-                cellLine.Override = false;
+                //cellLine.Override = Parameters.Override;
+                //cellLine.GetBulkResultCountComparisonFile();
+                //cellLine.PlotIndividualFileResults(ResultType.Psm);
+                //cellLine.PlotIndividualFileResults(ResultType.Peptide);
+                //cellLine.PlotIndividualFileResults(ResultType.Protein);
+                //cellLine.Override = false;
+                cellLine.Dispose();
             }
 
-            allResults.Override = Parameters.Override;
-            allResults.GetBulkResultCountComparisonFile();
-            allResults.Override = false;
-            allResults.PlotBulkResultComparisons();
-            allResults.PlotInternalMMComparison();
-            allResults.PlotStackedIndividualFileComparison(ResultType.Psm);
-            allResults.PlotStackedIndividualFileComparison(ResultType.Peptide);
-            allResults.PlotStackedIndividualFileComparison(ResultType.Protein);
+            //allResults.Override = Parameters.Override;
+            //allResults.GetBulkResultCountComparisonFile();
+            //allResults.Override = false;
+            //allResults.PlotBulkResultComparisons();
+            //allResults.PlotInternalMMComparison();
+            //allResults.PlotStackedIndividualFileComparison(ResultType.Psm);
+            //allResults.PlotStackedIndividualFileComparison(ResultType.Peptide);
+            //allResults.PlotStackedIndividualFileComparison(ResultType.Protein);
         }
 
      

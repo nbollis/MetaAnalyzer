@@ -33,10 +33,10 @@ namespace TaskLayer
             WarnHandler?.Invoke(null, new StringEventArgs($"{added}Error (Nonfatal): {v}"));
         }
 
-        protected AllResults BuildChimeraPaperResultsObjects()
+        public static AllResults BuildChimeraPaperResultsObjects(string inputPath, bool runOnAll)
         {
-            var allResults = new AllResults(Parameters.InputDirectoryPath);
-            if (Parameters.RunOnAll)
+            var allResults = new AllResults(inputPath);
+            if (runOnAll)
                 return allResults;
 
             var cellLines = new List<CellLineResults>();
@@ -53,8 +53,11 @@ namespace TaskLayer
                 cellLines.Add(new CellLineResults(cellLine.DirectoryPath, runResults));
             }
 
-            allResults = new AllResults(Parameters.InputDirectoryPath, cellLines);
+            allResults = new AllResults(inputPath, cellLines);
             return allResults;
         }
+
+        protected AllResults BuildChimeraPaperResultsObjects() =>
+            BuildChimeraPaperResultsObjects(Parameters.InputDirectoryPath, Parameters.RunOnAll);
     }
 }

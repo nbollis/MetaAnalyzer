@@ -16,6 +16,14 @@ namespace Analyzer.Plotting.Util
             chart.SavePNG(Path.Combine(cellLineDirectory, exportName), null, width, height);
         }
 
+        public static void SaveInCellLineOnly(this GenericChart.GenericChart chart, SingleRunResults runResult,
+            string exportName, int? width = null, int? height = null)
+        {
+            var cellLineDirectory = Path.Combine(Path.GetDirectoryName(Path.GetDirectoryName(runResult.DirectoryPath)),
+                "Figures");
+            chart.SavePNG(Path.Combine(cellLineDirectory, exportName), null, width, height);
+        }
+
         public static void SaveInRunResultOnly(this GenericChart.GenericChart chart, SingleRunResults runResult,
             string exportName, int? width = null, int? height = null)
         {

@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Analyzer.Interfaces;
+using Analyzer.Plotting.Util;
 using Analyzer.SearchType;
 using Calibrator;
 using Microsoft.ML.Calibrators;
@@ -50,10 +52,18 @@ namespace Test
             // figures found at B:\Users\Nic\Chimeras\Mann_11cell_analysis\A549\Figures
             foreach (var cellLine in allResults)
             {
-                var parameters = new CellLineAnalysisParameters(cellLine.DirectoryPath,
-                    false, true, cellLine);
-                var task = new CellLineRetentionTimeCalibrationTask(parameters);
-                task.Run();
+                foreach (var singleRunResult in cellLine)
+                {
+                    if (singleRunResult is not IRetentionTimePredictionAnalysis)
+                        continue;
+                    if (!cellLine.GetSingleResultSelector().Contains(singleRunResult.Condition))
+                        continue;
+
+                    var parameters = new SingleRunAnalysisParameters(singleRunResult.DirectoryPath,
+                        false, true, singleRunResult);
+                    var task = new CellLineRetentionTimeCalibrationTask(parameters);
+                    task.Run();
+                }
             }
         }
 

@@ -1,4 +1,8 @@
-﻿using System.Globalization;
+﻿using System.ComponentModel.DataAnnotations.Schema;
+using System.Diagnostics;
+using System.Globalization;
+using System.Text.RegularExpressions;
+using Analyzer.Util;
 using CsvHelper.Configuration;
 using CsvHelper.Configuration.Attributes;
 
@@ -147,6 +151,95 @@ namespace Analyzer.FileTypes.External
         [Ignore]
         public int OneBasedScanNumber =>
             _oneBasedScanNumber != 0 ? _oneBasedScanNumber : int.Parse(Spectrum.Split('.')[1]);
+
+        [NotMapped] [Ignore] private string? _modifiedSequence;
+
+        [NotMapped] [Ignore]
+        public string ModifiedSequence
+        {
+            get
+            {
+                if (_modifiedSequence != null)
+                    return _modifiedSequence;
+
+                if (FullSequence == "" && AssignedModifications == "")
+                    return _modifiedSequence = BaseSequence;
+
+                //if (ObservedModifications.Length != AssignedModifications.Length)
+                    //Debugger.Break();
+
+                var observedMods = AssignedModifications.Split(',')
+                    .Select(p => ParseString(p.Trim()))
+                    .OrderBy(p => p.Item1)
+                    .ToArray();
+
+                string workingSequence = "";
+                if (observedMods.First().Item1 == 0)
+                {
+                    workingSequence+= FraggerToMetaMorpheusModDict[(observedMods.First().Item3, observedMods.First().Item2)];
+                }
+                int currentResidue = 1;
+                foreach (var residue in BaseSequence)
+                {
+                    workingSequence += residue;
+                    if (observedMods.Any(p => p.Item1 == currentResidue))
+                    {
+                        var mod = observedMods.First(p => p.Item1 == currentResidue);
+                        workingSequence += FraggerToMetaMorpheusModDict[(mod.Item3, mod.Item2)];
+                    }
+
+
+                    currentResidue++;
+                }
+
+                return _modifiedSequence ??= workingSequence;
+            }
+        }
+
+        [NotMapped]
+        private static Dictionary<(double, char), string> FraggerToMetaMorpheusModDict => new()
+        {
+            { (57.0214, 'C'), "[Common Biological : Carbamidomethyl on C]" },
+            { (15.9949, 'M'), "[Common Variable : Oxidation on M]" },
+            { (79.9663, 'S'), "[Common Biological : Phosphorylation on S]" },
+            { (79.9663, 'T'), "[Common Biological : Phosphorylation on T]" },
+            { (79.9663, 'Y'), "[Common Biological : Phosphorylation on Y]" },
+            { (14.0156,'K'),  "[Common Biological : Methylation on K]" },
+            { (14.0156,'R'),  "[Common Biological : Methylation on R]" },
+            { (42.0106, 'K'), "[Common Biological : Accetylation on K]" },
+            { (42.0106, 'N'), "[Common Biological : Accetylation on X]" },
+        };
+
+        public static (int, char, double) ParseString(string input)
+        {
+            // Regular expression to match the first pattern: leading number, middle character, number in parenthesis
+            var regex1 = new Regex(@"(\d+)([A-Z])\(([\d\.]+)\)");
+            var match1 = regex1.Match(input);
+
+            if (match1.Success)
+            {
+                int leadingNumber = int.Parse(match1.Groups[1].Value);
+                char middleCharacter = char.Parse(match1.Groups[2].Value);
+                double numberInParenthesis = double.Parse(match1.Groups[3].Value);
+
+                return (leadingNumber, middleCharacter, numberInParenthesis);
+            }
+
+            // Regular expression to match the second pattern: "N-term", number in parenthesis
+            var regex2 = new Regex(@"N-term\(([\d\.]+)\)");
+            var match2 = regex2.Match(input);
+
+            if (match2.Success)
+            {
+                int leadingNumber = 0;
+                char middleCharacter = 'N';
+                double numberInParenthesis = double.Parse(match2.Groups[1].Value);
+
+                return (leadingNumber, middleCharacter, numberInParenthesis);
+            }
+
+            throw new ArgumentException("Input string does not match the required format.");
+        }
 
         #endregion
     }

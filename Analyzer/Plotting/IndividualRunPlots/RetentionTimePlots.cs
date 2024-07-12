@@ -12,6 +12,7 @@ using Plotly.NET.CSharp;
 using Readers;
 using GenericChartExtensions = Plotly.NET.CSharp.GenericChartExtensions;
 using System.Text.RegularExpressions;
+using Analyzer.Interfaces;
 
 namespace Analyzer.Util
 {
@@ -335,20 +336,39 @@ namespace Analyzer.Plotting.IndividualRunPlots
 
         public static void PlotChronologerDeltaKernelPDF(this CellLineResults cellLine, Kernels kernel = Kernels.Gaussian)
         {
-            var chart = cellLine.GetChronologerDeltaPlotKernelPDF(kernel);
+            var resultToPlot = cellLine.Results
+                .First(p => false.GetSingleResultSelector(cellLine.CellLine).Contains(p.Condition));
+            var chart = resultToPlot.GetChronologerDeltaPlotKernelPDF(kernel);
             //GenericChartExtensions.Show(chart);
             chart.SaveInCellLineOnly(cellLine, $"{FileIdentifiers.ChronologerDeltaKdeFigure}_{cellLine.CellLine}", 600, 600);
         }
 
-        public static GenericChart.GenericChart GetChronologerDeltaPlotKernelPDF(this CellLineResults cellLine, Kernels kernel = Kernels.Gaussian)
+        public static void PlotChronologerDeltaKernelPDF(this SingleRunResults singleRun,
+            Kernels kernel = Kernels.Gaussian)
         {
-            var individualFiles = cellLine.Results
-                .Where(p => false.GetSingleResultSelector(cellLine.CellLine).Contains(p.Condition))
-                .OrderBy(p => ((MetaMorpheusResult)p).RetentionTimePredictionFile.First())
-                .Select(p => ((MetaMorpheusResult)p).RetentionTimePredictionFile)
-                .ToList();
-            var chronologer = individualFiles
-                .SelectMany(p => p.Where(m => m.ChronologerPrediction != 0 && m.PeptideModSeq != ""))
+            if (singleRun is IRetentionTimePredictionAnalysis rt)
+            {
+                var chart = singleRun.GetChronologerDeltaPlotKernelPDF(kernel);
+
+                var outname = singleRun is MetaMorpheusResult ? "" : "_Fragger";
+                chart.SaveInRunResultOnly(singleRun, $"{FileIdentifiers.ChronologerDeltaKdeFigure}_{singleRun.Condition}{outname}", 600, 600);
+            }
+        }
+
+        public static GenericChart.GenericChart GetChronologerDeltaPlotKernelPDF(this CellLineResults cellLineResults,
+            Kernels kernel = Kernels.Gaussian)
+        {
+            var result = cellLineResults.First(p => cellLineResults.GetSingleResultSelector().Contains(p.Condition));
+            return result.GetChronologerDeltaPlotKernelPDF(kernel);
+        }
+
+        public static GenericChart.GenericChart GetChronologerDeltaPlotKernelPDF(this SingleRunResults run, Kernels kernel = Kernels.Gaussian)
+        {
+            if (run is not IRetentionTimePredictionAnalysis rt)
+                return null;
+
+            var chronologer = rt.RetentionTimePredictionFile.Results
+                .Where(p => p.ChronologerPrediction != 0 && p.PeptideModSeq != "")
                 .Select(p => (p.ChronologerPrediction, p.PercentHI, p.IsChimeric, p.DeltaChronologerRT))
                 .ToList();
 
@@ -372,7 +392,7 @@ namespace Analyzer.Plotting.IndividualRunPlots
                 //    LineColor: new Optional<Color>(Color.fromKeyword(ColorKeyword.DarkGray), true), 
                 //    LineDash: StyleParam.DrawingStyle.Dash, Opacity:0.5)
             })
-                .WithTitle($" {cellLine.CellLine} Chronologer Delta Kernel Density")
+                .WithTitle($" {run.DatasetName} Chronologer Delta Kernel Density")
                 .WithSize(400, 400)
                 .WithXAxisStyle(Title.init("Delta Chronologer"))
                 .WithYAxisStyle(Title.init("Density"))
@@ -393,8 +413,8 @@ namespace Analyzer.Plotting.IndividualRunPlots
             // Nested dictionary where first is split on chimeric or not and second is split by RT rounded to 0.1 minute
             var chronologerResults = cellLine.Results
                 .Where(p => false.GetSingleResultSelector(cellLine.CellLine).Contains(p.Condition))
-                .OrderBy(p => ((MetaMorpheusResult)p).RetentionTimePredictionFile.First())
-                .Select(p => ((MetaMorpheusResult)p).RetentionTimePredictionFile)
+                .OrderBy(p => ((IRetentionTimePredictionAnalysis)p).RetentionTimePredictionFile.First())
+                .Select(p => ((IRetentionTimePredictionAnalysis)p).RetentionTimePredictionFile)
                 .SelectMany(p => p.Where(m => m.ChronologerPrediction != 0 && m.PeptideModSeq != ""))
                 .GroupBy(p => p.IsChimeric)
                 .ToDictionary(p => p.Key, p => p.GroupBy(m => m.RetentionTime.Round(1))
@@ -447,8 +467,8 @@ namespace Analyzer.Plotting.IndividualRunPlots
         {
             var chronologerResults = cellLine.Results
                 .Where(p => false.GetSingleResultSelector(cellLine.CellLine).Contains(p.Condition))
-                .OrderBy(p => ((MetaMorpheusResult)p).RetentionTimePredictionFile.First())
-                .Select(p => ((MetaMorpheusResult)p).RetentionTimePredictionFile)
+                .OrderBy(p => ((IRetentionTimePredictionAnalysis)p).RetentionTimePredictionFile.First())
+                .Select(p => ((IRetentionTimePredictionAnalysis)p).RetentionTimePredictionFile)
                 .SelectMany(p => p.Where(m => m.ChronologerPrediction != 0 && m.PeptideModSeq != ""))
                 .ToList();
 

@@ -214,29 +214,31 @@ namespace Analyzer.SearchType
                 if (file is not null)
                     return file;
 
-            var peptides = IndividualFileResults
+            var psms = IndividualFileResults
                 .SelectMany(p => p.PsmFile.Results.Where(psm => psm.PeptideProphetProbability > 0.99))
                 .ToList();
 
-            var sequenceToPredictionDictionary = peptides.Select(p => (p.BaseSequence, p.FullSequence))
+            Log("Making Retention time predctions with chronologer", 2);
+            var sequenceToPredictionDictionary = psms.Select(p => (p.BaseSequence, p.ModifiedSequence))
                 .Distinct()
-                .ToDictionary(p => p, p => ChronologerEstimator.PredictRetentionTime(p.BaseSequence, p.FullSequence));
+                .ToDictionary(p => p, p => ChronologerEstimator.PredictRetentionTime(p.BaseSequence, p.ModifiedSequence));
 
             List<RetentionTimePredictionEntry> results = new();
-            foreach (var chimeraGroup in peptides.GroupBy(p => p, CustomComparer<MsFraggerPeptide>.MsFraggerChimeraComparer))
+            foreach (var chimeraGroup in psms.GroupBy(p => p, CustomComparer<MsFraggerPsm>.MsFraggerChimeraComparer))
             {
                 bool isChimeric = chimeraGroup.Count() > 1;
                 results.AddRange(chimeraGroup.Select(psm => 
                     new RetentionTimePredictionEntry(psm.FileNameWithoutExtension, psm.OneBasedScanNumber, 0, 
-                        psm.RetentionTime, psm.BaseSequence, psm.FullSequence, psm.FullSequence, psm.PeptideProphetProbability,
+                        psm.RetentionTime, psm.BaseSequence, psm.ModifiedSequence, psm.ModifiedSequence, psm.PeptideProphetProbability,
                         psm.PeptideProphetProbability, psm.PeptideProphetProbability, 0, isChimeric)
                     {
-                        ChronologerPrediction = sequenceToPredictionDictionary.TryGetValue((psm.BaseSequence, psm.FullSequence), out var value) ? value ?? 0 : 0
+                        ChronologerPrediction = sequenceToPredictionDictionary.TryGetValue((psm.BaseSequence, psm.ModifiedSequence), out var value) ? value ?? 0 : 0
                     }));
             }
             var retentionTimePredictionFile = new RetentionTimePredictionFile(_retentionTimePredictionPath) { Results = results };
             retentionTimePredictionFile.WriteResults(_retentionTimePredictionPath);
 
+            Log("Finished Retention time predctions with chronologer", 2);
             return retentionTimePredictionFile;
         }
     }

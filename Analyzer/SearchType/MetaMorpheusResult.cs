@@ -554,6 +554,7 @@ namespace Analyzer.SearchType
                 .ToList();
             var calc = new SSRCalc3("SSRCalc 3.0 (300A)", SSRCalc3.Column.A300);
 
+            Log("Making Retention time predctions with chronologer", 2);
             var sequenceToPredictionDictionary = peptides.Select(p => (p.BaseSeq, p.FullSequence))
                 .Distinct()
                 .ToDictionary(p => p, p => ChronologerEstimator.PredictRetentionTime(p.BaseSeq, p.FullSequence));
@@ -574,6 +575,7 @@ namespace Analyzer.SearchType
             var retentionTimePredictionFile = new RetentionTimePredictionFile(outpath) { Results = retentionTimePredictions };
             retentionTimePredictionFile.WriteResults(outpath);
 
+            Log("Finished Retention time predctions with chronologer", 2);
             return retentionTimePredictionFile;
         }
 
