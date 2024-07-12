@@ -44,5 +44,5 @@ public interface IRetentionTimePredictionAnalysis
     public string[] IndividualFilePeptidePaths { get; }
     public string CalibratedRetentionTimeFilePath { get; }
     public RetentionTimePredictionFile RetentionTimePredictionFile { get; }
-    public void CreateRetentionTimePredictionFile();
+    public RetentionTimePredictionFile CreateRetentionTimePredictionFile();
 }

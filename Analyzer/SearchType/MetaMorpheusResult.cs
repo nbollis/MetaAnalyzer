@@ -541,35 +541,23 @@ namespace Analyzer.SearchType
         private string _retentionTimePredictionPath => Path.Combine(DirectoryPath, $"{DatasetName}_MM_{FileIdentifiers.RetentionTimePredictionReady}");
         private string _chronologerRunningFilePath => Path.Combine(DirectoryPath, $"{DatasetName}_{FileIdentifiers.ChronologerReadyFile}");
         private RetentionTimePredictionFile _retentionTimePredictionFile;
-
-        public RetentionTimePredictionFile RetentionTimePredictionFile
-        {
-            get
-            {
-                if (File.Exists(_retentionTimePredictionPath))
-                {
-                    _retentionTimePredictionFile ??= new RetentionTimePredictionFile() { FilePath = _retentionTimePredictionPath };
-                    return _retentionTimePredictionFile;
-                }
-                else
-                {
-                    CreateRetentionTimePredictionFile();
-                    _retentionTimePredictionFile ??= new RetentionTimePredictionFile() { FilePath = _retentionTimePredictionPath };
-                    return _retentionTimePredictionFile;
-                }
-            }
-        }
-
-        public void CreateRetentionTimePredictionFile()
+        public RetentionTimePredictionFile RetentionTimePredictionFile => _retentionTimePredictionFile ??= CreateRetentionTimePredictionFile();
+        
+        public RetentionTimePredictionFile CreateRetentionTimePredictionFile()
         {
             string outpath = _retentionTimePredictionPath;
             if (File.Exists(outpath) || !DirectoryPath.Contains("MetaMorpheusWithLibrary"))
-                return;
+                return new RetentionTimePredictionFile(outpath);
             var modDict = GlobalVariables.AllModsKnown.ToDictionary(p => p.IdWithMotif, p => p.MonoisotopicMass.Value);
-            var peptides = AllPeptides
-                .Where(p => p is { DecoyContamTarget: "T", PEP_QValue: <= 0.01 })
+            var peptides = IndividualFileResults.SelectMany(p => p.AllPeptides
+                    .Where(pep => pep is { DecoyContamTarget: "T", PEP_QValue: <= 0.01 }))
                 .ToList();
             var calc = new SSRCalc3("SSRCalc 3.0 (300A)", SSRCalc3.Column.A300);
+
+            var sequenceToPredictionDictionary = peptides.Select(p => (p.BaseSeq, p.FullSequence))
+                .Distinct()
+                .ToDictionary(p => p, p => ChronologerEstimator.PredictRetentionTime(p.BaseSeq, p.FullSequence));
+
             List<RetentionTimePredictionEntry> retentionTimePredictions = new List<RetentionTimePredictionEntry>();
             foreach (var group in peptides.GroupBy(p => p, CustomComparer<PsmFromTsv>.ChimeraComparer))
             {
@@ -580,14 +568,13 @@ namespace Analyzer.SearchType
                         p.PEP_QValue, p.PEP, p.SpectralAngle ?? -1, isChimeric)
                     {
                         SSRCalcPrediction = calc.ScoreSequence(new PeptideWithSetModifications(p.FullSequence.Split('|')[0], GlobalVariables.AllModsKnownDictionary)),
-                        ChronologerPrediction = ChronologerEstimator.PredictRetentionTime(p.BaseSeq, p.FullSequence) ?? 0
+                        ChronologerPrediction = sequenceToPredictionDictionary.TryGetValue((p.BaseSeq, p.FullSequence), out var value) ? value ?? 0 : 0
                     }));
             }
-            var retentionTimePredictionFile = new RetentionTimePredictionFile() { FilePath = outpath, Results = retentionTimePredictions };
+            var retentionTimePredictionFile = new RetentionTimePredictionFile(outpath) { Results = retentionTimePredictions };
             retentionTimePredictionFile.WriteResults(outpath);
 
-            var chronologerReady = new RetentionTimePredictionFile() { FilePath = _chronologerRunningFilePath, Results = retentionTimePredictions.Where(p => p.PeptideModSeq != "").ToList() };
-            chronologerReady.WriteResults(_chronologerRunningFilePath);
+            return retentionTimePredictionFile;
         }
 
         public void AppendChronologerPrediction()

@@ -2,10 +2,11 @@
 using Analyzer.FileTypes.Internal;
 using Analyzer.Interfaces;
 using Analyzer.Util;
+using RetentionTimePrediction;
 
 namespace Analyzer.SearchType
 {
-    public class MsFraggerResult : SingleRunResults, IChimeraPaperResults
+    public class MsFraggerResult : SingleRunResults, IChimeraPaperResults, IRetentionTimePredictionAnalysis
     {
         public List<MsFraggerIndividualFileResult> IndividualFileResults { get; set; }
 
@@ -199,31 +200,70 @@ namespace Analyzer.SearchType
             bulkComparisonFile.WriteResults(path);
             return bulkComparisonFile;
         }
+
+        public string[] IndividualFilePeptidePaths => IndividualFileResults.Select(p => p.PeptidePath).ToArray();
+        public string CalibratedRetentionTimeFilePath => Path.Combine(DirectoryPath, $"{DatasetName}_{Condition}_{FileIdentifiers.CalibratedRetentionTimeFile}");
+
+        private string _retentionTimePredictionPath => Path.Combine(DirectoryPath, $"{DatasetName}_MM_{FileIdentifiers.RetentionTimePredictionReady}");
+        private RetentionTimePredictionFile _retentionTimePredictionFile;
+        public RetentionTimePredictionFile RetentionTimePredictionFile => _retentionTimePredictionFile ??= CreateRetentionTimePredictionFile();
+
+        public RetentionTimePredictionFile CreateRetentionTimePredictionFile()
+        {
+            if (_retentionTimePredictionPath.TryGetFile<RetentionTimePredictionFile>(out RetentionTimePredictionFile? file))
+                if (file is not null)
+                    return file;
+
+            var peptides = IndividualFileResults
+                .SelectMany(p => p.PsmFile.Results.Where(psm => psm.PeptideProphetProbability > 0.99))
+                .ToList();
+
+            var sequenceToPredictionDictionary = peptides.Select(p => (p.BaseSequence, p.FullSequence))
+                .Distinct()
+                .ToDictionary(p => p, p => ChronologerEstimator.PredictRetentionTime(p.BaseSequence, p.FullSequence));
+
+            List<RetentionTimePredictionEntry> results = new();
+            foreach (var chimeraGroup in peptides.GroupBy(p => p, CustomComparer<MsFraggerPeptide>.MsFraggerChimeraComparer))
+            {
+                bool isChimeric = chimeraGroup.Count() > 1;
+                results.AddRange(chimeraGroup.Select(psm => 
+                    new RetentionTimePredictionEntry(psm.FileNameWithoutExtension, psm.OneBasedScanNumber, 0, 
+                        psm.RetentionTime, psm.BaseSequence, psm.FullSequence, psm.FullSequence, psm.PeptideProphetProbability,
+                        psm.PeptideProphetProbability, psm.PeptideProphetProbability, 0, isChimeric)
+                    {
+                        ChronologerPrediction = sequenceToPredictionDictionary.TryGetValue((psm.BaseSequence, psm.FullSequence), out var value) ? value ?? 0 : 0
+                    }));
+            }
+            var retentionTimePredictionFile = new RetentionTimePredictionFile(_retentionTimePredictionPath) { Results = results };
+            retentionTimePredictionFile.WriteResults(_retentionTimePredictionPath);
+
+            return retentionTimePredictionFile;
+        }
     }
 
     public class MsFraggerIndividualFileResult
     {
         public string DirectoryPath { get; set; }
 
-        private string _psmPath;
+        internal string PsmPath;
         private MsFraggerPsmFile _psmFile;
-        public MsFraggerPsmFile PsmFile => _psmFile ??= new MsFraggerPsmFile(_psmPath);
+        public MsFraggerPsmFile PsmFile => _psmFile ??= new MsFraggerPsmFile(PsmPath);
 
-        private string _peptidePath;
+        internal string PeptidePath;
         private MsFraggerPeptideFile _peptideFile;
-        public MsFraggerPeptideFile PeptideFile => _peptideFile ??= new MsFraggerPeptideFile(_peptidePath);
+        public MsFraggerPeptideFile PeptideFile => _peptideFile ??= new MsFraggerPeptideFile(PeptidePath);
 
-        private string _proteinPath;
+        internal string ProteinPath;
         private MsFraggerProteinFile _proteinFile;
-        public MsFraggerProteinFile ProteinFile => _proteinFile ??= new MsFraggerProteinFile(_proteinPath);
+        public MsFraggerProteinFile ProteinFile => _proteinFile ??= new MsFraggerProteinFile(ProteinPath);
 
 
         public MsFraggerIndividualFileResult(string directoryPath)
         {
             DirectoryPath = directoryPath;
-            _psmPath = System.IO.Path.Combine(DirectoryPath, "psm.tsv");
-            _peptidePath = System.IO.Path.Combine(DirectoryPath, "peptide.tsv");
-            _proteinPath = System.IO.Path.Combine(DirectoryPath, "protein.tsv");
+            PsmPath = System.IO.Path.Combine(DirectoryPath, "psm.tsv");
+            PeptidePath = System.IO.Path.Combine(DirectoryPath, "peptide.tsv");
+            ProteinPath = System.IO.Path.Combine(DirectoryPath, "protein.tsv");
         }
     }
 }

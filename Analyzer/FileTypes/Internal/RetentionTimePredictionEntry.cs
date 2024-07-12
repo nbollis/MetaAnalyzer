@@ -116,6 +116,8 @@ namespace Analyzer.FileTypes.Internal
         public RetentionTimePredictionEntry()
         {
         }
+
+        
     }
 
 
@@ -141,6 +143,9 @@ namespace Analyzer.FileTypes.Internal
                 csv.WriteRecord(result);
             }
         }
+
+        public RetentionTimePredictionFile() : base() { }
+        public RetentionTimePredictionFile(string filePath) : base(filePath) { }
 
         public override SupportedFileType FileType => SupportedFileType.Tsv_FlashDeconv;
         public override Software Software { get; set; }

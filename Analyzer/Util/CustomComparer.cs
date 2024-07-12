@@ -1,4 +1,5 @@
 ﻿using Analyzer.FileTypes.External;
+using Plotly.NET;
 using Proteomics.PSM;
 
 namespace Analyzer.Util
@@ -68,6 +69,8 @@ namespace Analyzer.Util
         // MsFragger
         public static CustomComparer<MsFraggerPsm> MsFraggerChimeraComparer =>
             new(psm => psm.OneBasedScanNumber, psm => psm.FileNameWithoutExtension);
+
+  
 
         public static CustomComparer<MsFraggerPeptide> MsFraggerPeptideDistinctComparer =>
             new(peptide => peptide.BaseSequence,

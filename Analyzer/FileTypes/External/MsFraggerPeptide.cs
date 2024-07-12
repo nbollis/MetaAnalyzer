@@ -107,5 +107,22 @@ namespace Analyzer.FileTypes.External
             FileToPsmCount = new();
             IntensityByFile = new();
         }
+
+        [NotMapped] private string? _fullSequence;
+
+        [NotMapped]
+        public string FullSequence
+        {
+            get
+            {
+                if (_fullSequence != null)
+                    return _fullSequence;
+
+
+
+
+                return _fullSequence;
+            }
+        }
     }
 }
