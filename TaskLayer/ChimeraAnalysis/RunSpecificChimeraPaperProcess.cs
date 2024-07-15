@@ -19,6 +19,7 @@ namespace TaskLayer.ChimeraAnalysis
         public RunSpecificChimeraPaperProcess(ChimeraPaperAnalysisParameters parameters)
         {
             Parameters = parameters;
+            Condition = Path.GetFileNameWithoutExtension(parameters.InputDirectoryPath);
         }
 
         protected override void RunSpecific()
@@ -56,7 +57,9 @@ namespace TaskLayer.ChimeraAnalysis
 
                     if (singleRunResult is IRetentionTimePredictionAnalysis rt)
                     {
+                        singleRunResult.Override = Parameters.Override;
                         rt.CreateRetentionTimePredictionFile();
+                        singleRunResult.Override = false;
                     }
                 }
 

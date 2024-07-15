@@ -22,14 +22,15 @@ using TaskLayer.ChimeraAnalysis;
 
 namespace Calibrator
 {
-    public class CellLineRetentionTimeCalibrationTask : BaseResultAnalyzerTask
+    public class SingleRunRetentionTimeCalibrationTask : BaseResultAnalyzerTask
     {
         public override MyTask MyTask => MyTask.RetentionTimeAlignment;
         public override SingleRunAnalysisParameters Parameters { get; }
 
-        public CellLineRetentionTimeCalibrationTask(SingleRunAnalysisParameters parameters)
+        public SingleRunRetentionTimeCalibrationTask(SingleRunAnalysisParameters parameters)
         {
             Parameters = parameters;
+            Condition = parameters.RunResult.Condition;
         }
 
         protected override void RunSpecific()
@@ -183,7 +184,7 @@ namespace Calibrator
             var kde = Chart.Grid(new[] { originalRetentionTimeKDE, adjustedRetetionTimeKDE }, 1, 2)
                 .WithTitle($"{Parameters.RunResult.DatasetName} 1% Peptides Chronolger Delta Kernel Density");
             var outName = $"RetentionTimeCalibration_{Parameters.RunResult.DatasetName}_KDE";
-            kde.SaveInCellLineOnly(Parameters.RunResult, outName, 1200, 600);
+            kde.SaveInRunResultOnly(Parameters.RunResult, outName, 1200, 600);
         }
 
         private void GenerateChronologerDeltaRtHistogram(
@@ -224,7 +225,7 @@ namespace Calibrator
             var histogram = Chart.Grid(new[] { originalRetentionTimeHistogram, adjustedRetentionTimeHistogram }, 1, 2)
                 .WithTitle($"{Parameters.RunResult.DatasetName} 1% Peptides Chronolger Delta Histogram");
             var outName = $"RetentionTimeCalibration_{Parameters.RunResult.DatasetName}_Histogram";
-            histogram.SaveInCellLineOnly(Parameters.RunResult, outName, 1200, 600);
+            histogram.SaveInRunResultOnly(Parameters.RunResult, outName, 1200, 600);
         }
 
         private void GenerateChronologerVsRtScatter(
@@ -274,7 +275,7 @@ namespace Calibrator
             }).WithTitle($"{Parameters.RunResult.DatasetName} 1% Peptides Adjusted Chronolger Delta Scatter")
             .WithLayout(PlotlyBase.DefaultLayoutWithLegend);
             outName = $"RetentionTimeCalibration_{Parameters.RunResult.DatasetName}_Scatter_Adjusted";
-            adjustedRetentionTimeScatterPlot.SaveInCellLineOnly(Parameters.RunResult, outName, 1200, 600);
+            adjustedRetentionTimeScatterPlot.SaveInRunResultOnly(Parameters.RunResult, outName, 1200, 600);
         }
 
         private void GenerateChronologerShiftPlots(
@@ -301,7 +302,7 @@ namespace Calibrator
                 GenericPlots.Histogram(chimericToShiftDictionary[false], "Non-Chimeric", "Adjustment", "Count")
             });
             string outname = $"RetentionTimeCalibration_{Parameters.RunResult.DatasetName}_ShiftHistogram";
-            hist.SaveInCellLineOnly(Parameters.RunResult, outname, 600, 600);
+            hist.SaveInRunResultOnly(Parameters.RunResult, outname, 600, 600);
 
             var kde = Chart.Combine(new[]
             {
@@ -309,7 +310,7 @@ namespace Calibrator
                 GenericPlots.KernelDensityPlot(chimericToShiftDictionary[false], "Non-Chimeric", "Adjustment", "Density", 0.5)
             });
             outname = $"RetentionTimeCalibration_{Parameters.RunResult.DatasetName}_ShiftKDE";
-            kde.SaveInCellLineOnly(Parameters.RunResult, outname, 600, 600);
+            kde.SaveInRunResultOnly(Parameters.RunResult, outname, 600, 600);
         }
 
         #region Unused

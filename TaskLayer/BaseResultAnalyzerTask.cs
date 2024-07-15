@@ -8,13 +8,14 @@ namespace TaskLayer
         public static event EventHandler<StringEventArgs> LogHandler;
         public static event EventHandler<StringEventArgs> WarnHandler;
         public abstract MyTask MyTask { get; }
+        public string Condition { get; set; }
         public abstract BaseResultAnalyzerTaskParameters Parameters { get; }
 
         public void Run()
         {
-            Log($"Running Task {MyTask}", 0);
+            Log($"Running Task {MyTask}: {Condition}", 0);
             RunSpecific();
-            Log($"Finished Running {MyTask}", 0);
+            Log($"Finished Running {MyTask}: {Condition}", 0);
             Console.WriteLine();
         }
 

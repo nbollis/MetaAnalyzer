@@ -546,7 +546,7 @@ namespace Analyzer.SearchType
         public RetentionTimePredictionFile CreateRetentionTimePredictionFile()
         {
             string outpath = _retentionTimePredictionPath;
-            if (File.Exists(outpath) || !DirectoryPath.Contains("MetaMorpheusWithLibrary"))
+            if (File.Exists(outpath) && !Override)
                 return new RetentionTimePredictionFile(outpath);
             var modDict = GlobalVariables.AllModsKnown.ToDictionary(p => p.IdWithMotif, p => p.MonoisotopicMass.Value);
             var peptides = IndividualFileResults.SelectMany(p => p.AllPeptides

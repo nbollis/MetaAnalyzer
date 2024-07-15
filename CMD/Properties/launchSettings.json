@@ -2,7 +2,7 @@
   "profiles": {
     "CMD": {
       "commandName": "Project",
-      "commandLineArgs": "-i B:\\Users\\Nic\\Chimeras\\Mann_11cell_analysis -t 4 -a False",
+      "commandLineArgs": "-i B:\\Users\\Nic\\Chimeras\\Mann_11cell_analysis -t 4 -o true -a false",
       "environmentVariables": {
         "%topdownpath%": "B:\\Users\\Nic\\Chimeras\\TopDown_Analysis",
         "%bottomuppath%": "B:\\Users\\Nic\\Chimeras\\Mann_11cell_analysis"

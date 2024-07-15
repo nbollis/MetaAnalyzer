@@ -11,8 +11,8 @@ namespace Analyzer.Util
         private static HashSet<string> _AllModTypesKnown;
 
         public static List<string> ErrorsReadingMods;
-        public static IEnumerable<Modification> AllModsKnown { get { return _AllModsKnown.AsEnumerable(); } }
-        public static IEnumerable<string> AllModTypesKnown { get { return _AllModTypesKnown.AsEnumerable(); } }
+        public static IEnumerable<Modification> AllModsKnown => _AllModsKnown.AsEnumerable();
+        public static IEnumerable<string> AllModTypesKnown => _AllModTypesKnown.AsEnumerable();
         public static Dictionary<string, Modification> AllModsKnownDictionary { get; private set; }
         public static UsefulProteomicsDatabases.Generated.obo PsiModDeserialized { get; private set; }
         public static IEnumerable<Modification> UnimodDeserialized { get; private set; }
@@ -23,11 +23,8 @@ namespace Analyzer.Util
         {
             Loaders.LoadElements();
             DataDir = AppDomain.CurrentDomain.BaseDirectory;
-            LoadModifications();
-        }
 
-        private static void LoadModifications()
-        {
+            // Load Modifications
             _AllModsKnown = new List<Modification>();
             _AllModTypesKnown = new HashSet<string>();
             ErrorsReadingMods = new List<string>();

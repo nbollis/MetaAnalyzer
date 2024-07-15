@@ -1,4 +1,5 @@
-﻿using MathNet.Numerics.Statistics;
+﻿using Analyzer.FileTypes.External;
+using MathNet.Numerics.Statistics;
 using Microsoft.ML;
 using Readers;
 
@@ -7,7 +8,8 @@ namespace Calibrator;
 public class FileLogger
 {
     public string FilePath { get; set; }
-    public PsmFromTsvFile PsmFile { get; set; }
+    public PsmFromTsvFile? PsmFile { get; set; }
+    public MsFraggerPsmFile? FraggerPsmFile { get; set; }
     public RawFileLogger LeadingRawFile { get; set; }
     public List<RawFileLogger> FollowingRawFiles = new();
     public Dictionary<string, RawFileLogger> RawFiles = new Dictionary<string, RawFileLogger>();
@@ -20,6 +22,26 @@ public class FileLogger
     /// </summary>
     public Dictionary<string, List<(string fileName, double retentionTime)>> FileWiseCalibrations =
         new Dictionary<string, List<(string, double)>>();
+
+    public FileLogger(MsFraggerPsmFile psmFile)
+    {
+        FilePath = psmFile.FilePath;
+        FraggerPsmFile = psmFile;
+        var rawFiles = psmFile.Results.GroupBy(p => p.FileNameWithoutExtension);
+
+        // sorts the psms by raw psmFile name, where the RawFiles dictionary key is the raw psmFile name and the value is a RawFileLogger object 
+        foreach (var rawFileName in rawFiles)
+        {
+            RawFiles.Add(rawFileName.Key, new RawFileLogger(rawFileName.Key, rawFileName.Select(p => p)));
+        }
+
+        FullSequencesPresentInFile = psmFile.Select(p => p.FullSequence)
+            .Distinct()
+            .ToDictionary(p => p, p => new List<(string, double?)>());
+
+        LeadingRawFile = RawFiles.Values.OrderBy(r => r.Psms.Count()).First();
+        FollowingRawFiles = RawFiles.Values.Where(r => r != LeadingRawFile).ToList();
+    }
 
     public FileLogger(PsmFromTsvFile psmFile)
     {
@@ -69,12 +91,26 @@ public class FileLogger
 
     private void GetFullSequencesPresentFileWise()
     {
-        var grouped = PsmFile.GroupBy(x => x.FullSequence)
-            .ToDictionary(p => p.Key,
-                p => p.DistinctBy(x => x.FileNameWithoutExtension)
-                    .Select(x => (x.FileNameWithoutExtension, x.RetentionTime.Value)).ToList());
-        FileWiseCalibrations = grouped;
+        if (PsmFile is not null)
+        {
+            var grouped = PsmFile.GroupBy(x => x.FullSequence)
+                .ToDictionary(p => p.Key,
+                    p => p.DistinctBy(x => x.FileNameWithoutExtension)
+                        .Select(x => (x.FileNameWithoutExtension, x.RetentionTime.Value)).ToList());
+            FileWiseCalibrations = grouped;
+        }
+
+        if (FraggerPsmFile is not null)
+        {
+            var grouped = FraggerPsmFile.GroupBy(x => x.FullSequence)
+                .ToDictionary(p => p.Key,
+                    p => p.DistinctBy(x => x.FileNameWithoutExtension)
+                        .Select(x => (x.FileNameWithoutExtension, x.RetentionTime)).ToList());
+            FileWiseCalibrations = grouped;
+        }
+        
     }
+
 
     private void PairwiseCalibration(RawFileLogger followingRawFile)
     {

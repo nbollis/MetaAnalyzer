@@ -132,7 +132,7 @@ namespace MyApp
                                 {
                                     var parameteres =
                                         new SingleRunAnalysisParameters(run.DirectoryPath, false, false, run);
-                                    var task = new CellLineRetentionTimeCalibrationTask(parameteres);
+                                    var task = new SingleRunRetentionTimeCalibrationTask(parameteres);
                                     allTasks.Add(task);
                                 }
                             break;
@@ -205,7 +205,7 @@ namespace MyApp
 
                             var parameters7 = new SingleRunAnalysisParameters(CommandLineArguments.InputDirectory,
                                 CommandLineArguments.OverrideFiles, CommandLineArguments.RunOnAll, result);
-                            allTasks.Add(new CellLineRetentionTimeCalibrationTask(parameters7));
+                            allTasks.Add(new SingleRunRetentionTimeCalibrationTask(parameters7));
                             break;
                         default:
                             throw new ArgumentOutOfRangeException();

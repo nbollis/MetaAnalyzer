@@ -61,7 +61,7 @@ namespace Test
 
                     var parameters = new SingleRunAnalysisParameters(singleRunResult.DirectoryPath,
                         false, true, singleRunResult);
-                    var task = new CellLineRetentionTimeCalibrationTask(parameters);
+                    var task = new SingleRunRetentionTimeCalibrationTask(parameters);
                     task.Run();
                 }
             }
