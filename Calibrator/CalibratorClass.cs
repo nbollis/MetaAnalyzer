@@ -1,4 +1,5 @@
-﻿using Proteomics.PSM;
+﻿using Analyzer.FileTypes.External;
+using Proteomics.PSM;
 using Readers;
 using ThermoFisher.CommonCore.Data;
 
@@ -21,16 +22,36 @@ public class CalibratorClass
 
     public CalibratorClass(IEnumerable<string> filesPaths)
     {
-        List<PsmFromTsv> allPsms = new();
-        foreach (var filePath in filesPaths)
-            allPsms.AddRange(new PsmFromTsvFile(filePath).Results);
-
-        var tempFile = new PsmFromTsvFile("dont yell at me please")
+        if (filesPaths.All(p => p.EndsWith("psmtsv")))
         {
-            Results = allPsms
-        };
+            List<PsmFromTsv> allPsms = new();
+            foreach (var filePath in filesPaths)
+                allPsms.AddRange(new PsmFromTsvFile(filePath).Results);
 
-        FileLoggers.Add(new FileLogger(tempFile));
+            var tempFile = new PsmFromTsvFile("dont yell at me please")
+            {
+                Results = allPsms
+            };
+
+            FileLoggers.Add(new FileLogger(tempFile));
+        }
+        else if (filesPaths.All(p => p.EndsWith("psm.tsv")))
+        {
+            List<MsFraggerPsm> allPsms = new();
+            foreach (var filePath in filesPaths)
+                allPsms.AddRange(new MsFraggerPsmFile(filePath).Results);
+
+            var tempFile = new MsFraggerPsmFile("dont yell at me please")
+            {
+                Results = allPsms
+            };
+
+            FileLoggers.Add(new FileLogger(tempFile));
+        }
+        else
+        {
+            throw new Exception("All files must be of the same type");
+        }
     }
 
     public void Calibrate()
