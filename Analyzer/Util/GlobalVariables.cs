@@ -4,7 +4,7 @@ using UsefulProteomicsDatabases;
 
 namespace Analyzer.Util
 {
-    internal static class GlobalVariables
+    public static class GlobalVariables
     {
         public static string DataDir { get; private set; }
         private static List<Modification> _AllModsKnown;
@@ -35,7 +35,7 @@ namespace Analyzer.Util
             var formalChargesDictionary = Loaders.GetFormalChargesDictionary(PsiModDeserialized);
             UniprotDeseralized = Loaders.LoadUniprot(Path.Combine(DataDir, @"Resources", @"ptmlist.txt"), formalChargesDictionary).ToList();
 
-            foreach (var modFile in Directory.GetFiles(Path.Combine(DataDir, @"Mods")))
+            foreach (var modFile in Directory.GetFiles(Path.Combine(DataDir, @"Resources")))
             {
                 AddMods(PtmListLoader.ReadModsFromFile(modFile, out var errorMods), false);
             }

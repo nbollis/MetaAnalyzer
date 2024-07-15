@@ -1,9 +1,11 @@
-﻿using Analyzer.Plotting.AggregatePlots;
+﻿using Analyzer.Plotting;
+using Analyzer.Plotting.AggregatePlots;
 using Analyzer.Plotting.ComparativePlots;
 using Analyzer.Plotting.IndividualRunPlots;
 using Analyzer.Plotting.Util;
 using Analyzer.SearchType;
 using Analyzer.Util;
+using Plotly.NET;
 
 namespace TaskLayer.JenkinsLikePEPTesting;
 
@@ -20,7 +22,7 @@ public class JenkinsLikeRunParserTask : BaseResultAnalyzerTask
     protected override void RunSpecific()
     {
         var allResults = BuildResultsObjects();
-
+        allResults.PlotTopDownSummary();
         foreach (var groupRun in allResults)
         {
             Log($"Starting Processing of {groupRun.CellLine}");
