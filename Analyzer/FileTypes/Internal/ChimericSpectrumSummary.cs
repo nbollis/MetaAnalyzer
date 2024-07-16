@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using CsvHelper;
+using CsvHelper.Configuration.Attributes;
 using Readers;
 
 namespace Analyzer.FileTypes.Internal
@@ -35,7 +36,8 @@ namespace Analyzer.FileTypes.Internal
         public int PrecursorCharge { get; set; }
         public double PrecursorMass { get; set; }
         public double PEP_QValue { get; set; }
-        public double FractionalIntensity { get; set; }
+        public double PrecursorFractionalIntensity { get; set; }
+        [Optional] public double FragmentFractionalIntensity { get; set; }
         public bool IsChimeric { get; set; }
         public bool IsDecoy { get; set; }
         public bool IsParent { get; set; }

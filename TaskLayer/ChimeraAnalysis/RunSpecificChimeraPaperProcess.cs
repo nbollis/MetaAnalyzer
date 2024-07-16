@@ -57,9 +57,9 @@ namespace TaskLayer.ChimeraAnalysis
 
                     if (singleRunResult is IRetentionTimePredictionAnalysis rt)
                     {
-                        singleRunResult.Override = Parameters.Override;
-                        rt.CreateRetentionTimePredictionFile();
-                        singleRunResult.Override = false;
+                        //singleRunResult.Override = Parameters.Override;
+                        //rt.CreateRetentionTimePredictionFile();
+                        //singleRunResult.Override = false;
                     }
                 }
 

@@ -1147,6 +1147,8 @@ namespace Analyzer.SearchType
                             double fractionalIntensity = 0.0;
                             if (envelope is not null)
                                 fractionalIntensity = envelope.TotalIntensity / ms1ScanInfo.sumOfIntensity;
+                            double fragmentFractionalIntensity = chimericPsm.MatchedIons.Sum(p => p.Intensity) /
+                                                                 scan.MassSpectrum.SumOfAllY;
 
                             var resultToWrite = new ChimericSpectrumSummary()
                             {
@@ -1167,7 +1169,8 @@ namespace Analyzer.SearchType
                                 PrecursorMass = chimericPsm.PrecursorMass,
                                 PrecursorMz = chimericPsm.PrecursorMz,
                                 IsDecoy = chimericPsm.DecoyContamTarget == "D",
-                                FractionalIntensity = fractionalIntensity
+                                PrecursorFractionalIntensity = fractionalIntensity,
+                                FragmentFractionalIntensity = fragmentFractionalIntensity
                             };
 
                             if (chimericPsm.IsDecoy())
@@ -1208,7 +1211,8 @@ namespace Analyzer.SearchType
                             double fractionalIntensity = 0.0;
                             if (envelope is not null)
                                 fractionalIntensity = envelope.TotalIntensity / ms1ScanInfo.sumOfIntensity;
-
+                            double fragmentFractionalIntensity = chimericPeptide.MatchedIons.Sum(p => p.Intensity) /
+                                                                 scan.MassSpectrum.SumOfAllY;
                             var resultToWrite = new ChimericSpectrumSummary()
                             {
                                 Dataset = DatasetName,
@@ -1228,7 +1232,8 @@ namespace Analyzer.SearchType
                                 PrecursorMass = chimericPeptide.PrecursorMass,
                                 PrecursorMz = chimericPeptide.PrecursorMz,
                                 IsDecoy = chimericPeptide.DecoyContamTarget == "D",
-                                FractionalIntensity = fractionalIntensity
+                                PrecursorFractionalIntensity = fractionalIntensity,
+                                FragmentFractionalIntensity = fragmentFractionalIntensity
                             };
 
                             if (chimericPeptide.IsDecoy())
@@ -1280,7 +1285,7 @@ namespace Analyzer.SearchType
                             RetentionTime = scan.RetentionTime,
 
                             PossibleFeatureCount = ms2canToFlashDeconvResultDictionary[scan.OneBasedScanNumber],
-                            FractionalIntensity = fractionalIntensity
+                            PrecursorFractionalIntensity = fractionalIntensity
                         };
                         chimericSpectra.Add(psmResult);
                     }
