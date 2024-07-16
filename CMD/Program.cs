@@ -117,22 +117,22 @@ namespace MyApp
                             CommandLineArguments.RunOnAll = false;
 
 
-                            var parameters4 = new ChimeraPaperAnalysisParameters(CommandLineArguments.InputDirectory,
-                                CommandLineArguments.OverrideFiles, CommandLineArguments.RunChimeraBreakdown,
-                                CommandLineArguments.RunOnAll, CommandLineArguments.RunFdrAnalysis,
-                                CommandLineArguments.RunResultCounting, CommandLineArguments.RunChimericCounting,
-                                CommandLineArguments.RunModificationAnalysis);
-                            allTasks.Add(new RunSpecificChimeraPaperProcess(parameters4));
+                            //var parameters4 = new ChimeraPaperAnalysisParameters(CommandLineArguments.InputDirectory,
+                            //    CommandLineArguments.OverrideFiles, CommandLineArguments.RunChimeraBreakdown,
+                            //    CommandLineArguments.RunOnAll, CommandLineArguments.RunFdrAnalysis,
+                            //    CommandLineArguments.RunResultCounting, CommandLineArguments.RunChimericCounting,
+                            //    CommandLineArguments.RunModificationAnalysis);
+                            //allTasks.Add(new RunSpecificChimeraPaperProcess(parameters4));
 
                             // TODO: Delete the below
                             var temp = BaseResultAnalyzerTask.BuildChimeraPaperResultsObjects(
                                 CommandLineArguments.InputDirectory, CommandLineArguments.RunOnAll);
                             foreach (var cellLone in temp)
-                                foreach (var run in cellLone.Where(p => p is IRetentionTimePredictionAnalysis))
+                                foreach (var run in cellLone.Where(p => p is MetaMorpheusResult))
                                 {
                                     var parameteres =
                                         new SingleRunAnalysisParameters(run.DirectoryPath, false, false, run);
-                                    var task = new SingleRunRetentionTimeCalibrationTask(parameteres);
+                                    var task = new SingleRunChimericSpectrumSummaryTask(parameteres);
                                     allTasks.Add(task);
                                 }
                             break;
