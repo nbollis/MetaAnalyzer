@@ -113,9 +113,8 @@ namespace Analyzer.Util
                     result = FileReader.ReadFile<T>(filePath);
                     return true;
                 }
-                catch (Exception e)
+                catch (Exception)
                 {
-                    Console.WriteLine(e);
                     return false;
                 }
             }

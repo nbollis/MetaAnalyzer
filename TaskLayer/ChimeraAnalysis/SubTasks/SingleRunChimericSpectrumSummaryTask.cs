@@ -99,6 +99,12 @@ namespace TaskLayer.ChimeraAnalysis
             GenerateFractionalIntensityKDE(ResultType.Peptide,
                 summedPrecursorIntDict[ResultType.Peptide.ToString()].Where(p => p.Key.IsChimeric).Select(m => m.Value).ToList(),
                 summedPrecursorIntDict[ResultType.Peptide.ToString()].Where(p => !p.Key.IsChimeric).Select(m => m.Value).ToList());
+
+
+
+
+
+            mm.Dispose();
         }
 
         private void GeneratePossibleFeatureHistogram(ResultType resultType, List<double> chimeric,

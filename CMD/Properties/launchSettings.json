@@ -2,7 +2,7 @@
   "profiles": {
     "CMD": {
       "commandName": "Project",
-      "commandLineArgs": "-i B:\\Users\\Nic\\PEPTesting -t 1 -b false",
+      "commandLineArgs": "-i B:\\Users\\Nic\\Chimeras\\TopDown_Analysis\\Jurkat\\SearchResults\\MetaMorpheus_Rep2_WithLibrary_NewPEP -t 8",
       "environmentVariables": {
         "%topdownpath%": "B:\\Users\\Nic\\Chimeras\\TopDown_Analysis",
         "%bottomuppath%": "B:\\Users\\Nic\\Chimeras\\Mann_11cell_analysis"

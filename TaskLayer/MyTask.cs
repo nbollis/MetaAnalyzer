@@ -17,5 +17,6 @@ namespace TaskLayer
         RetentionTimeComparison = 7,
         ChimericSpectrumSummary = 8,
         RetentionTimeAlignment = 9,
+        LibraryToCustomMzml = 10,
     }
 }

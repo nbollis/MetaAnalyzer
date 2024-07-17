@@ -47,6 +47,7 @@ namespace Analyzer.FileTypes.Internal
 
         // Deconovlution Information
         public int PossibleFeatureCount { get; set; }
+        [Optional] public double FeatureIntensity { get; set; }
 
     }
 

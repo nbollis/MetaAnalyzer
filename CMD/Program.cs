@@ -207,6 +207,13 @@ namespace MyApp
                                 CommandLineArguments.OverrideFiles, CommandLineArguments.RunOnAll, result);
                             allTasks.Add(new SingleRunRetentionTimeCalibrationTask(parameters7));
                             break;
+
+                        case MyTask.LibraryToCustomMzml:
+                            var parameters8 = new BaseResultAnalyzerTaskParameters(CommandLineArguments.InputDirectory,
+                                CommandLineArguments.OverrideFiles, CommandLineArguments.RunOnAll);
+                            allTasks.Add(new LibraryToCustomFileTask(parameters8));
+                            break;
+
                         default:
                             throw new ArgumentOutOfRangeException();
                     }
