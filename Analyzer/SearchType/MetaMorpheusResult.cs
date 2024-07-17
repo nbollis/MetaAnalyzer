@@ -1144,11 +1144,19 @@ namespace Analyzer.SearchType
                         foreach (var chimericPsm in psms.OrderBy(p => Math.Abs(p.PrecursorMz - scan.IsolationMz.Value)))
                         {
                             var envelope = ms1ScanInfo.envelopes.MinBy(p => Math.Abs(p.MonoisotopicMass - chimericPsm.PrecursorMass));
-                            double fractionalIntensity = 0.0;
+                            double precursorAbsoluteIntensity = 0.0;
+                            double isolationWindowIntensity = 0.0;
+                            double precursorFractionalIntensity = 0.0;
                             if (envelope is not null)
-                                fractionalIntensity = envelope.TotalIntensity / ms1ScanInfo.sumOfIntensity;
-                            double fragmentFractionalIntensity = chimericPsm.MatchedIons.Sum(p => p.Intensity) /
-                                                                 scan.MassSpectrum.SumOfAllY;
+                            {
+                                precursorAbsoluteIntensity = envelope.TotalIntensity;
+                                isolationWindowIntensity = ms1ScanInfo.sumOfIntensity;
+                                precursorFractionalIntensity = precursorAbsoluteIntensity / isolationWindowIntensity;
+                            }
+
+                            double ms2AbsoluteIntensity = scan.MassSpectrum.SumOfAllY;
+                            double idMs2AbsoluteIntensity = chimericPsm.MatchedIons.Sum(p => p.Intensity);
+                            double fragmentFractionalIntensity = idMs2AbsoluteIntensity / ms2AbsoluteIntensity;
 
                             var resultToWrite = new ChimericSpectrumSummary()
                             {
@@ -1169,7 +1177,11 @@ namespace Analyzer.SearchType
                                 PrecursorMass = chimericPsm.PrecursorMass,
                                 PrecursorMz = chimericPsm.PrecursorMz,
                                 IsDecoy = chimericPsm.DecoyContamTarget == "D",
-                                PrecursorFractionalIntensity = fractionalIntensity,
+                                PrecursorAbsoluteIntensity = precursorAbsoluteIntensity,
+                                IsolationWindowAbsoluteIntensity = isolationWindowIntensity,
+                                PrecursorFractionalIntensity = precursorFractionalIntensity,
+                                Ms2ScanAbsoluteIntensity = ms2AbsoluteIntensity,
+                                IdentifiedMs2AbsoluteIntensity = idMs2AbsoluteIntensity,
                                 FragmentFractionalIntensity = fragmentFractionalIntensity
                             };
 
@@ -1208,11 +1220,20 @@ namespace Analyzer.SearchType
                         foreach (var chimericPeptide in peptides.OrderBy(p => Math.Abs(p.PrecursorMz - scan.IsolationMz.Value)))
                         {
                             var envelope = ms1ScanInfo.envelopes.MinBy(p => Math.Abs(p.MonoisotopicMass - chimericPeptide.PrecursorMass));
-                            double fractionalIntensity = 0.0;
+                            double precursorAbsoluteIntensity = 0.0;
+                            double isolationWindowIntensity = 0.0;
+                            double precursorFractionalIntensity = 0.0;
                             if (envelope is not null)
-                                fractionalIntensity = envelope.TotalIntensity / ms1ScanInfo.sumOfIntensity;
-                            double fragmentFractionalIntensity = chimericPeptide.MatchedIons.Sum(p => p.Intensity) /
-                                                                 scan.MassSpectrum.SumOfAllY;
+                            {
+                                precursorAbsoluteIntensity = envelope.TotalIntensity;
+                                isolationWindowIntensity = ms1ScanInfo.sumOfIntensity;
+                                precursorFractionalIntensity = precursorAbsoluteIntensity / isolationWindowIntensity;
+                            }
+
+                            double ms2AbsoluteIntensity = scan.MassSpectrum.SumOfAllY;
+                            double idMs2AbsoluteIntensity = chimericPeptide.MatchedIons.Sum(p => p.Intensity);
+                            double fragmentFractionalIntensity = idMs2AbsoluteIntensity / ms2AbsoluteIntensity;
+
                             var resultToWrite = new ChimericSpectrumSummary()
                             {
                                 Dataset = DatasetName,
@@ -1232,7 +1253,11 @@ namespace Analyzer.SearchType
                                 PrecursorMass = chimericPeptide.PrecursorMass,
                                 PrecursorMz = chimericPeptide.PrecursorMz,
                                 IsDecoy = chimericPeptide.DecoyContamTarget == "D",
-                                PrecursorFractionalIntensity = fractionalIntensity,
+                                PrecursorAbsoluteIntensity = precursorAbsoluteIntensity,
+                                IsolationWindowAbsoluteIntensity = isolationWindowIntensity,
+                                PrecursorFractionalIntensity = precursorFractionalIntensity,
+                                Ms2ScanAbsoluteIntensity = ms2AbsoluteIntensity,
+                                IdentifiedMs2AbsoluteIntensity = idMs2AbsoluteIntensity,
                                 FragmentFractionalIntensity = fragmentFractionalIntensity
                             };
 
@@ -1263,15 +1288,28 @@ namespace Analyzer.SearchType
                     if (!peptideDictionaryByScanNumber.TryGetValue(scan.OneBasedScanNumber, out _) &&
                         !psmDictionaryByScanNumber.TryGetValue(scan.OneBasedScanNumber, out _))
                     {
-                        var envelope = ms2ScanToMetaMorpheusDeconResultDictionary[scan.OneBasedScanNumber].envelopes
+                        var ms1ScanInfo = ms2ScanToMetaMorpheusDeconResultDictionary[scan.OneBasedScanNumber];
+                        int possibleFeatureCount = ms2canToFlashDeconvResultDictionary[scan.OneBasedScanNumber];
+
+
+
+                        var envelope = ms1ScanInfo.envelopes
                             .OrderBy(p =>
                                 Math.Abs(p.Peaks.MaxBy(m => m.intensity).mz - scan.IsolationMz!.Value).Round(2))
                             .ThenByDescending(p => p.Score)
                             .FirstOrDefault();
 
-                        double fractionalIntensity = 0.0;
+                        double precursorAbsoluteIntensity = 0.0;
+                        double isolationWindowIntensity = 0.0;
+                        double precursorFractionalIntensity = 0.0;
                         if (envelope is not null)
-                            fractionalIntensity = envelope.TotalIntensity / ms2ScanToMetaMorpheusDeconResultDictionary[scan.OneBasedScanNumber].sumOfIntensity;
+                        {
+                            precursorAbsoluteIntensity = envelope.TotalIntensity;
+                            isolationWindowIntensity = ms1ScanInfo.sumOfIntensity;
+                            precursorFractionalIntensity = precursorAbsoluteIntensity / isolationWindowIntensity;
+                        }
+                        double ms2AbsoluteIntensity = scan.MassSpectrum.SumOfAllY;
+                        
 
                         var psmResult = new ChimericSpectrumSummary()
                         {
@@ -1284,8 +1322,13 @@ namespace Analyzer.SearchType
                             IsolationMz = scan.IsolationMz!.Value,
                             RetentionTime = scan.RetentionTime,
 
-                            PossibleFeatureCount = ms2canToFlashDeconvResultDictionary[scan.OneBasedScanNumber],
-                            PrecursorFractionalIntensity = fractionalIntensity
+                            PossibleFeatureCount = possibleFeatureCount,
+                            PrecursorFractionalIntensity = precursorFractionalIntensity,
+                            PrecursorAbsoluteIntensity = precursorAbsoluteIntensity,
+                            IsolationWindowAbsoluteIntensity = isolationWindowIntensity,
+                            Ms2ScanAbsoluteIntensity = ms2AbsoluteIntensity,
+                            IdentifiedMs2AbsoluteIntensity = 0,
+                            FragmentFractionalIntensity = 0,
                         };
                         chimericSpectra.Add(psmResult);
                     }

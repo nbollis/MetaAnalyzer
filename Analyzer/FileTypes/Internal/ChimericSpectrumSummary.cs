@@ -36,14 +36,22 @@ namespace Analyzer.FileTypes.Internal
         public int PrecursorCharge { get; set; }
         public double PrecursorMass { get; set; }
         public double PEP_QValue { get; set; }
-        public double PrecursorFractionalIntensity { get; set; }
-        [Optional] public double FragmentFractionalIntensity { get; set; }
         public bool IsChimeric { get; set; }
         public bool IsDecoy { get; set; }
         public bool IsParent { get; set; }
         public bool IsUniqueForm { get; set; }
         public bool IsUniqueProtein { get; set; }
         public bool IsDuplicate { get; set; }
+
+        // Summary Information
+
+        public double PrecursorAbsoluteIntensity { get; set; }
+        public double IsolationWindowAbsoluteIntensity { get; set; }
+        public double PrecursorFractionalIntensity { get; set; }
+        public double Ms2ScanAbsoluteIntensity { get; set; }
+        public double IdentifiedMs2AbsoluteIntensity { get; set; }
+        public double FragmentFractionalIntensity { get; set; }
+
 
         // Deconovlution Information
         public int PossibleFeatureCount { get; set; }
