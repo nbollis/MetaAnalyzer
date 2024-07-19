@@ -4,8 +4,10 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Analyzer.Interfaces;
+using Analyzer.Plotting.IndividualRunPlots;
 using Analyzer.Plotting.Util;
 using Analyzer.SearchType;
+using Analyzer.Util;
 using Calibrator;
 using Microsoft.ML.Calibrators;
 using RetentionTimePrediction;
@@ -67,7 +69,74 @@ namespace Test
             }
         }
 
+        [Test]
+        public static void RunJenkinsLikeParserOnSingleRun()
+        {
+            string path = @"B:\Users\Nic\PEPTesting\240715_NB_NewPep_FracInt+Term+Intern_2377";
 
+            var name = Path.GetFileName(path);
+            var runDirectories = path.GetDirectories();
+
+            var allMMResults = new List<SingleRunResults>();
+
+
+            var semiSpecificDir = runDirectories.FirstOrDefault(p => p.Contains("Semispecific"));
+            if (semiSpecificDir is not null)
+                allMMResults.Add(new MetaMorpheusResult(semiSpecificDir, name, "Semi-Specific"));
+
+            var nonspecificDir = runDirectories.FirstOrDefault(p => p.Contains("Nonspecific"));
+            if (nonspecificDir is not null)
+                allMMResults.Add(new MetaMorpheusResult(nonspecificDir, name, "Non-Specific"));
+
+            var modernDir = runDirectories.FirstOrDefault(p => p.Contains("Modern") && !p.Contains("Open"));
+            if (modernDir is not null)
+                allMMResults.Add(new MetaMorpheusResult(modernDir, name, "Modern"));
+
+
+            var classicDir = runDirectories.FirstOrDefault(p => p.Contains("Classic"));
+            if (classicDir is not null)
+            {
+                var classicInitialDir = classicDir.GetDirectories().First(p => p.Contains("Task1"));
+                allMMResults.Add(new MetaMorpheusResult(classicInitialDir, name, "Classic - Initial"));
+                var classicPostCalibDir = classicDir.GetDirectories().First(p => p.Contains("Task3"));
+                allMMResults.Add(new MetaMorpheusResult(classicPostCalibDir, name, "Classic - Post Calibration"));
+                var classicPostGptmdDir = classicDir.GetDirectories().First(p => p.Contains("Task5"));
+                allMMResults.Add(new MetaMorpheusResult(classicPostGptmdDir, name, "Classic - Post GPTMD"));
+            }
+
+
+
+            var topDownDir = runDirectories.FirstOrDefault(p => p.Contains("TopDown"));
+            if (topDownDir is not null)
+            {
+                var tdInitialDir = topDownDir.GetDirectories().First(p => p.Contains("Task1"));
+                allMMResults.Add(new MetaMorpheusResult(tdInitialDir, name, "TopDown - Initial"));
+                var tdPostCalibDir = topDownDir.GetDirectories().First(p => p.Contains("Task3"));
+                allMMResults.Add(new MetaMorpheusResult(tdPostCalibDir, name, "TopDown - Post Calibration"));
+                var tdPostAveragingDir = topDownDir.GetDirectories().First(p => p.Contains("Task5"));
+                allMMResults.Add(new MetaMorpheusResult(tdPostAveragingDir, name, "TopDown - Post Averaging"));
+                var tdPostGPTMDDir = topDownDir.GetDirectories().First(p => p.Contains("Task7"));
+                allMMResults.Add(new MetaMorpheusResult(tdPostGPTMDDir, name, "TopDown - Post GPTMD"));
+            }
+
+            var bottomupOpenModernDir = runDirectories.FirstOrDefault(p => p.Contains("BottomUpOpenModern"));
+            if (bottomupOpenModernDir is not null)
+                allMMResults.Add(new MetaMorpheusResult(bottomupOpenModernDir, name, "BottomUp OpenModern"));
+
+
+            var topDownOpenModernDir = runDirectories.FirstOrDefault(p => p.Contains("TopDownOpenModern"));
+            if (topDownOpenModernDir is not null)
+                allMMResults.Add(new MetaMorpheusResult(topDownOpenModernDir, name, "TopDown OpenModern"));
+
+
+            var run = new CellLineResults(path, allMMResults);
+
+            foreach (var result in run)
+            {
+                var mm = (MetaMorpheusResult)result;
+                mm.PlotPepFeaturesScatterGrid();
+            }
+        }
 
      
 

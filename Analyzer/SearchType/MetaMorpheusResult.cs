@@ -1084,6 +1084,10 @@ namespace Analyzer.SearchType
                     p.RetentionTimeApex /= 60;
                 });
 
+                var deconResults = deconFile.Where(feature =>
+                    feature.ChargeStateMin != feature.ChargeStateMax && feature.ChargeStateMin != 1)
+                    .ToList();
+
 
                 Log($"Parsing Psms, Peptides, and Deconvoluted Features", 2);
                 var psmDictionaryByScanNumber = mmResult.AllPsms
@@ -1114,7 +1118,8 @@ namespace Analyzer.SearchType
                             (envelopes, sumOfIntensity));
 
                         int possibleFeatureCount = 0;
-                        foreach (var rtMatchingFeature in deconFile.Where(feature => feature.RetentionTimeBegin <= ms1Scan.RetentionTime && feature.RetentionTimeEnd >= ms1Scan.RetentionTime))
+                        foreach (var rtMatchingFeature in deconResults
+                                     .Where(feature => feature.RetentionTimeBegin <= ms1Scan.RetentionTime && feature.RetentionTimeEnd >= ms1Scan.RetentionTime))
                             for (int i = rtMatchingFeature.ChargeStateMin; i < rtMatchingFeature.ChargeStateMax; i++)
                                 if (ms2Scan.IsolationRange!.Contains(rtMatchingFeature.Mass.ToMz(i)))
                                     possibleFeatureCount++;

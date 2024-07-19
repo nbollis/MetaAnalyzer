@@ -152,6 +152,10 @@ namespace Analyzer.FileTypes.Internal
         [Name("PrecursorFractionalIntensity")]
         public double PrecursorFractionalIntensity { get; set; }
 
+        [Optional]
+        [Name("InternalIonCount")]
+        public double InternalIonCount { get; set; }
+
         [Ignore] public bool IsDecoy => Label == -1;
     }
 }

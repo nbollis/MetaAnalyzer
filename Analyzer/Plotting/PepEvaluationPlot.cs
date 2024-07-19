@@ -89,11 +89,13 @@ namespace Analyzer.Plotting
                 new PepSplomData("AmbiguityLevel", true),
                 new PepSplomData("LongestIonSeries", true),
                 new PepSplomData("ComplementaryIonCount", false),
+
                 new PepSplomData("PeaksInPrecursorEnvelope", true),
                 new PepSplomData("PrecursorEnvelopeScore", false),
                 new PepSplomData("ChimeraCount", true),
                 new PepSplomData("MostAbundantPrecursorPeakIntensity", false),
                 new PepSplomData("PrecursorFractionalIntensity", false),
+                new PepSplomData("InternalIonCount", true),
 
                 new PepSplomData("HasSpectralAngle", true),
                 new PepSplomData("SpectralAngle", false),
