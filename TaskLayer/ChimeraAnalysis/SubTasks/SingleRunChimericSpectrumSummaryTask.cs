@@ -35,7 +35,7 @@ namespace TaskLayer.ChimeraAnalysis
                 return;
 
             // Run the parsing
-            mm.Override = Parameters.Override; ;
+            mm.Override = Parameters.Override; 
             var summary = mm.GetChimericSpectrumSummaryFile();
             mm.Override = false;
 

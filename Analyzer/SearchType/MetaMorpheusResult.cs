@@ -1085,9 +1085,8 @@ namespace Analyzer.SearchType
                 });
 
                 var deconResults = deconFile.Where(feature =>
-                    feature.ChargeStateMin != feature.ChargeStateMax && feature.ChargeStateMin != 1)
+                    feature.ChargeStateMin != feature.ChargeStateMax && feature.ChargeStateMax > 1)
                     .ToList();
-
 
                 Log($"Parsing Psms, Peptides, and Deconvoluted Features", 2);
                 var psmDictionaryByScanNumber = mmResult.AllPsms

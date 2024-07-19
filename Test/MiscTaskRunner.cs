@@ -41,7 +41,7 @@ namespace Test
         {
             string path = Man11FDRRunPath;
             var mmRun = new MetaMorpheusResult(path);
-            var parameters = new SingleRunAnalysisParameters(path, false, true, mmRun);
+            var parameters = new SingleRunAnalysisParameters(path, true, false, mmRun);
             var task = new SingleRunChimericSpectrumSummaryTask(parameters);
 
             task.Run();
