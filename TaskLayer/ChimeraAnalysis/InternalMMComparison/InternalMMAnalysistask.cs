@@ -271,7 +271,15 @@ namespace TaskLayer.ChimeraAnalysis
 
                 while (!process.IsCompleted())
                 {
-                    await Task.Delay(1000); // Adjust delay as needed
+                    await Task.Delay(100000); // Adjust delay as needed
+                }
+
+                // if build library task, set completion results to the library path
+                if (process.SearchTask.Contains("Build"))
+                {
+                    var filePath = Directory.GetFiles(process.OutputDirectory, "*.msp", SearchOption.AllDirectories).FirstOrDefault();
+                    if (filePath != null)
+                        process.CompletionSource.SetResult(filePath);
                 }
 
                 return;
