@@ -159,7 +159,7 @@ namespace Test
             var outputDir = InternalMetaMorpheusAnalysisTask.Mann11OutputDirectory;
             var dbPath = InternalMetaMorpheusAnalysisTask.UniprotHumanProteomeAndReviewedXml;
 
-            var parameters = new InternalMetaMorpheusAnalysisParameters(path, outputDir, dataDirectoryPath, dbPath);
+            var parameters = new InternalMetaMorpheusAnalysisParameters(path, outputDir, dataDirectoryPath, dbPath, @"C:\Program Files\MetaMorpheus");
             var task = new InternalMetaMorpheusAnalysisTask(parameters);
             task.Run();
         }
