@@ -33,62 +33,14 @@ namespace Test
         [Test]
         public static void GenerateCommandLinePrompts()
         {
+
+            CommandLineArgumentRunner.GenerateLibraryFiles();
+
             CommandLineArgumentRunner.RunMann11InternalComparisonInParallel();
 
 
 
-            string metaMorpheusCmdLocation = @"C:\Users\Nic\source\repos\MetaMorpheus\MetaMorpheus\CMD\bin\Release\net6.0\CMD.exe";
-            string dataFileDir = @"B:\RawSpectraFiles\Mann_11cell_lines";
-            string resultDir = @"B:\Users\Nic\Chimeras\Mann_11cell_analysis";
-            string gptmd_NoChimerasPath = @"B:\Users\Nic\Chimeras\Mann_11cell_analysis\GPTMD_NoChimeras.toml";
-            string gptmd_ChimerasPath = @"B:\Users\Nic\Chimeras\Mann_11cell_analysis\GPTMD_WithChimeras.toml";
-            string search_NoChimerasPath = @"B:\Users\Nic\Chimeras\Mann_11cell_analysis\Search_NoChimeras.toml";
-            string search_ChimerasPath = @"B:\Users\Nic\Chimeras\Mann_11cell_analysis\Search_WithChimeras.toml";
-
-            string dbPath =
-                @"B:\Users\Nic\Chimeras\Mann_11cell_analysis\uniprotkb_human_proteome_AND_reviewed_t_2024_03_22.xml";
-            string libPath = @"B:\Users\Nic\Chimeras\FdrAnalysis\Mann11_Reps1+2_NonChimericLibrary.msp";
-
-            Dictionary<string, List<string>> cellLineToMassSpecFile = new();
-            foreach (var runDirectory in Directory.GetDirectories(resultDir).Where(p => !p.Contains("Figures") && !p.Contains("Prosight")))
-            {
-                var cellLineId = Path.GetFileNameWithoutExtension(runDirectory);
-                cellLineToMassSpecFile.Add(cellLineId, new List<string>());
-
-                var dataFileCalibAveragedDir = Path.Combine(dataFileDir, cellLineId, "CalibratedAveraged");
-                foreach (var calibAveragedFilePath in Directory.GetFiles(dataFileCalibAveragedDir, "*.mzML"))
-                {
-                    var fileShortName = Path.GetFileNameWithoutExtension(calibAveragedFilePath).ConvertFileName();
-                    if (fileShortName == Path.GetFileNameWithoutExtension(calibAveragedFilePath))
-                        Debugger.Break();
-
-                    if (fileShortName.StartsWith($"{cellLineId}_3_"))
-                        cellLineToMassSpecFile[cellLineId].Add(calibAveragedFilePath);
-                }
-            }
-
-            List<string> cmdLines = new();
-            foreach (var cellLine in cellLineToMassSpecFile)
-            {
-                var cellLineId = cellLine.Key;
-                var dataFiles = cellLine.Value;
-                var nonChimericOutputFolder = Path.Combine(resultDir, cellLineId, "SearchResults", "MetaMorpheus_105_NoChimeras");
-                var chimericOutputFolder = Path.Combine(resultDir, cellLineId, "SearchResults", "MetaMorpheus_105_WithChimeras");
-
-                cmdLines.Add($"ECHO ===== Running {cellLineId} Non-Chimeric Analysis =====");
-                var nonChimericLine =
-                    $"{metaMorpheusCmdLocation} -t {gptmd_NoChimerasPath} {search_NoChimerasPath} -s {string.Join(" ", dataFiles)} -o {nonChimericOutputFolder} -d {dbPath} {libPath} -v minimal";
-                cmdLines.Add(nonChimericLine);
-
-
-
-                cmdLines.Add($"ECHO ===== Running {cellLineId} Chimeric Analysis =====");
-                var chimericLine =
-                    $"{metaMorpheusCmdLocation} -t {gptmd_ChimerasPath} {search_ChimerasPath} -s {string.Join(" ", dataFiles)} -o {chimericOutputFolder} -d {dbPath} {libPath} -v minimal";
-                cmdLines.Add(chimericLine);
-            }
-
-            var cmd = string.Join("\n", cmdLines);
+            
         }
 
 

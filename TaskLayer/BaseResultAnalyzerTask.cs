@@ -60,5 +60,37 @@ namespace TaskLayer
 
         protected AllResults BuildChimeraPaperResultsObjects() =>
             BuildChimeraPaperResultsObjects(Parameters.InputDirectoryPath, Parameters.RunOnAll);
+
+
+        #region CMD
+
+        public static double TotalWeight = 0;
+        protected void RunCmdProcess(string prompt, string workingDir, string programExe = "CMD.exe")
+        {
+            var process = new System.Diagnostics.Process
+            {
+                StartInfo = new System.Diagnostics.ProcessStartInfo
+                {
+                    FileName = programExe,
+                    Arguments = prompt,
+                    UseShellExecute = false,
+                    RedirectStandardOutput = true,
+                    CreateNoWindow = true,
+                    WorkingDirectory = workingDir
+                }
+            };
+            process.Start();
+            process.WaitForExit();
+        }
+
+        
+        protected async Task RunCmdProcess(CmdProcess cmdProcess)
+        {
+            Log(cmdProcess.SummaryText);
+            RunCmdProcess(cmdProcess.Prompt, cmdProcess.WorkingDirectory);
+        }
+
+        #endregion
+
     }
 }

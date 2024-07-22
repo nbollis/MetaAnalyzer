@@ -26,6 +26,17 @@ namespace CMD
             }
         }
 
+        public static void GenerateLibraryFiles()
+        {
+                        string workingDir = ImportantPaths.MetaMorpheusLocation;
+            string programExe = "CMD.exe";
+
+            var prompts = Mann11InternalComparison.First().GenerateLibraryTasksBottomUp().ToList();
+            
+            RunAllProcesses(prompts, workingDir, programExe);
+        }
+        
+
         public static void RunMann11InternalComparisonInParallel()
         {
             string workingDir = ImportantPaths.MetaMorpheusLocation;
@@ -45,10 +56,10 @@ namespace CMD
                     prompts.Add(nonChim);
 
                 var chimResultPath = Path.Combine(cellLine.DirectoryPath, "SearchResults", "MetaMorpheus_105_WithChimeras");
-                if (!Directory.Exists(chimResultPath))
-                    prompts.Add(chim);
-                else if (Directory.GetFiles(chimResultPath, "*.psmtsv", SearchOption.AllDirectories).Length < 14)
-                    prompts.Add(chim);
+                //if (!Directory.Exists(chimResultPath))
+                //    prompts.Add(chim);
+                //else if (Directory.GetFiles(chimResultPath, "*.psmtsv", SearchOption.AllDirectories).Length < 14)
+                //    prompts.Add(chim);
             }
             RunAllProcesses(prompts, workingDir, programExe);
         }
@@ -56,7 +67,7 @@ namespace CMD
         public static void RunAllProcesses(List<string> cmdPrompts, string workingDir, string programExe)
         {
             List<string> outputsList = new List<string>();
-            int maxThreads = 4;
+            int maxThreads = 1;
             int threadsToUse = 20 / maxThreads;
             int[] threads = Enumerable.Range(0, maxThreads).ToArray();
             Parallel.ForEach(threads, (i) =>
@@ -151,6 +162,67 @@ namespace CMD
             }
         }
 
+        public IEnumerable<string> GenerateLibraryTasksBottomUp()
+        {
+            var files = CalibratedAveragedFilePaths.GroupBy(p => int.Parse(p.Key.Split('_')[1]))
+                .ToDictionary(p => p.Key, p => p.ToDictionary(m => m.Key, m => m.Value));
+
+            var oneTwo = new List<string>();
+            var oneThree = new List<string>();
+            var twoThree = new List<string>();
+
+            oneTwo.AddRange(files[1].Values);
+            oneTwo.AddRange(files[2].Values);
+
+            oneThree.AddRange(files[1].Values);
+            oneThree.AddRange(files[3].Values);
+
+            twoThree.AddRange(files[2].Values);
+            twoThree.AddRange(files[3].Values);
+
+            var dirpath = @"B:\Users\Nic\Chimeras\FdrAnalysis";
+            var nonChimericOutFolderOneTwo = Path.Combine(dirpath, "GenerateNonChimericLibrary_Reps1+2");
+            var nonChimericOutFolderOneThree = Path.Combine(dirpath, "GenerateNonChimericLibrary_Reps1+3");
+            var nonChimericOutFolderTwoThree = Path.Combine(dirpath, "GenerateNonChimericLibrary_Reps2+3");
+
+            var chimericOutFolderOneTwo = Path.Combine(dirpath, "GenerateChimericLibrary_Reps1+2");
+            var chimericOutFolderOneThree = Path.Combine(dirpath, "GenerateChimericLibrary_Reps1+3");
+            var chimericOutFolderTwoThree = Path.Combine(dirpath, "GenerateChimericLibrary_Reps2+3");
+
+    
+            //var nonChimericLineOneTwo = $" -t {ImportantPaths.GptmdNoChimerasMann11} {ImportantPaths.SearchNoChimerasMann11_BuildLibrary}" +
+            //                          $" -s {string.Join(" ", oneTwo)} -o {nonChimericOutFolderOneTwo} " +
+            //                          $"-d {ImportantPaths.UniprotHumanProteomeAndReviewedXml}";
+            //yield return nonChimericLineOneTwo;
+
+            var nonChimericLineOneThree = $" -t {ImportantPaths.GptmdNoChimerasMann11} {ImportantPaths.SearchNoChimerasMann11_BuildLibrary}" +
+                                      $" -s {string.Join(" ", oneThree)} -o {nonChimericOutFolderOneThree} " +
+                                      $"-d {ImportantPaths.UniprotHumanProteomeAndReviewedXml}";
+            yield return nonChimericLineOneThree;
+
+
+            var nonChimericLineTwoThree = $" -t {ImportantPaths.GptmdNoChimerasMann11} {ImportantPaths.SearchNoChimerasMann11_BuildLibrary}" +
+                                      $" -s {string.Join(" ", twoThree)} -o {nonChimericOutFolderTwoThree} " +
+                                      $"-d {ImportantPaths.UniprotHumanProteomeAndReviewedXml}";
+            yield return nonChimericLineTwoThree;
+
+            //var chimericLineOneTwo = $" -t {ImportantPaths.GptmdWithChimerasMann11} {ImportantPaths.SearchWithChimerasMann11_BuildLibrary}" +
+            //                          $" -s {string.Join(" ", oneTwo)} -o {chimericOutFolderOneTwo} " +
+            //                          $"-d {ImportantPaths.UniprotHumanProteomeAndReviewedXml}";
+            //yield return chimericLineOneTwo;
+
+            var chimericLineOneThree = $" -t {ImportantPaths.GptmdWithChimerasMann11} {ImportantPaths.SearchWithChimerasMann11_BuildLibrary}" +
+                                      $" -s {string.Join(" ", oneThree)} -o {chimericOutFolderOneThree} " +
+                                      $"-d {ImportantPaths.UniprotHumanProteomeAndReviewedXml}";
+            yield return chimericLineOneThree;
+
+            var chimericLineTwoThree = $" -t {ImportantPaths.GptmdWithChimerasMann11} {ImportantPaths.SearchWithChimerasMann11_BuildLibrary}" +
+                                      $" -s {string.Join(" ", twoThree)} -o {chimericOutFolderTwoThree} " +
+                                      $"-d {ImportantPaths.UniprotHumanProteomeAndReviewedXml}";
+            yield return chimericLineTwoThree;
+
+        }
+
         public IEnumerable<string> InternalComparisonCommandPrompts()
         {
             var files = CalibratedAveragedFilePaths.Where(p => p.Key.StartsWith($"{CellLine}_3_"))
@@ -167,13 +239,15 @@ namespace CMD
             var search_NoChimerasPath = IsTopDown ? ImportantPaths.SearchNoChimerasJurkatTd   : ImportantPaths.SearchNoChimerasMann11;
             var search_ChimerasPath = IsTopDown   ? ImportantPaths.SearchWithChimerasJurkatTd : ImportantPaths.SearchWithChimerasMann11;
             var nonChimericLibPath = IsTopDown    ? ImportantPaths.NonChimericLibraryJurkatTd : ImportantPaths.NonChimericLibraryMann11;
+            var chimericLibPath = IsTopDown       ? ImportantPaths.ChimericLibraryJurkatTd    : ImportantPaths.ChimericLibraryMann11;
             var dbPath = ImportantPaths.UniprotHumanProteomeAndReviewedXml;
 
             var nonChimericLine =
                 $" -t {gptmd_NoChimerasPath} {search_NoChimerasPath} -s {string.Join(" ", files)} -o {nonChimericOutputFolder} -d {dbPath} {nonChimericLibPath}";
             yield return nonChimericLine;
+
             var chimericLine =
-                $" -t {gptmd_ChimerasPath} {search_ChimerasPath} -s {string.Join(" ", files)} -o {chimericOutputFolder} -d {dbPath} {nonChimericLibPath}";
+                $" -t {gptmd_ChimerasPath} {search_ChimerasPath} -s {string.Join(" ", files)} -o {chimericOutputFolder} -d {dbPath} {chimericLibPath}";
             yield return chimericLine;
         }
     }

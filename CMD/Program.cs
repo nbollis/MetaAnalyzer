@@ -214,6 +214,16 @@ namespace MyApp
                             allTasks.Add(new LibraryToCustomFileTask(parameters8));
                             break;
 
+                        case MyTask.InternalMetaMorpheusAnalysis:
+                            var parameters9 = new InternalMetaMorpheusAnalysisParameters(
+                                CommandLineArguments.InputDirectory,
+                                CommandLineArguments.OutputDirectory, CommandLineArguments.SpectraFileDirectory,
+                                CommandLineArguments.DatabasePath,
+                                false, false);
+                            allTasks.Add(new InternalMetaMorpheusAnalysisTask(parameters9));
+                            break;
+
+
                         default:
                             throw new ArgumentOutOfRangeException();
                     }

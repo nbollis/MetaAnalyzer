@@ -50,6 +50,12 @@ namespace CMD
         public static string SearchWithChimerasMann11 =>
             @"B:\Users\Nic\Chimeras\Mann_11cell_analysis\Search_WithChimeras.toml";
 
+        public static string SearchNoChimerasMann11_BuildLibrary => 
+            @"B:\Users\Nic\Chimeras\Mann_11cell_analysis\Search_NoChimeras_BuildLibrary.toml";
+
+        public static string SearchWithChimerasMann11_BuildLibrary =>
+        @"B:\Users\Nic\Chimeras\Mann_11cell_analysis\Search_WithChimeras_BuildLibrary.toml";
+
         #endregion
 
         #region Top-Down

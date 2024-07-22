@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using System.Threading.Tasks;
 using Analyzer.Interfaces;
@@ -147,6 +148,19 @@ namespace Test
             var mmRun = new MetaMorpheusResult(path);
             var parameters = new SingleRunAnalysisParameters(path, false, true, mmRun);
             var task = new SingleRunChimericSpectrumSummaryTask(parameters);
+            task.Run();
+        }
+
+        [Test]
+        public static void RunInternalMMComparison()
+        {
+            var path = BottomUpRunner.DirectoryPath;
+            var dataDirectoryPath = InternalMetaMorpheusAnalysisTask.Mann11DataFileDirectory;
+            var outputDir = InternalMetaMorpheusAnalysisTask.Mann11OutputDirectory;
+            var dbPath = InternalMetaMorpheusAnalysisTask.UniprotHumanProteomeAndReviewedXml;
+
+            var parameters = new InternalMetaMorpheusAnalysisParameters(path, outputDir, dataDirectoryPath, dbPath);
+            var task = new InternalMetaMorpheusAnalysisTask(parameters);
             task.Run();
         }
 

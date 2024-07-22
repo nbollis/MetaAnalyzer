@@ -18,6 +18,16 @@ namespace CMD
         [Option('o', HelpText = "The output Directory", Required = false, Default = false)]
         public bool OverrideFiles { get; set; }
 
+        [Option('d', HelpText = "The database path", Required = false, Default = false)]
+        public string DatabasePath { get; set; }
+
+        [Option('s', HelpText = "The spectra paths", Required = false, Default = false)]
+        public string SpectraFileDirectory { get; set; }
+
+        [Option('w', HelpText = "The working directory", Required = false, Default = false)]
+        public string OutputDirectory { get; set; }
+
+
         // Chimera analysis specific
 
         [Option('b', HelpText = "The output Directory", Required = false, Default = false)]
