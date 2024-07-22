@@ -15,8 +15,7 @@ namespace TaskLayer.ChimeraAnalysis
         #region FilePaths
 
         // Paths for setup
-        internal static string MetaMorpheusLocation =>
-            @"C:\Users\Nic\source\repos\MetaMorpheus\MetaMorpheus\CMD\bin\Release\net6.0";
+        internal static string MetaMorpheusLocation { get; set; }
 
 
         public static string UniprotHumanProteomeAndReviewedXml =>
@@ -81,6 +80,7 @@ namespace TaskLayer.ChimeraAnalysis
         public InternalMetaMorpheusAnalysisTask(InternalMetaMorpheusAnalysisParameters parameters)
         {
             Parameters = parameters;
+            MetaMorpheusLocation = parameters.MetaMorpheusPath;
             CurrentWeight = 0;
         }
 

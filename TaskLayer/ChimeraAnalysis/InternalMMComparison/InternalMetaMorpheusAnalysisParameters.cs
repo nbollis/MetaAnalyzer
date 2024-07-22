@@ -5,9 +5,10 @@ public class InternalMetaMorpheusAnalysisParameters : BaseResultAnalyzerTaskPara
     public string DatabasePath { get; set; }
     public string SpectraFileDirectory { get; set; }
     public string OutputDirectory { get; set; }
+    public string MetaMorpheusPath { get; set; }
 
     public InternalMetaMorpheusAnalysisParameters(string inputDirectoryPath, string outputDirectory,
-        string spectraFileDir, string dbPath, bool overrideFiles = false,
+        string spectraFileDir, string dbPath, string mmPath, bool overrideFiles = false,
         bool runOnAll = true, int maxDegreesOfParallelism = 2)
 
         : base(inputDirectoryPath, overrideFiles, runOnAll, maxDegreesOfParallelism)
@@ -15,5 +16,6 @@ public class InternalMetaMorpheusAnalysisParameters : BaseResultAnalyzerTaskPara
         OutputDirectory = outputDirectory;
         SpectraFileDirectory = spectraFileDir;
         DatabasePath = dbPath;
+        MetaMorpheusPath = mmPath;
     }
 }

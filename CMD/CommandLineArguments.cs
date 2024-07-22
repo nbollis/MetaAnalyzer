@@ -27,6 +27,9 @@ namespace CMD
         [Option('w', HelpText = "The working directory", Required = false, Default = false)]
         public string OutputDirectory { get; set; }
 
+        [Option('~', HelpText = "The MetaMorpheus path", Required = false, Default = false)]
+        public string MetaMorpheusPath { get; set; }
+
 
         // Chimera analysis specific
 

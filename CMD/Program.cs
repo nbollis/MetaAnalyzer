@@ -218,7 +218,7 @@ namespace MyApp
                             var parameters9 = new InternalMetaMorpheusAnalysisParameters(
                                 CommandLineArguments.InputDirectory,
                                 CommandLineArguments.OutputDirectory, CommandLineArguments.SpectraFileDirectory,
-                                CommandLineArguments.DatabasePath,
+                                CommandLineArguments.DatabasePath, CommandLineArguments.MetaMorpheusPath,
                                 false, false);
                             allTasks.Add(new InternalMetaMorpheusAnalysisTask(parameters9));
                             break;
