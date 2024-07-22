@@ -264,6 +264,11 @@ namespace TaskLayer.ChimeraAnalysis
             // if still running, wait until finish and return
             if (process.HasStarted())
             {
+                if (process.IsCompleted())
+                    Console.WriteLine($"Previous Completion Detected: {process.SummaryText}");
+                else
+                    Console.WriteLine($"Has Started Elsewhere: {process.SummaryText}");
+
                 while (!process.IsCompleted())
                 {
                     await Task.Delay(1000); // Adjust delay as needed

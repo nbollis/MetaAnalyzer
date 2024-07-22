@@ -16,7 +16,7 @@ public class CmdProcess
             sb.Append($" -d {DatabasePath}");
             if (Dependency != null)
                 sb.Append($" {Dependency.Task.Result}");
-            sb.Append(" -v minimum");
+            sb.Append(" -v minimal");
             return sb.ToString();
         }
     }
