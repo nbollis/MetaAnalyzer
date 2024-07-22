@@ -15,8 +15,10 @@ public class CmdProcess
             sb.Append($" -o {OutputDirectory}");
             sb.Append($" -d {DatabasePath}");
             if (Dependency != null)
+            {
                 sb.Append($" {Dependency.Task.Result}");
-            sb.Append(" -v minimal");
+                sb.Append(" -v minimal");
+            }
             return sb.ToString();
         }
     }

@@ -322,7 +322,6 @@ namespace TaskLayer.ChimeraAnalysis
                     var prompt = process.Prompt;
                     var start = process.OutputDirectory.Substring(0, 3);
                     prompt = prompt.Replace(@"B:\", start);
-                    Console.WriteLine($"{process.WorkingDirectory} : {process.ProgramExe} : {prompt}");
 
                     var proc = new System.Diagnostics.Process
                     {
