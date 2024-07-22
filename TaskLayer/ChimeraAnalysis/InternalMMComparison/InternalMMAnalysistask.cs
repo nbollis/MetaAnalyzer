@@ -319,12 +319,16 @@ namespace TaskLayer.ChimeraAnalysis
                         Console.WriteLine($"Using dependency result: {dependencyResult} in {process.SummaryText}");
                     }
 
+                    var prompt = process.Prompt;
+                    var start = process.OutputDirectory.Substring(0, 3);
+                    prompt = prompt.Replace(@"B:\\", start);
+
                     var proc = new System.Diagnostics.Process
                     {
                         StartInfo = new System.Diagnostics.ProcessStartInfo
                         {
                             FileName = process.ProgramExe,
-                            Arguments = process.Prompt,
+                            Arguments = prompt,
                             UseShellExecute = true,
                             CreateNoWindow = false,
                             WorkingDirectory = process.WorkingDirectory, 
