@@ -2,7 +2,7 @@
   "profiles": {
     "CMD": {
       "commandName": "Project",
-      "commandLineArgs": "-i B:\\Users\\Nic\\Chimeras\\Mann_11cell_analysis -t 11 -o false -d B:\\Users\\Nic\\Chimeras\\Mann_11cell_analysis\\uniprotkb_human_proteome_AND_reviewed_t_2024_03_22.xml -s B:\\RawSpectraFiles\\Mann_11cell_lines -w B:\\Users\\Nic\\Chimeras\\InternalMMAnalysis\\Mann_11cell_lines",
+      "commandLineArgs": "-i B:\\Users\\Nic\\Chimeras\\Mann_11cell_analysis -t 11 -o false -d B:\\Users\\Nic\\Chimeras\\Mann_11cell_analysis\\uniprotkb_human_proteome_AND_reviewed_t_2024_03_22.xml -s B:\\RawSpectraFiles\\Mann_11cell_lines -w B:\\Users\\Nic\\Chimeras\\InternalMMAnalysis\\Mann_11cell_lines -q \"C:\\Program Files\\MetaMorpheus\"",
       "environmentVariables": {
         "%topdownpath%": "B:\\Users\\Nic\\Chimeras\\TopDown_Analysis",
         "%bottomuppath%": "B:\\Users\\Nic\\Chimeras\\Mann_11cell_analysis"

@@ -327,7 +327,8 @@ namespace TaskLayer.ChimeraAnalysis
                             Arguments = process.Prompt,
                             UseShellExecute = true,
                             CreateNoWindow = false,
-                            WorkingDirectory = process.WorkingDirectory
+                            WorkingDirectory = process.WorkingDirectory, 
+                            ErrorDialog = true, 
                         }
                     };
                     proc.Start();
