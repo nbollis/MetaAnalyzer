@@ -1,15 +1,8 @@
 ﻿using Analyzer.SearchType;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Analyzer.FileTypes.Internal;
 using Analyzer.Plotting;
 using Analyzer.Plotting.Util;
 using Analyzer.Util;
-using CsvHelper.Configuration.Attributes;
-using MathNet.Numerics;
 using Chart = Plotly.NET.CSharp.Chart;
 using Plotly.NET;
 
@@ -61,7 +54,9 @@ namespace TaskLayer.ChimeraAnalysis
 
             Log("Creating Fragment Fractional Intensity Plots");
             GenerateFractionalIntensityPlots(ResultType.Psm, summary.Results, false, false);
+            GenerateFractionalIntensityPlots(ResultType.Psm, summary.Results, false, true);
             GenerateFractionalIntensityPlots(ResultType.Peptide, summary.Results, false, false);
+            GenerateFractionalIntensityPlots(ResultType.Peptide, summary.Results, false, true);
 
 
             //var summedPrecursorIntDict = summary.Results
@@ -171,7 +166,11 @@ namespace TaskLayer.ChimeraAnalysis
                                 result => result.FileName))
                         .ToDictionary(p => p.Key, p => p.Select(b => b.PrecursorFractionalIntensity).Sum())
                         .Values.ToList()
-                    : chimeric.Select(p => p.FragmentFractionalIntensity).ToList()
+                    : chimeric.GroupBy(p => p,
+                            new CustomComparer<ChimericSpectrumSummary>(result => result.Ms2ScanNumber,
+                                result => result.FileName))
+                        .ToDictionary(p => p.Key, p => p.Select(b => b.FragmentFractionalIntensity).Sum())
+                        .Values.ToList()
                 : chimeric.Select(p => isPrecursor ? p.PrecursorFractionalIntensity : p.FragmentFractionalIntensity)
                     .ToList();
             var nonChimericFractionalIntensity = sumPrecursor
@@ -181,7 +180,11 @@ namespace TaskLayer.ChimeraAnalysis
                                 result => result.FileName))
                         .ToDictionary(p => p.Key, p => p.Select(b => b.PrecursorFractionalIntensity).Sum())
                         .Values.ToList()
-                    : nonChimeric.Select(p => p.FragmentFractionalIntensity).ToList()
+                    : nonChimeric.GroupBy(p => p,
+                            new CustomComparer<ChimericSpectrumSummary>(result => result.Ms2ScanNumber,
+                                result => result.FileName))
+                        .ToDictionary(p => p.Key, p => p.Select(b => b.FragmentFractionalIntensity).Sum())
+                        .Values.ToList()
                 : nonChimeric.Select(p => isPrecursor ? p.PrecursorFractionalIntensity : p.FragmentFractionalIntensity)
                     .ToList();
             var noIdFractionalIntensity = sumPrecursor
@@ -191,7 +194,11 @@ namespace TaskLayer.ChimeraAnalysis
                                 result => result.FileName))
                         .ToDictionary(p => p.Key, p => p.Select(b => b.PrecursorFractionalIntensity).Sum())
                         .Values.ToList()
-                    : noId.Select(p => p.FragmentFractionalIntensity).ToList()
+                    : noId.GroupBy(p => p,
+                            new CustomComparer<ChimericSpectrumSummary>(result => result.Ms2ScanNumber,
+                                result => result.FileName))
+                        .ToDictionary(p => p.Key, p => p.Select(b => b.FragmentFractionalIntensity).Sum())
+                        .Values.ToList()
                 : noId.Select(p => isPrecursor ? p.PrecursorFractionalIntensity : p.FragmentFractionalIntensity)
                     .ToList();
 
