@@ -164,7 +164,7 @@ namespace TaskLayer.ChimeraAnalysis
                     var individualProcess = new CmdProcess(spec, parameters.DatabasePath, gptmd, search,
                         chimWithChimOutPath,
                         $"Searching with Chimeric Library for Replicate {i} in {cellLine.CellLine}", 0.25,
-                        MetaMorpheusLocation);
+                        MetaMorpheusLocation, $"{cellLine.CellLine} rep {i}");
                     individualProcess.DependsOn(chimLibPrcess);
                     toReturn.Add(individualProcess);
 
@@ -176,7 +176,7 @@ namespace TaskLayer.ChimeraAnalysis
                     individualProcess = new CmdProcess(spec, parameters.DatabasePath, gptmd, search,
                         chimWithNonChimOutPath,
                         $"Searching Chimeric with Non-Chimeric Library for Replicate {i} in {cellLine.CellLine}", 0.25,
-                        MetaMorpheusLocation);
+                        MetaMorpheusLocation, $"{cellLine.CellLine} rep {i}");
                     individualProcess.DependsOn(nonChimLibProcess);
                     toReturn.Add(individualProcess);
 
@@ -324,7 +324,8 @@ namespace TaskLayer.ChimeraAnalysis
                     // Use the dependency result if it exists
                     if (!string.IsNullOrEmpty(dependencyResult))
                     {
-                        Console.WriteLine($"Using dependency result: {dependencyResult} in {process.SummaryText}");
+                        var result = string.Join("/", dependencyResult.Split('/').TakeLast(3));
+                        Console.WriteLine($"Using dependency result: {result} in {process.QuickName}");
                     }
 
                     var prompt = process.Prompt;

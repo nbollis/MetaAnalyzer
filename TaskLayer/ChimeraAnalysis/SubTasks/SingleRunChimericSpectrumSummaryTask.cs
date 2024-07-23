@@ -1,10 +1,15 @@
-﻿using Analyzer.SearchType;
+﻿using System.Diagnostics;
+using Analyzer.SearchType;
 using Analyzer.FileTypes.Internal;
 using Analyzer.Plotting;
 using Analyzer.Plotting.Util;
 using Analyzer.Util;
+using Microsoft.FSharp.Core;
 using Chart = Plotly.NET.CSharp.Chart;
 using Plotly.NET;
+using Plotly.NET.CSharp;
+using Tuple = Tensorboard.Tuple;
+using static Plotly.NET.StyleParam.Range;
 
 namespace TaskLayer.ChimeraAnalysis
 {
@@ -79,25 +84,30 @@ namespace TaskLayer.ChimeraAnalysis
         private void GeneratePossibleFeaturePlots(ResultType resultType,
             List<ChimericSpectrumSummary> summaryRecords)
         {
-            var records = summaryRecords.Where(p => p.Type == resultType.ToString() || (IncludeNoIdInPlots && p.Type == NoIdString) && p.PossibleFeatureCount != 0).ToList();
+            var records = summaryRecords.Where(p => p.Type == resultType.ToString() && p.PossibleFeatureCount != 0).ToList();
             var chimeric = records.Where(p => p.IsChimeric && p.Type != NoIdString).ToList();
             var nonChimeric = records.Where(p => !p.IsChimeric && p.Type != NoIdString).ToList();
-            var noId = summaryRecords.Where(p => p.Type == NoIdString).ToList();
+            var noId = summaryRecords.Where(p => p.Type == NoIdString && p.PossibleFeatureCount != 0).ToList();
 
+            (double,double)? minMax = Parameters.RunResult.IsTopDown ? (0.0, 50.0) : (0.0, 15.0);
+            if (resultType != ResultType.Psm)
+                minMax = null;
             // Chimera Stratified
-            var chimericHist = GenericPlots.Histogram(chimeric.Select(p => (double)p.PossibleFeatureCount).ToList(), "Chimeric ID", "Features per Isolation Window", "Number of Spectra");
-            var nonChimericHist = GenericPlots.Histogram(nonChimeric.Select(p => (double)p.PossibleFeatureCount).ToList(), "Non-Chimeric ID", "Features per Isolation Window", "Number of Spectra");
-            var noIdHist = GenericPlots.Histogram(noId.Select(p => (double)p.PossibleFeatureCount).ToList(), "No ID", "Features per Isolation Window", "Number of Spectra");
+            var chimericHist = GenericPlots.Histogram(chimeric.Select(p => (double)p.PossibleFeatureCount).ToList(), "Chimeric ID", "Features per Isolation Window", "Number of Spectra", false, minMax);
+            var nonChimericHist = GenericPlots.Histogram(nonChimeric.Select(p => (double)p.PossibleFeatureCount).ToList(), "Non-Chimeric ID", "Features per Isolation Window", "Number of Spectra", false, minMax);
+            var noIdHist = GenericPlots.Histogram(noId.Select(p => (double)p.PossibleFeatureCount).ToList(), "No ID", "Features per Isolation Window", "Number of Spectra", false, minMax);
 
             var toCombine = IncludeNoIdInPlots
                 ? new List<GenericChart.GenericChart> { chimericHist, nonChimericHist, noIdHist }
                 : new List<GenericChart.GenericChart> { chimericHist, nonChimericHist };
 
+
             var hist = Chart.Combine(toCombine)
                 .WithTitle($"1% {Labels.GetLabel(Parameters.RunResult.IsTopDown, resultType)} Detected Features Per MS2 Isolation Window");
 
+
             var outname = $"SpectrumSummary_FeatureCount_{Labels.GetLabel(Parameters.RunResult.IsTopDown, resultType)}_Histogram";
-            hist.SaveInRunResultOnly(Parameters.RunResult, outname);
+            hist.SaveInRunResultOnly(Parameters.RunResult, outname, 800, 600);
 
             // Id vs Not
             if (resultType is ResultType.Psm)
@@ -112,7 +122,7 @@ namespace TaskLayer.ChimeraAnalysis
                 string titleInfo = Parameters.RunResult.IsTopDown ? "Top-Down" : "Bottom-Up";
                 var idVsNot = Chart.Combine(new[] { identifiedHist, unidentifiedHist })
                     .WithTitle($"{titleInfo} Features Per Isolation Window");
-                idVsNot.Show();
+                //idVsNot.Show();
 
                 var temp = Chart.Combine(new[]
                 {
@@ -130,7 +140,7 @@ namespace TaskLayer.ChimeraAnalysis
                 .WithXAxisStyle(Title.init("Retention Time"))
                 .WithYAxisStyle(Title.init("Features per Isolation Window"))
                 .WithTitle($"{titleInfo} Features Per Isolation Window");
-                temp.Show();
+                //temp.Show();
             }
 
             var chimericKde = GenericPlots.KernelDensityPlot(chimeric.Select(p => (double)p.PossibleFeatureCount).ToList(), "Chimeric ID", "Features per Isolation Window", "Density", 0.5);
@@ -144,7 +154,7 @@ namespace TaskLayer.ChimeraAnalysis
             var kde = Chart.Combine(toCombineKde)
                 .WithTitle($"1% {Labels.GetLabel(Parameters.RunResult.IsTopDown, resultType)} Detected Features Per MS2 Isolation Window");
             outname = $"SpectrumSummary_FeatureCount_{Labels.GetLabel(Parameters.RunResult.IsTopDown, resultType)}_KernelDensity";
-            kde.SaveInRunResultOnly(Parameters.RunResult, outname);
+            kde.SaveInRunResultOnly(Parameters.RunResult, outname, 800, 600);
         }
 
         private void GenerateFractionalIntensityPlots(ResultType resultType,
@@ -155,9 +165,7 @@ namespace TaskLayer.ChimeraAnalysis
             var nonChimeric = records.Where(p => !p.IsChimeric && p.Type != NoIdString).ToList();
             var noId = records.Where(p => p.Type == NoIdString).ToList();
 
-            var label = isPrecursor ? sumPrecursor ? "Precursor Scan Fractional Intensity" : "Precursor ID Fractional Intensity" : "Fragment Fractional Intensity";
-            var titleEnd = isPrecursor ? sumPrecursor ? "Per Isolation Window" : "Per ID" : "Per MS2";
-            var outType = isPrecursor ? sumPrecursor ? "SummedPrecursor" : "IndependentPrecursor" : "Fragment";
+            
 
             var chimericFractionalIntensity = sumPrecursor
                 ? isPrecursor
@@ -202,73 +210,72 @@ namespace TaskLayer.ChimeraAnalysis
                 : noId.Select(p => isPrecursor ? p.PrecursorFractionalIntensity : p.FragmentFractionalIntensity)
                     .ToList();
 
-            var chimericHist = GenericPlots.Histogram(chimericFractionalIntensity, "Chimeric ID", label, "Number of Spectra");
-            var nonChimericHist = GenericPlots.Histogram(nonChimericFractionalIntensity, "Non-Chimeric ID", label, "Number of Spectra");
-            var noIdHist = GenericPlots.Histogram(noIdFractionalIntensity, "No ID", label, "Number of Spectra");
+            (double, double) minMax = Parameters.RunResult.IsTopDown switch
+            {
+                true when sumPrecursor && isPrecursor => (0.0, 1.0),
+                true when sumPrecursor && !isPrecursor => (0.0, 0.8),
+                true when !sumPrecursor && isPrecursor => (0.0, 0.3),
+                true when !sumPrecursor && !isPrecursor => (0.0, 0.25),
+
+                false when sumPrecursor && isPrecursor => (0.0, 1.0),
+                false when sumPrecursor && !isPrecursor => (0.0, 0.6),
+                false when !sumPrecursor && isPrecursor => (0.0, 1.0),
+                false when !sumPrecursor && !isPrecursor => (0.0, 0.6),
+
+                _ => (0.0, 1.0)
+            };
+
+
+            var label = /*isPrecursor ? sumPrecursor ?*/ "Percent Identified Intensity" /*: "Precursor ID Fractional Intensity" : "Fragment Fractional Intensity"*/;
+            var titleEnd = sumPrecursor
+                ? isPrecursor ? "Per Isolation Window" : "Per MS2"
+                : "Per ID";
+            var outPrecursor = isPrecursor ? "Precursor" : "Fragment";
+            var outType = sumPrecursor ? "Summed" : "Independent";
+
+            var chimericHist = GenericPlots.Histogram(chimericFractionalIntensity, "Chimeric ID", label, "Number of Spectra",false, minMax);
+            var nonChimericHist = GenericPlots.Histogram(nonChimericFractionalIntensity, "Non-Chimeric ID", label, "Number of Spectra", false, minMax);
+            var noIdHist = GenericPlots.Histogram(noIdFractionalIntensity, "No ID", label, "Number of Spectra", false, minMax);
 
             var toCombine = IncludeNoIdInPlots
                 ? new List<GenericChart.GenericChart> { chimericHist, nonChimericHist, noIdHist }
                 : new List<GenericChart.GenericChart> { chimericHist, nonChimericHist };
 
             var hist = Chart.Combine(toCombine)
-                .WithTitle($"1% {Labels.GetLabel(Parameters.RunResult.IsTopDown, resultType)} Detected Features {titleEnd}");
-            var outName = $"SpectrumSummary_{outType}FractionalIntensity_{Labels.GetLabel(Parameters.RunResult.IsTopDown, resultType)}_Histogram";
+                .WithTitle(
+                    $"1% {Labels.GetLabel(Parameters.RunResult.IsTopDown, resultType)} Identified {outPrecursor} Intensity {titleEnd}")
+                .WithAxisAnchor(Y: 1);
+            var outName = $"SpectrumSummary_{outPrecursor}FractionalIntensity_{outType}_{Labels.GetLabel(Parameters.RunResult.IsTopDown, resultType)}_Histogram";
             hist.SaveInRunResultOnly(Parameters.RunResult, outName);
 
-            var chimericKde = GenericPlots.KernelDensityPlot(chimericFractionalIntensity, "Chimeric ID", label, "Density", 0.02);
-            var nonChimericKde = GenericPlots.KernelDensityPlot(nonChimericFractionalIntensity, "Non-Chimeric ID", label, "Density", 0.02);
-            var noIdKde = GenericPlots.KernelDensityPlot(noIdFractionalIntensity, "No ID", label, "Density", 0.02);
+            var chimericKde = GenericPlots.KernelDensityPlot(chimericFractionalIntensity, "Chimeric ID", label, "Density", 0.04);
+            var nonChimericKde = GenericPlots.KernelDensityPlot(nonChimericFractionalIntensity, "Non-Chimeric ID", label, "Density", 0.04);
+            var noIdKde = GenericPlots.KernelDensityPlot(noIdFractionalIntensity, "No ID", label, "Density", 0.04);
 
             var toCombineKde = IncludeNoIdInPlots
                 ? new List<GenericChart.GenericChart> { chimericKde, nonChimericKde, noIdKde }
                 : new List<GenericChart.GenericChart> { chimericKde, nonChimericKde };
 
             var kde = Chart.Combine(toCombineKde)
-                .WithTitle($"1% {Labels.GetLabel(Parameters.RunResult.IsTopDown, resultType)} Detected Features {titleEnd}");
-            outName = $"SpectrumSummary_{outType}FractionalIntensity_{Labels.GetLabel(Parameters.RunResult.IsTopDown, resultType)}_KernelDensity";
+                .WithTitle($"1% {Labels.GetLabel(Parameters.RunResult.IsTopDown, resultType)} Identified {outPrecursor} Intensity {titleEnd}")
+                .WithLayout(PlotlyBase.DefaultLayout)
+                .WithAxisAnchor(Y: 2);
+            outName = $"SpectrumSummary_{outPrecursor}FractionalIntensity_{outType}_{Labels.GetLabel(Parameters.RunResult.IsTopDown, resultType)}_KernelDensity";
             kde.SaveInRunResultOnly(Parameters.RunResult, outName);
 
-            //if (isPrecursor && sumPrecursor)
-            //{
-            //    var histFunc = StyleParam.HistFunc.Avg;
-            //    var histNorm = StyleParam.HistNorm.None;
-            //    var chimericData = chimeric.GroupBy(p => p,
-            //            new CustomComparer<ChimericSpectrumSummary>(result => result.Ms2ScanNumber,
-            //                result => result.FileName))
-            //        .SelectMany(p =>
-            //            p.Select(m => (m.IsolationWindowAbsoluteIntensity, p.Select(n => n.PrecursorFractionalIntensity).Sum())))
-            //        .ToList();
 
-            //    var heatmap = Chart.Histogram2D<double, double, double>(chimericData.Select(p => p.Item2),
-            //            chimericData.Select(p => p.IsolationWindowAbsoluteIntensity), Name: "Chimeric", 
-            //            HistFunc: histFunc, HistNorm: histNorm)
-            //        .WithXAxisStyle(Title.init("Precursor Fractional Intensity"))
-            //        .WithYAxisStyle(Title.init("Isolation Window Intensity"))
-            //        .WithTitle("Chimeric");
-                
-
-            //    var nonChimericdata = nonChimeric.GroupBy(p => p,
-            //            new CustomComparer<ChimericSpectrumSummary>(result => result.Ms2ScanNumber,
-            //                result => result.FileName))
-            //        .SelectMany(p =>
-            //            p.Select(m => (m.IsolationWindowAbsoluteIntensity,
-            //                p.Select(n => n.PrecursorFractionalIntensity).Sum()))
-            //        ).ToList();
-
-            //    var nonChimericHeatMap = Chart.Histogram2D<double, double, double>(
-            //            nonChimericdata.Select(p => p.Item2),
-            //            nonChimericdata.Select(p => p.IsolationWindowAbsoluteIntensity), Name: "Non-Chimeric",
-            //            HistFunc: histFunc, HistNorm: histNorm)
-            //        .WithXAxisStyle(Title.init("Precursor Fractional Intensity"))
-            //        .WithYAxisStyle(Title.init("Isolation Window Intensity"))
-            //        .WithTitle("Non-Chimeric");
-
-            //    var grid = Chart.Grid(new[] { heatmap, nonChimericHeatMap }, 1, 2)
-            //        .WithSize(800, 600)
-            //        .WithTitle(
-            //            $"1% {Labels.GetLabel(Parameters.RunResult.IsTopDown, resultType)} Precursor Intensities");
-            //    grid.Show();
-            //}
+            var combinedHistKde = Chart.Combine(new[]
+                {
+                    kde.WithLineStyle(Dash: StyleParam.DrawingStyle.Dot).WithMarkerStyle(Opacity: 0.8),
+                    hist
+                })
+                .WithYAxisStyle(Title.init("Number of Spectra"), Side: StyleParam.Side.Left, Id: StyleParam.SubPlotId.NewYAxis(1))
+                .WithYAxisStyle(Title.init("Density"), Side: StyleParam.Side.Right, Id: StyleParam.SubPlotId.NewYAxis(2),
+                    Overlaying: StyleParam.LinearAxisId.NewY(1), ZeroLine:true)
+                .WithLayout(PlotlyBase.DefaultLayoutNoLegend);
+            outName =
+                $"SpectrumSummary_{outPrecursor}FractionalIntensity_{outType}_{Labels.GetLabel(Parameters.RunResult.IsTopDown, resultType)}_Combined";
+            combinedHistKde.SaveInRunResultOnly(Parameters.RunResult, outName);
         }
     }
 

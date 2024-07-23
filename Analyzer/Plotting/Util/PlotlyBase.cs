@@ -6,7 +6,8 @@ namespace Analyzer.Plotting.Util
     public static class PlotlyBase
     {
         public static int DefaultHeight = 600;
-        public static Layout DefaultLayout => Layout.init<string>(PaperBGColor: Color.fromKeyword(ColorKeyword.White), PlotBGColor: Color.fromKeyword(ColorKeyword.White));
+        public static Layout DefaultLayout => 
+            Layout.init<string>(PaperBGColor: Color.fromKeyword(ColorKeyword.White), PlotBGColor: Color.fromKeyword(ColorKeyword.White));
 
         public static Layout DefaultLayoutWithLegend => Layout.init<string>(
             //PaperBGColor: Color.fromARGB(0, 0,0,0),
@@ -20,6 +21,13 @@ namespace Analyzer.Plotting.Util
                 YAnchor: StyleParam.YAnchorPosition.Top
             ));
 
+        public static Layout DefaultLayoutNoLegend => Layout.init<string>(
+            //PaperBGColor: Color.fromARGB(0, 0,0,0),
+            //PlotBGColor: Color.fromARGB(0, 0, 0, 0),
+            PaperBGColor: Color.fromKeyword(ColorKeyword.White),
+            PlotBGColor: Color.fromKeyword(ColorKeyword.White),
+            ShowLegend: false);
+
         public static Layout DefaultLayoutWithLegendTransparentBackground => Layout.init<string>(
             PaperBGColor: Color.fromARGB(0, 0, 0, 0),
             PlotBGColor: Color.fromARGB(0, 0, 0, 0),
@@ -29,5 +37,10 @@ namespace Analyzer.Plotting.Util
                 XAnchor: StyleParam.XAnchorPosition.Center,
                 YAnchor: StyleParam.YAnchorPosition.Top
             ));
+        public static Layout DefaultLayoutNoLegendTransparentBackground => Layout.init<string>(
+            PaperBGColor: Color.fromARGB(0, 0, 0, 0),
+            PlotBGColor: Color.fromARGB(0, 0, 0, 0),
+            ShowLegend: false
+            );
     }
 }

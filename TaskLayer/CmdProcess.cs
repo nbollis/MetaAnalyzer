@@ -17,12 +17,12 @@ public class CmdProcess
             if (Dependency != null)
             {
                 sb.Append($" {Dependency.Task.Result}");
-                sb.Append(" -v minimal");
             }
             return sb.ToString();
         }
     }
     internal string SummaryText { get; init; }
+    internal string QuickName { get; init; }
     public double Weight { get; }
     public string OutputDirectory { get; }
     public string[] SpectraPaths { get; }
@@ -38,7 +38,7 @@ public class CmdProcess
 
     
     public CmdProcess(string[] spectraPaths, string dbPath, string gptmd, string search, string outputPath, string summaryText, double weight, string workingDir,
-        string programExe = "CMD.exe")
+        string? quickName = null, string programExe = "CMD.exe")
     {
         SpectraPaths = spectraPaths;
         DatabasePath = dbPath;
@@ -48,6 +48,7 @@ public class CmdProcess
         SummaryText = summaryText;
         Weight = weight;
         OutputDirectory = outputPath;
+        QuickName = quickName ?? summaryText;
 
         WorkingDirectory = workingDir;
         ProgramExe = programExe;
@@ -62,10 +63,9 @@ public class CmdProcess
 
     public bool IsCompleted()
     {
-        var spectraFiles = Prompt.Split('-').First(p => p.StartsWith('s'))
-            .Split(' ').Count(p => p.Contains(".mzML", StringComparison.InvariantCultureIgnoreCase));
+        var spectraFiles = SpectraPaths.Length;
         if (HasStarted())
-            if (Directory.GetFiles(OutputDirectory, "*.psmtsv", SearchOption.AllDirectories).Length >= spectraFiles + 2)
+            if (Directory.GetFiles(OutputDirectory, "*.psmtsv", SearchOption.AllDirectories).Length >= spectraFiles + 3)
                 return true;
         return false;
     }

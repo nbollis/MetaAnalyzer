@@ -7,6 +7,7 @@ using MathNet.Numerics;
 using MathNet.Numerics.Statistics;
 using Omics.SpectrumMatch;
 using Analyzer.Plotting.Util;
+using Microsoft.FSharp.Core;
 
 namespace Analyzer.Plotting
 {
@@ -171,16 +172,20 @@ namespace Analyzer.Plotting
         }
 
         public static GenericChart.GenericChart Histogram(List<double> values, string title, string xTitle = "",
-            string yTitle = "", bool normalize = false)
+            string yTitle = "", bool normalize = false, (double, double)? minMax = null)
         {
             var chart = Chart.Histogram<double, double, string>(values,  Name: title, MarkerColor: title.ConvertConditionToColor(),
                                    HistNorm: normalize ? StyleParam.HistNorm.Percent : StyleParam.HistNorm.None)
                 .WithSize(400, 400)
                 .WithTitle(title)
-                .WithXAxisStyle(Title.init(xTitle))
                 .WithYAxisStyle(Title.init(yTitle))
                 .WithLayout(PlotlyBase.DefaultLayoutWithLegend);
-            return chart;
+            if (minMax is not null)
+                return chart.WithXAxisStyle(Title.init(xTitle),
+                    new FSharpOption<Tuple<IConvertible, IConvertible>>(
+                        new Tuple<IConvertible, IConvertible>(minMax.Value.Item1, minMax.Value.Item2)));
+            else
+                return chart.WithXAxisStyle(Title.init(xTitle));
         }
 
         public static GenericChart.GenericChart BoxPlot(List<double> values, string title, string xTitle = "",

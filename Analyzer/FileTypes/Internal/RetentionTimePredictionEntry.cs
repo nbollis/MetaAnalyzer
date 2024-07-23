@@ -95,6 +95,7 @@ namespace Analyzer.FileTypes.Internal
         public static double GetRetentionTimeFromMann11ChronologerPredictions(double prediction) => (prediction - 1.8) * 200 / 22.4;
 
         public static double GetPercentHIFromRetentionTimeForMann11(double retentionTime) => 22.4 / 200.0 * retentionTime + 1.8;
+
         public RetentionTimePredictionEntry(string fileNameWithoutExtension, double scanNumber,
             double precursorScanNumber, double retentionTime, string baseSequence, string fullSequence, string peptideModSeq,
             double qValue, double pepQValue, double pep, double spectralAngle, bool isChimeric)

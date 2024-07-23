@@ -41,8 +41,9 @@ namespace Test
         public static void ChimericSpectrumSummaryTask()
         {
             string path = Man11FDRRunPath;
+            //string path = TopDownJurkatFDRRunPath;
             var mmRun = new MetaMorpheusResult(path);
-            var parameters = new SingleRunAnalysisParameters(path, true, false, mmRun);
+            var parameters = new SingleRunAnalysisParameters(path, false, false, mmRun);
             var task = new SingleRunChimericSpectrumSummaryTask(parameters);
 
             task.Run();
