@@ -324,8 +324,8 @@ namespace TaskLayer.ChimeraAnalysis
                     // Use the dependency result if it exists
                     if (!string.IsNullOrEmpty(dependencyResult))
                     {
-                        var result = string.Join("/", dependencyResult.Split('/').TakeLast(3));
-                        Console.WriteLine($"Using dependency result: {result} in {process.QuickName}");
+                        var result = string.Join("\\", dependencyResult.Split('\\').TakeLast(3));
+                        Console.WriteLine($"\tUsing dependency result: {result} in {process.QuickName}");
                     }
 
                     var prompt = process.Prompt;
