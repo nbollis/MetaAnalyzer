@@ -1,5 +1,7 @@
-﻿using Analyzer.Plotting.Util;
+﻿using System.Runtime.CompilerServices;
+using Analyzer.Plotting.Util;
 using Analyzer.SearchType;
+using TaskLayer.CMD;
 
 namespace TaskLayer
 {
@@ -64,30 +66,158 @@ namespace TaskLayer
 
         #region CMD
 
-        public static double TotalWeight = 0;
-        protected void RunCmdProcess(string prompt, string workingDir, string programExe = "CMD.exe")
+        // Semaphore to control the weight of running processes
+        protected static SemaphoreSlim semaphore = new SemaphoreSlim(1, 1);
+        protected static double CurrentWeight;
+        protected static double MaxWeight;
+
+
+        static BaseResultAnalyzerTask()
         {
-            var process = new System.Diagnostics.Process
+            CurrentWeight = 0;
+            MaxWeight = 1;
+
+            try
             {
-                StartInfo = new System.Diagnostics.ProcessStartInfo
+                var dir = Path.GetFullPath(System.Reflection.Assembly.GetEntryAssembly()?.Location);
+                if (dir.Contains("Nic"))
                 {
-                    FileName = programExe,
-                    Arguments = prompt,
-                    UseShellExecute = false,
-                    RedirectStandardOutput = true,
-                    CreateNoWindow = true,
-                    WorkingDirectory = workingDir
+                    MaxWeight = 1;
+                    Console.WriteLine($"Detected Nic's Computer: Max Weight = {MaxWeight}");
                 }
-            };
-            process.Start();
-            process.WaitForExit();
+                else if (dir.Contains("Artemis"))
+                {
+                    MaxWeight = 0.75;
+                    Console.WriteLine($"Detected Artemis: Max Weight = {MaxWeight}");
+                }
+                else if (dir.Contains("Smith Lab")) // Beefy Boi
+                {
+                    MaxWeight = 2;
+                    Console.WriteLine($"Detected Beefy Boi: Max Weight = {MaxWeight}");
+                }
+                else
+                    Console.WriteLine($"Unknown Computer: Default Max Weight = {MaxWeight}");
+                
+            }
+            catch { // ignore
+            }
         }
 
-        
-        protected async Task RunCmdProcess(CmdProcess cmdProcess)
+        protected static async Task RunProcesses(List<CmdProcess> processes)
         {
-            Log(cmdProcess.SummaryText);
-            RunCmdProcess(cmdProcess.Prompt, cmdProcess.WorkingDirectory);
+            List<Task> runningTasks = new List<Task>();
+
+            foreach (var process in processes)
+            {
+                var task = RunProcess(process);
+                runningTasks.Add(task);
+
+                // Wait for any task to complete if current weight exceeds the limit
+                while (CurrentWeight >= MaxWeight)
+                {
+                    var completedTask = await Task.WhenAny(runningTasks);
+                    runningTasks.Remove(completedTask);
+                }
+            }
+
+            // Wait for all remaining tasks to complete
+            await Task.WhenAll(runningTasks);
+        }
+
+        protected static async Task RunProcess(CmdProcess process)
+        {
+            string dependencyResult = null;
+
+            if (process.Dependency != null)
+            {
+                dependencyResult = await process.Dependency.Task;
+            }
+
+            // Manages the ability to run on multiple computers at once
+            // if already finished, return
+            // if still running, wait until finish and return
+            if (process.HasStarted())
+            {
+                if (process.IsCompleted())
+                    Console.WriteLine($"Previous Completion Detected: {process.SummaryText}");
+                else
+                    Console.WriteLine($"Has Started Elsewhere: {process.SummaryText}");
+
+                while (!process.IsCompleted())
+                {
+                    await Task.Delay(100000); // Adjust delay as needed
+                }
+
+                return;
+            }
+
+            while (true)
+            {
+                await semaphore.WaitAsync();
+
+                if (CurrentWeight + process.Weight <= MaxWeight)
+                {
+                    CurrentWeight += process.Weight;
+                    semaphore.Release();
+                    break;
+                }
+
+                semaphore.Release();
+                await Task.Delay(100000); // Adjust delay as needed
+            }
+
+            try
+            {
+                // Simulate running the command and generate a file path
+                Console.WriteLine($"Starting process: {process.SummaryText}");
+
+                // Example Runner
+                if (false)
+                {
+                    string filePath = $"{process}_output.txt";
+
+                    // Use the dependency result if it exists
+                    if (!string.IsNullOrEmpty(dependencyResult))
+                    {
+                        Console.WriteLine($"Using dependency result: {dependencyResult} in {process}");
+                    }
+
+                    // Set the result of the completion source to the file path
+                    process.CompletionSource.SetResult(filePath);
+                }
+                else
+                {
+                    // Use the dependency result if it exists
+                    if (!string.IsNullOrEmpty(dependencyResult))
+                    {
+                        var result = string.Join("\\", dependencyResult.Split('\\').TakeLast(3));
+                        Console.WriteLine($"\tUsing dependency result: {result} in {process.QuickName}");
+                    }
+
+                    var proc = new System.Diagnostics.Process
+                    {
+                        StartInfo = new System.Diagnostics.ProcessStartInfo
+                        {
+                            FileName = process.ProgramExe,
+                            Arguments = process.Prompt,
+                            UseShellExecute = true,
+                            CreateNoWindow = false,
+                            WorkingDirectory = process.WorkingDirectory,
+                            ErrorDialog = true,
+                        }
+                    };
+                    proc.Start();
+                    await proc.WaitForExitAsync();
+                }
+
+                Console.WriteLine($"Completed process: {process.SummaryText}");
+            }
+            finally
+            {
+                await semaphore.WaitAsync();
+                CurrentWeight -= process.Weight;
+                semaphore.Release();
+            }
         }
 
         #endregion

@@ -140,17 +140,6 @@ namespace Test
             }
         }
 
-     
-
-        [Test]
-        public static void RunSpectrumSummaryTask()
-        {
-            var path = TopDownJurkatFDRRunPath;
-            var mmRun = new MetaMorpheusResult(path);
-            var parameters = new SingleRunAnalysisParameters(path, false, true, mmRun);
-            var task = new SingleRunChimericSpectrumSummaryTask(parameters);
-            task.Run();
-        }
 
         [Test]
         public static void RunInternalMMComparison()

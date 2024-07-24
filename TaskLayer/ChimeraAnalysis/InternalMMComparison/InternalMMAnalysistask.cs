@@ -6,6 +6,7 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
+using TaskLayer.CMD;
 
 namespace TaskLayer.ChimeraAnalysis
 {
@@ -70,8 +71,6 @@ namespace TaskLayer.ChimeraAnalysis
 
         #endregion
 
-        // Semaphore to control the weight of running processes
-        static SemaphoreSlim semaphore = new SemaphoreSlim(1, 1);
         public static string Version => "105";
 
         public override MyTask MyTask => MyTask.InternalMetaMorpheusAnalysis;
@@ -81,7 +80,6 @@ namespace TaskLayer.ChimeraAnalysis
         {
             Parameters = parameters;
             MetaMorpheusLocation = parameters.MetaMorpheusPath;
-            CurrentWeight = 0;
         }
 
         protected override void RunSpecific() => RunSpecificAsync(Parameters);
@@ -132,7 +130,7 @@ namespace TaskLayer.ChimeraAnalysis
                     $"GenerateChimericLibrary_{Version}_{descriptor}");
                 string gptmd = GetGptmdPath(true, isTopDown);
                 string search = GetSearchPath(true, isTopDown, true);
-                var chimLibPrcess = new CmdProcess(specToRun, parameters.DatabasePath, gptmd, search, chimericOutPath,
+                var chimLibPrcess = new InternalMetaMorpheusCmdProcess(specToRun, parameters.DatabasePath, gptmd, search, chimericOutPath,
                     $"Generating Chimeric Library for {descriptor} in {dataset}", 0.5, MetaMorpheusLocation);
                 toReturn.Add(chimLibPrcess);
 
@@ -140,7 +138,7 @@ namespace TaskLayer.ChimeraAnalysis
                     $"GenerateNonChimericLibrary_{Version}_{descriptor}");
                 gptmd = GetGptmdPath(false, isTopDown);
                 search = GetSearchPath(false, isTopDown, true);
-                var nonChimLibProcess = new CmdProcess(specToRun, parameters.DatabasePath, gptmd, search,
+                var nonChimLibProcess = new InternalMetaMorpheusCmdProcess(specToRun, parameters.DatabasePath, gptmd, search,
                     nonChimericOutPath,
                     $"Generating Non-Chimeric Library for {descriptor} in {dataset}", 0.5, MetaMorpheusLocation);
                 toReturn.Add(nonChimLibProcess);
@@ -161,7 +159,7 @@ namespace TaskLayer.ChimeraAnalysis
                         $"MetaMorpheusWithChimeras_{Version}_ChimericLibrary_Rep{i}");
                     gptmd = GetGptmdPath(true, isTopDown);
                     search = GetSearchPath(true, isTopDown, false);
-                    var individualProcess = new CmdProcess(spec, parameters.DatabasePath, gptmd, search,
+                    var individualProcess = new InternalMetaMorpheusCmdProcess(spec, parameters.DatabasePath, gptmd, search,
                         chimWithChimOutPath,
                         $"Searching with Chimeric Library for Replicate {i} in {cellLine.CellLine}", 0.25,
                         MetaMorpheusLocation, $"{cellLine.CellLine} rep {i}");
@@ -173,7 +171,7 @@ namespace TaskLayer.ChimeraAnalysis
                         $"MetaMorpheusWithChimeras_{Version}_NonChimericLibrary_Rep{i}");
                     gptmd = GetGptmdPath(true, isTopDown);
                     search = GetSearchPath(true, isTopDown, false);
-                    individualProcess = new CmdProcess(spec, parameters.DatabasePath, gptmd, search,
+                    individualProcess = new InternalMetaMorpheusCmdProcess(spec, parameters.DatabasePath, gptmd, search,
                         chimWithNonChimOutPath,
                         $"Searching Chimeric with Non-Chimeric Library for Replicate {i} in {cellLine.CellLine}", 0.25,
                         MetaMorpheusLocation, $"{cellLine.CellLine} rep {i}");
@@ -185,7 +183,7 @@ namespace TaskLayer.ChimeraAnalysis
                         $"MetaMorpheusNoChimeras_{Version}_NonChimericLibrary_Rep{i}");
                     gptmd = GetGptmdPath(false, isTopDown);
                     search = GetSearchPath(false, isTopDown, false);
-                    individualProcess = new CmdProcess(spec, parameters.DatabasePath, gptmd, search,
+                    individualProcess = new InternalMetaMorpheusCmdProcess(spec, parameters.DatabasePath, gptmd, search,
                         nonChimWithNonChimOutPath,
                         $"Searching Non-Chimeric with Non-Chimeric Library for Replicate {i} in {cellLine.CellLine}", 0.25,
                         MetaMorpheusLocation);
@@ -227,144 +225,6 @@ namespace TaskLayer.ChimeraAnalysis
             }
         }
 
-
-        private static double CurrentWeight;
-        static async Task RunProcesses(List<CmdProcess> processes)
-        {
-            List<Task> runningTasks = new List<Task>();
-
-            foreach (var process in processes)
-            {
-                var task = RunProcess(process);
-                runningTasks.Add(task);
-
-                // Wait for any task to complete if current weight exceeds the limit
-                while (CurrentWeight >= 1)
-                {
-                    var completedTask = await Task.WhenAny(runningTasks);
-                    runningTasks.Remove(completedTask);
-                }
-            }
-
-            // Wait for all remaining tasks to complete
-            await Task.WhenAll(runningTasks);
-        }
-
-        static async Task RunProcess(CmdProcess process)
-        {
-            string dependencyResult = null;
-
-            if (process.Dependency != null)
-            {
-                dependencyResult = await process.Dependency.Task;
-            }
-
-            // Manages the ability to run on multiple computers at once
-            // if already finished, return
-            // if still running, wait until finish and return
-            if (process.HasStarted())
-            {
-                if (process.IsCompleted())
-                    Console.WriteLine($"Previous Completion Detected: {process.SummaryText}");
-                else
-                    Console.WriteLine($"Has Started Elsewhere: {process.SummaryText}");
-
-                while (!process.IsCompleted())
-                {
-                    await Task.Delay(100000); // Adjust delay as needed
-                }
-
-                // if build library task, set completion results to the library path
-                if (process.SearchTask.Contains("Build"))
-                {
-                    var filePath = Directory.GetFiles(process.OutputDirectory, "*.msp", SearchOption.AllDirectories).FirstOrDefault();
-                    if (filePath != null)
-                        process.CompletionSource.SetResult(filePath);
-                }
-
-                return;
-            }
-
-            while (true)
-            {
-                await semaphore.WaitAsync();
-
-                if (CurrentWeight + process.Weight <= 1)
-                {
-                    CurrentWeight += process.Weight;
-                    semaphore.Release();
-                    break;
-                }
-
-                semaphore.Release();
-                await Task.Delay(100000); // Adjust delay as needed
-            }
-
-            try
-            {
-                // Simulate running the command and generate a file path
-                Console.WriteLine($"Starting process: {process.SummaryText}");
-
-                // Example Runner
-                if (false)
-                {
-                    string filePath = $"{process}_output.txt";
-
-                    // Use the dependency result if it exists
-                    if (!string.IsNullOrEmpty(dependencyResult))
-                    {
-                        Console.WriteLine($"Using dependency result: {dependencyResult} in {process}");
-                    }
-
-                    // Set the result of the completion source to the file path
-                    process.CompletionSource.SetResult(filePath);
-                }
-                else
-                {
-                    // Use the dependency result if it exists
-                    if (!string.IsNullOrEmpty(dependencyResult))
-                    {
-                        var result = string.Join("\\", dependencyResult.Split('\\').TakeLast(3));
-                        Console.WriteLine($"\tUsing dependency result: {result} in {process.QuickName}");
-                    }
-
-                    var prompt = process.Prompt;
-                    var start = process.OutputDirectory.Substring(0, 3);
-                    prompt = prompt.Replace(@"B:\", start);
-
-                    var proc = new System.Diagnostics.Process
-                    {
-                        StartInfo = new System.Diagnostics.ProcessStartInfo
-                        {
-                            FileName = process.ProgramExe,
-                            Arguments = prompt,
-                            UseShellExecute = true,
-                            CreateNoWindow = false,
-                            WorkingDirectory = process.WorkingDirectory, 
-                            ErrorDialog = true, 
-                        }
-                    };
-                    proc.Start();
-                    await proc.WaitForExitAsync();
-
-                    // if build library task, set completion results to the library path
-                    if (process.SearchTask.Contains("Build"))
-                    {
-                        var filePath = Directory.GetFiles(process.OutputDirectory, "*.msp", SearchOption.AllDirectories).FirstOrDefault();
-                        if (filePath != null)
-                            process.CompletionSource.SetResult(filePath);
-                    }
-                }
-
-                Console.WriteLine($"Completed process: {process.SummaryText}");
-            }
-            finally
-            {
-                await semaphore.WaitAsync();
-                CurrentWeight -= process.Weight;
-                semaphore.Release();
-            }
-        }
     }
 
 }
