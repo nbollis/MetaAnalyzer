@@ -92,7 +92,7 @@ namespace TaskLayer
                 }
                 else if (dir.Contains("Smith Lab")) // Beefy Boi
                 {
-                    MaxWeight = 2;
+                    MaxWeight = 1.5;
                     Console.WriteLine($"Detected Beefy Boi: Max Weight = {MaxWeight}");
                 }
                 else
