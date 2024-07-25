@@ -19,7 +19,7 @@ namespace Analyzer.Plotting.Util
                 VerticalAlign: StyleParam.VerticalAlign.Bottom,
                 XAnchor: StyleParam.XAnchorPosition.Center,
                 YAnchor: StyleParam.YAnchorPosition.Top
-            ));
+            ), Font: Font.init(null, 12, null));
 
         public static Layout DefaultLayoutNoLegend => Layout.init<string>(
             //PaperBGColor: Color.fromARGB(0, 0,0,0),

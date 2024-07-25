@@ -8,6 +8,9 @@ using Proteomics.PSM;
 using Analyzer.SearchType;
 using Plotly.NET.ImageExport;
 using Analyzer.Interfaces;
+using Microsoft.FSharp.Core;
+using Plotly.NET.TraceObjects;
+using Tensorboard;
 
 
 namespace Analyzer.Util
@@ -152,10 +155,66 @@ namespace Analyzer.Plotting.IndividualRunPlots
                 .WithLayout(PlotlyBase.DefaultLayoutWithLegend)
                 .WithTitle($"{title2} {title} Identifications per Spectra")
                 .WithXAxisStyle(Title.init("IDs per Spectrum"))
-                .WithYAxis(LinearAxis.init<int, int, int, int, int, int>(AxisType: StyleParam.AxisType.Log))
+                //.WithYAxis(LinearAxis.init<int, int, int, int, int, int>(AxisType: StyleParam.AxisType.Log))
                 .WithYAxisStyle(Title.init("Count"))
                 .WithSize(width, PlotlyBase.DefaultHeight);
+            chart.Show();
             return chart;
+        }
+
+
+        public static void PlotChimeraBreakdownHybridFigure(this AllResults allResults, ResultType resultType)
+        => allResults.SelectMany(p => p
+                .Where(q => q is MetaMorpheusResult && allResults.GetSingleResultSelector().Contains(q.Condition))
+                .SelectMany(q => (q as MetaMorpheusResult)?.ChimeraBreakdownFile.Results))
+            .ToList()
+            .GetChimeraBreakdownHybridFigure(resultType, allResults.First().First().IsTopDown)
+            .SaveInAllResultsOnly(allResults, $"ChimeraBreakdown_Hybrid_{Labels.GetLabel(allResults.First().First().IsTopDown, resultType)}");
+
+        public static void PlotChimeraBreakdownHybridFigure(this CellLineResults cellLine, ResultType resultType)
+            => cellLine.Where(p => cellLine.GetSingleResultSelector().Contains(p.Condition))
+                        .SelectMany(p => (p as MetaMorpheusResult)?.ChimeraBreakdownFile.Results)
+                        .ToList()
+                        .GetChimeraBreakdownHybridFigure(resultType, cellLine.First().IsTopDown)
+                        .SaveInCellLineOnly(cellLine, $"ChimeraBreakdown_Hybrid_{Labels.GetLabel(cellLine.First().IsTopDown, resultType)}_{cellLine.CellLine}");
+        public static void PlotChimeraBreakDownHybridFigure(this MetaMorpheusResult result, ResultType resultType)
+            => result.ChimeraBreakdownFile.Results
+                .GetChimeraBreakdownHybridFigure(resultType, result.IsTopDown)
+                .SaveInRunResultOnly(result, $"ChimeraBreakdown_Hybrid_{Labels.GetLabel(result.IsTopDown, resultType)}");
+
+        internal static GenericChart.GenericChart GetChimeraBreakdownHybridFigure(
+            this List<ChimeraBreakdownRecord> results, ResultType resultType = ResultType.Psm, 
+            bool isTopDown = false)
+        {
+            List<(int IdsPerSpectra, int OnePercentIdCount)> countHist = results.Where(p => p.Type == resultType)
+                .GroupBy(p => p.IdsPerSpectra)
+                .Select(p => (p.Key, p.Count()))
+                .ToList();
+
+            var hist = Chart.Column<int, int, string>(
+                    countHist.Select(p => p.OnePercentIdCount).ToArray(),
+                    countHist.Select(p => p.IdsPerSpectra).ToArray(), "Result Count",
+                    false,
+                    MultiText: countHist.Select(p => p.OnePercentIdCount.ToString()).ToArray(),
+                    MarkerOutline: Line.init(Color: Color.fromKeyword(ColorKeyword.Black), Width: 2),
+                    Opacity: 0.8,
+                    MultiTextPosition: Enumerable.Repeat(StyleParam.TextPosition.Outside, countHist.Select(p => p.OnePercentIdCount).Distinct().Count()).ToArray())
+                .WithAxisAnchor(Y: 2);
+
+            var stacked = results.Where(p => p.Type == resultType)
+                .ToList()
+                .GetChimeraBreakDownStackedArea(resultType, isTopDown, out int width, true)
+                .WithYAxis(LinearAxis.init<int, int, int, int, int, int>(TickVals: new[] { 0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100 }))
+                .WithAxisAnchor(Y: 1);
+
+            var temp = Chart.Combine(new[] { stacked, hist })
+                .WithXAxisStyle(Title.init($"1% {Labels.GetLabel(isTopDown, resultType)} per Spectrum"))
+                .WithXAxis(LinearAxis.init<int, int, int, int, int, int>(Tick0: 1, DTick: 1))
+                .WithYAxisStyle(Title.init("Percent"), Side: StyleParam.Side.Right, Id: StyleParam.SubPlotId.NewYAxis(1))
+                .WithYAxisStyle(Title.init("Count of Spectra"), Side: StyleParam.Side.Left, Id: StyleParam.SubPlotId.NewYAxis(2),
+                    Overlaying: StyleParam.LinearAxisId.NewY(1))
+                .WithLayout(PlotlyBase.DefaultLayout);
+            return temp;
         }
 
         internal static GenericChart.GenericChart GetChimeraBreakDownStackedArea(this List<ChimeraBreakdownRecord> results,
@@ -184,17 +243,18 @@ namespace Analyzer.Plotting.IndividualRunPlots
             {
                 for (int i = 0; i < data.Length; i++)
                 {
-                    var total = data[i].Parent + data[i].UniqueProtein + data[i].UniqueForms + data[i].Decoys + data[i].Duplicates;
+                    var total = data[i].Parent + data[i].UniqueProtein + data[i].UniqueForms + data[i].Decoys /*+ data[i].Duplicates*/;
                     data[i].Parent = data[i].Parent / total * 100;
                     data[i].UniqueProtein = data[i].UniqueProtein / total * 100;
                     data[i].UniqueForms = data[i].UniqueForms / total * 100;
                     data[i].Decoys = data[i].Decoys / total * 100;
+                    data[i].Duplicates = data[i].Duplicates / total * 100;
                 }
             }
 
             var charts = new[]
             {
-                Chart.StackedArea<int, double, string>(keys, data.Select(p => p.Parent), Name: "Isolated Species",
+                Chart.StackedArea<int, double, string>(keys, data.Select(p => p.Parent), Name: "Isolated Species", 
                     MarkerColor: "Isolated Species".ConvertConditionToColor(), MultiText: data.Select(p => p.Parent.ToString()).ToArray()),
 
                 Chart.StackedArea<int, double, string>(keys, data.Select(p => p.Decoys), Name: "Decoys",
@@ -207,9 +267,9 @@ namespace Analyzer.Plotting.IndividualRunPlots
                     MarkerColor: $"Unique {form}".ConvertConditionToColor(), MultiText: data.Select(p => p.UniqueForms.ToString()).ToArray()),
             };
 
-            if (data.Any(p => p.Duplicates > 0))
-                charts = charts.Append(Chart.StackedArea<int, double, string>(keys, data.Select(p => p.Duplicates), Name: "Duplicates",
-                    MarkerColor: "Duplicates".ConvertConditionToColor(), MultiText: data.Select(p => p.Duplicates.ToString()).ToArray())).ToArray();
+            //if (data.Any(p => p.Duplicates > 0))
+            //    charts = charts.Append(Chart.StackedArea<int, double, string>(keys, data.Select(p => p.Duplicates), Name: "Duplicates",
+            //        MarkerColor: "Duplicates".ConvertConditionToColor(), MultiText: data.Select(p => p.Duplicates.ToString()).ToArray())).ToArray();
 
             var chart = Chart.Combine(charts)
                 .WithLayout(PlotlyBase.DefaultLayoutWithLegend)

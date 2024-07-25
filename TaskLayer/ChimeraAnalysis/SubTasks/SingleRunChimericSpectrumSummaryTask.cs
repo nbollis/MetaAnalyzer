@@ -271,7 +271,7 @@ namespace TaskLayer.ChimeraAnalysis
                 })
                 .WithYAxisStyle(Title.init("Number of Spectra"), Side: StyleParam.Side.Left, Id: StyleParam.SubPlotId.NewYAxis(1))
                 .WithYAxisStyle(Title.init("Density"), Side: StyleParam.Side.Right, Id: StyleParam.SubPlotId.NewYAxis(2),
-                    Overlaying: StyleParam.LinearAxisId.NewY(1), ZeroLine:true)
+                    Overlaying: StyleParam.LinearAxisId.NewY(1))
                 .WithLayout(PlotlyBase.DefaultLayoutNoLegend);
             outName =
                 $"SpectrumSummary_{outPrecursor}FractionalIntensity_{outType}_{Labels.GetLabel(Parameters.RunResult.IsTopDown, resultType)}_Combined";
