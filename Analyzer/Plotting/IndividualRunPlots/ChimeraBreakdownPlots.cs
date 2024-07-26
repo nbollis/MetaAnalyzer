@@ -11,6 +11,8 @@ using Analyzer.Interfaces;
 using Microsoft.FSharp.Core;
 using Plotly.NET.TraceObjects;
 using Tensorboard;
+using System;
+using Easy.Common.Extensions;
 
 
 namespace Analyzer.Util
@@ -186,36 +188,122 @@ namespace Analyzer.Plotting.IndividualRunPlots
             this List<ChimeraBreakdownRecord> results, ResultType resultType = ResultType.Psm, 
             bool isTopDown = false)
         {
-            List<(int IdsPerSpectra, int OnePercentIdCount)> countHist = results.Where(p => p.Type == resultType)
-                .GroupBy(p => p.IdsPerSpectra)
-                .Select(p => (p.Key, p.Count()))
-                .ToList();
 
-            var hist = Chart.Column<int, int, string>(
-                    countHist.Select(p => p.OnePercentIdCount).ToArray(),
-                    countHist.Select(p => p.IdsPerSpectra).ToArray(), "Result Count",
-                    false,
-                    MultiText: countHist.Select(p => p.OnePercentIdCount.ToString()).ToArray(),
-                    MarkerOutline: Line.init(Color: Color.fromKeyword(ColorKeyword.Black), Width: 2),
-                    Opacity: 0.8,
-                    MultiTextPosition: Enumerable.Repeat(StyleParam.TextPosition.Outside, countHist.Select(p => p.OnePercentIdCount).Distinct().Count()).ToArray())
-                .WithAxisAnchor(Y: 2);
+            (int IdsPerSpectra, int Parent, int UniqueProtein, int UniqueForms, int Decoys, int Duplicates)[] data = 
+                results.Where(p => p.Type == resultType)
+                        .GroupBy(p => p.IdsPerSpectra)
+                        .OrderBy(p => p.Key)
+                        .Select(p =>
+                            (   p.Key,
+                                p.Sum(m => m.Parent),
+                                p.Sum(m => m.UniqueProteins),
+                                p.Sum(m => m.UniqueForms),
+                                p.Sum(m => m.DecoyCount),
+                                p.Sum(m => m.DuplicateCount)))
+                        .ToArray();
 
-            var stacked = results.Where(p => p.Type == resultType)
-                .ToList()
-                .GetChimeraBreakDownStackedArea(resultType, isTopDown, out int width, true)
-                .WithYAxis(LinearAxis.init<int, int, int, int, int, int>(TickVals: new[] { 0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100 }))
-                .WithAxisAnchor(Y: 1);
+            double totalBarHeight = 1.0; // The total height of the bar in the graph
+            var totalValues = data.Select(p => p.Parent + p.UniqueProtein + p.UniqueForms + p.Decoys + p.Duplicates).ToArray();
+            var max = totalValues.Max();
+            var yVals = new List<int>();
+            for (int index = 0; index < int.MaxValue; index++)
+            {
+                yVals.Add(1* (int)Math.Pow(10, index));
+                if (yVals.Any(p => p > max))
+                    break;
 
-            var temp = Chart.Combine(new[] { stacked, hist })
+                yVals.Add(2*(int)Math.Pow(10, index));
+                if (yVals.Any(p => p > max))
+                    break;
+
+                yVals.Add(5*(int)Math.Pow(10, index));
+                if (yVals.Any(p => p > max))
+                    break;
+            }
+
+            
+            // Step 2: Calculate the percentages and scale them
+            (int IdsPerSpectra, double Parent, double UniqueProtein, double UniqueForms, double Decoys, double Duplicates)[]
+                scaledPercentData = data.Select(p =>
+                {
+                    int total = p.Parent + p.UniqueProtein + p.UniqueForms + p.Decoys + p.Duplicates;
+                    double parentPercent = HelpMe(yVals, p.Parent, total);
+                    double uniqueProteinPercent = HelpMe(yVals, p.Parent + p.UniqueProtein, total, p.Parent) ;
+                    double uniqueFormsPercent = HelpMe(yVals, p.Parent + p.UniqueProtein + p.UniqueForms, total, p.Parent + p.UniqueProtein);
+                    double decoysPercent = HelpMe(yVals, p.Parent + p.UniqueProtein + p.UniqueForms + p.Decoys, total, p.Parent + p.UniqueProtein + p.UniqueForms);
+                    double duplicatesPercent = HelpMe(yVals, p.Parent + p.UniqueProtein + p.UniqueForms + p.Decoys + p.Duplicates, total, p.Parent + p.UniqueProtein + p.UniqueForms + p.Decoys);
+                    // Scale percentages so that each bar's height is based on its total value
+                    return (p.IdsPerSpectra,
+                        parentPercent ,
+                        uniqueProteinPercent ,
+                        uniqueFormsPercent ,
+                        decoysPercent ,
+                        duplicatesPercent );
+                }).ToArray();
+
+
+            var form = Labels.GetDifferentFormLabel(isTopDown); var keys = data.Select(p => p.IdsPerSpectra).ToArray();
+            var charts = new[]
+            {
+                Chart.StackedColumn<double, int, string>(scaledPercentData.Select(p => p.Parent).ToArray(), keys, "Isolated Species",
+                    MarkerColor: "Isolated Species".ConvertConditionToColor(), 
+                    MultiText: data.Select(p => p.Parent.ToString()).ToArray()),
+                Chart.StackedColumn<double, int, string>(scaledPercentData.Select(p => p.Decoys), keys, "Decoys",
+                    MarkerColor: "Decoys".ConvertConditionToColor(),
+                    MultiText: data.Select(p => p.Decoys.ToString()).ToArray()),
+                Chart.StackedColumn<double, int, string>(scaledPercentData.Select(p => p.UniqueProtein), keys, $"Unique Protein",
+                    MarkerColor: "Unique Protein".ConvertConditionToColor(),
+                    MultiText: data.Select(p => p.UniqueProtein.ToString()).ToArray()),
+                Chart.StackedColumn<double, int, string>(scaledPercentData.Select(p => p.UniqueForms), keys, $"Unique {form}",
+                    MarkerColor: $"Unique {form}".ConvertConditionToColor(),
+                    MultiText: data.Select(p => p.UniqueForms.ToString()).ToArray()),
+            };
+            if (data.Any(p => p.Duplicates > 0))
+                charts = charts.Append(Chart.StackedColumn<double, int, string>(scaledPercentData.Select(p => p.Duplicates), keys,
+                    "Duplicates",
+                    MarkerColor: "Duplicates".ConvertConditionToColor(),
+                    MultiText: data.Select(p => p.Duplicates.ToString()).ToArray())).ToArray();
+
+            var chart = Chart.Combine(charts)
+                .WithLayout(PlotlyBase.DefaultLayoutWithLegend)
                 .WithXAxisStyle(Title.init($"1% {Labels.GetLabel(isTopDown, resultType)} per Spectrum"))
-                .WithXAxis(LinearAxis.init<int, int, int, int, int, int>(Tick0: 1, DTick: 1))
-                .WithYAxisStyle(Title.init("Percent"), Side: StyleParam.Side.Right, Id: StyleParam.SubPlotId.NewYAxis(1))
-                .WithYAxisStyle(Title.init("Count of Spectra"), Side: StyleParam.Side.Left, Id: StyleParam.SubPlotId.NewYAxis(2),
-                    Overlaying: StyleParam.LinearAxisId.NewY(1))
-                .WithLayout(PlotlyBase.DefaultLayout);
-            return temp;
+                .WithYAxis(LinearAxis.init<int, int, int, int, int, int>(AxisType: StyleParam.AxisType.Log))
+                .WithYAxisStyle(Title.init("Count of Spectra"));
+            chart.Show();
+            return chart;
         }
+
+
+        /// <summary>
+        /// Find values percent of total and return the interpolation of the refarray at that percent
+        /// </summary>
+        /// <param name="refArray"></param>
+        /// <param name="value"></param>
+        /// <param name="total"></param>
+        /// <returns></returns>
+        public static double HelpMe(List<int> refArray, int value, int total, int previous = 0)
+        {
+            if (value == 0) return value;
+            if (value == previous) return 0;
+
+            var newRef = refArray.Where(p => p >= previous && p <= total).ToArray();
+
+            double percent = (value + previous) / (double)total;
+            var indexAsPercent = percent * (refArray.Count);
+            var lowerIndex = (int)Math.Floor(indexAsPercent);
+            var upperIndex = (int)Math.Ceiling(indexAsPercent);
+            if (upperIndex >= refArray.Count) return refArray.Last();
+            if (lowerIndex < 0) return refArray.First();
+
+            var numerator = (indexAsPercent - lowerIndex) * (refArray[upperIndex] - refArray[lowerIndex]);
+            var denominator = upperIndex - lowerIndex;
+            var ugh = refArray[lowerIndex] + numerator / denominator;
+            return ugh;
+        }
+
+
+
+
 
         internal static GenericChart.GenericChart GetChimeraBreakDownStackedArea(this List<ChimeraBreakdownRecord> results,
             ResultType type, bool isTopDown, out int width, bool asPercent = false, string? extraTitle = null)

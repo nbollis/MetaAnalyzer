@@ -123,10 +123,10 @@ namespace Test
         {
             //AllResults.PlotChimeraBreakdownHybridFigure(ResultType.Psm);
             //AllResults.PlotChimeraBreakdownHybridFigure(ResultType.Peptide);
-            TopDownRunner.AllResults.First().PlotChimeraBreakdownHybridFigure(ResultType.Psm);
-            TopDownRunner.AllResults.First().PlotChimeraBreakdownHybridFigure(ResultType.Peptide);
-            TopDownRunner.AllResults.Skip(1).First().PlotChimeraBreakdownHybridFigure(ResultType.Psm);
-            TopDownRunner.AllResults.Skip(1).First().PlotChimeraBreakdownHybridFigure(ResultType.Peptide);
+            //TopDownRunner.AllResults.First().PlotChimeraBreakdownHybridFigure(ResultType.Psm);
+            //TopDownRunner.AllResults.First().PlotChimeraBreakdownHybridFigure(ResultType.Peptide);
+            //TopDownRunner.AllResults.Skip(1).First().PlotChimeraBreakdownHybridFigure(ResultType.Psm);
+            //TopDownRunner.AllResults.Skip(1).First().PlotChimeraBreakdownHybridFigure(ResultType.Peptide);
             foreach (CellLineResults cellLine in AllResults)
             {
                 //cellLine.PlotIndividualFileResults(ResultType.Psm);
@@ -142,7 +142,7 @@ namespace Test
                              .Where(p => cellLine.GetSingleResultSelector().Contains(p.Condition)))
                 {
                     if (individualResult is not MetaMorpheusResult mm) continue;
-               
+                        mm.PlotChimeraBreakDownHybridFigure(ResultType.Peptide);
                     //mm.PlotPepFeaturesScatterGrid();
                     //mm.PlotTargetDecoyCurves();
                     //mm.ExportCombinedChimeraTargetDecoyExploration(mm.FigureDirectory, mm.Condition);
