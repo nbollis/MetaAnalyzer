@@ -10,6 +10,7 @@ namespace Analyzer.SearchType
         public string DirectoryPath { get; set; }
         public bool Override { get; set; } = false;
         public List<CellLineResults> CellLineResults { get; set; }
+        public string Name { get; init; }
 
         public AllResults(string directoryPath)
         {
@@ -19,12 +20,15 @@ namespace Analyzer.SearchType
             {
                 CellLineResults.Add(new CellLineResults(directory));
             }
+
+            Name = Path.GetFileNameWithoutExtension(directoryPath);
         }
 
         public AllResults(string directoryPath, List<CellLineResults> cellLineResults)
         {
             DirectoryPath = directoryPath;
             CellLineResults = cellLineResults;
+            Name = Path.GetFileNameWithoutExtension(directoryPath);
         }
 
         private string _chimeraCountingPath => Path.Combine(DirectoryPath, $"All_PSM_{FileIdentifiers.ChimeraCountingFile}");

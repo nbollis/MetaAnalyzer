@@ -171,18 +171,21 @@ namespace Analyzer.Plotting.IndividualRunPlots
                 .SelectMany(q => (q as MetaMorpheusResult)?.ChimeraBreakdownFile.Results))
             .ToList()
             .GetChimeraBreakdownHybridFigure(resultType, allResults.First().First().IsTopDown)
-            .SaveInAllResultsOnly(allResults, $"ChimeraBreakdown_Hybrid_{Labels.GetLabel(allResults.First().First().IsTopDown, resultType)}");
+            .WithTitle($"{allResults.Name} 1% {Labels.GetLabel(allResults.First().First().IsTopDown, resultType)} Identifications")
+            .SaveInAllResultsOnly(allResults, $"ChimeraBreakdown_Hybrid_{Labels.GetLabel(allResults.First().First().IsTopDown, resultType)}", 1000, 1000);
 
         public static void PlotChimeraBreakdownHybridFigure(this CellLineResults cellLine, ResultType resultType)
             => cellLine.Where(p => cellLine.GetSingleResultSelector().Contains(p.Condition))
                         .SelectMany(p => (p as MetaMorpheusResult)?.ChimeraBreakdownFile.Results)
                         .ToList()
                         .GetChimeraBreakdownHybridFigure(resultType, cellLine.First().IsTopDown)
-                        .SaveInCellLineOnly(cellLine, $"ChimeraBreakdown_Hybrid_{Labels.GetLabel(cellLine.First().IsTopDown, resultType)}_{cellLine.CellLine}");
+                        .WithTitle($"{cellLine.CellLine} 1% {Labels.GetLabel(cellLine.First().IsTopDown, resultType)} Identifications")
+                        .SaveInCellLineOnly(cellLine, $"ChimeraBreakdown_Hybrid_{Labels.GetLabel(cellLine.First().IsTopDown, resultType)}_{cellLine.CellLine}", 1000, 1000);
         public static void PlotChimeraBreakDownHybridFigure(this MetaMorpheusResult result, ResultType resultType)
             => result.ChimeraBreakdownFile.Results
                 .GetChimeraBreakdownHybridFigure(resultType, result.IsTopDown)
-                .SaveInRunResultOnly(result, $"ChimeraBreakdown_Hybrid_{Labels.GetLabel(result.IsTopDown, resultType)}");
+                .WithTitle($"{result.DatasetName} {result.Condition} 1% {Labels.GetLabel(result.IsTopDown, resultType)} Identifications")
+                .SaveInRunResultOnly(result, $"ChimeraBreakdown_Hybrid_{Labels.GetLabel(result.IsTopDown, resultType)}", 1000, 1000);
 
         internal static GenericChart.GenericChart GetChimeraBreakdownHybridFigure(
             this List<ChimeraBreakdownRecord> results, ResultType resultType = ResultType.Psm, 
@@ -250,10 +253,10 @@ namespace Analyzer.Plotting.IndividualRunPlots
                     MultiText: data.Select(p => p.Duplicates.ToString()).ToArray())).ToArray();
 
             var chart = Chart.Combine(charts)
-                .WithLayout(PlotlyBase.DefaultLayoutWithLegend)
                 .WithXAxisStyle(Title.init($"1% {Labels.GetLabel(isTopDown, resultType)} per Spectrum"))
                 .WithYAxis(LinearAxis.init<int, int, int, int, int, int>(AxisType: StyleParam.AxisType.Log))
-                .WithYAxisStyle(Title.init("Count of Spectra"));
+                .WithYAxisStyle(Title.init("Count of Spectra"))
+                .WithLayout(PlotlyBase.DefaultLayoutWithLegendLargeText);
           
             return chart;
         }

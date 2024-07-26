@@ -121,16 +121,7 @@ namespace Test
         [Test]
         public static void PlotAllFigures()
         {
-            AllResults.PlotChimeraBreakdownHybridFigure(ResultType.Psm);
-            AllResults.PlotChimeraBreakdownHybridFigure(ResultType.Peptide);
-            TopDownRunner.AllResults.First().PlotChimeraBreakdownHybridFigure(ResultType.Psm);
-            TopDownRunner.AllResults.First().PlotChimeraBreakdownHybridFigure(ResultType.Peptide);
-            TopDownRunner.AllResults.Skip(1).First().PlotChimeraBreakdownHybridFigure(ResultType.Psm);
-            TopDownRunner.AllResults.Skip(1).First().PlotChimeraBreakdownHybridFigure(ResultType.Peptide);
-            foreach (var cellLineResults in TopDownRunner.AllResults)
-            {
-                cellLineResults.Dispose();
-            }
+            
 
             foreach (CellLineResults cellLine in AllResults)
             {
@@ -147,16 +138,15 @@ namespace Test
                              .Where(p => cellLine.GetSingleResultSelector().Contains(p.Condition)))
                 {
                     if (individualResult is not MetaMorpheusResult mm) continue;
-                    {
-                        mm.PlotChimeraBreakDownHybridFigure(ResultType.Psm);
-                        mm.PlotChimeraBreakDownHybridFigure(ResultType.Peptide);
+              
+                    mm.PlotChimeraBreakDownHybridFigure(ResultType.Psm);
+                    mm.PlotChimeraBreakDownHybridFigure(ResultType.Peptide);
 
-                    }
                     //mm.PlotPepFeaturesScatterGrid();
                     //mm.PlotTargetDecoyCurves();
                     //mm.ExportCombinedChimeraTargetDecoyExploration(mm.FigureDirectory, mm.Condition);
                 }
-                cellLine.Dispose(); 
+                //cellLine.Dispose(); 
             }
 
             //AllResults.PlotInternalMMComparison();
@@ -170,6 +160,13 @@ namespace Test
             //AllResults.PlotChronologerVsPercentHi();
             //AllResults.PlotBulkChronologerDeltaPlotKernalPDF();
             //AllResults.PlotGridChronologerDeltaPlotKernalPDF();
+
+            AllResults.PlotChimeraBreakdownHybridFigure(ResultType.Psm);
+            AllResults.PlotChimeraBreakdownHybridFigure(ResultType.Peptide);
+            TopDownRunner.AllResults.First().PlotChimeraBreakdownHybridFigure(ResultType.Psm);
+            TopDownRunner.AllResults.First().PlotChimeraBreakdownHybridFigure(ResultType.Peptide);
+            TopDownRunner.AllResults.Skip(1).First().PlotChimeraBreakdownHybridFigure(ResultType.Psm);
+            TopDownRunner.AllResults.Skip(1).First().PlotChimeraBreakdownHybridFigure(ResultType.Peptide);
         }
 
  
