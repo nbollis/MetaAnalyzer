@@ -201,37 +201,22 @@ namespace Analyzer.Plotting.IndividualRunPlots
                                 p.Sum(m => m.DecoyCount),
                                 p.Sum(m => m.DuplicateCount)))
                         .ToArray();
-
-            double totalBarHeight = 1.0; // The total height of the bar in the graph
-            var totalValues = data.Select(p => p.Parent + p.UniqueProtein + p.UniqueForms + p.Decoys + p.Duplicates).ToArray();
-            var max = totalValues.Max();
-            var yVals = new List<int>();
-            for (int index = 0; index < int.MaxValue; index++)
-            {
-                yVals.Add(1* (int)Math.Pow(10, index));
-                if (yVals.Any(p => p > max))
-                    break;
-
-                yVals.Add(2*(int)Math.Pow(10, index));
-                if (yVals.Any(p => p > max))
-                    break;
-
-                yVals.Add(5*(int)Math.Pow(10, index));
-                if (yVals.Any(p => p > max))
-                    break;
-            }
-
             
             // Step 2: Calculate the percentages and scale them
             (int IdsPerSpectra, double Parent, double UniqueProtein, double UniqueForms, double Decoys, double Duplicates)[]
                 scaledPercentData = data.Select(p =>
                 {
                     int total = p.Parent + p.UniqueProtein + p.UniqueForms + p.Decoys + p.Duplicates;
-                    double parentPercent = HelpMe(yVals, p.Parent, total);
-                    double uniqueProteinPercent = HelpMe(yVals, p.Parent + p.UniqueProtein, total, p.Parent) ;
-                    double uniqueFormsPercent = HelpMe(yVals, p.Parent + p.UniqueProtein + p.UniqueForms, total, p.Parent + p.UniqueProtein);
-                    double decoysPercent = HelpMe(yVals, p.Parent + p.UniqueProtein + p.UniqueForms + p.Decoys, total, p.Parent + p.UniqueProtein + p.UniqueForms);
-                    double duplicatesPercent = HelpMe(yVals, p.Parent + p.UniqueProtein + p.UniqueForms + p.Decoys + p.Duplicates, total, p.Parent + p.UniqueProtein + p.UniqueForms + p.Decoys);
+                    double parentPercent = InterperateVals( p.Parent, 
+                        total); 
+                    double decoysPercent = InterperateVals(p.Parent + p.Decoys, 
+                        total, parentPercent);
+                    double uniqueProteinPercent = InterperateVals(p.Parent + p.Decoys + p.UniqueProtein,
+                        total, parentPercent + decoysPercent) ;
+                    double uniqueFormsPercent = InterperateVals(p.Parent + p.Decoys + p.UniqueProtein + p.UniqueForms, 
+                        total, parentPercent + decoysPercent + uniqueProteinPercent);
+                    double duplicatesPercent = InterperateVals(p.Parent + p.Decoys + p.UniqueProtein + p.UniqueForms + p.Duplicates,
+                        total, parentPercent + decoysPercent + uniqueProteinPercent + uniqueFormsPercent );
                     // Scale percentages so that each bar's height is based on its total value
                     return (p.IdsPerSpectra,
                         parentPercent ,
@@ -269,36 +254,32 @@ namespace Analyzer.Plotting.IndividualRunPlots
                 .WithXAxisStyle(Title.init($"1% {Labels.GetLabel(isTopDown, resultType)} per Spectrum"))
                 .WithYAxis(LinearAxis.init<int, int, int, int, int, int>(AxisType: StyleParam.AxisType.Log))
                 .WithYAxisStyle(Title.init("Count of Spectra"));
-            chart.Show();
+          
             return chart;
         }
 
 
         /// <summary>
-        /// Find values percent of total and return the interpolation of the refarray at that percent
+        /// Converts the incoming value to a number which represents
+        /// how tall the bar should be in a stacked clustered bar graph
+        /// with a log10 y axis so that the bar shows the proper percent while keeping the same total value
         /// </summary>
-        /// <param name="refArray"></param>
-        /// <param name="value"></param>
-        /// <param name="total"></param>
         /// <returns></returns>
-        public static double HelpMe(List<int> refArray, int value, int total, int previous = 0)
+        public static double InterperateVals(int value, int total, double previous = 0)
         {
             if (value == 0) return value;
             if (value == previous) return 0;
+            double logTotal = Math.Log10(total);
 
-            var newRef = refArray.Where(p => p >= previous && p <= total).ToArray();
+            double cumulativePercent = (value /*+ previous*/) / (double)total;
+            double logPercent = logTotal * cumulativePercent;
 
-            double percent = (value + previous) / (double)total;
-            var indexAsPercent = percent * (refArray.Count);
-            var lowerIndex = (int)Math.Floor(indexAsPercent);
-            var upperIndex = (int)Math.Ceiling(indexAsPercent);
-            if (upperIndex >= refArray.Count) return refArray.Last();
-            if (lowerIndex < 0) return refArray.First();
 
-            var numerator = (indexAsPercent - lowerIndex) * (refArray[upperIndex] - refArray[lowerIndex]);
-            var denominator = upperIndex - lowerIndex;
-            var ugh = refArray[lowerIndex] + numerator / denominator;
-            return ugh;
+            var converted = Math.Pow(10, logPercent);
+            var toReturn = converted - previous;
+
+
+            return toReturn;
         }
 
 
