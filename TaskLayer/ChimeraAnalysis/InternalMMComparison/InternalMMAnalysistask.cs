@@ -103,9 +103,11 @@ namespace TaskLayer.ChimeraAnalysis
 
             // Parse Results Together
             List<CellLineResults> cellLines = new();
+            Dictionary<string, List<string>> cellLineDict = new();
             foreach (var cellLineDirectory in Directory.GetDirectories(parameters.OutputDirectory)
                          .Where(p => !p.Contains("Generate") && !p.Contains("Figure")))
             {
+                cellLineDict.Add(cellLineDirectory, new());
                 var tempCollection = new List<SingleRunResults>();
                 foreach (var runDirectory in Directory.GetDirectories(cellLineDirectory)
                              .Where(p => !p.Contains("Figure")))
@@ -113,17 +115,20 @@ namespace TaskLayer.ChimeraAnalysis
                     if (runDirectory.Contains("WithChimeras") && runDirectory.Contains("NonChimericLibrary"))
                         continue;
 
+                    cellLineDict[cellLineDirectory].Add(runDirectory);
                     tempCollection.Add(new MetaMorpheusResult(runDirectory) {Override = parameters.Override});
                 }
                 cellLines.Add(new CellLineResults(cellLineDirectory, tempCollection));
             }
 
-            var result = new AllResults(parameters.OutputDirectory, cellLines);
-                
 
-            List<GenericChart.GenericChart> countCharts = new();
-            foreach (var cellLine in result)
+            foreach (var cellLinePaths in cellLineDict)
             {
+                var mmRuns = cellLinePaths.Value.Select(p => new MetaMorpheusResult(p))
+                    .Cast<SingleRunResults>()
+                    .ToList();
+                var cellLine = new CellLineResults(cellLinePaths.Key, mmRuns);
+
                 Log($"Processing Cell Line {cellLine.CellLine}");
                 Log($"Tabulating Result Counts", 2);
                 foreach (var mmResult in cellLine)
@@ -141,7 +146,7 @@ namespace TaskLayer.ChimeraAnalysis
                 }
 
                 Log($"Plotting Result Counts", 2);
-                
+
 
 
                 //Log($"Running Chimera Breakdown Analysis", 2);
@@ -156,20 +161,61 @@ namespace TaskLayer.ChimeraAnalysis
                 cellLine.Dispose();
             }
 
-
             Log($"Running Chimeric Spectrum Summaries");
             List<CmdProcess> summaryTasks = new();
             // Chimeric Spectrum Summary
             // Creates Fractional Intensity Plots
-            foreach (var mmResult in result.SelectMany(p => p.Results))
+            foreach (var singleRunPath in cellLineDict.SelectMany(p => p.Value))
             {
+                var mmRun = new MetaMorpheusResult(singleRunPath);
                 var summaryParams =
-                    new SingleRunAnalysisParameters(mmResult.DirectoryPath, parameters.Override, false, mmResult);
+                    new SingleRunAnalysisParameters(mmRun.DirectoryPath, parameters.Override, false, mmRun);
                 var summaryTask = new SingleRunChimericSpectrumSummaryTask(summaryParams);
                 summaryTasks.Add(new ResultAnalyzerTaskToCmdProcessAdaptor(summaryTask, "Chimeric Spectrum Summary", 0.5,
-                    mmResult.DirectoryPath));
+                    mmRun.DirectoryPath));
             }
             RunProcesses(summaryTasks).Wait();
+
+ 
+
+
+            //var result = new AllResults(parameters.OutputDirectory, cellLines);
+            //foreach (var cellLine in result)
+            //{
+            //    Log($"Processing Cell Line {cellLine.CellLine}");
+            //    Log($"Tabulating Result Counts", 2);
+            //    foreach (var mmResult in cellLine)
+            //    {
+            //        mmResult.GetIndividualFileComparison();
+            //        mmResult.GetBulkResultCountComparisonFile();
+            //    }
+
+            //    Log($"Counting Chimeric Psms/Peptides", 2);
+            //    foreach (var singleRunResults in cellLine)
+            //    {
+            //        var mmResult = (IChimeraPeptideCounter)singleRunResults;
+            //        mmResult.CountChimericPsms();
+            //        mmResult.CountChimericPeptides();
+            //    }
+
+            //    Log($"Plotting Result Counts", 2);
+                
+
+
+            //    //Log($"Running Chimera Breakdown Analysis", 2);
+            //    //foreach (var singleRunResults in cellLine)
+            //    //{
+            //    //    Log($"{singleRunResults.Condition}", 3);
+            //    //    var mmResult = (MetaMorpheusResult)singleRunResults;
+            //    //    mmResult.GetChimeraBreakdownFile();
+            //    //    mmResult.PlotChimeraBreakDownStackedColumn_Scaled(ResultType.Psm);
+            //    //    mmResult.PlotChimeraBreakDownStackedColumn_Scaled(ResultType.Peptide);
+            //    //}
+            //    cellLine.Dispose();
+            //}
+
+
+           
 
             
         }
