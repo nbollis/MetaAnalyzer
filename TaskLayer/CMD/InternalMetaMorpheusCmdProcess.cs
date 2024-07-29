@@ -1,5 +1,8 @@
-﻿using System.Text;
+﻿using System.Diagnostics;
+using System.Text;
+using Analyzer.SearchType;
 using Easy.Common.Extensions;
+using TaskLayer.ChimeraAnalysis;
 
 namespace TaskLayer.CMD;
 
@@ -7,7 +10,6 @@ namespace TaskLayer.CMD;
 public class ResultAnalyzerTaskToCmdProcessAdaptor : CmdProcess
 {
     private bool _hasStarted;
-    private bool _isComplete;
 
     public override string Prompt { get; }
     public BaseResultAnalyzerTask Task { get; }
@@ -15,23 +17,41 @@ public class ResultAnalyzerTaskToCmdProcessAdaptor : CmdProcess
         : base(summaryText, weight, workingDir, quickName, programExe)
     {
         _hasStarted = false;
-        _isComplete = false;
 
         Prompt = "";
         Task = task;
     }
 
-    public async void RunTask()
+    public async Task RunTask()
     {
         _hasStarted = true;
-        await Task.Run();
-        _isComplete = true;
+        if (Task is SingleRunChimericSpectrumSummaryTask css)
+            if (!IsCompleted())
+                await Task.Run();
     }
 
     public override bool HasStarted() => _hasStarted;
 
-    // TODO: tie is complete to the output file
-    public override bool IsCompleted() => _isComplete;
+    public override bool IsCompleted()
+    {
+        if (Task is SingleRunChimericSpectrumSummaryTask css)
+        {
+            try
+            {
+                var summaryFilePath = ((MetaMorpheusResult)css.Parameters.RunResult)._chimericSpectrumSummaryFilePath;
+                if (File.Exists(summaryFilePath))
+                {
+                    return true;
+                }
+            }
+            catch (Exception e)
+            {
+                return false;
+            }
+        }
+
+        return false;
+    }
 }
 
 

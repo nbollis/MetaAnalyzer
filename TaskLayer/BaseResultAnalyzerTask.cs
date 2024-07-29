@@ -206,20 +206,27 @@ namespace TaskLayer
                         Console.WriteLine($"\tUsing dependency result: {result} in {process.QuickName}");
                     }
 
-                    var proc = new System.Diagnostics.Process
+                    if (process is ResultAnalyzerTaskToCmdProcessAdaptor ad)
                     {
-                        StartInfo = new System.Diagnostics.ProcessStartInfo
+                        await ad.RunTask().WaitAsync(CancellationToken.None);
+                    }
+                    else
+                    {
+                        var proc = new System.Diagnostics.Process
                         {
-                            FileName = process.ProgramExe,
-                            Arguments = process.Prompt,
-                            UseShellExecute = true,
-                            CreateNoWindow = false,
-                            WorkingDirectory = process.WorkingDirectory,
-                            ErrorDialog = true,
-                        }
-                    };
-                    proc.Start();
-                    await proc.WaitForExitAsync();
+                            StartInfo = new System.Diagnostics.ProcessStartInfo
+                            {
+                                FileName = process.ProgramExe,
+                                Arguments = process.Prompt,
+                                UseShellExecute = true,
+                                CreateNoWindow = false,
+                                WorkingDirectory = process.WorkingDirectory,
+                                ErrorDialog = true,
+                            }
+                        };
+                        proc.Start();
+                        await proc.WaitForExitAsync();
+                    }
                 }
 
                 Console.WriteLine($"Completed process: {process.SummaryText}");

@@ -117,46 +117,31 @@ namespace TaskLayer.ChimeraAnalysis
                 }
             }
 
+            // Run MM Task basic processing 
             foreach (var cellLinePaths in cellLineDict)
             {
-                var mmRuns = cellLinePaths.Value.Select(p => new MetaMorpheusResult(p))
-                    .Cast<SingleRunResults>()
-                    .ToList();
-                var cellLine = new CellLineResults(cellLinePaths.Key, mmRuns);
-
-                Log($"Processing Cell Line {cellLine.CellLine}");
-                Log($"Tabulating Result Counts", 2);
-                foreach (var mmResult in cellLine)
+                Log($"Processing Cell Line {Path.GetDirectoryName(cellLinePaths.Key)}",0);
+                foreach (var singleRunPath in cellLinePaths.Value)
                 {
+                    var mmResult = new MetaMorpheusResult(singleRunPath);
+                    Log($"Processing {mmResult.Condition}", 1);
+
+                    Log($"Tabulating Result Counts", 2);
                     mmResult.GetIndividualFileComparison();
                     mmResult.GetBulkResultCountComparisonFile();
-                }
 
-                Log($"Counting Chimeric Psms/Peptides", 2);
-                foreach (var singleRunResults in cellLine)
-                {
-                    var mmResult = (IChimeraPeptideCounter)singleRunResults;
+                    Log($"Counting Chimeric Psms/Peptides", 2);
                     mmResult.CountChimericPsms();
                     mmResult.CountChimericPeptides();
+
+                    Log($"Running Chimera Breakdown Analysis", 2);
+                    mmResult.GetChimeraBreakdownFile();
+                    mmResult.PlotChimeraBreakDownStackedColumn_Scaled(ResultType.Psm);
+                    mmResult.PlotChimeraBreakDownStackedColumn_Scaled(ResultType.Peptide);
                 }
-
-                Log($"Plotting Result Counts", 2);
-
-
-
-                //Log($"Running Chimera Breakdown Analysis", 2);
-                //foreach (var singleRunResults in cellLine)
-                //{
-                //    Log($"{singleRunResults.Condition}", 3);
-                //    var mmResult = (MetaMorpheusResult)singleRunResults;
-                //    mmResult.GetChimeraBreakdownFile();
-                //    mmResult.PlotChimeraBreakDownStackedColumn_Scaled(ResultType.Psm);
-                //    mmResult.PlotChimeraBreakDownStackedColumn_Scaled(ResultType.Peptide);
-                //}
-                cellLine.Dispose();
             }
 
-            Log($"Running Chimeric Spectrum Summaries");
+            Log($"Running Chimeric Spectrum Summaries", 0);
             // Chimeric Spectrum Summary
             // Creates Fractional Intensity Plots
             foreach (var cellLineDictEntry in cellLineDict)
@@ -173,6 +158,9 @@ namespace TaskLayer.ChimeraAnalysis
                 }
                 RunProcesses(summaryTasks).Wait();
             }
+
+
+            // Plot the rest of it
         }
 
         static List<CmdProcess> BuildProcesses(InternalMetaMorpheusAnalysisParameters parameters)
