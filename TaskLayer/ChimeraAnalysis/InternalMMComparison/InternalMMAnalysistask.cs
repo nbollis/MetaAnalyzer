@@ -120,7 +120,7 @@ namespace TaskLayer.ChimeraAnalysis
             // Run MM Task basic processing 
             foreach (var cellLinePaths in cellLineDict)
             {
-                Log($"Processing Cell Line {Path.GetDirectoryName(cellLinePaths.Key)}",0);
+                Log($"Processing Cell Line {Path.GetFileName(cellLinePaths.Key)}",0);
                 foreach (var singleRunPath in cellLinePaths.Value)
                 {
                     var mmResult = new MetaMorpheusResult(singleRunPath);
