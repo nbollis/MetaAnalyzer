@@ -963,7 +963,7 @@ namespace Analyzer.SearchType
                 }
 
             // get mass spec files
-            Log($"Parsing Directories for run {Condition}");
+            Log($"Parsing Directories for run {Condition}",2);
             List<string> massSpecFiles = new();
             List<string> deconFiles = new();
             var deconDir = Directory.GetDirectories(Path.GetDirectoryName(Path.GetDirectoryName(DirectoryPath)!)!)
@@ -1057,8 +1057,8 @@ namespace Analyzer.SearchType
             var chimericSpectra = new List<ChimericSpectrumSummary>();
             foreach (var individualFile in massSpecFiles)
             {
-                Log($"Starting {Path.GetFileNameWithoutExtension(individualFile).ConvertFileName()}");
-                Log($"Loading in Files", 2);
+                Log($"Starting {Path.GetFileNameWithoutExtension(individualFile).ConvertFileName()}", 3);
+                Log($"Loading in Files", 3);
                 // Setup
                 MsDataFile dataFile = FileReader.ReadFile<MsDataFileToResultFileAdapter>(individualFile).LoadAllStaticData();
                 string fileName = Path.GetFileNameWithoutExtension(dataFile.FilePath).ConvertFileName();
@@ -1088,7 +1088,7 @@ namespace Analyzer.SearchType
                     feature.ChargeStateMin != feature.ChargeStateMax && feature.ChargeStateMax > 1)
                     .ToList();
 
-                Log($"Parsing Psms, Peptides, and Deconvoluted Features", 2);
+                Log($"Parsing Psms, Peptides, and Deconvoluted Features", 3);
                 var psmDictionaryByScanNumber = mmResult.AllPsms
                     .GroupBy(p => p, CustomComparer<PsmFromTsv>.ChimeraComparer)
                     .ToDictionary(p => p.Key.Ms2ScanNumber, p => p.OrderByDescending(p => p.Score)
@@ -1127,7 +1127,7 @@ namespace Analyzer.SearchType
                     });
 
 
-                Log($"Iterating through Scans", 2);
+                Log($"Iterating through Scans", 3);
                 foreach (var scan in dataFile.Scans)
                 {
                     if (scan.MsnOrder is 1 or > 2)
@@ -1339,7 +1339,7 @@ namespace Analyzer.SearchType
                 }
             }
 
-            Log($"Writing Results");
+            Log($"Writing Results", 2);
             var file = new ChimericSpectrumSummaryFile(_chimericSpectrumSummaryFilePath)
             {
                 Results = chimericSpectra

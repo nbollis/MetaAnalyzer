@@ -3,6 +3,40 @@ using Easy.Common.Extensions;
 
 namespace TaskLayer.CMD;
 
+
+public class ResultAnalyzerTaskToCmdProcessAdaptor : CmdProcess
+{
+    private bool _hasStarted;
+    private bool _isComplete;
+
+    public override string Prompt { get; }
+    public BaseResultAnalyzerTask Task { get; }
+    public ResultAnalyzerTaskToCmdProcessAdaptor(BaseResultAnalyzerTask task, string summaryText, double weight, string workingDir, string? quickName = null, string programExe = "CMD.exe") 
+        : base(summaryText, weight, workingDir, quickName, programExe)
+    {
+        _hasStarted = false;
+        _isComplete = false;
+
+        Prompt = "";
+        Task = task;
+    }
+
+    public async void RunTask()
+    {
+        _hasStarted = true;
+        await Task.Run();
+        _isComplete = true;
+    }
+
+    public override bool HasStarted() => _hasStarted;
+
+    // TODO: tie is complete to the output file
+    public override bool IsCompleted() => _isComplete;
+}
+
+
+
+
 public class InternalMetaMorpheusCmdProcess : CmdProcess
 {
     public override string Prompt

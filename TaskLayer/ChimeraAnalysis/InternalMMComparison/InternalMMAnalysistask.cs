@@ -6,7 +6,11 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
+using Analyzer.Plotting.ComparativePlots;
 using Analyzer.SearchType;
+using Analyzer.Util;
+using pepXML.Generated;
+using Plotly.NET;
 using TaskLayer.CMD;
 
 namespace TaskLayer.ChimeraAnalysis
@@ -96,18 +100,65 @@ namespace TaskLayer.ChimeraAnalysis
             RunProcesses(processes).Wait();
 
             // Parse Results Together
-            List<MetaMorpheusResult> allResults = new();
+            List<CellLineResults> cellLines = new();
             foreach (var cellLineDirectory in Directory.GetDirectories(parameters.OutputDirectory)
                          .Where(p => !p.Contains("Generate") && !p.Contains("Figure")))
             {
+                var tempCollection = new List<SingleRunResults>();
                 foreach (var runDirectory in Directory.GetDirectories(cellLineDirectory)
                              .Where(p => !p.Contains("Figure")))
                 {
-                    allResults.Add(new MetaMorpheusResult(runDirectory));
+                    if (runDirectory.Contains("WithChimeras") && runDirectory.Contains("NonChimericLibrary"))
+                        continue;
+
+                    tempCollection.Add(new MetaMorpheusResult(runDirectory) {Override = parameters.Override});
                 }
+                cellLines.Add(new CellLineResults(cellLineDirectory, tempCollection));
             }
 
+            var result = new AllResults(parameters.OutputDirectory, cellLines);
+                
+
+            Log($"Tabulating and Plotting Result Counts");
+            List<GenericChart.GenericChart> countCharts = new();
+            foreach (var cellLine in result)
+            {
+                foreach (var mmResult in cellLine)
+                {
+                    mmResult.GetIndividualFileComparison();
+                    mmResult.GetBulkResultCountComparisonFile();
+                }
+
+                //var chimeric = cellLine.Where(p => p.Condition.Contains("WithChimeras"))
+                //    .Select(p => p.IndividualFileComparisonFile).ToList();
+
+                //var nonChimeric = cellLine.Where(p => p.Condition.Contains("NoChimeras"))
+                //    .Select(p => p.IndividualFileComparisonFile);
+            }
+
+
+
+            Log($"Counting Chimeric Psms/Peptides");
+            foreach (var mmResult in result.SelectMany(p => p.Results)
+                         .Cast<MetaMorpheusResult>())
+            {
+                mmResult.CountChimericPsms();
+                mmResult.CountChimericPeptides();
+            }
+
+            Log($"Running Chimeric Spectrum Summaries");
+            List<CmdProcess> summaryTasks = new();
             // Chimeric Spectrum Summary
+            // Creates Fractional Intensity Plots
+            foreach (var mmResult in result.SelectMany(p => p.Results))
+            {
+                var summaryParams =
+                    new SingleRunAnalysisParameters(mmResult.DirectoryPath, parameters.Override, false, mmResult);
+                var summaryTask = new SingleRunChimericSpectrumSummaryTask(summaryParams);
+                summaryTasks.Add(new ResultAnalyzerTaskToCmdProcessAdaptor(summaryTask, "Chimeric Spectrum Summary", 0.5,
+                    mmResult.DirectoryPath));
+            }
+            RunProcesses(summaryTasks).Wait();
 
             // Chimera Breakdown
 

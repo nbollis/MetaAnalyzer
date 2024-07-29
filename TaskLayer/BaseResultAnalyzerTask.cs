@@ -13,21 +13,22 @@ namespace TaskLayer
         public string Condition { get; set; }
         public abstract BaseResultAnalyzerTaskParameters Parameters { get; }
 
-        public void Run()
+        public Task Run()
         {
             Log($"Running Task {MyTask}: {Condition}", 0);
             RunSpecific();
             Log($"Finished Running {MyTask}: {Condition}", 0);
             Console.WriteLine();
+            return Task.CompletedTask;
         }
 
         protected abstract void RunSpecific();
 
 
-        protected void Log(string message, int nestLayer = 1)
+        protected static void Log(string message, int nestLayer = 1)
         {
             string added = string.Join("", Enumerable.Repeat("\t", nestLayer));
-            LogHandler?.Invoke(this, new StringEventArgs(added + message));
+            LogHandler?.Invoke(null, new StringEventArgs(added + message));
         }
 
         protected static void Warn(string v, int nestLayer = 1)

@@ -185,7 +185,6 @@ namespace MyApp
 
                         case MyTask.ChimericSpectrumSummary:
                             var mmResult3 = new MetaMorpheusResult(CommandLineArguments.InputDirectory);
-                        
                             var parameters6 = new SingleRunAnalysisParameters(
                                     CommandLineArguments.InputDirectory,
                                     CommandLineArguments.OverrideFiles, CommandLineArguments.RunOnAll, mmResult3,
