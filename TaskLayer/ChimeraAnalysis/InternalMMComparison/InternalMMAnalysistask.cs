@@ -171,9 +171,7 @@ namespace TaskLayer.ChimeraAnalysis
             }
             RunProcesses(summaryTasks).Wait();
 
-            // Chimera Breakdown
-
-            // Internal Comparison
+            
         }
 
         static List<CmdProcess> BuildProcesses(InternalMetaMorpheusAnalysisParameters parameters)
