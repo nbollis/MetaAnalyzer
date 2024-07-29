@@ -135,7 +135,14 @@ namespace TaskLayer.ChimeraAnalysis
                     mmResult.CountChimericPeptides();
 
                     Log($"Running Chimera Breakdown Analysis", 2);
+                    var sw = Stopwatch.StartNew();
                     mmResult.GetChimeraBreakdownFile();
+                    sw.Stop();
+
+                    // if it takes less than one minute to get the breakdown, and we are not overriding, do not plot
+                    if (sw.Elapsed.Minutes < 1 && !parameters.Override)
+                        continue;
+
                     mmResult.PlotChimeraBreakDownStackedColumn_Scaled(ResultType.Psm);
                     mmResult.PlotChimeraBreakDownStackedColumn_Scaled(ResultType.Peptide);
                 }

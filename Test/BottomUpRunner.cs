@@ -31,21 +31,6 @@ namespace Test
 
 
         [Test]
-        public static void GenerateCommandLinePrompts()
-        {
-
-            CommandLineArgumentRunner.GenerateLibraryFiles();
-
-            CommandLineArgumentRunner.RunMann11InternalComparisonInParallel();
-
-
-
-            
-        }
-
-
-
-        [Test]
         public static void RunAllParsing()
         {
             // Got to K562
