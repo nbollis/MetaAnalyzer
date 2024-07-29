@@ -6,7 +6,9 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
+using Analyzer.Interfaces;
 using Analyzer.Plotting.ComparativePlots;
+using Analyzer.Plotting.IndividualRunPlots;
 using Analyzer.SearchType;
 using Analyzer.Util;
 using pepXML.Generated;
@@ -119,32 +121,44 @@ namespace TaskLayer.ChimeraAnalysis
             var result = new AllResults(parameters.OutputDirectory, cellLines);
                 
 
-            Log($"Tabulating and Plotting Result Counts");
             List<GenericChart.GenericChart> countCharts = new();
             foreach (var cellLine in result)
             {
+                Log($"Processing Cell Line {cellLine.CellLine}");
+                Log($"Tabulating Result Counts", 2);
                 foreach (var mmResult in cellLine)
                 {
                     mmResult.GetIndividualFileComparison();
                     mmResult.GetBulkResultCountComparisonFile();
                 }
 
+                Log($"Counting Chimeric Psms/Peptides", 2);
+                foreach (var singleRunResults in cellLine)
+                {
+                    var mmResult = (IChimeraPeptideCounter)singleRunResults;
+                    mmResult.CountChimericPsms();
+                    mmResult.CountChimericPeptides();
+                }
+
+                Log($"Plotting Result Counts", 2);
                 //var chimeric = cellLine.Where(p => p.Condition.Contains("WithChimeras"))
                 //    .Select(p => p.IndividualFileComparisonFile).ToList();
 
                 //var nonChimeric = cellLine.Where(p => p.Condition.Contains("NoChimeras"))
                 //    .Select(p => p.IndividualFileComparisonFile);
+
+                Log($"Running Chimera Breakdown Analysis", 2);
+                foreach (var singleRunResults in cellLine)
+                {
+                    Log($"{singleRunResults.Condition}", 3);
+                    var mmResult = (MetaMorpheusResult)singleRunResults;
+                    mmResult.GetChimeraBreakdownFile();
+                    mmResult.PlotChimeraBreakDownStackedColumn_Scaled(ResultType.Psm);
+                    mmResult.PlotChimeraBreakDownStackedColumn_Scaled(ResultType.Peptide);
+                }
+                cellLine.Dispose();
             }
 
-
-
-            Log($"Counting Chimeric Psms/Peptides");
-            foreach (var mmResult in result.SelectMany(p => p.Results)
-                         .Cast<MetaMorpheusResult>())
-            {
-                mmResult.CountChimericPsms();
-                mmResult.CountChimericPeptides();
-            }
 
             Log($"Running Chimeric Spectrum Summaries");
             List<CmdProcess> summaryTasks = new();
