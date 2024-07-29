@@ -141,21 +141,18 @@ namespace TaskLayer.ChimeraAnalysis
                 }
 
                 Log($"Plotting Result Counts", 2);
-                //var chimeric = cellLine.Where(p => p.Condition.Contains("WithChimeras"))
-                //    .Select(p => p.IndividualFileComparisonFile).ToList();
+                
 
-                //var nonChimeric = cellLine.Where(p => p.Condition.Contains("NoChimeras"))
-                //    .Select(p => p.IndividualFileComparisonFile);
 
-                Log($"Running Chimera Breakdown Analysis", 2);
-                foreach (var singleRunResults in cellLine)
-                {
-                    Log($"{singleRunResults.Condition}", 3);
-                    var mmResult = (MetaMorpheusResult)singleRunResults;
-                    mmResult.GetChimeraBreakdownFile();
-                    mmResult.PlotChimeraBreakDownStackedColumn_Scaled(ResultType.Psm);
-                    mmResult.PlotChimeraBreakDownStackedColumn_Scaled(ResultType.Peptide);
-                }
+                //Log($"Running Chimera Breakdown Analysis", 2);
+                //foreach (var singleRunResults in cellLine)
+                //{
+                //    Log($"{singleRunResults.Condition}", 3);
+                //    var mmResult = (MetaMorpheusResult)singleRunResults;
+                //    mmResult.GetChimeraBreakdownFile();
+                //    mmResult.PlotChimeraBreakDownStackedColumn_Scaled(ResultType.Psm);
+                //    mmResult.PlotChimeraBreakDownStackedColumn_Scaled(ResultType.Peptide);
+                //}
                 cellLine.Dispose();
             }
 
