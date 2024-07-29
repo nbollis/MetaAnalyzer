@@ -139,14 +139,16 @@ namespace Test
                 {
                     if (individualResult is not MetaMorpheusResult mm) continue;
               
-                    mm.PlotChimeraBreakDownHybridFigure(ResultType.Psm);
-                    mm.PlotChimeraBreakDownHybridFigure(ResultType.Peptide);
+                    mm.PlotChimeraBreakDownStackedColumn_Scaled(ResultType.Psm);
+                    mm.PlotChimeraBreakDownStackedColumn_Scaled(ResultType.Peptide);
 
                     //mm.PlotPepFeaturesScatterGrid();
                     //mm.PlotTargetDecoyCurves();
                     //mm.ExportCombinedChimeraTargetDecoyExploration(mm.FigureDirectory, mm.Condition);
                 }
                 //cellLine.Dispose(); 
+                cellLine.PlotChimeraBreakdownStackedColumn_Scaled(ResultType.Psm);
+                cellLine.PlotChimeraBreakdownStackedColumn_Scaled(ResultType.Peptide);
             }
 
             //AllResults.PlotInternalMMComparison();
@@ -161,12 +163,14 @@ namespace Test
             //AllResults.PlotBulkChronologerDeltaPlotKernalPDF();
             //AllResults.PlotGridChronologerDeltaPlotKernalPDF();
 
-            AllResults.PlotChimeraBreakdownHybridFigure(ResultType.Psm);
-            AllResults.PlotChimeraBreakdownHybridFigure(ResultType.Peptide);
-            TopDownRunner.AllResults.First().PlotChimeraBreakdownHybridFigure(ResultType.Psm);
-            TopDownRunner.AllResults.First().PlotChimeraBreakdownHybridFigure(ResultType.Peptide);
-            TopDownRunner.AllResults.Skip(1).First().PlotChimeraBreakdownHybridFigure(ResultType.Psm);
-            TopDownRunner.AllResults.Skip(1).First().PlotChimeraBreakdownHybridFigure(ResultType.Peptide);
+            AllResults.PlotChimeraBreakdownStackedColumn_Scaled(ResultType.Psm);
+            AllResults.PlotChimeraBreakdownStackedColumn_Scaled(ResultType.Peptide);
+            TopDownRunner.AllResults.PlotChimeraBreakdownStackedColumn_Scaled(ResultType.Psm);
+            TopDownRunner.AllResults.PlotChimeraBreakdownStackedColumn_Scaled(ResultType.Peptide);
+            TopDownRunner.AllResults.First().PlotChimeraBreakdownStackedColumn_Scaled(ResultType.Psm);
+            TopDownRunner.AllResults.First().PlotChimeraBreakdownStackedColumn_Scaled(ResultType.Peptide);
+            TopDownRunner.AllResults.Skip(1).First().PlotChimeraBreakdownStackedColumn_Scaled(ResultType.Psm);
+            TopDownRunner.AllResults.Skip(1).First().PlotChimeraBreakdownStackedColumn_Scaled(ResultType.Peptide);
         }
 
  

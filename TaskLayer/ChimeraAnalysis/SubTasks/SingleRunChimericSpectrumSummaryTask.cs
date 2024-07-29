@@ -38,12 +38,12 @@ namespace TaskLayer.ChimeraAnalysis
             mm.Override = false;
 
             // Plot the results
-            var dataDictionary = summary.GroupBy(p => p.Type)
-                .ToDictionary(p => p.Key,
-                    p => p.GroupBy(m => m.IsChimeric)
-                        .ToDictionary(n => n.Key,
-                            n => n.Select(b => (b.PossibleFeatureCount, b.IdPerSpectrum, b.PrecursorFractionalIntensity, b.FragmentFractionalIntensity))
-                                .ToArray()));
+            //var dataDictionary = summary.GroupBy(p => p.Type)
+            //    .ToDictionary(p => p.Key,
+            //        p => p.GroupBy(m => m.IsChimeric)
+            //            .ToDictionary(n => n.Key,
+            //                n => n.Select(b => (b.PossibleFeatureCount, b.IdPerSpectrum, b.PrecursorFractionalIntensity, b.FragmentFractionalIntensity))
+            //                    .ToArray()));
 
             // Features per MS2 Isolation Window Histograms
             Log("Creating Feature Count Plots");
@@ -62,22 +62,7 @@ namespace TaskLayer.ChimeraAnalysis
             GenerateFractionalIntensityPlots(ResultType.Psm, summary.Results, false, true);
             GenerateFractionalIntensityPlots(ResultType.Peptide, summary.Results, false, false);
             GenerateFractionalIntensityPlots(ResultType.Peptide, summary.Results, false, true);
-
-
-            //var summedPrecursorIntDict = summary.Results
-            //    .GroupBy(p => p.Type)
-            //    .ToDictionary(p => p.Key,
-            //        p => p.GroupBy(m => m,
-            //                new CustomComparer<ChimericSpectrumSummary>(result => result.Ms2ScanNumber, result => result.FileName))
-            //            .ToDictionary(n => n.Key, n => n.Select(b => b.PrecursorFractionalIntensity).Sum()));
-
-            //var ogPsmNonChimeric = summedPrecursorIntDict[ResultType.Psm.ToString()].Count(p => !p.Key.IsChimeric);
-            //var ogPsmChimeric = summedPrecursorIntDict[ResultType.Psm.ToString()].Count(p => p.Key.IsChimeric);
-            //var ogPeptideNonChimeric = summedPrecursorIntDict[ResultType.Peptide.ToString()].Count(p => !p.Key.IsChimeric);
-            //var ogPeptideChimeric = summedPrecursorIntDict[ResultType.Peptide.ToString()].Count(p => p.Key.IsChimeric);
-
-
-
+            
             mm.Dispose();
         }
 

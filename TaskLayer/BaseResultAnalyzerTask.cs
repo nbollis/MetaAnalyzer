@@ -139,7 +139,17 @@ namespace TaskLayer
             if (process.HasStarted())
             {
                 if (process.IsCompleted())
+                {
                     Console.WriteLine($"Previous Completion Detected: {process.SummaryText}");
+
+                    // TODO: add functionality to determine if a task has others depending on it
+                    if (process is InternalMetaMorpheusCmdProcess imm && imm.SearchTask.Contains("Build"))
+                    {
+                        var filePath = Directory.GetFiles(imm.OutputDirectory, "*.msp", SearchOption.AllDirectories).FirstOrDefault();
+                        if (filePath != null)
+                            process.CompletionSource.SetResult(filePath);
+                    }
+                }
                 else
                     Console.WriteLine($"Has Started Elsewhere: {process.SummaryText}");
 
@@ -190,7 +200,8 @@ namespace TaskLayer
                     // Use the dependency result if it exists
                     if (!string.IsNullOrEmpty(dependencyResult))
                     {
-                        var result = string.Join("\\", dependencyResult.Split('\\').TakeLast(3));
+                        //var result = string.Join("\\", dependencyResult.Split('\\').TakeLast(3));
+                        var result = Path.GetFileName(dependencyResult);
                         Console.WriteLine($"\tUsing dependency result: {result} in {process.QuickName}");
                     }
 

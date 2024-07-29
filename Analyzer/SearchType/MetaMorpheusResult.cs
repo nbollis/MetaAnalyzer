@@ -1358,6 +1358,11 @@ namespace Analyzer.SearchType
             _chimeraBreakdownFile = null;
             _chimeraPeptideFile = null;
             _chimericSpectrumSummaryFile = null;
+            _bulkResultCountComparisonMultipleFilteringTypesFile = null;
+            _individualFileResultCountingMultipleFilteringTypesFile = null;
+            allPeptides = null;
+            allPsms = null;
+            IndividualFileResults.ForEach(p => p.Dispose());
         }
     }
 
@@ -1435,7 +1440,7 @@ namespace Analyzer.SearchType
     }
 
 
-    public class MetaMorpheusIndividualFileResult
+    public class MetaMorpheusIndividualFileResult : IDisposable
     {
         public string FileName { get; }
         public string PsmPath { get; init; }
@@ -1462,6 +1467,13 @@ namespace Analyzer.SearchType
             var individualFileDirectory = Path.GetDirectoryName(psmPath);
             var searchResultsDirectory = Directory.GetParent(individualFileDirectory).FullName;
             ResultsTextPath = Directory.GetFiles(searchResultsDirectory).First(p => p.EndsWith("results.txt"));
+        }
+
+        public void Dispose()
+        {
+            _allPsms = null;
+            _filteredPsms = null;
+            _allPeptides = null;
         }
     }
 }

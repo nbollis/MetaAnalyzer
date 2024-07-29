@@ -1,4 +1,5 @@
 ﻿using System.Text;
+using Easy.Common.Extensions;
 
 namespace TaskLayer.CMD;
 
@@ -58,25 +59,15 @@ public class InternalMetaMorpheusCmdProcess : CmdProcess
     public override bool IsCompleted()
     {
         var spectraFiles = SpectraPaths.Length;
-        if (HasStarted())
-            if (Directory.GetFiles(OutputDirectory, "*.psmtsv", SearchOption.AllDirectories).Length >= spectraFiles + 3)
-            {
-                // build library tasks also need to wait on the msp being written out
-                if (SearchTask.Contains("Build"))
-                {
-                    var filePath = Directory.GetFiles(OutputDirectory, "*.msp", SearchOption.AllDirectories).FirstOrDefault();
-                    if (filePath != null)
-                    {
-                        CompletionSource.SetResult(filePath);
-                        return true;
-                    }
+        if (!HasStarted()) return false;
 
-                    return false;
-                }
+        if (Directory.GetFiles(OutputDirectory, "*.psmtsv", SearchOption.AllDirectories).Length <
+            spectraFiles + 3) return false;
 
-                return true;
-            }
-        return false;
+        // build library tasks also need to wait on the msp being written out
+        if (!SearchTask.Contains("Build")) return true;
+        var filePath = Directory.GetFiles(OutputDirectory, "*.msp", SearchOption.AllDirectories).FirstOrDefault();
+        return filePath != null;
     }
 
     public override bool HasStarted()

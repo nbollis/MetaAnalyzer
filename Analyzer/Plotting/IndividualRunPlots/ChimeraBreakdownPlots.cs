@@ -157,37 +157,36 @@ namespace Analyzer.Plotting.IndividualRunPlots
                 .WithLayout(PlotlyBase.DefaultLayoutWithLegend)
                 .WithTitle($"{title2} {title} Identifications per Spectra")
                 .WithXAxisStyle(Title.init("IDs per Spectrum"))
-                //.WithYAxis(LinearAxis.init<int, int, int, int, int, int>(AxisType: StyleParam.AxisType.Log))
+                .WithYAxis(LinearAxis.init<int, int, int, int, int, int>(AxisType: StyleParam.AxisType.Log))
                 .WithYAxisStyle(Title.init("Count"))
                 .WithSize(width, PlotlyBase.DefaultHeight);
-            chart.Show();
             return chart;
         }
 
 
-        public static void PlotChimeraBreakdownHybridFigure(this AllResults allResults, ResultType resultType)
+        public static void PlotChimeraBreakdownStackedColumn_Scaled(this AllResults allResults, ResultType resultType)
         => allResults.SelectMany(p => p
                 .Where(q => q is MetaMorpheusResult && allResults.GetSingleResultSelector().Contains(q.Condition))
                 .SelectMany(q => (q as MetaMorpheusResult)?.ChimeraBreakdownFile.Results))
             .ToList()
-            .GetChimeraBreakdownHybridFigure(resultType, allResults.First().First().IsTopDown)
+            .GetChimeraBreakdownStackedColumn_Scaled(resultType, allResults.First().First().IsTopDown)
             .WithTitle($"{allResults.Name} 1% {Labels.GetLabel(allResults.First().First().IsTopDown, resultType)} Identifications")
             .SaveInAllResultsOnly(allResults, $"ChimeraBreakdown_Hybrid_{Labels.GetLabel(allResults.First().First().IsTopDown, resultType)}", 1000, 1000);
 
-        public static void PlotChimeraBreakdownHybridFigure(this CellLineResults cellLine, ResultType resultType)
+        public static void PlotChimeraBreakdownStackedColumn_Scaled(this CellLineResults cellLine, ResultType resultType)
             => cellLine.Where(p => cellLine.GetSingleResultSelector().Contains(p.Condition))
                         .SelectMany(p => (p as MetaMorpheusResult)?.ChimeraBreakdownFile.Results)
                         .ToList()
-                        .GetChimeraBreakdownHybridFigure(resultType, cellLine.First().IsTopDown)
+                        .GetChimeraBreakdownStackedColumn_Scaled(resultType, cellLine.First().IsTopDown)
                         .WithTitle($"{cellLine.CellLine} 1% {Labels.GetLabel(cellLine.First().IsTopDown, resultType)} Identifications")
                         .SaveInCellLineOnly(cellLine, $"ChimeraBreakdown_Hybrid_{Labels.GetLabel(cellLine.First().IsTopDown, resultType)}_{cellLine.CellLine}", 1000, 1000);
-        public static void PlotChimeraBreakDownHybridFigure(this MetaMorpheusResult result, ResultType resultType)
+        public static void PlotChimeraBreakDownStackedColumn_Scaled(this MetaMorpheusResult result, ResultType resultType)
             => result.ChimeraBreakdownFile.Results
-                .GetChimeraBreakdownHybridFigure(resultType, result.IsTopDown)
+                .GetChimeraBreakdownStackedColumn_Scaled(resultType, result.IsTopDown)
                 .WithTitle($"{result.DatasetName} {result.Condition} 1% {Labels.GetLabel(result.IsTopDown, resultType)} Identifications")
                 .SaveInRunResultOnly(result, $"ChimeraBreakdown_Hybrid_{Labels.GetLabel(result.IsTopDown, resultType)}", 1000, 1000);
 
-        internal static GenericChart.GenericChart GetChimeraBreakdownHybridFigure(
+        internal static GenericChart.GenericChart GetChimeraBreakdownStackedColumn_Scaled(
             this List<ChimeraBreakdownRecord> results, ResultType resultType = ResultType.Psm, 
             bool isTopDown = false)
         {
@@ -246,7 +245,7 @@ namespace Analyzer.Plotting.IndividualRunPlots
                     MarkerColor: $"Unique {form}".ConvertConditionToColor(),
                     MultiText: data.Select(p => p.UniqueForms.ToString()).ToArray()),
             };
-            if (data.Any(p => p.Duplicates > 0))
+            if (data.Any(p => p.Duplicates > 0) && results.Any(p => !p.Condition.Contains("MetaM")))
                 charts = charts.Append(Chart.StackedColumn<double, int, string>(scaledPercentData.Select(p => p.Duplicates), keys,
                     "Duplicates",
                     MarkerColor: "Duplicates".ConvertConditionToColor(),

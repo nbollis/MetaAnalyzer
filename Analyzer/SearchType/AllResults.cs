@@ -22,6 +22,8 @@ namespace Analyzer.SearchType
             }
 
             Name = Path.GetFileNameWithoutExtension(directoryPath);
+            if (Name.Contains("Mann"))
+                Name = "";
         }
 
         public AllResults(string directoryPath, List<CellLineResults> cellLineResults)

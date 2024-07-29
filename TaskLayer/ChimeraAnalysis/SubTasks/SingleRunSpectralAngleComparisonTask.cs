@@ -158,6 +158,7 @@ namespace TaskLayer.ChimeraAnalysis
             psmPlot = psmPlot.WithTitle(
                                    $"MetaMorpheus 1% {Labels.GetLabel(mm.IsTopDown, ResultType.Psm)} Spectral Angle Distribution");
             psmPlot.SaveInRunResultOnly(mm, outName, 600, 600);
+            mm.Dispose();
         }
     }
 }

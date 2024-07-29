@@ -6,6 +6,7 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
+using Analyzer.SearchType;
 using TaskLayer.CMD;
 
 namespace TaskLayer.ChimeraAnalysis
@@ -93,6 +94,24 @@ namespace TaskLayer.ChimeraAnalysis
 
             var processes = BuildProcesses(parameters);
             RunProcesses(processes).Wait();
+
+            // Parse Results Together
+            List<MetaMorpheusResult> allResults = new();
+            foreach (var cellLineDirectory in Directory.GetDirectories(parameters.OutputDirectory)
+                         .Where(p => !p.Contains("Generate") && !p.Contains("Figure")))
+            {
+                foreach (var runDirectory in Directory.GetDirectories(cellLineDirectory)
+                             .Where(p => !p.Contains("Figure")))
+                {
+                    allResults.Add(new MetaMorpheusResult(runDirectory));
+                }
+            }
+
+            // Chimeric Spectrum Summary
+
+            // Chimera Breakdown
+
+            // Internal Comparison
         }
 
         static List<CmdProcess> BuildProcesses(InternalMetaMorpheusAnalysisParameters parameters)
