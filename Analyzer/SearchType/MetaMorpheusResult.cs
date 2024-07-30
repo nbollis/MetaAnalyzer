@@ -1068,14 +1068,23 @@ namespace Analyzer.SearchType
             var chimericSpectra = new List<ChimericSpectrumSummary>();
             foreach (var individualFile in massSpecFiles)
             {
-                Log($"Starting {Path.GetFileNameWithoutExtension(individualFile).ConvertFileName()}", 3);
-                Log($"Loading in Files", 3);
-                // Setup
-                MsDataFile dataFile = FileReader.ReadFile<MsDataFileToResultFileAdapter>(individualFile).LoadAllStaticData();
-                string fileName = Path.GetFileNameWithoutExtension(dataFile.FilePath).ConvertFileName();
+                MsDataFile dataFile = FileReader.ReadFile<MsDataFileToResultFileAdapter>(individualFile);
                 MetaMorpheusIndividualFileResult? mmResult = IndividualFileResults.FirstOrDefault(p =>
                     p.FileName.Contains(Path.GetFileNameWithoutExtension(dataFile.FilePath).Replace("-calib", "")
                         .Replace("-averaged", ""))) ?? null;
+                if (mmResult is null)
+                {
+                    Warn($"No Individual File Result found for {Path.GetFileNameWithoutExtension(individualFile).ConvertFileName()}");
+                    continue;
+                }
+
+                Log($"Starting {Path.GetFileNameWithoutExtension(individualFile).ConvertFileName()}", 3);
+                Log($"Loading in Files", 3);
+
+                // Setup
+                string fileName = Path.GetFileNameWithoutExtension(dataFile.FilePath).ConvertFileName();
+                dataFile = dataFile.LoadAllStaticData();
+
 
                 var deconFilePath = deconFiles.FirstOrDefault(p => p.Contains(
                     Path.GetFileNameWithoutExtension(dataFile.FilePath)
@@ -1085,8 +1094,8 @@ namespace Analyzer.SearchType
                         .Replace("_101230100451", "")
                     ));
                 Ms1FeatureFile deconFile = new Ms1FeatureFile(deconFilePath);
-                if (mmResult is null)
-                    continue;
+                
+
 
                 deconFile.ForEach(p =>
                 {
