@@ -965,7 +965,7 @@ namespace Analyzer.SearchType
                 }
 
             // get mass spec files
-            Log($"Parsing Directories for run {Condition}",2);
+            Log($"Parsing Directories for run {Condition}",1);
             List<string> massSpecFiles = new();
             List<string> deconFiles = new();
             var deconDir = Directory.GetDirectories(Path.GetDirectoryName(Path.GetDirectoryName(DirectoryPath)!)!)
@@ -1075,10 +1075,10 @@ namespace Analyzer.SearchType
 
                 if (mmResult is null)
                 {
-                    Warn($"Skipping {Path.GetFileNameWithoutExtension(individualFile).ConvertFileName()}", 3);
+                    Log($"Skipping {Path.GetFileNameWithoutExtension(individualFile).ConvertFileName()}", 2);
                     continue;
                 }
-                Log($"Starting {Path.GetFileNameWithoutExtension(individualFile).ConvertFileName()}", 3);
+                Log($"Starting {Path.GetFileNameWithoutExtension(individualFile).ConvertFileName()}", 2);
                 Log($"Loading in Files", 3);
 
                 // Setup
