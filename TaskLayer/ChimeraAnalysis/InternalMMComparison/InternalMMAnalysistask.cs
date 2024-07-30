@@ -91,8 +91,6 @@ namespace TaskLayer.ChimeraAnalysis
 
         protected override void RunSpecific() => RunSpecificAsync(Parameters);
 
-
-
         private static void RunSpecificAsync(InternalMetaMorpheusAnalysisParameters parameters)
         {
             if (!Directory.Exists(parameters.OutputDirectory))
@@ -127,8 +125,8 @@ namespace TaskLayer.ChimeraAnalysis
                     Log($"Processing {mmResult.Condition}", 1);
 
                     Log($"Tabulating Result Counts", 2);
-                    mmResult.GetIndividualFileComparison();
-                    mmResult.GetBulkResultCountComparisonFile();
+                    _ = mmResult.GetIndividualFileComparison();
+                    _ = mmResult.GetBulkResultCountComparisonFile();
 
                     Log($"Counting Chimeric Psms/Peptides", 2);
                     mmResult.CountChimericPsms();
@@ -136,7 +134,7 @@ namespace TaskLayer.ChimeraAnalysis
 
                     Log($"Running Chimera Breakdown Analysis", 2);
                     var sw = Stopwatch.StartNew();
-                    mmResult.GetChimeraBreakdownFile();
+                    _ = mmResult.GetChimeraBreakdownFile();
                     sw.Stop();
 
                     // if it takes less than one minute to get the breakdown, and we are not overriding, do not plot
@@ -148,24 +146,35 @@ namespace TaskLayer.ChimeraAnalysis
                 }
             }
 
+            // Chimeric Spectrum Summary -> Creates Fractional Intensity Plots
             Log($"Running Chimeric Spectrum Summaries", 0);
-            // Chimeric Spectrum Summary
-            // Creates Fractional Intensity Plots
             foreach (var cellLineDictEntry in cellLineDict)
             {
+                var cellLine = Path.GetFileNameWithoutExtension(cellLineDictEntry.Key);
+                Log($"Processing Cell Line {cellLine}", 0);
                 List<CmdProcess> summaryTasks = new();
                 foreach (var singleRunPath in cellLineDictEntry.Value)
                 {
-                    var mmRun = new MetaMorpheusResult(singleRunPath);
+                    var mmRun = new MetaMorpheusResult(singleRunPath)
+                    {
+                        DatasetName = cellLine,
+                    };
                     var summaryParams =
                         new SingleRunAnalysisParameters(mmRun.DirectoryPath, parameters.Override, false, mmRun);
                     var summaryTask = new SingleRunChimericSpectrumSummaryTask(summaryParams);
                     summaryTasks.Add(new ResultAnalyzerTaskToCmdProcessAdaptor(summaryTask, "Chimeric Spectrum Summary", 0.5,
                         mmRun.DirectoryPath));
                 }
-                RunProcesses(summaryTasks).Wait();
-            }
 
+                try
+                {
+                    RunProcesses(summaryTasks).Wait();
+                }
+                catch (Exception e)
+                {
+                    Warn($"Error Running Chimeric Spectrum Summary for {cellLine}: {e.Message}");
+                }
+            }
 
             // Plot the rest of it
         }

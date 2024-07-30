@@ -1,5 +1,7 @@
 ﻿using System;
+using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Reflection.Metadata.Ecma335;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -309,10 +311,10 @@ namespace Analyzer.SearchType
             if (!Override && File.Exists(_chimeraBreakDownPath))
             {
                 var breakdownFile = new ChimeraBreakdownFile(_chimeraBreakDownPath);
-                if (breakdownFile.Any(p => p.PsmCharges.IsNotNullOrEmpty()))
-                    return breakdownFile;
-                AppendChargesAndMassesToBreakdownFile(breakdownFile);
-                breakdownFile.WriteResults(_chimeraBreakDownPath);
+                //if (breakdownFile.Any(p => p.PsmCharges.IsNotNullOrEmpty()))
+                //    return breakdownFile;
+                //AppendChargesAndMassesToBreakdownFile(breakdownFile);
+                //breakdownFile.WriteResults(_chimeraBreakDownPath);
                 return breakdownFile;
             }
 
@@ -975,7 +977,7 @@ namespace Analyzer.SearchType
             
             // TODO: just set the directories in the switch
             string specificDir = IsTopDown ? "TopFD" : "FlashDeconv";
-            var fullDeconDirectory = Path.Combine(deconDir, specificDir);
+            string fullDeconDirectory;
             // chimeras is for the use provided precursor set
             switch (DatasetName)
             {
@@ -983,6 +985,8 @@ namespace Analyzer.SearchType
                     massSpecFiles = Directory
                         .GetFiles(@"B:\Users\Nic\Chimeras\TopDown_Analysis\Ecoli\SearchResults\MetaMorpheus\Task2-AveragingTask",
                             "*.mzML").ToList();
+                    fullDeconDirectory = Path.Combine(@"B:\Users\Nic\Chimeras\TopDown_Analysis\Ecoli\DeconResults",
+                        specificDir);
                     deconFiles = Directory.GetFiles(fullDeconDirectory, "*ms1.feature", SearchOption.AllDirectories).ToList();
 
                     if (massSpecFiles.Count != 43)
@@ -995,6 +999,8 @@ namespace Analyzer.SearchType
                 case "Chimeras" when IsTopDown:
                     massSpecFiles = Directory.GetFiles(@"B:\Users\Nic\Chimeras\TopDown_Analysis\Jurkat\SearchResults\MetaMorpheus\Task2-AveragingTask", "*.mzML",
                                                SearchOption.AllDirectories).Where(p => p.Contains("rep2")).ToList();
+                    fullDeconDirectory = Path.Combine(@"B:\Users\Nic\Chimeras\TopDown_Analysis\Jurkat\DeconResults",
+                        specificDir);
                     deconFiles = Directory.GetFiles(fullDeconDirectory, "*ms1.feature", SearchOption.AllDirectories).ToList();
 
                     if (massSpecFiles.Count != 10)
@@ -1040,13 +1046,18 @@ namespace Analyzer.SearchType
                 default: // all bottom up
                     massSpecFiles = Directory.GetFiles(Path.Combine(@"B:\RawSpectraFiles\Mann_11cell_lines", DatasetName, "CalibratedAveraged"), "*.mzML",
                         SearchOption.AllDirectories).ToList();
+                    fullDeconDirectory = Path.Combine(@"B:\Users\Nic\Chimeras\Mann_11cell_analysis", DatasetName, "DeconResults",
+                        specificDir);
                     deconFiles = Directory.GetFiles(fullDeconDirectory, "*ms1.feature", SearchOption.AllDirectories).ToList();
 
-                    if (massSpecFiles.Count != 18)
+                    if (massSpecFiles.Count is not 18 or 6)
                         throw new ArgumentException("Not all mass spec files were found");
 
-                    if (deconFiles.Count != 18)
+                    if (deconFiles.Count is not 18 or 6)
                         throw new ArgumentException("Not all decon files were found");
+
+                    if (deconFiles.Count != massSpecFiles.Count)
+                        Debugger.Break();
                     break;
             }
 
