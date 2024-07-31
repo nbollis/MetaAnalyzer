@@ -18,16 +18,16 @@ namespace CMD
         [Option('o', HelpText = "The output Directory", Required = false, Default = false)]
         public bool OverrideFiles { get; set; }
 
-        [Option('d', HelpText = "The database path", Required = false, Default = false)]
+        [Option('d', HelpText = "The database path", Required = false)]
         public string DatabasePath { get; set; }
 
-        [Option('s', HelpText = "The spectra paths", Required = false, Default = false)]
+        [Option('s', HelpText = "The spectra paths", Required = false)]
         public string SpectraFileDirectory { get; set; }
 
-        [Option('w', HelpText = "The working directory", Required = false, Default = false)]
+        [Option('w', HelpText = "The working directory", Required = false)]
         public string OutputDirectory { get; set; }
 
-        [Option('q', HelpText = "The MetaMorpheus path", Required = false, Default = false)]
+        [Option('q', HelpText = "The MetaMorpheus path", Required = false)]
         public string MetaMorpheusPath { get; set; }
 
 
