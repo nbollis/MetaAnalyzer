@@ -108,8 +108,8 @@ namespace TaskLayer.ChimeraAnalysis
                 foreach (var runDirectory in Directory.GetDirectories(cellLineDirectory)
                              .Where(p => !p.Contains("Figure")))
                 {
-                    if (runDirectory.Contains("WithChimeras") && runDirectory.Contains("NonChimericLibrary"))
-                        continue;
+                    //if (runDirectory.Contains("WithChimeras") && runDirectory.Contains("NonChimericLibrary"))
+                    //    continue;
 
                     cellLineDict[cellLineDirectory].Add(runDirectory);
                 }
