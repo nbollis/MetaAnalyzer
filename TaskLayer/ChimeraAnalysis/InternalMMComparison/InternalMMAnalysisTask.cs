@@ -126,15 +126,15 @@ namespace TaskLayer.ChimeraAnalysis
                     var mmResult = new MetaMorpheusResult(singleRunPath);
                     Log($"Processing {mmResult.DatasetName} {mmResult.Condition}", 1);
 
-                    Log($"Tabulating Result Counts", 2);
+                    Log($"Tabulating Result Counts: {mmResult.DatasetName} {mmResult.Condition}", 2);
                     _ = mmResult.GetIndividualFileComparison();
                     _ = mmResult.GetBulkResultCountComparisonFile();
 
-                    Log($"Counting Chimeric Psms/Peptides", 2);
+                    Log($"Counting Chimeric Psms/Peptides: {mmResult.DatasetName} {mmResult.Condition}", 2);
                     mmResult.CountChimericPsms();
                     mmResult.CountChimericPeptides();
 
-                    Log($"Running Chimera Breakdown Analysis", 2);
+                    Log($"Running Chimera Breakdown Analysis: {mmResult.DatasetName} {mmResult.Condition}", 2);
                     var sw = Stopwatch.StartNew();
                     _ = mmResult.GetChimeraBreakdownFile();
                     sw.Stop();
