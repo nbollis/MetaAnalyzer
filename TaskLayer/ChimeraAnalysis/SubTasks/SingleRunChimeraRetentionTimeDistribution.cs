@@ -24,7 +24,20 @@ namespace TaskLayer.ChimeraAnalysis
 
         protected override void RunSpecific()
         {
-            if (Parameters.RunResult is not MetaMorpheusResult mm)
+            MetaMorpheusResult mm;
+            if (Parameters.RunResult is null)
+                try
+                {
+                    mm = new MetaMorpheusResult(Parameters.SingleRunResultsDirectoryPath);
+                }
+                catch (Exception e)
+                {
+                    Console.WriteLine(e);
+                    throw;
+                }
+            else if (Parameters.RunResult is MetaMorpheusResult m)
+                mm = m;
+            else
                 return;
 
             var peptideChimericRT = new List<double>();
