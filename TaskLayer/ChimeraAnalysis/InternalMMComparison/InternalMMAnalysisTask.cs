@@ -149,30 +149,30 @@ namespace TaskLayer.ChimeraAnalysis
                 });
 
             // Chimeric Spectrum Summary -> Creates Fractional Intensity Plots
-            Log($"Running Chimeric Spectrum Summaries", 0);
-            foreach (var cellLineDictEntry in cellLineDict)
-            {
-                var cellLine = Path.GetFileNameWithoutExtension(cellLineDictEntry.Key);
-                Log($"Processing Cell Line {cellLine}", 1);
-                List<CmdProcess> summaryTasks = new();
-                foreach (var singleRunPath in cellLineDictEntry.Value)
-                {
-                    var summaryParams =
-                        new SingleRunAnalysisParameters(singleRunPath, parameters.Override, false);
-                    var summaryTask = new SingleRunChimericSpectrumSummaryTask(summaryParams);
-                    summaryTasks.Add(new ResultAnalyzerTaskToCmdProcessAdaptor(summaryTask, "Chimeric Spectrum Summary", 0.5,
-                        singleRunPath));
-                }
+            //Log($"Running Chimeric Spectrum Summaries", 0);
+            //foreach (var cellLineDictEntry in cellLineDict)
+            //{
+            //    var cellLine = Path.GetFileNameWithoutExtension(cellLineDictEntry.Key);
+            //    Log($"Processing Cell Line {cellLine}", 1);
+            //    List<CmdProcess> summaryTasks = new();
+            //    foreach (var singleRunPath in cellLineDictEntry.Value)
+            //    {
+            //        var summaryParams =
+            //            new SingleRunAnalysisParameters(singleRunPath, parameters.Override, false);
+            //        var summaryTask = new SingleRunChimericSpectrumSummaryTask(summaryParams);
+            //        summaryTasks.Add(new ResultAnalyzerTaskToCmdProcessAdaptor(summaryTask, "Chimeric Spectrum Summary", 0.5,
+            //            singleRunPath));
+            //    }
 
-                try
-                {
-                    RunProcesses(summaryTasks).Wait();
-                }
-                catch (Exception e)
-                {
-                    Warn($"Error Running Chimeric Spectrum Summary for {cellLine}: {e.Message}");
-                }
-            }
+            //    try
+            //    {
+            //        RunProcesses(summaryTasks).Wait();
+            //    }
+            //    catch (Exception e)
+            //    {
+            //        Warn($"Error Running Chimeric Spectrum Summary for {cellLine}: {e.Message}");
+            //    }
+            //}
 
             Log($"Running Retention Time Plots", 0);
             foreach (var cellLineDictEntry in cellLineDict)
@@ -186,11 +186,14 @@ namespace TaskLayer.ChimeraAnalysis
                     if (singleRunPath.Contains(NonChimericDescriptor))
                         continue;
 
-                    var summaryParams =
-                        new SingleRunAnalysisParameters(singleRunPath, parameters.Override, false);
-                    var summaryTask = new SingleRunChimeraRetentionTimeDistribution(summaryParams);
-                    summaryTasks.Add(new ResultAnalyzerTaskToCmdProcessAdaptor(summaryTask, "Retention Time Plots", 0.25,
-                        singleRunPath));
+                    foreach (var distribPlotTypes in Enum.GetValues<DistributionPlotTypes>())
+                    {
+                        var summaryParams =
+                            new SingleRunAnalysisParameters(singleRunPath, parameters.Override, false, distribPlotTypes);
+                        var summaryTask = new SingleRunChimeraRetentionTimeDistribution(summaryParams);
+                        summaryTasks.Add(new ResultAnalyzerTaskToCmdProcessAdaptor(summaryTask, "Retention Time Plots", 0.25,
+                            singleRunPath));
+                    }
                 }
 
                 try
@@ -214,11 +217,14 @@ namespace TaskLayer.ChimeraAnalysis
                 {
                     if (singleRunPath.Contains(NonChimericDescriptor))
                         continue;
-                    var summaryParams =
-                        new SingleRunAnalysisParameters(singleRunPath, parameters.Override, false);
-                    var summaryTask = new SingleRunSpectralAngleComparisonTask(summaryParams);
-                    summaryTasks.Add(new ResultAnalyzerTaskToCmdProcessAdaptor(summaryTask, "Spectral Angle Comparisons", 0.25,
-                        singleRunPath));
+                    foreach (var distribPlotTypes in Enum.GetValues<DistributionPlotTypes>())
+                    {
+                        var summaryParams =
+                            new SingleRunAnalysisParameters(singleRunPath, parameters.Override, false, distribPlotTypes);
+                        var summaryTask = new SingleRunSpectralAngleComparisonTask(summaryParams);
+                        summaryTasks.Add(new ResultAnalyzerTaskToCmdProcessAdaptor(summaryTask, "Spectral Angle Comparisons", 0.25,
+                            singleRunPath));
+                    }
                 }
 
                 try

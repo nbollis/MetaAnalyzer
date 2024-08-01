@@ -40,33 +40,44 @@ public class ResultAnalyzerTaskToCmdProcessAdaptor : CmdProcess
 
     public override bool IsCompleted()
     {
-        if (_isComplete) return true;
+        if (_isComplete) 
+            return _isComplete;
 
         try
         {
             string? pathToCheck = Task switch
             {
                 SingleRunSpectralAngleComparisonTask s => Directory.GetFiles(s.Parameters.InputDirectoryPath,
-                    $"*Spectral Angle Distribution.png", SearchOption.AllDirectories).FirstOrDefault(),
+                    $"*{FileIdentifiers.SpectralAngleFigure}_{s.Parameters.PlotType.ToString()}.png",
+                    SearchOption.AllDirectories).FirstOrDefault(),
+
                 SingleRunChimeraRetentionTimeDistribution c => Directory.GetFiles(c.Parameters.InputDirectoryPath,
-                    $"*{FileIdentifiers.RetentionTimeFigure}_ViolinPlot", SearchOption.AllDirectories).FirstOrDefault(),
+                    $"*{FileIdentifiers.RetentionTimeFigure}_{c.Parameters.PlotType.ToString()}.png",
+                    SearchOption.AllDirectories).FirstOrDefault(),
+
                 SingleRunChimericSpectrumSummaryTask css => Directory.GetFiles(css.Parameters.InputDirectoryPath,
-                    $"*{FileIdentifiers.ChimericSpectrumSummary}", SearchOption.AllDirectories).FirstOrDefault(),
+                    $"*{FileIdentifiers.ChimericSpectrumSummary}",
+                    SearchOption.AllDirectories).FirstOrDefault(),
+
                 SingleRunRetentionTimeCalibrationTask rtc => Directory.GetFiles(rtc.Parameters.InputDirectoryPath,
-                    $"*{FileIdentifiers.CalibratedRetentionTimeFile}", SearchOption.AllDirectories).FirstOrDefault(),
+                    $"*{FileIdentifiers.CalibratedRetentionTimeFile}",
+                    SearchOption.AllDirectories).FirstOrDefault(),
                 _ => null
             };
             if (pathToCheck is null)
-                return false;
+                _isComplete = false;
             if (File.Exists(pathToCheck))
-                return true;
+            {
+                _isComplete = true;
+            }
         }
         catch (Exception)
         {
-            return false;
+            _isComplete = false;
         }
-            
-        return false;
+     
+        return _isComplete;
+       
     }
 }
 

@@ -1081,7 +1081,7 @@ namespace Analyzer.SearchType
                 Log($"Loading in Files", 3);
 
                 // Setup
-                MsDataFile dataFile = FileReader.ReadFile<MsDataFileToResultFileAdapter>(individualFile).LoadAllStaticData(); ;
+                MsDataFile dataFile = FileReader.ReadFile<MsDataFileToResultFileAdapter>(individualFile).LoadAllStaticData(); 
                 string fileName = Path.GetFileNameWithoutExtension(dataFile.FilePath).ConvertFileName();
                 
 
@@ -1091,6 +1091,12 @@ namespace Analyzer.SearchType
                         .Replace("-averaged", "")
                         .Replace("_101229143203", "")
                         .Replace("_101230100451", "")
+                        .Replace("20100609_Velos1_TaGe_SA_293_1", "20100609_Velos1_TaGe_SA_Hek293_01")
+                        .Replace("20100609_Velos1_TaGe_SA_293_2", "20100609_Velos1_TaGe_SA_Hek293_02")
+                        .Replace("20100609_Velos1_TaGe_SA_293_3", "20100609_Velos1_TaGe_SA_Hek293_03")
+                        .Replace("20100609_Velos1_TaGe_SA_293_4", "20100609_Velos1_TaGe_SA_Hek293_04")
+                        .Replace("20100609_Velos1_TaGe_SA_293_5", "20100609_Velos1_TaGe_SA_Hek293_05")
+                        .Replace("20100609_Velos1_TaGe_SA_293_6", "20100609_Velos1_TaGe_SA_Hek293_06")
                 ));
                 Ms1FeatureFile deconFile = new Ms1FeatureFile(deconFilePath);
                 deconFile.ForEach(p =>
