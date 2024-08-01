@@ -208,7 +208,7 @@ namespace TaskLayer
 
                     if (process is ResultAnalyzerTaskToCmdProcessAdaptor ad)
                     {
-                        await ad.RunTask().WaitAsync(CancellationToken.None);
+                        await ad.RunTask();
                     }
                     else
                     {
