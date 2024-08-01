@@ -303,7 +303,7 @@ namespace Analyzer.SearchType
             return bulkComparisonFile;
         }
 
-        private string _chimeraBreakDownPath => Path.Combine(DirectoryPath, $"{DatasetName}_{Condition}_{FileIdentifiers.ChimeraBreakdownComparison}");
+        public string _chimeraBreakDownPath => Path.Combine(DirectoryPath, $"{DatasetName}_{Condition}_{FileIdentifiers.ChimeraBreakdownComparison}");
         private ChimeraBreakdownFile? _chimeraBreakdownFile;
         public ChimeraBreakdownFile ChimeraBreakdownFile => _chimeraBreakdownFile ??= GetChimeraBreakdownFile();
         public ChimeraBreakdownFile GetChimeraBreakdownFile()
@@ -538,10 +538,9 @@ namespace Analyzer.SearchType
         // for calibration
         public string[] IndividualFilePeptidePaths => IndividualFileResults.Select(p => p.PeptidePath).ToArray();
         public string CalibratedRetentionTimeFilePath => Path.Combine(DirectoryPath, $"{DatasetName}_{Condition}_{FileIdentifiers.CalibratedRetentionTimeFile}");
-        
+
         // for prediction
-        private string _retentionTimePredictionPath => Path.Combine(DirectoryPath, $"{DatasetName}_MM_{FileIdentifiers.RetentionTimePredictionReady}");
-        private string _chronologerRunningFilePath => Path.Combine(DirectoryPath, $"{DatasetName}_{FileIdentifiers.ChronologerReadyFile}");
+        public string _retentionTimePredictionPath => Path.Combine(DirectoryPath, $"{DatasetName}_MM_{FileIdentifiers.RetentionTimePredictionReady}");
         private RetentionTimePredictionFile _retentionTimePredictionFile;
         public RetentionTimePredictionFile RetentionTimePredictionFile => _retentionTimePredictionFile ??= CreateRetentionTimePredictionFile();
         

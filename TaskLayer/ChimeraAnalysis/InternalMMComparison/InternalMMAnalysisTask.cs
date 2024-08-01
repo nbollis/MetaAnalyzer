@@ -79,6 +79,8 @@ namespace TaskLayer.ChimeraAnalysis
         #endregion
 
         public static string Version => "105";
+        private static string NonChimericDescriptor => "MetaMorpheusNoChimeras";
+        private static string ChimericDescriptor => "MetaMorpheusWithChimeras";
 
         public override MyTask MyTask => MyTask.InternalMetaMorpheusAnalysis;
         public override InternalMetaMorpheusAnalysisParameters Parameters { get; }
@@ -108,7 +110,7 @@ namespace TaskLayer.ChimeraAnalysis
                 foreach (var runDirectory in Directory.GetDirectories(cellLineDirectory)
                              .Where(p => !p.Contains("Figure")))
                 {
-                    //if (runDirectory.Contains("WithChimeras") && runDirectory.Contains("NonChimericLibrary"))
+                    //if (runDirectory.Contains(ChimericDescriptor) && runDirectory.Contains("NonChimericLibrary"))
                     //    continue;
 
                     cellLineDict[cellLineDirectory].Add(runDirectory);
@@ -116,13 +118,13 @@ namespace TaskLayer.ChimeraAnalysis
             }
 
             // Run MM Task basic processing 
-            foreach (var cellLinePaths in cellLineDict)
-            {
-                Log($"Processing Cell Line {Path.GetFileName(cellLinePaths.Key)}",0);
-                foreach (var singleRunPath in cellLinePaths.Value)
+            int degreesOfParallelism = (int)(MaxWeight / 0.25);
+            Parallel.ForEach(cellLineDict.SelectMany(p =>  p.Value),
+                new ParallelOptions() { MaxDegreeOfParallelism = Math.Max(degreesOfParallelism, 1) },
+                singleRunPath =>
                 {
                     var mmResult = new MetaMorpheusResult(singleRunPath);
-                    Log($"Processing {mmResult.Condition}", 1);
+                    Log($"Processing {mmResult.DatasetName} {mmResult.Condition}", 1);
 
                     Log($"Tabulating Result Counts", 2);
                     _ = mmResult.GetIndividualFileComparison();
@@ -139,12 +141,11 @@ namespace TaskLayer.ChimeraAnalysis
 
                     // if it takes less than one minute to get the breakdown, and we are not overriding, do not plot
                     if (sw.Elapsed.Minutes < 1 && !parameters.Override)
-                        continue;
+                        return;
 
                     mmResult.PlotChimeraBreakDownStackedColumn_Scaled(ResultType.Psm);
                     mmResult.PlotChimeraBreakDownStackedColumn_Scaled(ResultType.Peptide);
-                }
-            }
+                });
 
             // Chimeric Spectrum Summary -> Creates Fractional Intensity Plots
             Log($"Running Chimeric Spectrum Summaries", 0);
@@ -155,15 +156,11 @@ namespace TaskLayer.ChimeraAnalysis
                 List<CmdProcess> summaryTasks = new();
                 foreach (var singleRunPath in cellLineDictEntry.Value)
                 {
-                    var mmRun = new MetaMorpheusResult(singleRunPath)
-                    {
-                        DatasetName = cellLine,
-                    };
                     var summaryParams =
-                        new SingleRunAnalysisParameters(mmRun.DirectoryPath, parameters.Override, false, mmRun);
+                        new SingleRunAnalysisParameters(singleRunPath, parameters.Override, false);
                     var summaryTask = new SingleRunChimericSpectrumSummaryTask(summaryParams);
                     summaryTasks.Add(new ResultAnalyzerTaskToCmdProcessAdaptor(summaryTask, "Chimeric Spectrum Summary", 0.5,
-                        mmRun.DirectoryPath));
+                        singleRunPath));
                 }
 
                 try
@@ -176,7 +173,94 @@ namespace TaskLayer.ChimeraAnalysis
                 }
             }
 
-            // Plot the rest of it
+
+            Log($"Running Spectral Angle Comparisons", 0);
+            foreach (var cellLineDictEntry in cellLineDict)
+            {
+                var cellLine = Path.GetFileNameWithoutExtension(cellLineDictEntry.Key);
+
+                List<CmdProcess> summaryTasks = new();
+                Log($"Processing Cell Line {cellLine}", 1);
+                foreach (var singleRunPath in cellLineDictEntry.Value)
+                {
+                    if (singleRunPath.Contains(NonChimericDescriptor))
+                        continue;
+                    var summaryParams =
+                        new SingleRunAnalysisParameters(singleRunPath, parameters.Override, false);
+                    var summaryTask = new SingleRunSpectralAngleComparisonTask(summaryParams);
+                    summaryTasks.Add(new ResultAnalyzerTaskToCmdProcessAdaptor(summaryTask, "Spectral Angle Comparisons", 0.25,
+                        singleRunPath));
+                }
+
+                try
+                {
+                    RunProcesses(summaryTasks).Wait();
+                }
+                catch (Exception e)
+                {
+                    Warn($"Error Running Spectral Angle Comparisons for {cellLine}: {e.Message}");
+                }
+            }
+
+            Log($"Running Retention Time Plots", 0);
+            foreach (var cellLineDictEntry in cellLineDict)
+            {
+                var cellLine = Path.GetFileNameWithoutExtension(cellLineDictEntry.Key);
+
+                List<CmdProcess> summaryTasks = new();
+                Log($"Processing Cell Line {cellLine}", 1);
+                foreach (var singleRunPath in cellLineDictEntry.Value)
+                {
+                    if (singleRunPath.Contains(NonChimericDescriptor))
+                        continue;
+
+                    var summaryParams =
+                        new SingleRunAnalysisParameters(singleRunPath, parameters.Override, false);
+                    var summaryTask = new SingleRunChimeraRetentionTimeDistribution(summaryParams);
+                    summaryTasks.Add(new ResultAnalyzerTaskToCmdProcessAdaptor(summaryTask, "Retention Time Plots", 0.25,
+                        singleRunPath));
+                }
+
+                try
+                {
+                    RunProcesses(summaryTasks).Wait();
+                }
+                catch (Exception e)
+                {
+                    Warn($"Error Running Retention Time Plots for {cellLine}: {e.Message}");
+                }
+            }
+
+            Log($"Running Retention Time Alignment", 0);
+            foreach (var cellLineDictEntry in cellLineDict)
+            {
+                var cellLine = Path.GetFileNameWithoutExtension(cellLineDictEntry.Key);
+
+                List<CmdProcess> summaryTasks = new();
+                Log($"Processing Cell Line {cellLine}", 1);
+                foreach (var singleRunPath in cellLineDictEntry.Value)
+                {
+                    if (singleRunPath.Contains(NonChimericDescriptor))
+                        continue;
+                    var summaryParams =
+                        new SingleRunAnalysisParameters(singleRunPath, parameters.Override, false);
+                    var summaryTask = new SingleRunChimeraRetentionTimeDistribution(summaryParams);
+                    summaryTasks.Add(new ResultAnalyzerTaskToCmdProcessAdaptor(summaryTask, "Retention Time Alignment", 0.25,
+                        singleRunPath));
+                }
+
+                try
+                {
+                    RunProcesses(summaryTasks).Wait();
+                }
+                catch (Exception e)
+                {
+                    Warn($"Error Running Retention Time Alignment for {cellLine}: {e.Message}");
+                }
+            }
+
+
+            // Plot the bulk comparisons
         }
 
         static List<CmdProcess> BuildProcesses(InternalMetaMorpheusAnalysisParameters parameters)
@@ -197,17 +281,12 @@ namespace TaskLayer.ChimeraAnalysis
                 .ToDictionary(p => p.Key,
                     p => p.SelectMany(m => m.CalibratedAveragedFilePaths.Values).ToArray());
 
+            var reps = replicateDict.Keys.ToArray();
             for (int i = 1; i < replicateDict.Count + 1; i++)
             {
                 var specToRun = replicateDict.Where(p => p.Key != i)
                     .SelectMany(m => m.Value).ToArray();
-                string descriptor = i switch
-                {
-                    1 => "2+3",
-                    2 => "1+3",
-                    3 => "1+2",
-                    _ => throw new NotImplementedException()
-                };
+                string descriptor = string.Join('+', reps.Where(p => p != i));
 
                 // Generate Library Processes
                 string chimericOutPath = Path.Combine(parameters.OutputDirectory,
@@ -240,7 +319,7 @@ namespace TaskLayer.ChimeraAnalysis
 
                     // Search Chimericly with chim lib
                     string chimWithChimOutPath = Path.Combine(cellLineDir,
-                        $"MetaMorpheusWithChimeras_{Version}_ChimericLibrary_Rep{i}");
+                        $"{ChimericDescriptor}_{Version}_ChimericLibrary_Rep{i}");
                     gptmd = GetGptmdPath(true, isTopDown);
                     search = GetSearchPath(true, isTopDown, false);
                     var individualProcess = new InternalMetaMorpheusCmdProcess(spec, parameters.DatabasePath, gptmd, search,
@@ -252,7 +331,7 @@ namespace TaskLayer.ChimeraAnalysis
 
                     // Search Chimerically with NonChimeric Lib
                     string chimWithNonChimOutPath = Path.Combine(cellLineDir,
-                        $"MetaMorpheusWithChimeras_{Version}_NonChimericLibrary_Rep{i}");
+                        $"{ChimericDescriptor}_{Version}_NonChimericLibrary_Rep{i}");
                     gptmd = GetGptmdPath(true, isTopDown);
                     search = GetSearchPath(true, isTopDown, false);
                     individualProcess = new InternalMetaMorpheusCmdProcess(spec, parameters.DatabasePath, gptmd, search,
@@ -264,7 +343,7 @@ namespace TaskLayer.ChimeraAnalysis
 
                     // Search NonChimerically with NonChimeric Lib
                     string nonChimWithNonChimOutPath = Path.Combine(cellLineDir,
-                        $"MetaMorpheusNoChimeras_{Version}_NonChimericLibrary_Rep{i}");
+                        $"{NonChimericDescriptor}_{Version}_NonChimericLibrary_Rep{i}");
                     gptmd = GetGptmdPath(false, isTopDown);
                     search = GetSearchPath(false, isTopDown, false);
                     individualProcess = new InternalMetaMorpheusCmdProcess(spec, parameters.DatabasePath, gptmd, search,

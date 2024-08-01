@@ -1,6 +1,8 @@
 ﻿using System.Diagnostics;
 using System.Text;
+using Analyzer.Plotting.Util;
 using Analyzer.SearchType;
+using Analyzer.Util;
 using Easy.Common.Extensions;
 using TaskLayer.ChimeraAnalysis;
 
@@ -10,6 +12,7 @@ namespace TaskLayer.CMD;
 public class ResultAnalyzerTaskToCmdProcessAdaptor : CmdProcess
 {
     private bool _hasStarted;
+    private bool _isComplete;
 
     public override string Prompt { get; }
     public BaseResultAnalyzerTask Task { get; }
@@ -25,31 +28,38 @@ public class ResultAnalyzerTaskToCmdProcessAdaptor : CmdProcess
     public async Task RunTask()
     {
         _hasStarted = true;
-        if (Task is SingleRunChimericSpectrumSummaryTask css)
-            if (!IsCompleted())
-                await Task.Run();
+        if (!IsCompleted())
+        {
+            await Task.Run();
+            _isComplete = true;
+        }
     }
 
     public override bool HasStarted() => _hasStarted;
 
     public override bool IsCompleted()
     {
-        if (Task is SingleRunChimericSpectrumSummaryTask css)
+        if (_isComplete) return true;
+
+        try
         {
-            try
+            string pathToCheck = Task switch
             {
-                var summaryFilePath = ((MetaMorpheusResult)css.Parameters.RunResult)._chimericSpectrumSummaryFilePath;
-                if (File.Exists(summaryFilePath))
-                {
-                    return true;
-                }
-            }
-            catch (Exception e)
+                SingleRunSpectralAngleComparisonTask s => Path.Combine(s.Parameters.RunResult.FigureDirectory, $"MetaMorpheus 1% {Labels.GetLabel(s.Parameters.RunResult.IsTopDown, ResultType.Psm)} Spectral Angle Distribution.png"),
+                SingleRunChimeraRetentionTimeDistribution c => ((MetaMorpheusResult)c.Parameters.RunResult)._retentionTimePredictionPath,
+                SingleRunChimericSpectrumSummaryTask css => ((MetaMorpheusResult)css.Parameters.RunResult)._chimericSpectrumSummaryFilePath,
+                _ => throw new NotImplementedException()
+            };
+            if (File.Exists(pathToCheck))
             {
-                return false;
+                return true;
             }
         }
-
+        catch (Exception)
+        {
+            return false;
+        }
+            
         return false;
     }
 }

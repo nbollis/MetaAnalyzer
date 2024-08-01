@@ -6,12 +6,23 @@ namespace TaskLayer.ChimeraAnalysis;
 public class SingleRunAnalysisParameters : BaseResultAnalyzerTaskParameters
 {
     public DistributionPlotTypes PlotType { get; set; }
-    public SingleRunResults RunResult { get; init; }
+    public string SingleRunResultsDirectoryPath { get; init; }
+    public SingleRunResults? RunResult { get; init; }
     public SingleRunAnalysisParameters(string inputDirectoryPath, bool overrideFiles, bool runOnAll, 
         SingleRunResults runResult, DistributionPlotTypes distributionPlotType = DistributionPlotTypes.ViolinPlot) 
         : base(inputDirectoryPath, overrideFiles, runOnAll)
     {
         RunResult = runResult;
+        SingleRunResultsDirectoryPath = runResult.DirectoryPath;
+        PlotType = distributionPlotType;
+    }
+
+    public SingleRunAnalysisParameters(string inputDirectoryPath, bool overrideFiles, bool runOnAll,
+         DistributionPlotTypes distributionPlotType = DistributionPlotTypes.ViolinPlot)
+        : base(inputDirectoryPath, overrideFiles, runOnAll)
+    {
+        RunResult = null;
+        SingleRunResultsDirectoryPath = inputDirectoryPath;
         PlotType = distributionPlotType;
     }
 }

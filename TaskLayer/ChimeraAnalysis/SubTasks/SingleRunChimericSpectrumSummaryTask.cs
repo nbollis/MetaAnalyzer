@@ -29,21 +29,26 @@ namespace TaskLayer.ChimeraAnalysis
 
         protected override void RunSpecific()
         {
-            if (Parameters.RunResult is not MetaMorpheusResult mm)
+            MetaMorpheusResult mm;
+            if (Parameters.RunResult is null)
+                try
+                {
+                    mm = new MetaMorpheusResult(Parameters.SingleRunResultsDirectoryPath);
+                }
+                catch (Exception e)
+                {
+                    Console.WriteLine(e);
+                    throw;
+                }
+            else if (Parameters.RunResult is MetaMorpheusResult m)
+                mm = m;
+            else
                 return;
 
             // Run the parsing
             mm.Override = Parameters.Override; 
             var summary = mm.GetChimericSpectrumSummaryFile();
             mm.Override = false;
-
-            // Plot the results
-            //var dataDictionary = summary.GroupBy(p => p.Type)
-            //    .ToDictionary(p => p.Key,
-            //        p => p.GroupBy(m => m.IsChimeric)
-            //            .ToDictionary(n => n.Key,
-            //                n => n.Select(b => (b.PossibleFeatureCount, b.IdPerSpectrum, b.PrecursorFractionalIntensity, b.FragmentFractionalIntensity))
-            //                    .ToArray()));
 
             // Features per MS2 Isolation Window Histograms
             Log("Creating Feature Count Plots");

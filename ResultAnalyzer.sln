@@ -20,8 +20,6 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Calibrator", "Calibrator\Ca
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RetentionTimePrediction", "RetentionTimePrediction\RetentionTimePrediction.csproj", "{23872B49-7F87-4A0C-86A2-59612638801D}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MetaAnalyzerServer", "MetaAnalyzerServer\MetaAnalyzerServer.csproj", "{D29A3D48-474E-4A00-ACCC-09904C391362}"
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -56,10 +54,6 @@ Global
 		{23872B49-7F87-4A0C-86A2-59612638801D}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{23872B49-7F87-4A0C-86A2-59612638801D}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{23872B49-7F87-4A0C-86A2-59612638801D}.Release|Any CPU.Build.0 = Release|Any CPU
-		{D29A3D48-474E-4A00-ACCC-09904C391362}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{D29A3D48-474E-4A00-ACCC-09904C391362}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{D29A3D48-474E-4A00-ACCC-09904C391362}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{D29A3D48-474E-4A00-ACCC-09904C391362}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
