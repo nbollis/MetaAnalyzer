@@ -11,6 +11,7 @@ using Analyzer.Plotting.ComparativePlots;
 using Analyzer.Plotting.IndividualRunPlots;
 using Analyzer.SearchType;
 using Analyzer.Util;
+using Calibrator;
 using pepXML.Generated;
 using Plotly.NET;
 using TaskLayer.CMD;
@@ -202,34 +203,6 @@ namespace TaskLayer.ChimeraAnalysis
                 }
             }
 
-            Log($"Running Retention Time Alignment", 0);
-            foreach (var cellLineDictEntry in cellLineDict)
-            {
-                var cellLine = Path.GetFileNameWithoutExtension(cellLineDictEntry.Key);
-
-                List<CmdProcess> summaryTasks = new();
-                Log($"Processing Cell Line {cellLine}", 1);
-                foreach (var singleRunPath in cellLineDictEntry.Value)
-                {
-                    if (singleRunPath.Contains(NonChimericDescriptor))
-                        continue;
-                    var summaryParams =
-                        new SingleRunAnalysisParameters(singleRunPath, parameters.Override, false);
-                    var summaryTask = new SingleRunChimeraRetentionTimeDistribution(summaryParams);
-                    summaryTasks.Add(new ResultAnalyzerTaskToCmdProcessAdaptor(summaryTask, "Retention Time Alignment", 0.25,
-                        singleRunPath));
-                }
-
-                try
-                {
-                    RunProcesses(summaryTasks).Wait();
-                }
-                catch (Exception e)
-                {
-                    Warn($"Error Running Retention Time Alignment for {cellLine}: {e.Message}");
-                }
-            }
-
             Log($"Running Spectral Angle Comparisons", 0);
             foreach (var cellLineDictEntry in cellLineDict)
             {
@@ -258,6 +231,34 @@ namespace TaskLayer.ChimeraAnalysis
                 }
             }
 
+            // TODO: Change retention time alignment to operate on the grouped runs
+            Log($"Running Retention Time Alignment", 0);
+            foreach (var cellLineDictEntry in cellLineDict)
+            {
+                var cellLine = Path.GetFileNameWithoutExtension(cellLineDictEntry.Key);
+
+                List<CmdProcess> summaryTasks = new();
+                Log($"Processing Cell Line {cellLine}", 1);
+                foreach (var singleRunPath in cellLineDictEntry.Value)
+                {
+                    if (singleRunPath.Contains(NonChimericDescriptor))
+                        continue;
+                    var summaryParams =
+                        new SingleRunAnalysisParameters(singleRunPath, parameters.Override, false);
+                    var summaryTask = new SingleRunRetentionTimeCalibrationTask(summaryParams);
+                    summaryTasks.Add(new ResultAnalyzerTaskToCmdProcessAdaptor(summaryTask, "Retention Time Alignment", 0.25,
+                        singleRunPath));
+                }
+
+                try
+                {
+                    RunProcesses(summaryTasks).Wait();
+                }
+                catch (Exception e)
+                {
+                    Warn($"Error Running Retention Time Alignment for {cellLine}: {e.Message}");
+                }
+            }
             // Plot the bulk comparisons
         }
 

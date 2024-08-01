@@ -16,7 +16,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Analyzer\Analyzer.csproj" />
-    <ProjectReference Include="..\TaskLayer\TaskLayer.csproj" />
   </ItemGroup>
 
 </Project>

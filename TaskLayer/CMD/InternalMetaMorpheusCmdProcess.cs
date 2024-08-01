@@ -3,6 +3,7 @@ using System.Text;
 using Analyzer.Plotting.Util;
 using Analyzer.SearchType;
 using Analyzer.Util;
+using Calibrator;
 using Easy.Common.Extensions;
 using TaskLayer.ChimeraAnalysis;
 
@@ -43,17 +44,22 @@ public class ResultAnalyzerTaskToCmdProcessAdaptor : CmdProcess
 
         try
         {
-            string pathToCheck = Task switch
+            string? pathToCheck = Task switch
             {
-                SingleRunSpectralAngleComparisonTask s => Path.Combine(s.Parameters.RunResult.FigureDirectory, $"MetaMorpheus 1% {Labels.GetLabel(s.Parameters.RunResult.IsTopDown, ResultType.Psm)} Spectral Angle Distribution.png"),
-                SingleRunChimeraRetentionTimeDistribution c => ((MetaMorpheusResult)c.Parameters.RunResult)._retentionTimePredictionPath,
-                SingleRunChimericSpectrumSummaryTask css => ((MetaMorpheusResult)css.Parameters.RunResult)._chimericSpectrumSummaryFilePath,
-                _ => throw new NotImplementedException()
+                SingleRunSpectralAngleComparisonTask s => Directory.GetFiles(s.Parameters.InputDirectoryPath,
+                    $"*Spectral Angle Distribution.png", SearchOption.AllDirectories).FirstOrDefault(),
+                SingleRunChimeraRetentionTimeDistribution c => Directory.GetFiles(c.Parameters.InputDirectoryPath,
+                    $"*{FileIdentifiers.RetentionTimeFigure}_ViolinPlot", SearchOption.AllDirectories).FirstOrDefault(),
+                SingleRunChimericSpectrumSummaryTask css => Directory.GetFiles(css.Parameters.InputDirectoryPath,
+                    $"*{FileIdentifiers.ChimericSpectrumSummary}", SearchOption.AllDirectories).FirstOrDefault(),
+                SingleRunRetentionTimeCalibrationTask rtc => Directory.GetFiles(rtc.Parameters.InputDirectoryPath,
+                    $"*{FileIdentifiers.CalibratedRetentionTimeFile}", SearchOption.AllDirectories).FirstOrDefault(),
+                _ => null
             };
+            if (pathToCheck is null)
+                return false;
             if (File.Exists(pathToCheck))
-            {
                 return true;
-            }
         }
         catch (Exception)
         {
