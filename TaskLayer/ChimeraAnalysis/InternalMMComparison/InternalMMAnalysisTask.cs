@@ -173,35 +173,6 @@ namespace TaskLayer.ChimeraAnalysis
                 }
             }
 
-
-            Log($"Running Spectral Angle Comparisons", 0);
-            foreach (var cellLineDictEntry in cellLineDict)
-            {
-                var cellLine = Path.GetFileNameWithoutExtension(cellLineDictEntry.Key);
-
-                List<CmdProcess> summaryTasks = new();
-                Log($"Processing Cell Line {cellLine}", 1);
-                foreach (var singleRunPath in cellLineDictEntry.Value)
-                {
-                    if (singleRunPath.Contains(NonChimericDescriptor))
-                        continue;
-                    var summaryParams =
-                        new SingleRunAnalysisParameters(singleRunPath, parameters.Override, false);
-                    var summaryTask = new SingleRunSpectralAngleComparisonTask(summaryParams);
-                    summaryTasks.Add(new ResultAnalyzerTaskToCmdProcessAdaptor(summaryTask, "Spectral Angle Comparisons", 0.25,
-                        singleRunPath));
-                }
-
-                try
-                {
-                    RunProcesses(summaryTasks).Wait();
-                }
-                catch (Exception e)
-                {
-                    Warn($"Error Running Spectral Angle Comparisons for {cellLine}: {e.Message}");
-                }
-            }
-
             Log($"Running Retention Time Plots", 0);
             foreach (var cellLineDictEntry in cellLineDict)
             {
@@ -259,6 +230,33 @@ namespace TaskLayer.ChimeraAnalysis
                 }
             }
 
+            Log($"Running Spectral Angle Comparisons", 0);
+            foreach (var cellLineDictEntry in cellLineDict)
+            {
+                var cellLine = Path.GetFileNameWithoutExtension(cellLineDictEntry.Key);
+
+                List<CmdProcess> summaryTasks = new();
+                Log($"Processing Cell Line {cellLine}", 1);
+                foreach (var singleRunPath in cellLineDictEntry.Value)
+                {
+                    if (singleRunPath.Contains(NonChimericDescriptor))
+                        continue;
+                    var summaryParams =
+                        new SingleRunAnalysisParameters(singleRunPath, parameters.Override, false);
+                    var summaryTask = new SingleRunSpectralAngleComparisonTask(summaryParams);
+                    summaryTasks.Add(new ResultAnalyzerTaskToCmdProcessAdaptor(summaryTask, "Spectral Angle Comparisons", 0.25,
+                        singleRunPath));
+                }
+
+                try
+                {
+                    RunProcesses(summaryTasks).Wait();
+                }
+                catch (Exception e)
+                {
+                    Warn($"Error Running Spectral Angle Comparisons for {cellLine}: {e.Message}");
+                }
+            }
 
             // Plot the bulk comparisons
         }

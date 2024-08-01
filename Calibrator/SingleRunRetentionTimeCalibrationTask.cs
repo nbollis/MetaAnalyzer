@@ -35,7 +35,27 @@ namespace Calibrator
 
         protected override void RunSpecific()
         {
-            var run = Parameters.RunResult;
+            MetaMorpheusResult run;
+            switch (Parameters.RunResult)
+            {
+                case null:
+                    try
+                    {
+                        run = new MetaMorpheusResult(Parameters.SingleRunResultsDirectoryPath);
+                    }
+                    catch (Exception e)
+                    {
+                        Console.WriteLine(e);
+                        throw;
+                    }
+
+                    break;
+                case MetaMorpheusResult m:
+                    run = m;
+                    break;
+                default:
+                    return;
+            }
             if (run is not IRetentionTimePredictionAnalysis rtp)
                 throw new ArgumentException("Selected run is not from MetaMorpheus");
 
