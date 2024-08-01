@@ -148,31 +148,31 @@ namespace TaskLayer.ChimeraAnalysis
                     mmResult.PlotChimeraBreakDownStackedColumn_Scaled(ResultType.Peptide);
                 });
 
-            // Chimeric Spectrum Summary -> Creates Fractional Intensity Plots
-            //Log($"Running Chimeric Spectrum Summaries", 0);
-            //foreach (var cellLineDictEntry in cellLineDict)
-            //{
-            //    var cellLine = Path.GetFileNameWithoutExtension(cellLineDictEntry.Key);
-            //    Log($"Processing Cell Line {cellLine}", 1);
-            //    List<CmdProcess> summaryTasks = new();
-            //    foreach (var singleRunPath in cellLineDictEntry.Value)
-            //    {
-            //        var summaryParams =
-            //            new SingleRunAnalysisParameters(singleRunPath, parameters.Override, false);
-            //        var summaryTask = new SingleRunChimericSpectrumSummaryTask(summaryParams);
-            //        summaryTasks.Add(new ResultAnalyzerTaskToCmdProcessAdaptor(summaryTask, "Chimeric Spectrum Summary", 0.5,
-            //            singleRunPath));
-            //    }
+            // Chimeric Spectrum Summary->Creates Fractional Intensity Plots
+            Log($"Running Chimeric Spectrum Summaries", 0);
+            foreach (var cellLineDictEntry in cellLineDict)
+            {
+                var cellLine = Path.GetFileNameWithoutExtension(cellLineDictEntry.Key);
+                Log($"Processing Cell Line {cellLine}", 1);
+                List<CmdProcess> summaryTasks = new();
+                foreach (var singleRunPath in cellLineDictEntry.Value)
+                {
+                    var summaryParams =
+                        new SingleRunAnalysisParameters(singleRunPath, parameters.Override, false);
+                    var summaryTask = new SingleRunChimericSpectrumSummaryTask(summaryParams);
+                    summaryTasks.Add(new ResultAnalyzerTaskToCmdProcessAdaptor(summaryTask, "Chimeric Spectrum Summary", 0.5,
+                        singleRunPath));
+                }
 
-            //    try
-            //    {
-            //        RunProcesses(summaryTasks).Wait();
-            //    }
-            //    catch (Exception e)
-            //    {
-            //        Warn($"Error Running Chimeric Spectrum Summary for {cellLine}: {e.Message}");
-            //    }
-            //}
+                try
+                {
+                    RunProcesses(summaryTasks).Wait();
+                }
+                catch (Exception e)
+                {
+                    Warn($"Error Running Chimeric Spectrum Summary for {cellLine}: {e.Message}");
+                }
+            }
 
             Log($"Running Retention Time Plots", 0);
             foreach (var cellLineDictEntry in cellLineDict)
