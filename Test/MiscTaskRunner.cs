@@ -151,7 +151,7 @@ namespace Test
 
             var parameters = new InternalMetaMorpheusAnalysisParameters(path, outputDir, dataDirectoryPath, dbPath, @"C:\Program Files\MetaMorpheus");
             var task = new InternalMetaMorpheusAnalysisTask(parameters);
-            task.Run();
+            task.Run().Wait();
         }
 
         #region On the fly tests

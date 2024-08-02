@@ -36,7 +36,7 @@ namespace CMD
             {
                 try
                 {
-                    task.Run();
+                    task.Run().Wait();
                 }
                 catch (Exception e)
                 {

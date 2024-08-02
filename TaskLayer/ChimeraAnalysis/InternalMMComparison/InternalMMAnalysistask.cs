@@ -92,15 +92,15 @@ namespace TaskLayer.ChimeraAnalysis
             MetaMorpheusLocation = parameters.MetaMorpheusPath;
         }
 
-        protected override void RunSpecific() => RunSpecificAsync(Parameters);
+        protected override void RunSpecific() => RunSpecificAsync(Parameters).Wait();
 
-        private static void RunSpecificAsync(InternalMetaMorpheusAnalysisParameters parameters)
+        private static async Task RunSpecificAsync(InternalMetaMorpheusAnalysisParameters parameters)
         {
             if (!Directory.Exists(parameters.OutputDirectory))
                 Directory.CreateDirectory(parameters.OutputDirectory);
 
             var processes = BuildProcesses(parameters);
-            RunProcesses(processes).Wait();
+            await RunProcesses(processes);
 
             // Parse Results Together
             Dictionary<string, List<string>> cellLineDict = new();
@@ -166,7 +166,7 @@ namespace TaskLayer.ChimeraAnalysis
 
                 try
                 {
-                    RunProcesses(summaryTasks).Wait();
+                    await RunProcesses(summaryTasks);
                 }
                 catch (Exception e)
                 {
@@ -198,7 +198,7 @@ namespace TaskLayer.ChimeraAnalysis
 
                 try
                 {
-                    RunProcesses(summaryTasks).Wait();
+                    await RunProcesses(summaryTasks);
                 }
                 catch (Exception e)
                 {
@@ -229,7 +229,7 @@ namespace TaskLayer.ChimeraAnalysis
 
                 try
                 {
-                    RunProcesses(summaryTasks).Wait();
+                    await RunProcesses(summaryTasks);
                 }
                 catch (Exception e)
                 {
@@ -258,7 +258,7 @@ namespace TaskLayer.ChimeraAnalysis
 
                 try
                 {
-                    RunProcesses(summaryTasks).Wait();
+                    await RunProcesses(summaryTasks);
                 }
                 catch (Exception e)
                 {

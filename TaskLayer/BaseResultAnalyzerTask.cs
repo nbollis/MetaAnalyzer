@@ -13,13 +13,15 @@ namespace TaskLayer
         public string Condition { get; set; }
         public abstract BaseResultAnalyzerTaskParameters Parameters { get; }
 
-        public Task Run()
+        public async Task Run()
         {
             Log($"Running Task {MyTask}: {Condition}", 0);
-            RunSpecific();
+            
+            await Task.Run(RunSpecific);
+            
             Log($"Finished Running {MyTask}: {Condition}", 0);
+            
             Console.WriteLine();
-            return Task.CompletedTask;
         }
 
         protected abstract void RunSpecific();
@@ -208,7 +210,7 @@ namespace TaskLayer
 
                     if (process is ResultAnalyzerTaskToCmdProcessAdaptor ad)
                     {
-                        await ad.RunTask();
+                        await ad.RunTask().WaitAsync(CancellationToken.None);
                     }
                     else
                     {
