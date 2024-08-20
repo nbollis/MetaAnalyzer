@@ -186,7 +186,7 @@ namespace Analyzer.Plotting.IndividualRunPlots
                 .WithTitle($"{result.DatasetName} {result.Condition} 1% {Labels.GetLabel(result.IsTopDown, resultType)} Identifications")
                 .SaveInRunResultOnly(result, $"ChimeraBreakdown_Hybrid_{Labels.GetLabel(result.IsTopDown, resultType)}", 1000, 1000);
 
-        internal static GenericChart.GenericChart GetChimeraBreakdownStackedColumn_Scaled(
+        public static GenericChart.GenericChart GetChimeraBreakdownStackedColumn_Scaled(
             this List<ChimeraBreakdownRecord> results, ResultType resultType = ResultType.Psm, 
             bool isTopDown = false)
         {

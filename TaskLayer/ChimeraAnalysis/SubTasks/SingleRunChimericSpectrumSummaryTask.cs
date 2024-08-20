@@ -85,7 +85,7 @@ namespace TaskLayer.ChimeraAnalysis
             mm.Dispose();
         }
 
-        private void GeneratePossibleFeaturePlots(ResultType resultType,
+        internal void GeneratePossibleFeaturePlots(ResultType resultType,
             List<ChimericSpectrumSummary> summaryRecords, bool isTopDown = false)
         {
             var records = summaryRecords.Where(p => p.Type == resultType.ToString() && p.PossibleFeatureCount != 0).ToList();
@@ -161,7 +161,7 @@ namespace TaskLayer.ChimeraAnalysis
             kde.SaveInRunResultOnly(RunResult, outname, 800, 600);
         }
 
-        private void GenerateFractionalIntensityPlots(ResultType resultType,
+        internal void GenerateFractionalIntensityPlots(ResultType resultType,
             List<ChimericSpectrumSummary> summaryRecords, bool isPrecursor, bool sumPrecursor, bool isTopDown = false)
         {
             var records = summaryRecords.Where(p => p.Type == resultType.ToString() || (IncludeNoIdInPlots && p.Type == NoIdString)).ToList();
