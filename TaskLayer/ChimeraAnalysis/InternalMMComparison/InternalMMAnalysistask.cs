@@ -7,6 +7,7 @@ using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
 using Analyzer.Interfaces;
+using Analyzer.Plotting;
 using Analyzer.Plotting.ComparativePlots;
 using Analyzer.Plotting.IndividualRunPlots;
 using Analyzer.SearchType;
@@ -14,13 +15,15 @@ using Analyzer.Util;
 using Calibrator;
 using pepXML.Generated;
 using Plotly.NET;
+using Plotly.NET.ImageExport;
 using TaskLayer.CMD;
+using System.Security.Cryptography;
+using Analyzer.FileTypes.Internal;
 
 namespace TaskLayer.ChimeraAnalysis
 {
     public class InternalMetaMorpheusAnalysisTask : BaseResultAnalyzerTask
     {
-
         #region FilePaths
 
         // Paths for setup
@@ -82,6 +85,7 @@ namespace TaskLayer.ChimeraAnalysis
         public static string Version => "105";
         private static string NonChimericDescriptor => "MetaMorpheusNoChimeras";
         private static string ChimericDescriptor => "MetaMorpheusWithChimeras";
+        private static string BulkFigureDirectory { get; set; }
 
         public override MyTask MyTask => MyTask.InternalMetaMorpheusAnalysis;
         public override InternalMetaMorpheusAnalysisParameters Parameters { get; }
@@ -90,15 +94,18 @@ namespace TaskLayer.ChimeraAnalysis
         {
             Parameters = parameters;
             MetaMorpheusLocation = parameters.MetaMorpheusPath;
+
+            if (!Directory.Exists(parameters.OutputDirectory))
+                Directory.CreateDirectory(parameters.OutputDirectory);
+            BulkFigureDirectory = Path.Combine(parameters.OutputDirectory, "Figures");
+            if (!Directory.Exists(BulkFigureDirectory))
+                Directory.CreateDirectory(BulkFigureDirectory);
         }
 
         protected override void RunSpecific() => RunSpecificAsync(Parameters).Wait();
 
         private static async Task RunSpecificAsync(InternalMetaMorpheusAnalysisParameters parameters)
         {
-            if (!Directory.Exists(parameters.OutputDirectory))
-                Directory.CreateDirectory(parameters.OutputDirectory);
-
             var processes = BuildProcesses(parameters);
             await RunProcesses(processes);
 
@@ -108,14 +115,8 @@ namespace TaskLayer.ChimeraAnalysis
                          .Where(p => !p.Contains("Generate") && !p.Contains("Figure")))
             {
                 cellLineDict.Add(cellLineDirectory, new());
-                foreach (var runDirectory in Directory.GetDirectories(cellLineDirectory)
-                             .Where(p => !p.Contains("Figure")))
-                {
-                    //if (runDirectory.Contains(ChimericDescriptor) && runDirectory.Contains("NonChimericLibrary"))
-                    //    continue;
-
+                foreach (var runDirectory in Directory.GetDirectories(cellLineDirectory).Where(p => !p.Contains("Figure") && p.Contains(Version)))
                     cellLineDict[cellLineDirectory].Add(runDirectory);
-                }
             }
 
             // Run MM Task basic processing 
@@ -148,7 +149,6 @@ namespace TaskLayer.ChimeraAnalysis
                     mmResult.PlotChimeraBreakDownStackedColumn_Scaled(ResultType.Peptide);
                 });
 
-            // Chimeric Spectrum Summary->Creates Fractional Intensity Plots
             Log($"Running Chimeric Spectrum Summaries", 0);
             foreach (var cellLineDictEntry in cellLineDict)
             {
@@ -174,99 +174,114 @@ namespace TaskLayer.ChimeraAnalysis
                 }
             }
 
-            Log($"Running Retention Time Plots", 0);
-            foreach (var cellLineDictEntry in cellLineDict)
-            {
-                var cellLine = Path.GetFileNameWithoutExtension(cellLineDictEntry.Key);
+            //Log($"Running Retention Time Plots", 0);
+            //foreach (var cellLineDictEntry in cellLineDict)
+            //{
+            //    var cellLine = Path.GetFileNameWithoutExtension(cellLineDictEntry.Key);
 
-                List<CmdProcess> summaryTasks = new();
-                Log($"Processing Cell Line {cellLine}", 1);
-                foreach (var singleRunPath in cellLineDictEntry.Value)
-                {
-                    if (singleRunPath.Contains(NonChimericDescriptor))
-                        continue;
+            //    List<CmdProcess> summaryTasks = new();
+            //    Log($"Processing Cell Line {cellLine}", 1);
+            //    foreach (var singleRunPath in cellLineDictEntry.Value)
+            //    {
+            //        if (singleRunPath.Contains(NonChimericDescriptor))
+            //            continue;
 
-                    foreach (var distribPlotTypes in Enum.GetValues<DistributionPlotTypes>())
-                    {
-                        var summaryParams =
-                            new SingleRunAnalysisParameters(singleRunPath, parameters.Override, false, distribPlotTypes);
-                        var summaryTask = new SingleRunChimeraRetentionTimeDistribution(summaryParams);
-                        summaryTasks.Add(new ResultAnalyzerTaskToCmdProcessAdaptor(summaryTask, "Retention Time Plots", 0.25,
-                            singleRunPath));
-                    }
-                }
+            //        foreach (var distribPlotTypes in Enum.GetValues<DistributionPlotTypes>())
+            //        {
+            //            var summaryParams =
+            //                new SingleRunAnalysisParameters(singleRunPath, parameters.Override, false, distribPlotTypes);
+            //            var summaryTask = new SingleRunChimeraRetentionTimeDistribution(summaryParams);
+            //            summaryTasks.Add(new ResultAnalyzerTaskToCmdProcessAdaptor(summaryTask, "Retention Time Plots", 0.25,
+            //                singleRunPath));
+            //        }
+            //    }
 
-                try
-                {
-                    await RunProcesses(summaryTasks);
-                }
-                catch (Exception e)
-                {
-                    Warn($"Error Running Retention Time Plots for {cellLine}: {e.Message}");
-                }
-            }
+            //    try
+            //    {
+            //        await RunProcesses(summaryTasks);
+            //    }
+            //    catch (Exception e)
+            //    {
+            //        Warn($"Error Running Retention Time Plots for {cellLine}: {e.Message}");
+            //    }
+            //}
 
-            Log($"Running Spectral Angle Comparisons", 0);
-            foreach (var cellLineDictEntry in cellLineDict)
-            {
-                var cellLine = Path.GetFileNameWithoutExtension(cellLineDictEntry.Key);
+            //Log($"Running Spectral Angle Comparisons", 0);
+            //foreach (var cellLineDictEntry in cellLineDict)
+            //{
+            //    var cellLine = Path.GetFileNameWithoutExtension(cellLineDictEntry.Key);
 
-                List<CmdProcess> summaryTasks = new();
-                Log($"Processing Cell Line {cellLine}", 1);
-                foreach (var singleRunPath in cellLineDictEntry.Value)
-                {
-                    if (singleRunPath.Contains(NonChimericDescriptor))
-                        continue;
-                    foreach (var distribPlotTypes in Enum.GetValues<DistributionPlotTypes>())
-                    {
-                        var summaryParams =
-                            new SingleRunAnalysisParameters(singleRunPath, parameters.Override, false, distribPlotTypes);
-                        var summaryTask = new SingleRunSpectralAngleComparisonTask(summaryParams);
-                        summaryTasks.Add(new ResultAnalyzerTaskToCmdProcessAdaptor(summaryTask, "Spectral Angle Comparisons", 0.25,
-                            singleRunPath));
-                    }
-                }
+            //    List<CmdProcess> summaryTasks = new();
+            //    Log($"Processing Cell Line {cellLine}", 1);
+            //    foreach (var singleRunPath in cellLineDictEntry.Value)
+            //    {
+            //        if (singleRunPath.Contains(NonChimericDescriptor))
+            //            continue;
+            //        foreach (var distribPlotTypes in Enum.GetValues<DistributionPlotTypes>())
+            //        {
+            //            var summaryParams =
+            //                new SingleRunAnalysisParameters(singleRunPath, parameters.Override, false, distribPlotTypes);
+            //            var summaryTask = new SingleRunSpectralAngleComparisonTask(summaryParams);
+            //            summaryTasks.Add(new ResultAnalyzerTaskToCmdProcessAdaptor(summaryTask, "Spectral Angle Comparisons", 0.25,
+            //                singleRunPath));
+            //        }
+            //    }
 
-                try
-                {
-                    await RunProcesses(summaryTasks);
-                }
-                catch (Exception e)
-                {
-                    Warn($"Error Running Spectral Angle Comparisons for {cellLine}: {e.Message}");
-                }
-            }
+            //    try
+            //    {
+            //        await RunProcesses(summaryTasks);
+            //    }
+            //    catch (Exception e)
+            //    {
+            //        Warn($"Error Running Spectral Angle Comparisons for {cellLine}: {e.Message}");
+            //    }
+            //}
 
             // TODO: Change retention time alignment to operate on the grouped runs
-            Log($"Running Retention Time Alignment", 0);
-            foreach (var cellLineDictEntry in cellLineDict)
-            {
-                var cellLine = Path.GetFileNameWithoutExtension(cellLineDictEntry.Key);
+            //Log($"Running Retention Time Alignment", 0);
+            //foreach (var cellLineDictEntry in cellLineDict)
+            //{
+            //    var cellLine = Path.GetFileNameWithoutExtension(cellLineDictEntry.Key);
 
-                List<CmdProcess> summaryTasks = new();
-                Log($"Processing Cell Line {cellLine}", 1);
-                foreach (var singleRunPath in cellLineDictEntry.Value)
-                {
-                    if (singleRunPath.Contains(NonChimericDescriptor))
-                        continue;
-                    var summaryParams =
-                        new SingleRunAnalysisParameters(singleRunPath, parameters.Override, false);
-                    var summaryTask = new SingleRunRetentionTimeCalibrationTask(summaryParams);
-                    summaryTasks.Add(new ResultAnalyzerTaskToCmdProcessAdaptor(summaryTask, "Retention Time Alignment", 0.25,
-                        singleRunPath));
-                }
+            //    List<CmdProcess> summaryTasks = new();
+            //    Log($"Processing Cell Line {cellLine}", 1);
+            //    foreach (var singleRunPath in cellLineDictEntry.Value)
+            //    {
+            //        if (singleRunPath.Contains(NonChimericDescriptor))
+            //            continue;
+            //        var summaryParams =
+            //            new SingleRunAnalysisParameters(singleRunPath, parameters.Override, false);
+            //        var summaryTask = new SingleRunRetentionTimeCalibrationTask(summaryParams);
+            //        summaryTasks.Add(new ResultAnalyzerTaskToCmdProcessAdaptor(summaryTask, "Retention Time Alignment", 0.25,
+            //            singleRunPath));
+            //    }
 
-                try
-                {
-                    await RunProcesses(summaryTasks);
-                }
-                catch (Exception e)
-                {
-                    Warn($"Error Running Retention Time Alignment for {cellLine}: {e.Message}");
-                }
-            }
-            // Plot the bulk comparisons
+            //    try
+            //    {
+            //        await RunProcesses(summaryTasks);
+            //    }
+            //    catch (Exception e)
+            //    {
+            //        Warn($"Error Running Retention Time Alignment for {cellLine}: {e.Message}");
+            //    }
+            //}
+
+
+
+            var resultsForInternalComparison = cellLineDict.SelectMany(p => p.Value)
+                .Where(p => !p.Contains($"WithChimeras_{Version}_NonChimericLibrary"))
+                .Select(p => new MetaMorpheusResult(p))
+                .ToList();
+
+            Log($"Plotting Bulk Internal Comparison", 0);
+            PlotCellLineBarCharts(resultsForInternalComparison);
+            PlotChimeraBreakdownBarChart(resultsForInternalComparison);
+            PlotPossibleFeatures(resultsForInternalComparison);
+            PlotFractionalIntensityPlots(resultsForInternalComparison);
+            
         }
+
+        #region MetaMorpheus search running
 
         static List<CmdProcess> BuildProcesses(InternalMetaMorpheusAnalysisParameters parameters)
         {
@@ -392,6 +407,221 @@ namespace TaskLayer.ChimeraAnalysis
                 };
             }
         }
+
+        #endregion
+
+
+        #region Plotting
+
+        static void PlotCellLineBarCharts(List<MetaMorpheusResult> results)
+        {
+            Log($"Cell line bar charts", 1);
+            bool isTopDown = results.First().IsTopDown;
+            var resultsToPlot = results.SelectMany(p => p.BulkResultCountComparisonFile)
+                .ToList();
+
+            var psmPlot = GenericPlots.BulkResultBarChart(resultsToPlot, isTopDown, ResultType.Psm);
+            var psmOutName = Path.Combine(BulkFigureDirectory, $"{Version}_InternalComparison_Psm");
+            psmPlot.SaveJPG(psmOutName, null, 600, 500);
+
+            var peptidePlot = GenericPlots.BulkResultBarChart(resultsToPlot, isTopDown, ResultType.Peptide);
+            var peptideOutName = Path.Combine(BulkFigureDirectory, $"{Version}_InternalComparison_Peptide");
+            peptidePlot.SaveJPG(peptideOutName, null, 600, 500);
+
+            var proteinPlot = GenericPlots.BulkResultBarChart(resultsToPlot, isTopDown, ResultType.Protein);
+            var proteinOutName = Path.Combine(BulkFigureDirectory, $"{Version}_InternalComparison_Protein");
+            proteinPlot.SaveJPG(proteinOutName, null, 600, 500);
+        }
+
+        static void PlotChimeraBreakdownBarChart(List<MetaMorpheusResult> results)
+        {
+            Log($"Chimera Breakdown", 1);
+            bool isTopDown = results.First().IsTopDown;
+            var resultsToPlot = results.SelectMany(p => p.ChimeraBreakdownFile)
+                .ToList();
+
+            var psmPlot = resultsToPlot.GetChimeraBreakdownStackedColumn_Scaled(ResultType.Psm, isTopDown);
+            var psmOutPath = Path.Combine(BulkFigureDirectory, $"{Version}_ChimeraBreakdown_Psm");
+            psmPlot.SaveJPG(psmOutPath, null, 800, 600);
+
+            var peptidePlot = resultsToPlot.GetChimeraBreakdownStackedColumn_Scaled(ResultType.Peptide, isTopDown);
+            var peptideOutPath = Path.Combine(BulkFigureDirectory, $"{Version}_ChimeraBreakdown_Peptide");
+            peptidePlot.SaveJPG(peptideOutPath, null, 800, 600);
+        }
+
+        static void PlotPossibleFeatures(List<MetaMorpheusResult> results)
+        {
+            Log($"Possible Features", 1);
+            var noIdString = "No ID";
+            bool isTopDown = results.First().IsTopDown;
+            var resultsToPlot = results.SelectMany(p => p.ChimericSpectrumSummaryFile)
+                .ToList();
+
+
+
+            var resultType = ResultType.Psm;
+            var records = resultsToPlot.Where(p => p.Type == resultType.ToString() && p.PossibleFeatureCount != 0).ToList();
+            var chimeric = records.Where(p => p.IsChimeric && p.Type != noIdString).ToList();
+            var nonChimeric = records.Where(p => !p.IsChimeric && p.Type != noIdString).ToList();
+
+            (double, double)? minMax = isTopDown ? (0.0, 50.0) : (0.0, 15.0);
+            var chimericHist = GenericPlots.Histogram(chimeric.Select(p => 
+                (double)p.PossibleFeatureCount).ToList(), "Chimeric ID", "Features per Isolation Window", "Number of Spectra", false, minMax);
+            var nonChimericHist = GenericPlots.Histogram(nonChimeric.Select(p => 
+                (double)p.PossibleFeatureCount).ToList(), "Non-Chimeric ID", "Features per Isolation Window", "Number of Spectra", false, minMax);
+            var hist = Chart.Combine(new List<GenericChart.GenericChart> { chimericHist, nonChimericHist })
+                .WithTitle($"1% {Labels.GetLabel(isTopDown, resultType)} Detected Features Per MS2 Isolation Window");
+            var outname = $"{Version}_SpectrumSummary_FeatureCount_{Labels.GetLabel(isTopDown, resultType)}_Histogram";
+            hist.SaveJPG(Path.Combine(BulkFigureDirectory, outname), null, 800, 600);
+
+            var chimericKde = GenericPlots.KernelDensityPlot(chimeric.Select(p =>
+                (double)p.PossibleFeatureCount).ToList(), "Chimeric ID", "Features per Isolation Window", "Density", 0.5);
+            var nonChimericKde = GenericPlots.KernelDensityPlot(nonChimeric.Select(p => 
+                (double)p.PossibleFeatureCount).ToList(), "Non-Chimeric ID", "Features per Isolation Window", "Density", 0.5);
+            var kde = Chart.Combine(new List<GenericChart.GenericChart> { chimericKde, nonChimericKde })
+                .WithTitle($"1% {Labels.GetLabel(isTopDown, resultType)} Detected Features Per MS2 Isolation Window");
+            outname = $"{Version}_SpectrumSummary_FeatureCount_{Labels.GetLabel(isTopDown, resultType)}_KernelDensity";
+            kde.SaveJPG(Path.Combine(BulkFigureDirectory, outname), null, 800, 600);
+
+
+
+            resultType = ResultType.Peptide;
+            records = resultsToPlot.Where(p => p.Type == resultType.ToString() && p.PossibleFeatureCount != 0).ToList();
+            chimeric = records.Where(p => p.IsChimeric && p.Type != noIdString).ToList();
+            nonChimeric = records.Where(p => !p.IsChimeric && p.Type != noIdString).ToList();
+
+            minMax = null;
+            chimericHist = GenericPlots.Histogram(chimeric.Select(p =>
+                    (double)p.PossibleFeatureCount).ToList(), "Chimeric ID", "Features per Isolation Window", "Number of Spectra", false, minMax);
+            nonChimericHist = GenericPlots.Histogram(nonChimeric.Select(p =>
+                    (double)p.PossibleFeatureCount).ToList(), "Non-Chimeric ID", "Features per Isolation Window", "Number of Spectra", false, minMax);
+            hist = Chart.Combine(new List<GenericChart.GenericChart> { chimericHist, nonChimericHist })
+                .WithTitle($"1% {Labels.GetLabel(isTopDown, resultType)} Detected Features Per MS2 Isolation Window");
+            outname = $"{Version}_SpectrumSummary_FeatureCount_{Labels.GetLabel(isTopDown, resultType)}_Histogram";
+            hist.SaveJPG(Path.Combine(BulkFigureDirectory, outname), null, 800, 600);
+
+            chimericKde = GenericPlots.KernelDensityPlot(chimeric.Select(p =>
+                    (double)p.PossibleFeatureCount).ToList(), "Chimeric ID", "Features per Isolation Window", "Density", 0.5);
+            nonChimericKde = GenericPlots.KernelDensityPlot(nonChimeric.Select(p =>
+                    (double)p.PossibleFeatureCount).ToList(), "Non-Chimeric ID", "Features per Isolation Window", "Density", 0.5);
+            kde = Chart.Combine(new List<GenericChart.GenericChart> { chimericKde, nonChimericKde })
+                .WithTitle($"1% {Labels.GetLabel(isTopDown, resultType)} Detected Features Per MS2 Isolation Window");
+            outname = $"{Version}_SpectrumSummary_FeatureCount_{Labels.GetLabel(isTopDown, resultType)}_KernelDensity";
+            kde.SaveJPG(Path.Combine(BulkFigureDirectory, outname), null, 800, 600);
+        }
+
+        static void PlotFractionalIntensityPlots(List<MetaMorpheusResult> results)
+        {
+            Log($"Fractional Intensity", 1);
+            bool isTopDown = results.First().IsTopDown;
+            var resultsToPlot = results.SelectMany(p => p.ChimericSpectrumSummaryFile)
+                .ToList();
+            GenerateFractionalIntensityPlots(ResultType.Psm, resultsToPlot, true, true, isTopDown);
+            GenerateFractionalIntensityPlots(ResultType.Psm, resultsToPlot, true, false, isTopDown);
+            GenerateFractionalIntensityPlots(ResultType.Peptide, resultsToPlot, true, true, isTopDown);
+            GenerateFractionalIntensityPlots(ResultType.Peptide, resultsToPlot, true, false, isTopDown);
+
+            GenerateFractionalIntensityPlots(ResultType.Psm, resultsToPlot, false, false, isTopDown);
+            GenerateFractionalIntensityPlots(ResultType.Psm, resultsToPlot, false, true, isTopDown);
+            GenerateFractionalIntensityPlots(ResultType.Peptide, resultsToPlot, false, false, isTopDown);
+            GenerateFractionalIntensityPlots(ResultType.Peptide, resultsToPlot, false, true, isTopDown);
+        }
+
+        static void GenerateFractionalIntensityPlots(ResultType resultType,
+            List<ChimericSpectrumSummary> summaryRecords, bool isPrecursor, bool sumPrecursor, bool isTopDown = false)
+        {
+            var records = summaryRecords.Where(p => p.Type == resultType.ToString()).ToList();
+            var chimeric = records.Where(p => p.IsChimeric).ToList();
+            var nonChimeric = records.Where(p => !p.IsChimeric).ToList();
+
+            var chimericFractionalIntensity = sumPrecursor
+                ? isPrecursor
+                    ? chimeric.GroupBy(p => p,
+                            new CustomComparer<ChimericSpectrumSummary>(result => result.Ms2ScanNumber,
+                                result => result.FileName))
+                        .ToDictionary(p => p.Key, p => p.Select(b => b.PrecursorFractionalIntensity).Sum())
+                        .Values.ToList()
+                    : chimeric.GroupBy(p => p,
+                            new CustomComparer<ChimericSpectrumSummary>(result => result.Ms2ScanNumber,
+                                result => result.FileName))
+                        .ToDictionary(p => p.Key, p => p.Select(b => b.FragmentFractionalIntensity).Sum())
+                        .Values.ToList()
+                : chimeric.Select(p => isPrecursor ? p.PrecursorFractionalIntensity : p.FragmentFractionalIntensity)
+                    .ToList();
+            var nonChimericFractionalIntensity = sumPrecursor
+                ? isPrecursor
+                    ? nonChimeric.GroupBy(p => p,
+                            new CustomComparer<ChimericSpectrumSummary>(result => result.Ms2ScanNumber,
+                                result => result.FileName))
+                        .ToDictionary(p => p.Key, p => p.Select(b => b.PrecursorFractionalIntensity).Sum())
+                        .Values.ToList()
+                    : nonChimeric.GroupBy(p => p,
+                            new CustomComparer<ChimericSpectrumSummary>(result => result.Ms2ScanNumber,
+                                result => result.FileName))
+                        .ToDictionary(p => p.Key, p => p.Select(b => b.FragmentFractionalIntensity).Sum())
+                        .Values.ToList()
+                : nonChimeric.Select(p => isPrecursor ? p.PrecursorFractionalIntensity : p.FragmentFractionalIntensity)
+                    .ToList();
+
+            (double, double) minMax = isTopDown switch
+            {
+                true when sumPrecursor && isPrecursor => (0.0, 1.0),
+                true when sumPrecursor && !isPrecursor => (0.0, 0.8),
+                true when !sumPrecursor && isPrecursor => (0.0, 0.3),
+                true when !sumPrecursor && !isPrecursor => (0.0, 0.25),
+
+                false when sumPrecursor && isPrecursor => (0.0, 1.0),
+                false when sumPrecursor && !isPrecursor => (0.0, 0.6),
+                false when !sumPrecursor && isPrecursor => (0.0, 1.0),
+                false when !sumPrecursor && !isPrecursor => (0.0, 0.6),
+
+                _ => (0.0, 1.0)
+            };
+
+
+            var label = /*isPrecursor ? sumPrecursor ?*/ "Percent Identified Intensity" /*: "Precursor ID Fractional Intensity" : "Fragment Fractional Intensity"*/;
+            var titleEnd = sumPrecursor
+                ? isPrecursor ? "Per Isolation Window" : "Per MS2"
+                : "Per ID";
+            var outPrecursor = isPrecursor ? "Precursor" : "Fragment";
+            var outType = sumPrecursor ? "Summed" : "Independent";
+
+            var chimericHist = GenericPlots.Histogram(chimericFractionalIntensity, "Chimeric ID", label, "Number of Spectra", false, minMax);
+            var nonChimericHist = GenericPlots.Histogram(nonChimericFractionalIntensity, "Non-Chimeric ID", label, "Number of Spectra", false, minMax);
+            var hist = Chart.Combine(new List<GenericChart.GenericChart> { chimericHist, nonChimericHist })
+                .WithTitle($"1% {Labels.GetLabel(isTopDown, resultType)} Identified {outPrecursor} Intensity {titleEnd}")
+                .WithAxisAnchor(Y: 1);
+            var outName = $"SpectrumSummary_{outPrecursor}FractionalIntensity_{outType}_{Labels.GetLabel(isTopDown, resultType)}_Histogram";
+            //hist.SaveInRunResultOnly(RunResult, outName);
+
+            var chimericKde = GenericPlots.KernelDensityPlot(chimericFractionalIntensity, "Chimeric ID", label, "Density", 0.04);
+            var nonChimericKde = GenericPlots.KernelDensityPlot(nonChimericFractionalIntensity, "Non-Chimeric ID", label, "Density", 0.04);
+            var kde = Chart.Combine(new List<GenericChart.GenericChart> { chimericKde, nonChimericKde })
+                .WithTitle($"1% {Labels.GetLabel(isTopDown, resultType)} Identified {outPrecursor} Intensity {titleEnd}")
+                .WithLayout(PlotlyBase.DefaultLayout)
+                .WithAxisAnchor(Y: 2);
+            outName = $"SpectrumSummary_{outPrecursor}FractionalIntensity_{outType}_{Labels.GetLabel(isTopDown, resultType)}_KernelDensity";
+            //kde.SaveInRunResultOnly(RunResult, outName);
+
+
+            var combinedHistKde = Chart.Combine(new[]
+                {
+                    kde.WithLineStyle(Dash: StyleParam.DrawingStyle.Dot).WithMarkerStyle(Opacity: 0.8),
+                    hist
+                })
+                .WithYAxisStyle(Title.init("Number of Spectra"), Side: StyleParam.Side.Left,
+                    Id: StyleParam.SubPlotId.NewYAxis(1))
+                .WithYAxisStyle(Title.init("Density"), Side: StyleParam.Side.Right,
+                    Id: StyleParam.SubPlotId.NewYAxis(2),
+                    Overlaying: StyleParam.LinearAxisId.NewY(1))
+                .WithLayout(PlotlyBase.DefaultLayoutNoLegend);
+            outName =
+                $"{Version}_SpectrumSummary_{outPrecursor}FractionalIntensity_{outType}_{Labels.GetLabel(isTopDown, resultType)}_Combined";
+            combinedHistKde.SaveJPG(Path.Combine(BulkFigureDirectory, outName), null, 600, 500);
+        }
+
+        #endregion
+
 
     }
 
