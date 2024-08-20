@@ -108,14 +108,8 @@ namespace TaskLayer.ChimeraAnalysis
                          .Where(p => !p.Contains("Generate") && !p.Contains("Figure")))
             {
                 cellLineDict.Add(cellLineDirectory, new());
-                foreach (var runDirectory in Directory.GetDirectories(cellLineDirectory)
-                             .Where(p => !p.Contains("Figure")))
-                {
-                    //if (runDirectory.Contains(ChimericDescriptor) && runDirectory.Contains("NonChimericLibrary"))
-                    //    continue;
-
+                foreach (var runDirectory in Directory.GetDirectories(cellLineDirectory).Where(p => !p.Contains("Figure")))
                     cellLineDict[cellLineDirectory].Add(runDirectory);
-                }
             }
 
             // Run MM Task basic processing 
@@ -265,6 +259,7 @@ namespace TaskLayer.ChimeraAnalysis
                     Warn($"Error Running Retention Time Alignment for {cellLine}: {e.Message}");
                 }
             }
+
             // Plot the bulk comparisons
         }
 
