@@ -99,6 +99,7 @@ namespace TaskLayer.ChimeraAnalysis
             if (!Directory.Exists(parameters.OutputDirectory))
                 Directory.CreateDirectory(parameters.OutputDirectory);
             BulkFigureDirectory = Path.Combine(parameters.OutputDirectory, "Figures");
+            BulkResultComparisonFilePath = Path.Combine(parameters.OutputDirectory, "BulkResultComparisonFile.csv");
             if (!Directory.Exists(BulkFigureDirectory))
                 Directory.CreateDirectory(BulkFigureDirectory);
         }
@@ -273,7 +274,7 @@ namespace TaskLayer.ChimeraAnalysis
                 .Where(p => !p.Contains($"WithChimeras_{Version}_NonChimericLibrary"))
                 .Select(p => new MetaMorpheusResult(p))
                 .ToList();
-
+            GetResultCountFile(resultsForInternalComparison);
             Log($"Plotting Bulk Internal Comparison", 0);
             PlotCellLineBarCharts(resultsForInternalComparison);
             PlotChimeraBreakdownBarChart(resultsForInternalComparison);
@@ -413,10 +414,10 @@ namespace TaskLayer.ChimeraAnalysis
 
         #region Result File Creation
 
-        private string BulkResultComparisonFilePath => Path.Combine(Parameters.OutputDirectory, FileIdentifiers.BottomUpResultComparison);
-        private BulkResultCountComparisonFile? _bulkResultCountComparisonFile;
+        private static string BulkResultComparisonFilePath { get; set; }
+        private static BulkResultCountComparisonFile? _bulkResultCountComparisonFile;
 
-        internal BulkResultCountComparisonFile GetResultCountFile(List<MetaMorpheusResult> mmResults)
+        internal static BulkResultCountComparisonFile GetResultCountFile(List<MetaMorpheusResult> mmResults)
         {
             Log($"Counting Total Results", 0);
             if (_bulkResultCountComparisonFile != null)
@@ -442,16 +443,75 @@ namespace TaskLayer.ChimeraAnalysis
                     if (cellLineGroup.Count() != 2 && isTopDown)
                         Debugger.Break();
 
-                    int psmCount = 0;
-                    int peptideCount = 0;
-                    int proteinGroupCount = 0;
+                    int psmCount = cellLineGroup.Sum(p =>
+                        p.AllPsms.Count(psm => !psm.IsDecoy() && psm.PEP_QValue <= 0.01));
+                    int allPsmCount = cellLineGroup.Sum(p => p.AllPsms.Count(psm => !psm.IsDecoy()));
 
+                    int peptideCount = cellLineGroup.SelectMany(p =>
+                            p.AllPeptides.Where(peptide => !peptide.IsDecoy() && peptide.PEP_QValue <= 0.01))
+                        .DistinctBy(peptide => peptide.FullSequence)
+                        .Count();
+                    int allPeptideCount = cellLineGroup.SelectMany(p => p.AllPeptides.Where(peptide => !peptide.IsDecoy()))
+                        .DistinctBy(peptide => peptide.FullSequence)
+                        .Count();
+
+                    List<string> accessions = new();
+                    List<string> unfilteredAccessions = new();
+                    cellLineGroup.ForEach(group =>
+                    {
+                        using (var sw = new StreamReader(File.OpenRead(group.ProteinPath)))
+                        {
+                            var header = sw.ReadLine();
+                            var headerSplit = header.Split('\t');
+                            var qValueIndex = Array.IndexOf(headerSplit, "Protein QValue");
+                            var decoyContamTargetIndex = Array.IndexOf(headerSplit, "Protein Decoy/Contaminant/Target");
+                            var accessionIndex = Array.IndexOf(headerSplit, "Protein Accession");
+                            
+                            while (!sw.EndOfStream)
+                            {
+                                var line = sw.ReadLine();
+                                var values = line.Split('\t');
+
+                                if (values[decoyContamTargetIndex].Contains('D'))
+                                    continue;
+
+                                var internalAccessions = values[accessionIndex].Split('|')
+                                    .Select(p => p.Trim()).ToArray();
+                                unfilteredAccessions.AddRange(internalAccessions);
+
+                                if (double.Parse(values[qValueIndex]) > 0.01)
+                                    continue;
+                                
+
+                                accessions.AddRange(internalAccessions);
+                            }
+                        }
+                    });
+
+                    var proteinGroupCount = accessions.Distinct().Count();
+                    var allProteinGroupCount = unfilteredAccessions.Distinct().Count();
+
+                    var result = new BulkResultCountComparison()
+                    {
+                        DatasetName = cellLine,
+                        Condition = condition,
+                        FileName = "All 3 Replicates",
+                        OnePercentPeptideCount = peptideCount,
+                        OnePercentPsmCount = psmCount,
+                        OnePercentProteinGroupCount = proteinGroupCount,
+                        PsmCount = allPsmCount,
+                        PeptideCount = allPeptideCount,
+                        ProteinGroupCount = allProteinGroupCount
+                    };
+
+                    allResults.Add(result);
+                    cellLineGroup.ForEach(p => p.Dispose());
                 }
             }
 
-
-
-            throw new NotImplementedException();
+            var file = new BulkResultCountComparisonFile(BulkResultComparisonFilePath) { Results = allResults };
+            file.WriteResults(BulkResultComparisonFilePath);
+            return _bulkResultCountComparisonFile = file;
         }
 
         #endregion
@@ -462,7 +522,7 @@ namespace TaskLayer.ChimeraAnalysis
         {
             Log($"Cell line bar charts", 1);
             bool isTopDown = results.First().IsTopDown;
-            var resultsToPlot = results.SelectMany(p => p.BulkResultCountComparisonFile)
+            var resultsToPlot = GetResultCountFile(results)
                 .ToList();
 
             var labels = results.Select(p => p.DatasetName).Distinct().ConvertConditionNames().ToList();
@@ -475,27 +535,27 @@ namespace TaskLayer.ChimeraAnalysis
                     .Where(p => p.Condition.ConvertConditionName() == condition)
                     .ToList();
 
-                (string CellLine, int OnePercentPsmCount, int OnePercentPeptideCount, int OnePercentProteinGroupCount)[] extractedCounts = conditionSpecificResults
-                    .GroupBy(p => p.DatasetName)
-                    .Select(p => (p.Key, p.Sum(m => m.OnePercentPsmCount),
-                            p.Sum(m => m.OnePercentPeptideCount), p.Sum(m => m.OnePercentProteinGroupCount)))
-                        .ToArray();
+                //(string CellLine, int OnePercentPsmCount, int OnePercentPeptideCount, int OnePercentProteinGroupCount)[] extractedCounts = conditionSpecificResults
+                //    .GroupBy(p => p.DatasetName)
+                //    .Select(p => (p.Key, p.Sum(m => m.OnePercentPsmCount),
+                //            p.Sum(m => m.OnePercentPeptideCount), p.Sum(m => m.OnePercentProteinGroupCount)))
+                //        .ToArray();
 
 
                 psmCharts.Add(Chart2D.Chart.Column<int, string, string, int, int>(
-                    extractedCounts.Select(m => m.OnePercentPsmCount), labels, null, condition,
+                    conditionSpecificResults.Select(m => m.OnePercentPsmCount), labels, null, condition,
                     MarkerColor: condition.ConvertConditionToColor(),
-                    MultiText: extractedCounts.Select(m => m.OnePercentPsmCount).Select(p => p.ToString()).ToArray()));
+                    MultiText: conditionSpecificResults.Select(m => m.OnePercentPsmCount).Select(p => p.ToString()).ToArray()));
 
                 peptideCharts.Add(Chart2D.Chart.Column<int, string, string, int, int>(
-                    extractedCounts.Select(m => m.OnePercentPeptideCount), labels, null, condition,
+                    conditionSpecificResults.Select(m => m.OnePercentPeptideCount), labels, null, condition,
                     MarkerColor: condition.ConvertConditionToColor(),
-                    MultiText: extractedCounts.Select(m => m.OnePercentPeptideCount).Select(p => p.ToString()).ToArray()));
+                    MultiText: conditionSpecificResults.Select(m => m.OnePercentPeptideCount).Select(p => p.ToString()).ToArray()));
 
                 proteinCharts.Add(Chart2D.Chart.Column<int, string, string, int, int>(
-                    extractedCounts.Select(m => m.OnePercentProteinGroupCount), labels, null, condition,
+                    conditionSpecificResults.Select(m => m.OnePercentProteinGroupCount), labels, null, condition,
                     MarkerColor: condition.ConvertConditionToColor(),
-                    MultiText: extractedCounts.Select(m => m.OnePercentProteinGroupCount).Select(p => p.ToString()).ToArray()));
+                    MultiText: conditionSpecificResults.Select(m => m.OnePercentProteinGroupCount).Select(p => p.ToString()).ToArray()));
             }
 
 
@@ -555,6 +615,15 @@ namespace TaskLayer.ChimeraAnalysis
             var chimeric = records.Where(p => p.IsChimeric && p.Type != noIdString).ToList();
             var nonChimeric = records.Where(p => !p.IsChimeric && p.Type != noIdString).ToList();
 
+            var chimericKde = GenericPlots.KernelDensityPlot(chimeric.Select(p =>
+                (double)p.PossibleFeatureCount).ToList(), "Chimeric ID", "Features per Isolation Window", "Density", 0.5);
+            var nonChimericKde = GenericPlots.KernelDensityPlot(nonChimeric.Select(p =>
+                (double)p.PossibleFeatureCount).ToList(), "Non-Chimeric ID", "Features per Isolation Window", "Density", 0.5);
+            var kde = Chart.Combine(new List<GenericChart.GenericChart> { chimericKde, nonChimericKde })
+                .WithTitle($"1% {Labels.GetLabel(isTopDown, resultType)} Detected Features Per MS2 Isolation Window");
+            var outname = $"{Version}_SpectrumSummary_FeatureCount_{Labels.GetLabel(isTopDown, resultType)}_KernelDensity";
+            kde.SaveJPG(Path.Combine(BulkFigureDirectory, outname), null, 800, 600);
+
             (double, double)? minMax = isTopDown ? (0.0, 50.0) : (0.0, 15.0);
             var chimericHist = GenericPlots.Histogram(chimeric.Select(p => 
                 (double)p.PossibleFeatureCount).ToList(), "Chimeric ID", "Features per Isolation Window", "Number of Spectra", false, minMax);
@@ -562,17 +631,10 @@ namespace TaskLayer.ChimeraAnalysis
                 (double)p.PossibleFeatureCount).ToList(), "Non-Chimeric ID", "Features per Isolation Window", "Number of Spectra", false, minMax);
             var hist = Chart.Combine(new List<GenericChart.GenericChart> { chimericHist, nonChimericHist })
                 .WithTitle($"1% {Labels.GetLabel(isTopDown, resultType)} Detected Features Per MS2 Isolation Window");
-            var outname = $"{Version}_SpectrumSummary_FeatureCount_{Labels.GetLabel(isTopDown, resultType)}_Histogram";
+            outname = $"{Version}_SpectrumSummary_FeatureCount_{Labels.GetLabel(isTopDown, resultType)}_Histogram";
             hist.SaveJPG(Path.Combine(BulkFigureDirectory, outname), null, 800, 600);
 
-            var chimericKde = GenericPlots.KernelDensityPlot(chimeric.Select(p =>
-                (double)p.PossibleFeatureCount).ToList(), "Chimeric ID", "Features per Isolation Window", "Density", 0.5);
-            var nonChimericKde = GenericPlots.KernelDensityPlot(nonChimeric.Select(p => 
-                (double)p.PossibleFeatureCount).ToList(), "Non-Chimeric ID", "Features per Isolation Window", "Density", 0.5);
-            var kde = Chart.Combine(new List<GenericChart.GenericChart> { chimericKde, nonChimericKde })
-                .WithTitle($"1% {Labels.GetLabel(isTopDown, resultType)} Detected Features Per MS2 Isolation Window");
-            outname = $"{Version}_SpectrumSummary_FeatureCount_{Labels.GetLabel(isTopDown, resultType)}_KernelDensity";
-            kde.SaveJPG(Path.Combine(BulkFigureDirectory, outname), null, 800, 600);
+            
 
 
 
@@ -582,6 +644,15 @@ namespace TaskLayer.ChimeraAnalysis
             nonChimeric = records.Where(p => !p.IsChimeric && p.Type != noIdString).ToList();
 
             minMax = null;
+            chimericKde = GenericPlots.KernelDensityPlot(chimeric.Select(p =>
+                (double)p.PossibleFeatureCount).ToList(), "Chimeric ID", "Features per Isolation Window", "Density", 0.5);
+            nonChimericKde = GenericPlots.KernelDensityPlot(nonChimeric.Select(p =>
+                (double)p.PossibleFeatureCount).ToList(), "Non-Chimeric ID", "Features per Isolation Window", "Density", 0.5);
+            kde = Chart.Combine(new List<GenericChart.GenericChart> { chimericKde, nonChimericKde })
+                .WithTitle($"1% {Labels.GetLabel(isTopDown, resultType)} Detected Features Per MS2 Isolation Window");
+            outname = $"{Version}_SpectrumSummary_FeatureCount_{Labels.GetLabel(isTopDown, resultType)}_KernelDensity";
+            kde.SaveJPG(Path.Combine(BulkFigureDirectory, outname), null, 800, 600);
+
             chimericHist = GenericPlots.Histogram(chimeric.Select(p =>
                     (double)p.PossibleFeatureCount).ToList(), "Chimeric ID", "Features per Isolation Window", "Number of Spectra", false, minMax);
             nonChimericHist = GenericPlots.Histogram(nonChimeric.Select(p =>
@@ -591,14 +662,7 @@ namespace TaskLayer.ChimeraAnalysis
             outname = $"{Version}_SpectrumSummary_FeatureCount_{Labels.GetLabel(isTopDown, resultType)}_Histogram";
             hist.SaveJPG(Path.Combine(BulkFigureDirectory, outname), null, 800, 600);
 
-            chimericKde = GenericPlots.KernelDensityPlot(chimeric.Select(p =>
-                    (double)p.PossibleFeatureCount).ToList(), "Chimeric ID", "Features per Isolation Window", "Density", 0.5);
-            nonChimericKde = GenericPlots.KernelDensityPlot(nonChimeric.Select(p =>
-                    (double)p.PossibleFeatureCount).ToList(), "Non-Chimeric ID", "Features per Isolation Window", "Density", 0.5);
-            kde = Chart.Combine(new List<GenericChart.GenericChart> { chimericKde, nonChimericKde })
-                .WithTitle($"1% {Labels.GetLabel(isTopDown, resultType)} Detected Features Per MS2 Isolation Window");
-            outname = $"{Version}_SpectrumSummary_FeatureCount_{Labels.GetLabel(isTopDown, resultType)}_KernelDensity";
-            kde.SaveJPG(Path.Combine(BulkFigureDirectory, outname), null, 800, 600);
+            
         }
 
         static void PlotFractionalIntensityPlots(List<MetaMorpheusResult> results)

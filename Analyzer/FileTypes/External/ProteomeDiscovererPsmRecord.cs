@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations.Schema;
+using System.Text;
 using Analyzer.SearchType;
 using Analyzer.Util.TypeConverters;
 using Chemistry;
@@ -24,15 +25,47 @@ namespace Analyzer.FileTypes.External
 
 
         #region ISpectralMatch Members
-        public int OneBasedScanNumber { get; }
-        public double RetentionTime { get; }
-        public string FullSequence { get; }
+
+        public int OneBasedScanNumber => int.Parse(Ms2ScanNumber);
+        public double RetentionTime => RT;
+
+        private string? _fullSequence;
+        public string FullSequence
+        {
+            get
+            {
+                if (_fullSequence != null)
+                    return _fullSequence;
+                if (!Modifications.Any())
+                    return _fullSequence = AnnotatedSequence;
+
+                var sb = new StringBuilder();
+
+                if (Modifications.Any(p => p.ModLocation == 0))
+                {
+
+                }
+                for (int i = 0; i < BaseSequence.Length; i++)
+                {
+                    var residue = BaseSequence[i];
+                    sb.Append(residue);
+                    if (Modifications.Any(p => p.ModLocation == i + 1))
+                    {
+
+                    }
+                }
+
+                return null;
+            }
+        }
         public string FileNameWithoutExtension { get; }
-        public double MonoisotopicMass { get; }
+        public double MonoisotopicMass => TheoreticalMass;
         public string ProteinAccession => ProteinAccessions;
-        public bool IsDecoy { get; }
-        public double ConfidenceMetric { get; }
-        public double SecondaryConfidenceMetric { get; }
+
+        // decoys are not reported by default
+        public bool IsDecoy => false;
+        public double ConfidenceMetric => NegativeLogEValue;
+        public double SecondaryConfidenceMetric => QValue;
         public bool PassesConfidenceFilter { get; }
 
         #endregion
@@ -68,13 +101,9 @@ namespace Analyzer.FileTypes.External
         [Name("Annotated Sequence")]
         public string AnnotatedSequence { get; set; }
 
-        
-
         [Name("Annotated Sequence")]
         [TypeConverter(typeof(ProteomeDiscovererAnnotatedToBaseSequenceConverter))]
         public string BaseSequence { get; set; }
-
-        
 
         [Name("Modifications")]
         [TypeConverter(typeof(ProteomeDiscovererPSMModToProteomeDiscovererModificationArrayConverter))]
@@ -88,8 +117,6 @@ namespace Analyzer.FileTypes.External
 
         [Name("Original Precursor Charge", "Charge")]
         public int Charge { get; set; }
-
-        
 
         [Name("Rank")]
         public int Rank { get; set; }
