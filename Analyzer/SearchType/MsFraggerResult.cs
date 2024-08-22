@@ -219,9 +219,9 @@ namespace Analyzer.SearchType
                 .ToList();
 
             Log($"{Condition}: Making Retention time predctions with chronologer", 2);
-            var sequenceToPredictionDictionary = psms.Select(p => (p.BaseSequence, p.ModifiedSequence))
+            var sequenceToPredictionDictionary = psms.Select(p => (p.BaseSequence, p.FullSequence))
                 .Distinct()
-                .ToDictionary(p => p, p => ChronologerEstimator.PredictRetentionTime(p.BaseSequence, p.ModifiedSequence));
+                .ToDictionary(p => p, p => ChronologerEstimator.PredictRetentionTime(p.BaseSequence, p.FullSequence));
 
             List<RetentionTimePredictionEntry> results = new();
             foreach (var chimeraGroup in psms.GroupBy(p => p, CustomComparer<MsFraggerPsm>.MsFraggerChimeraComparer))
@@ -229,10 +229,10 @@ namespace Analyzer.SearchType
                 bool isChimeric = chimeraGroup.Count() > 1;
                 results.AddRange(chimeraGroup.Select(psm => 
                     new RetentionTimePredictionEntry(psm.FileNameWithoutExtension, psm.OneBasedScanNumber, 0, 
-                        psm.RetentionTime, psm.BaseSequence, psm.ModifiedSequence, psm.ModifiedSequence, psm.PeptideProphetProbability,
+                        psm.RetentionTime, psm.BaseSequence, psm.FullSequence, psm.FullSequence, psm.PeptideProphetProbability,
                         psm.PeptideProphetProbability, psm.PeptideProphetProbability, 0, isChimeric)
                     {
-                        ChronologerPrediction = sequenceToPredictionDictionary.TryGetValue((psm.BaseSequence, psm.ModifiedSequence), out var value) ? value ?? 0 : 0
+                        ChronologerPrediction = sequenceToPredictionDictionary.TryGetValue((psm.BaseSequence, psm.FullSequence), out var value) ? value ?? 0 : 0
                     }));
             }
             var retentionTimePredictionFile = new RetentionTimePredictionFile(_retentionTimePredictionPath) { Results = results };

@@ -9,7 +9,7 @@ using Readers;
 
 namespace Analyzer.FileTypes.External
 {
-    public class ProteomeDiscovererPsmRecord : IEquatable<ProteomeDiscovererPsmRecord>
+    public class ProteomeDiscovererPsmRecord : IEquatable<ProteomeDiscovererPsmRecord>, ISpectralMatch
     {
         public static CsvConfiguration CsvConfiguration => new CsvConfiguration(System.Globalization.CultureInfo.InvariantCulture)
         {
@@ -21,6 +21,21 @@ namespace Analyzer.FileTypes.External
             MissingFieldFound = null,
             HeaderValidated = null,
         };
+
+
+        #region ISpectralMatch Members
+        public int OneBasedScanNumber { get; }
+        public double RetentionTime { get; }
+        public string FullSequence { get; }
+        public string FileNameWithoutExtension { get; }
+        public double MonoisotopicMass { get; }
+        public string ProteinAccession => ProteinAccessions;
+        public bool IsDecoy { get; }
+        public double ConfidenceMetric { get; }
+        public double SecondaryConfidenceMetric { get; }
+        public bool PassesConfidenceFilter { get; }
+
+        #endregion
 
         [Name("Checked")]
         [Optional]
@@ -53,10 +68,13 @@ namespace Analyzer.FileTypes.External
         [Name("Annotated Sequence")]
         public string AnnotatedSequence { get; set; }
 
+        
+
         [Name("Annotated Sequence")]
         [TypeConverter(typeof(ProteomeDiscovererAnnotatedToBaseSequenceConverter))]
         public string BaseSequence { get; set; }
 
+        
 
         [Name("Modifications")]
         [TypeConverter(typeof(ProteomeDiscovererPSMModToProteomeDiscovererModificationArrayConverter))]
@@ -70,6 +88,8 @@ namespace Analyzer.FileTypes.External
 
         [Name("Original Precursor Charge", "Charge")]
         public int Charge { get; set; }
+
+        
 
         [Name("Rank")]
         public int Rank { get; set; }

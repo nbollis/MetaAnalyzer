@@ -11,6 +11,7 @@ using Analyzer.SearchType;
 using Analyzer.Util;
 using Calibrator;
 using Microsoft.ML.Calibrators;
+using Readers;
 using RetentionTimePrediction;
 using TaskLayer.ChimeraAnalysis;
 
@@ -176,5 +177,22 @@ namespace Test
         }
 
         #endregion
+
+
+
+        [Test]
+        public static void EdwinTest()
+        {
+            var psmPath = @"B:\Users\Edwin\AllPSMs.psmtsv";
+            var psms = FileReader.ReadFile<PsmFromTsvFile>(psmPath)
+                .Results.Where(x => x.AmbiguityLevel == "1" & x.DecoyContamTarget == "T").ToList();
+
+            List<(double?, double?)> actualPrediction = new();
+            for (int i = 0; i < psms.Count; i++)
+            {
+                var predictedRetentionTime = ChronologerEstimator.PredictRetentionTime(psms[i].BaseSeq, psms[i].FullSequence);
+                actualPrediction.Add((psms[i].RetentionTime, predictedRetentionTime ?? double.NaN));
+            }
+        }
     }
 }

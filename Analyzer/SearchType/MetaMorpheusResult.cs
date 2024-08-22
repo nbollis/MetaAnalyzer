@@ -143,7 +143,7 @@ namespace Analyzer.SearchType
                 {
                     DatasetName = DatasetName,
                     Condition = Condition,
-                    FileName = individualFile.FileName,
+                    FileName = individualFile.FileName.ConvertFileName(),
                     PsmCount = psmCount,
                     PeptideCount = peptideCount,
                     ProteinGroupCount = count,

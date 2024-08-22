@@ -19,6 +19,7 @@ using Plotly.NET.ImageExport;
 using TaskLayer.CMD;
 using System.Security.Cryptography;
 using Analyzer.FileTypes.Internal;
+using Easy.Common.Extensions;
 
 namespace TaskLayer.ChimeraAnalysis
 {
@@ -119,60 +120,60 @@ namespace TaskLayer.ChimeraAnalysis
                     cellLineDict[cellLineDirectory].Add(runDirectory);
             }
 
-            // Run MM Task basic processing 
-            int degreesOfParallelism = (int)(MaxWeight / 0.25);
-            Parallel.ForEach(cellLineDict.SelectMany(p =>  p.Value),
-                new ParallelOptions() { MaxDegreeOfParallelism = Math.Max(degreesOfParallelism, 1) },
-                singleRunPath =>
-                {
-                    var mmResult = new MetaMorpheusResult(singleRunPath);
-                    Log($"Processing {mmResult.DatasetName} {mmResult.Condition}", 1);
+            //// Run MM Task basic processing 
+            //int degreesOfParallelism = (int)(MaxWeight / 0.25);
+            //Parallel.ForEach(cellLineDict.SelectMany(p => p.Value),
+            //    new ParallelOptions() { MaxDegreeOfParallelism = Math.Max(degreesOfParallelism, 1) },
+            //    singleRunPath =>
+            //    {
+            //        var mmResult = new MetaMorpheusResult(singleRunPath);
+            //        Log($"Processing {mmResult.DatasetName} {mmResult.Condition}", 1);
 
-                    Log($"Tabulating Result Counts: {mmResult.DatasetName} {mmResult.Condition}", 2);
-                    _ = mmResult.GetIndividualFileComparison();
-                    _ = mmResult.GetBulkResultCountComparisonFile();
+            //        Log($"Tabulating Result Counts: {mmResult.DatasetName} {mmResult.Condition}", 2);
+            //        _ = mmResult.GetIndividualFileComparison();
+            //        _ = mmResult.GetBulkResultCountComparisonFile();
 
-                    Log($"Counting Chimeric Psms/Peptides: {mmResult.DatasetName} {mmResult.Condition}", 2);
-                    mmResult.CountChimericPsms();
-                    mmResult.CountChimericPeptides();
+            //        Log($"Counting Chimeric Psms/Peptides: {mmResult.DatasetName} {mmResult.Condition}", 2);
+            //        mmResult.CountChimericPsms();
+            //        mmResult.CountChimericPeptides();
 
-                    Log($"Running Chimera Breakdown Analysis: {mmResult.DatasetName} {mmResult.Condition}", 2);
-                    var sw = Stopwatch.StartNew();
-                    _ = mmResult.GetChimeraBreakdownFile();
-                    sw.Stop();
+            //        Log($"Running Chimera Breakdown Analysis: {mmResult.DatasetName} {mmResult.Condition}", 2);
+            //        var sw = Stopwatch.StartNew();
+            //        _ = mmResult.GetChimeraBreakdownFile();
+            //        sw.Stop();
 
-                    // if it takes less than one minute to get the breakdown, and we are not overriding, do not plot
-                    if (sw.Elapsed.Minutes < 1 && !parameters.Override)
-                        return;
+            //        // if it takes less than one minute to get the breakdown, and we are not overriding, do not plot
+            //        if (sw.Elapsed.Minutes < 1 && !parameters.Override)
+            //            return;
 
-                    mmResult.PlotChimeraBreakDownStackedColumn_Scaled(ResultType.Psm);
-                    mmResult.PlotChimeraBreakDownStackedColumn_Scaled(ResultType.Peptide);
-                });
+            //        mmResult.PlotChimeraBreakDownStackedColumn_Scaled(ResultType.Psm);
+            //        mmResult.PlotChimeraBreakDownStackedColumn_Scaled(ResultType.Peptide);
+            //    });
 
-            Log($"Running Chimeric Spectrum Summaries", 0);
-            foreach (var cellLineDictEntry in cellLineDict)
-            {
-                var cellLine = Path.GetFileNameWithoutExtension(cellLineDictEntry.Key);
-                Log($"Processing Cell Line {cellLine}", 1);
-                List<CmdProcess> summaryTasks = new();
-                foreach (var singleRunPath in cellLineDictEntry.Value)
-                {
-                    var summaryParams =
-                        new SingleRunAnalysisParameters(singleRunPath, parameters.Override, false);
-                    var summaryTask = new SingleRunChimericSpectrumSummaryTask(summaryParams);
-                    summaryTasks.Add(new ResultAnalyzerTaskToCmdProcessAdaptor(summaryTask, "Chimeric Spectrum Summary", 0.5,
-                        singleRunPath));
-                }
+            //Log($"Running Chimeric Spectrum Summaries", 0);
+            //foreach (var cellLineDictEntry in cellLineDict)
+            //{
+            //    var cellLine = Path.GetFileNameWithoutExtension(cellLineDictEntry.Key);
+            //    Log($"Processing Cell Line {cellLine}", 1);
+            //    List<CmdProcess> summaryTasks = new();
+            //    foreach (var singleRunPath in cellLineDictEntry.Value)
+            //    {
+            //        var summaryParams =
+            //            new SingleRunAnalysisParameters(singleRunPath, parameters.Override, false);
+            //        var summaryTask = new SingleRunChimericSpectrumSummaryTask(summaryParams);
+            //        summaryTasks.Add(new ResultAnalyzerTaskToCmdProcessAdaptor(summaryTask, "Chimeric Spectrum Summary", 0.5,
+            //            singleRunPath));
+            //    }
 
-                try
-                {
-                    await RunProcesses(summaryTasks);
-                }
-                catch (Exception e)
-                {
-                    Warn($"Error Running Chimeric Spectrum Summary for {cellLine}: {e.Message}");
-                }
-            }
+            //    try
+            //    {
+            //        await RunProcesses(summaryTasks);
+            //    }
+            //    catch (Exception e)
+            //    {
+            //        Warn($"Error Running Chimeric Spectrum Summary for {cellLine}: {e.Message}");
+            //    }
+            //}
 
             //Log($"Running Retention Time Plots", 0);
             //foreach (var cellLineDictEntry in cellLineDict)
@@ -410,6 +411,11 @@ namespace TaskLayer.ChimeraAnalysis
 
         #endregion
 
+        #region Result File Creation
+
+        
+
+        #endregion
 
         #region Plotting
 
@@ -420,17 +426,63 @@ namespace TaskLayer.ChimeraAnalysis
             var resultsToPlot = results.SelectMany(p => p.BulkResultCountComparisonFile)
                 .ToList();
 
-            var psmPlot = GenericPlots.BulkResultBarChart(resultsToPlot, isTopDown, ResultType.Psm);
+            var labels = results.Select(p => p.DatasetName).Distinct().ConvertConditionNames().ToList();
+            List<GenericChart.GenericChart> psmCharts = new();
+            List<GenericChart.GenericChart> peptideCharts = new();
+            List<GenericChart.GenericChart> proteinCharts = new();
+            foreach (var condition in results.Select(p => p.Condition).ConvertConditionNames().Distinct())
+            {
+                var conditionSpecificResults = resultsToPlot
+                    .Where(p => p.Condition.ConvertConditionName() == condition)
+                    .ToList();
+
+                (string CellLine, int OnePercentPsmCount, int OnePercentPeptideCount, int OnePercentProteinGroupCount)[] extractedCounts = conditionSpecificResults
+                    .GroupBy(p => p.DatasetName)
+                    .Select(p => (p.Key, p.Sum(m => m.OnePercentPsmCount),
+                            p.Sum(m => m.OnePercentPeptideCount), p.Sum(m => m.OnePercentProteinGroupCount)))
+                        .ToArray();
+
+
+                psmCharts.Add(Chart2D.Chart.Column<int, string, string, int, int>(
+                    extractedCounts.Select(m => m.OnePercentPsmCount), labels, null, condition,
+                    MarkerColor: condition.ConvertConditionToColor(),
+                    MultiText: extractedCounts.Select(m => m.OnePercentPsmCount).Select(p => p.ToString()).ToArray()));
+
+                peptideCharts.Add(Chart2D.Chart.Column<int, string, string, int, int>(
+                    extractedCounts.Select(m => m.OnePercentPeptideCount), labels, null, condition,
+                    MarkerColor: condition.ConvertConditionToColor(),
+                    MultiText: extractedCounts.Select(m => m.OnePercentPeptideCount).Select(p => p.ToString()).ToArray()));
+
+                proteinCharts.Add(Chart2D.Chart.Column<int, string, string, int, int>(
+                    extractedCounts.Select(m => m.OnePercentProteinGroupCount), labels, null, condition,
+                    MarkerColor: condition.ConvertConditionToColor(),
+                    MultiText: extractedCounts.Select(m => m.OnePercentProteinGroupCount).Select(p => p.ToString()).ToArray()));
+            }
+
+
+            var psmPlot = Chart.Combine(psmCharts).WithTitle($"1% FDR {Labels.GetLabel(isTopDown, ResultType.Psm)}")
+                .WithXAxisStyle(Title.init("Cell Line"))
+                .WithYAxisStyle(Title.init("Count"))
+                .WithLayout(PlotlyBase.DefaultLayoutWithLegend);
+            //var psmPlot = GenericPlots.BulkResultBarChart(resultsToPlot, isTopDown, ResultType.Psm);
             var psmOutName = Path.Combine(BulkFigureDirectory, $"{Version}_InternalComparison_Psm");
-            psmPlot.SaveJPG(psmOutName, null, 600, 500);
+            psmPlot.SaveJPG(psmOutName, null, 1000, 800);
 
-            var peptidePlot = GenericPlots.BulkResultBarChart(resultsToPlot, isTopDown, ResultType.Peptide);
+            var peptidePlot = Chart.Combine(peptideCharts).WithTitle($"1% FDR {Labels.GetLabel(isTopDown, ResultType.Peptide)}")
+                .WithXAxisStyle(Title.init("Cell Line"))
+                .WithYAxisStyle(Title.init("Count"))
+                .WithLayout(PlotlyBase.DefaultLayoutWithLegend);
+            //var peptidePlot = GenericPlots.BulkResultBarChart(resultsToPlot, isTopDown, ResultType.Peptide);
             var peptideOutName = Path.Combine(BulkFigureDirectory, $"{Version}_InternalComparison_Peptide");
-            peptidePlot.SaveJPG(peptideOutName, null, 600, 500);
+            peptidePlot.SaveJPG(peptideOutName, null, 1000, 800);
 
-            var proteinPlot = GenericPlots.BulkResultBarChart(resultsToPlot, isTopDown, ResultType.Protein);
+            var proteinPlot = Chart.Combine(proteinCharts).WithTitle($"1% FDR {Labels.GetLabel(isTopDown, ResultType.Protein)}")
+                .WithXAxisStyle(Title.init("Cell Line"))
+                .WithYAxisStyle(Title.init("Count"))
+                .WithLayout(PlotlyBase.DefaultLayoutWithLegend);
+            //var proteinPlot = GenericPlots.BulkResultBarChart(resultsToPlot, isTopDown, ResultType.Protein);
             var proteinOutName = Path.Combine(BulkFigureDirectory, $"{Version}_InternalComparison_Protein");
-            proteinPlot.SaveJPG(proteinOutName, null, 600, 500);
+            proteinPlot.SaveJPG(proteinOutName, null, 1000, 800);
         }
 
         static void PlotChimeraBreakdownBarChart(List<MetaMorpheusResult> results)
@@ -442,11 +494,11 @@ namespace TaskLayer.ChimeraAnalysis
 
             var psmPlot = resultsToPlot.GetChimeraBreakdownStackedColumn_Scaled(ResultType.Psm, isTopDown);
             var psmOutPath = Path.Combine(BulkFigureDirectory, $"{Version}_ChimeraBreakdown_Psm");
-            psmPlot.SaveJPG(psmOutPath, null, 800, 600);
+            psmPlot.SaveJPG(psmOutPath, null, 1000, 800);
 
             var peptidePlot = resultsToPlot.GetChimeraBreakdownStackedColumn_Scaled(ResultType.Peptide, isTopDown);
             var peptideOutPath = Path.Combine(BulkFigureDirectory, $"{Version}_ChimeraBreakdown_Peptide");
-            peptidePlot.SaveJPG(peptideOutPath, null, 800, 600);
+            peptidePlot.SaveJPG(peptideOutPath, null, 1000, 800);
         }
 
         static void PlotPossibleFeatures(List<MetaMorpheusResult> results)

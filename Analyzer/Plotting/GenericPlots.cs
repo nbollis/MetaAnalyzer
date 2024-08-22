@@ -108,7 +108,9 @@ namespace Analyzer.Plotting
             List<GenericChart.GenericChart> charts = new();
             foreach (var condition in results.Select(p => p.Condition).ConvertConditionNames().Distinct())
             {
-                var conditionSpecificResults = results.Where(p => p.Condition.ConvertConditionName() == condition).ToList();
+                var conditionSpecificResults = results
+                    .Where(p => p.Condition.ConvertConditionName() == condition)
+                    .ToList();
 
                 // if results exist for one dataset but not the other, ensure they are plotted in the correct order
                 if (conditionSpecificResults.Count != labels.Count)

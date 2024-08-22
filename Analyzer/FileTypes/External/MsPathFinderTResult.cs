@@ -61,7 +61,7 @@ namespace Analyzer.FileTypes.External
         }
     }
 
-    public class MsPathFinderTResult
+    public class MsPathFinderTResult : ISpectralMatch
     {
         public static CsvConfiguration CsvConfiguration { get; } =
             new CsvConfiguration(System.Globalization.CultureInfo.InvariantCulture)
@@ -128,6 +128,16 @@ namespace Analyzer.FileTypes.External
 
         [Optional] public string FileNameWithoutExtension { get; set; }
 
+        #endregion
+
+        #region Interface Fields
+
+        public string FullSequence => throw new NotImplementedException();
+        public double ConfidenceMetric => SpecEValue;
+        public double SecondaryConfidenceMetric => Probability;
+        public bool PassesConfidenceFilter => SpecEValue <= 0.01 && Probability >= 0.5;
+        public string ProteinAccession => Accession;
+        public double RetentionTime => throw new NotImplementedException();
 
         #endregion
     }

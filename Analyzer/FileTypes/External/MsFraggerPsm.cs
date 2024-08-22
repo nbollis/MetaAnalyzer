@@ -1,14 +1,12 @@
 ﻿using System.ComponentModel.DataAnnotations.Schema;
-using System.Diagnostics;
 using System.Globalization;
 using System.Text.RegularExpressions;
-using Analyzer.Util;
 using CsvHelper.Configuration;
 using CsvHelper.Configuration.Attributes;
 
 namespace Analyzer.FileTypes.External
 {
-    public class MsFraggerPsm
+    public class MsFraggerPsm : ISpectralMatch
     {
         public static CsvConfiguration CsvConfiguration = new CsvConfiguration(CultureInfo.InvariantCulture)
         {
@@ -32,7 +30,7 @@ namespace Analyzer.FileTypes.External
         public string BaseSequence { get; set; }
 
         [Name("Modified Peptide")]
-        public string FullSequence { get; set; }
+        public string ModifiedSequence { get; set; }
 
         [Name("Extended Peptide")]
         public string ExtendedSequence { get; set; }
@@ -147,7 +145,7 @@ namespace Analyzer.FileTypes.External
         [Ignore] private string _fileNameWithoutExtension;
 
         [Name("File Name")]
-        [CsvHelper.Configuration.Attributes.Optional]
+        [Optional]
         public string FileNameWithoutExtension
         {
             get => _fileNameWithoutExtension ??= Spectrum.Split('.')[0];
@@ -159,18 +157,25 @@ namespace Analyzer.FileTypes.External
         public int OneBasedScanNumber =>
             _oneBasedScanNumber != 0 ? _oneBasedScanNumber : int.Parse(Spectrum.Split('.')[1]);
 
-        [NotMapped] [Ignore] private string? _modifiedSequence;
+        public double MonoisotopicMass => ObservedMass;
+        public string DecoyLabel { get; set; } = "rev_";
+        public bool IsDecoy => ProteinAccession.Contains(DecoyLabel, StringComparison.InvariantCulture);
+        public double ConfidenceMetric => PeptideProphetProbability;
+        public double SecondaryConfidenceMetric => Expectation;
+        public bool PassesConfidenceFilter => PeptideProphetProbability >= 0.99;
+
+        [NotMapped] [Ignore] private string? _fullSequence;
 
         [NotMapped] [Ignore]
-        public string ModifiedSequence
+        public string FullSequence
         {
             get
             {
-                if (_modifiedSequence != null)
-                    return _modifiedSequence;
+                if (_fullSequence != null)
+                    return _fullSequence;
 
-                if (FullSequence == "" && AssignedModifications == "")
-                    return _modifiedSequence = BaseSequence;
+                if (ModifiedSequence == "" && AssignedModifications == "")
+                    return _fullSequence = BaseSequence;
 
                 //if (ObservedModifications.Length != AssignedModifications.Length)
                     //Debugger.Break();
@@ -199,7 +204,7 @@ namespace Analyzer.FileTypes.External
                     currentResidue++;
                 }
 
-                return _modifiedSequence ??= workingSequence;
+                return _fullSequence ??= workingSequence;
             }
         }
 
