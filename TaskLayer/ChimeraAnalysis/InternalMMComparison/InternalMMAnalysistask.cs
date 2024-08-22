@@ -414,21 +414,20 @@ namespace TaskLayer.ChimeraAnalysis
         #region Result File Creation
 
         private string BulkResultComparisonFilePath => Path.Combine(Parameters.OutputDirectory, FileIdentifiers.BottomUpResultComparison);
-        private BulkResultCountComparisonFile _bulkResultCountComparisonFile;
+        private BulkResultCountComparisonFile? _bulkResultCountComparisonFile;
 
-        //public BulkResultCountComparisonFile BulkResultCountComparisonFile
-        //{
-        //    get
-        //    {
-        //        if (_bulkResultCountComparisonFile is null)
-                    
-        //        return _bulkResultCountComparisonFile;
-        //    }
-        //}
-
-        internal static BulkResultCountComparisonFile GetResultCountFile(List<MetaMorpheusResult> mmResults)
+        internal BulkResultCountComparisonFile GetResultCountFile(List<MetaMorpheusResult> mmResults)
         {
             Log($"Counting Total Results", 0);
+            if (_bulkResultCountComparisonFile != null)
+                return _bulkResultCountComparisonFile;
+            if (File.Exists(BulkResultComparisonFilePath))
+            {
+                _bulkResultCountComparisonFile = new BulkResultCountComparisonFile(BulkResultComparisonFilePath);
+                _bulkResultCountComparisonFile.LoadResults();
+                return _bulkResultCountComparisonFile;
+            }
+
             bool isTopDown = mmResults.First().IsTopDown;
             List<BulkResultCountComparison> allResults = new();
             foreach (var conditionGroup in mmResults.GroupBy(p => p.Condition.ConvertConditionName()))
@@ -443,7 +442,9 @@ namespace TaskLayer.ChimeraAnalysis
                     if (cellLineGroup.Count() != 2 && isTopDown)
                         Debugger.Break();
 
-
+                    int psmCount = 0;
+                    int peptideCount = 0;
+                    int proteinGroupCount = 0;
 
                 }
             }

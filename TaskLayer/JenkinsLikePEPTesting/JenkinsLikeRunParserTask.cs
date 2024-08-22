@@ -84,12 +84,12 @@ public class JenkinsLikeRunParserTask : BaseResultAnalyzerTask
         allResults.Override = Parameters.Override;
         allResults.GetBulkResultCountComparisonMultipleFilteringTypesFile();
         allResults.GetIndividualFileResultCountingMultipleFilteringTypesFile();
-        if (Parameters.RunChimeraBreakdown)
-        {
-            allResults.Override = true;
-            allResults.GetChimeraBreakdownFile();
-        }
-        allResults.Override = false;
+        //if (Parameters.RunChimeraBreakdown)
+        //{
+        //    allResults.Override = true;
+        //    allResults.GetChimeraBreakdownFile();
+        //}
+        //allResults.Override = false;
 
         Log("Plotting All Aggregated Data");
         allResults.PlotBulkResultsDifferentFilteringTypePlotsForPullRequests();
