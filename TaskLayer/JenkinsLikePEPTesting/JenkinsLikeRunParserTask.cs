@@ -23,61 +23,61 @@ public class JenkinsLikeRunParserTask : BaseResultAnalyzerTask
     {
         var allResults = BuildResultsObjects();
         allResults.PlotTopDownSummary();
-        foreach (var groupRun in allResults)
-        {
-            Log($"Starting Processing of {groupRun.CellLine}");
-            foreach (var singleRunResults in groupRun)
-            {
-                Log($"Processing {singleRunResults.Condition}", 2);
+        //foreach (var groupRun in allResults)
+        //{
+        //    Log($"Starting Processing of {groupRun.CellLine}");
+        //    foreach (var singleRunResults in groupRun)
+        //    {
+        //        Log($"Processing {singleRunResults.Condition}", 2);
 
-                singleRunResults.Override = Parameters.Override;
-                var mm = (MetaMorpheusResult)singleRunResults;
+        //        singleRunResults.Override = Parameters.Override;
+        //        var mm = (MetaMorpheusResult)singleRunResults;
 
-                mm.GetBulkResultCountComparisonMultipleFilteringTypesFile();
-                mm.GetIndividualFileResultCountingMultipleFilteringTypesFile();
-                if (Parameters.RunChimeraBreakdown)
-                    mm.GetChimeraBreakdownFile();
+        //        mm.GetBulkResultCountComparisonMultipleFilteringTypesFile();
+        //        mm.GetIndividualFileResultCountingMultipleFilteringTypesFile();
+        //        if (Parameters.RunChimeraBreakdown)
+        //            mm.GetChimeraBreakdownFile();
                 
-                singleRunResults.Override = false;
+        //        singleRunResults.Override = false;
 
 
-                Log($"Plotting {singleRunResults.Condition}", 2);
-                mm.PlotTargetDecoyCurves(ResultType.Psm, TargetDecoyCurveMode.Score);
-                mm.PlotTargetDecoyCurves(ResultType.Peptide, TargetDecoyCurveMode.Score);
-                try
-                {
-                    mm.PlotPepFeaturesScatterGrid();
-                }
-                catch (Exception e)
-                {
-                    Warn($"Could not plot PEP features scatter grid {e.Message}");
-                }
+        //        Log($"Plotting {singleRunResults.Condition}", 2);
+        //        mm.PlotTargetDecoyCurves(ResultType.Psm, TargetDecoyCurveMode.Score);
+        //        mm.PlotTargetDecoyCurves(ResultType.Peptide, TargetDecoyCurveMode.Score);
+        //        try
+        //        {
+        //            mm.PlotPepFeaturesScatterGrid();
+        //        }
+        //        catch (Exception e)
+        //        {
+        //            Warn($"Could not plot PEP features scatter grid {e.Message}");
+        //        }
 
-                if (Parameters.RunChimeraBreakdown)
-                    mm.ExportCombinedChimeraTargetDecoyExploration();
-            }
+        //        if (Parameters.RunChimeraBreakdown)
+        //            mm.ExportCombinedChimeraTargetDecoyExploration();
+        //    }
 
-            groupRun.Override = Parameters.Override;
-            groupRun.GetBulkResultCountComparisonMultipleFilteringTypesFile();
-            groupRun.GetIndividualFileResultCountingMultipleFilteringTypesFile();
-            if (Parameters.RunChimeraBreakdown)
-            {
-                groupRun.Override = true;
-                groupRun.GetChimeraBreakdownFile();
-            }
-            groupRun.Override = false;
+        //    groupRun.Override = Parameters.Override;
+        //    groupRun.GetBulkResultCountComparisonMultipleFilteringTypesFile();
+        //    groupRun.GetIndividualFileResultCountingMultipleFilteringTypesFile();
+        //    if (Parameters.RunChimeraBreakdown)
+        //    {
+        //        groupRun.Override = true;
+        //        groupRun.GetChimeraBreakdownFile();
+        //    }
+        //    groupRun.Override = false;
 
-            Log($"Plotting {groupRun.CellLine}");
-            groupRun.PlotIndividualFileResults(ResultType.Psm, null, false);
-            groupRun.PlotIndividualFileResults(ResultType.Peptide, null, false);
-            groupRun.PlotIndividualFileResults(ResultType.Protein, null, false);
-            if (Parameters.RunChimeraBreakdown)
-            {
-                groupRun.PlotCellLineChimeraBreakdown();
-                groupRun.PlotCellLineChimeraBreakdown_TargetDecoy();
-                groupRun.PlotJenkinsLikeRunSummary();
-            }
-        }
+        //    Log($"Plotting {groupRun.CellLine}");
+        //    groupRun.PlotIndividualFileResults(ResultType.Psm, null, false);
+        //    groupRun.PlotIndividualFileResults(ResultType.Peptide, null, false);
+        //    groupRun.PlotIndividualFileResults(ResultType.Protein, null, false);
+        //    if (Parameters.RunChimeraBreakdown)
+        //    {
+        //        groupRun.PlotCellLineChimeraBreakdown();
+        //        groupRun.PlotCellLineChimeraBreakdown_TargetDecoy();
+        //        groupRun.PlotJenkinsLikeRunSummary();
+        //    }
+        //}
 
 
         Log("Parsing All Aggregated Data");

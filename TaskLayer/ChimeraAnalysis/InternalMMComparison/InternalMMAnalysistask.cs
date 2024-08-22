@@ -413,7 +413,45 @@ namespace TaskLayer.ChimeraAnalysis
 
         #region Result File Creation
 
-        
+        private string BulkResultComparisonFilePath => Path.Combine(Parameters.OutputDirectory, FileIdentifiers.BottomUpResultComparison);
+        private BulkResultCountComparisonFile _bulkResultCountComparisonFile;
+
+        //public BulkResultCountComparisonFile BulkResultCountComparisonFile
+        //{
+        //    get
+        //    {
+        //        if (_bulkResultCountComparisonFile is null)
+                    
+        //        return _bulkResultCountComparisonFile;
+        //    }
+        //}
+
+        internal static BulkResultCountComparisonFile GetResultCountFile(List<MetaMorpheusResult> mmResults)
+        {
+            Log($"Counting Total Results", 0);
+            bool isTopDown = mmResults.First().IsTopDown;
+            List<BulkResultCountComparison> allResults = new();
+            foreach (var conditionGroup in mmResults.GroupBy(p => p.Condition.ConvertConditionName()))
+            {
+                string condition = conditionGroup.Key;
+                foreach (var cellLineGroup in conditionGroup.GroupBy(p => p.DatasetName))
+                {
+                    string cellLine = cellLineGroup.Key;
+
+                    if (cellLineGroup.Count() != 3 && !isTopDown)
+                        Debugger.Break();
+                    if (cellLineGroup.Count() != 2 && isTopDown)
+                        Debugger.Break();
+
+
+
+                }
+            }
+
+
+
+            throw new NotImplementedException();
+        }
 
         #endregion
 
