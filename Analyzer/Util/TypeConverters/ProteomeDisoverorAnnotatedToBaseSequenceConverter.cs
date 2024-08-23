@@ -13,7 +13,7 @@ namespace Analyzer.Util.TypeConverters
     {
         public override object ConvertFromString(string text, IReaderRow row, MemberMapData memberMapData)
         {
-            return new string(text.Where(p => char.IsLetter(p) && char.IsUpper(p)).ToArray());
+            return new string(text.Where(char.IsLetter).Select(char.ToUpper).ToArray());
         }
     }
 
@@ -64,7 +64,7 @@ namespace Analyzer.Util.TypeConverters
                 {
                     var modParts = mod.Split('(');
                     var modLocation = int.Parse(modParts[0].Trim().Substring(1));
-                    var modifiedResidue = modParts[0][0];
+                    var modifiedResidue = modParts[0].Trim()[0];
                     var modName = modParts[1].Substring(0, modParts[1].Length - 1);
                     proteomeDiscovererMods.Add(new ProteomeDiscovererMod(modLocation, modName, modifiedResidue));
                 }

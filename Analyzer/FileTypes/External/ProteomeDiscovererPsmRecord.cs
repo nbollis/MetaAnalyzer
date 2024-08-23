@@ -1,17 +1,24 @@
 ﻿using System.ComponentModel.DataAnnotations.Schema;
+using System.Diagnostics;
 using System.Text;
 using Analyzer.SearchType;
+using Analyzer.Util;
 using Analyzer.Util.TypeConverters;
 using Chemistry;
 using CsvHelper;
 using CsvHelper.Configuration;
 using CsvHelper.Configuration.Attributes;
+using Omics.Modifications;
 using Readers;
 
 namespace Analyzer.FileTypes.External
 {
     public class ProteomeDiscovererPsmRecord : IEquatable<ProteomeDiscovererPsmRecord>, ISpectralMatch
     {
+
+
+        #region Static
+
         public static CsvConfiguration CsvConfiguration => new CsvConfiguration(System.Globalization.CultureInfo.InvariantCulture)
         {
             Delimiter = "\t",
@@ -23,6 +30,66 @@ namespace Analyzer.FileTypes.External
             HeaderValidated = null,
         };
 
+        private static Dictionary<ProteomeDiscovererMod, Modification> _modConversionDictionary;
+        static ProteomeDiscovererPsmRecord()
+        {
+            _modConversionDictionary = new Dictionary<ProteomeDiscovererMod, Modification>();
+        }
+
+        public static string ConvertProteomeDiscovererModification(ProteomeDiscovererMod pdMod, IEnumerable<Modification> allKnownMods)
+        {
+            var targetResidueMatching = allKnownMods.Where(p => p.Target.ToString().Contains(pdMod.ModifiedResidue))
+                .ToArray();
+            var nameMatching = targetResidueMatching.Where(p => 
+                    p.IdWithMotif.Contains(pdMod.ModName) 
+                    && p.IdWithMotif.Contains($" on {pdMod.ModifiedResidue}")                      
+                    /*&& !p.OriginalId.Contains("DTT")*/)
+                .ToArray();
+
+            Modification modToReturn;
+            if (nameMatching.Length != 1) // if multiple match by name, go with lowest uniprot reference number
+            {
+                int lowestRef = int.MaxValue;
+                Modification? lowestReference = null;
+                foreach (var modification in nameMatching)
+                {
+                    if (modification.DatabaseReference.TryGetValue("Unimod", out var values))
+                    {
+                        foreach (var value in values)
+                        {
+                            if (int.TryParse(value, out var result) && result < lowestRef)
+                            {
+                                lowestRef = result;
+                                lowestReference = modification;
+                            }
+                        }
+                    }
+                    else
+                    {
+                        //Debugger.Break();
+                    }
+                }
+
+                if (lowestReference is null)
+                    modToReturn = nameMatching.MinBy(p => p.IdWithMotif.Length)!;
+                else
+                    modToReturn = lowestReference;
+            }
+            else
+                modToReturn = nameMatching[0];
+
+            string category = modToReturn.ModificationType switch
+            {
+                "Unimod" when modToReturn.OriginalId.Contains("Carbamido") => "Common Fixed",
+                "Unimod" when modToReturn.OriginalId.Contains("Oxidation") => "Common Variable",
+                "Unimod" when modToReturn.OriginalId.Contains("Phosphoryl") => "Common Biological",
+                _ => modToReturn.ModificationType
+            };
+
+            return $"[{category}:{modToReturn.OriginalId} on {modToReturn.Target}]";
+        }
+
+        #endregion
 
         #region ISpectralMatch Members
 
@@ -37,7 +104,7 @@ namespace Analyzer.FileTypes.External
                 if (_fullSequence != null)
                     return _fullSequence;
                 if (!Modifications.Any())
-                    return _fullSequence = AnnotatedSequence;
+                    return _fullSequence = BaseSequence;
 
                 var sb = new StringBuilder();
 
@@ -49,13 +116,15 @@ namespace Analyzer.FileTypes.External
                 {
                     var residue = BaseSequence[i];
                     sb.Append(residue);
-                    if (Modifications.Any(p => p.ModLocation == i + 1))
-                    {
 
-                    }
+                    var potentialMod = Modifications.FirstOrDefault(p => p.ModLocation == i + 1);
+                    if (potentialMod is null) continue;
+
+                    var mmMod = ConvertProteomeDiscovererModification(potentialMod, GlobalVariables.AllModsKnown);
+                    sb.Append(mmMod);
                 }
 
-                return null;
+                return sb.ToString();
             }
         }
         public string FileNameWithoutExtension { get; }

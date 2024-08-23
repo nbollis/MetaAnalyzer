@@ -274,7 +274,7 @@ namespace TaskLayer.ChimeraAnalysis
                 .Where(p => !p.Contains($"WithChimeras_{Version}_NonChimericLibrary"))
                 .Select(p => new MetaMorpheusResult(p))
                 .ToList();
-            GetResultCountFile(resultsForInternalComparison);
+            //GetResultCountFile(resultsForInternalComparison);
             Log($"Plotting Bulk Internal Comparison", 0);
             PlotCellLineBarCharts(resultsForInternalComparison);
             PlotChimeraBreakdownBarChart(resultsForInternalComparison);
