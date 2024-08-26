@@ -5,6 +5,7 @@ using System.Linq;
 using System.Reflection.Metadata.Ecma335;
 using System.Text;
 using System.Text.RegularExpressions;
+using Analyzer.FileTypes.External;
 using Analyzer.FileTypes.Internal;
 using Analyzer.Interfaces;
 using Analyzer.Plotting.Util;
@@ -1373,6 +1374,46 @@ namespace Analyzer.SearchType
             file.WriteResults(_chimericSpectrumSummaryFilePath);
             return file;
         }
+
+        string _proformaPsmFilePath => Path.Combine(DirectoryPath, $"{DatasetName}_{Condition}_PSMs_{FileIdentifiers.ProformaFile}");
+        private ProformaFile? _proformaPsmFile;
+        public ProformaFile ToPsmProformaFile()
+        {
+            if (File.Exists(_proformaPsmFilePath) && !Override)
+                return _proformaPsmFile ??= new ProformaFile(_proformaPsmFilePath);
+
+            List<ProformaRecord> records = new();
+            foreach (var file in IndividualFileResults)
+            {
+                foreach (var psm in file.FilteredPsms)
+                {
+                    int modMass = 0;
+
+                    if (psm.FullSequence.Contains('['))
+                        modMass += new PeptideWithSetModifications(psm.FullSequence.Split('|')[0].Trim(),
+                            GlobalVariables.AllModsKnownDictionary).AllModsOneIsNterminus
+                            .Sum(p => (int)p.Value.MonoisotopicMass!.RoundedDouble(0)!);
+
+                    var record = new ProformaRecord()
+                    {
+                        Condition = Condition,
+                        FileName = psm.FileNameWithoutExtension.ConvertFileName(),
+                        BaseSequence = psm.BaseSeq,
+                        ModificationMass = modMass,
+                        PrecursorCharge = psm.PrecursorCharge,
+                        ProteinAccession = psm.ProteinAccession,
+                        ScanNumber = psm.Ms2ScanNumber,
+                        FullSequence = psm.FullSequence
+                    };
+                    records.Add(record);
+                }
+            }
+            var proformaFile = new ProformaFile(_proformaPsmFilePath) { Results = records };
+            proformaFile.WriteResults(_proformaPsmFilePath);
+            return _proformaPsmFile = proformaFile;
+        }
+
+
 
         public new void Dispose()
         {

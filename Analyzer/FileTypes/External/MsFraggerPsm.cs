@@ -153,20 +153,18 @@ namespace Analyzer.FileTypes.External
         }
 
         [Ignore] private int _oneBasedScanNumber;
-        [Ignore]
-        public int OneBasedScanNumber =>
+        [Ignore] public int OneBasedScanNumber =>
             _oneBasedScanNumber != 0 ? _oneBasedScanNumber : int.Parse(Spectrum.Split('.')[1]);
+        [Ignore] public double MonoisotopicMass => ObservedMass;
+        [Ignore] public string DecoyLabel { get; set; } = "rev_";
+        [Ignore] public bool IsDecoy => ProteinAccession.Contains(DecoyLabel, StringComparison.InvariantCulture);
+        [Ignore] public double ConfidenceMetric => PeptideProphetProbability;
+        [Ignore] public double SecondaryConfidenceMetric => Expectation;
+        [Ignore] public bool PassesConfidenceFilter => PeptideProphetProbability >= 0.99;
 
-        public double MonoisotopicMass => ObservedMass;
-        public string DecoyLabel { get; set; } = "rev_";
-        public bool IsDecoy => ProteinAccession.Contains(DecoyLabel, StringComparison.InvariantCulture);
-        public double ConfidenceMetric => PeptideProphetProbability;
-        public double SecondaryConfidenceMetric => Expectation;
-        public bool PassesConfidenceFilter => PeptideProphetProbability >= 0.99;
+        [Ignore] private string? _fullSequence;
 
-        [NotMapped] [Ignore] private string? _fullSequence;
-
-        [NotMapped] [Ignore]
+        [Ignore]
         public string FullSequence
         {
             get
@@ -208,7 +206,7 @@ namespace Analyzer.FileTypes.External
             }
         }
 
-        [NotMapped]
+        [Ignore]
         private static Dictionary<(double, char), string> FraggerToMetaMorpheusModDict => new()
         {
             { (57.0214, 'C'), "[Common Biological : Carbamidomethyl on C]" },

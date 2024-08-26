@@ -20,15 +20,6 @@ namespace Analyzer.SearchType
         private MsFraggerProteinFile _proteinFile;
         public MsFraggerProteinFile CombinedProteins => _proteinFile ??= new MsFraggerProteinFile(ProteinPath);
 
-        //#region Base Sequence Only Filtering
-
-        //private string _peptideBaseSeqPath;
-
-        //private MsFraggerPeptideFile _peptideBaseSeqFile;
-        //public MsFraggerPeptideFile CombinedPeptideBaseSeq => _peptideBaseSeqFile ??= CombinePeptideFiles(_peptideBaseSeqPath);
-
-        //#endregion
-
         public MsFraggerResult(string directoryPath) : base(directoryPath)
         {
             PsmPath = Path.Combine(DirectoryPath, "Combined_psm.tsv");
@@ -241,6 +232,53 @@ namespace Analyzer.SearchType
             Log($"{Condition}: Finished Retention time predctions with chronologer", 2);
             return retentionTimePredictionFile;
         }
+
+        string _proformaPsmFilePath => Path.Combine(DirectoryPath, $"{DatasetName}_{Condition}_PSMs_{FileIdentifiers.ProformaFile}");
+        private ProformaFile? _proformaPsmFile;
+        public ProformaFile ToPsmProformaFile()
+        {
+            if (File.Exists(_proformaPsmFilePath) && !Override)
+                return _proformaPsmFile ??= new ProformaFile(_proformaPsmFilePath);
+
+            List<ProformaRecord> records = new();
+            foreach (var file in IndividualFileResults)
+            {
+                file.PsmFile.LoadResults();
+                foreach (var psm in file.PsmFile.Results)
+                {
+                    if (!psm.PassesConfidenceFilter)
+                        continue;
+
+                    string fileNameWithoutExtension = Path.GetFileNameWithoutExtension(file.PsmFile.First().FileNameWithoutExtension);
+                    string fileName = fileNameWithoutExtension!.Replace("interact-", "");
+
+                    int modMass = 0;
+                    if (psm.AssignedModifications != "")
+                        modMass = psm.AssignedModifications.Split(',')
+                        .Sum(p => (int)Math.Round(MsFraggerPsm.ParseString(p.Trim()).Item3));
+
+                    var record = new ProformaRecord()
+                    {
+                        Condition = Condition,
+                        FileName = fileName,
+                        BaseSequence = psm.BaseSequence,
+                        ModificationMass = modMass,
+                        PrecursorCharge = psm.Charge,
+                        ProteinAccession = psm.ProteinAccession,
+                        ScanNumber = psm.OneBasedScanNumber,
+                        FullSequence = psm.FullSequence
+                    };
+                    records.Add(record);
+                }
+            }
+            var proformaFile = new ProformaFile(_proformaPsmFilePath) { Results = records };
+            proformaFile.WriteResults(_proformaPsmFilePath);
+            return _proformaPsmFile = proformaFile;
+        }
+
+
+        string _proformaPeptideFilePath => Path.Combine(DirectoryPath, $"{DatasetName}_{Condition}_Peptides_{FileIdentifiers.ProformaFile}");
+        private ProformaFile? _proformaPeptideFile;
     }
 
     public class MsFraggerIndividualFileResult

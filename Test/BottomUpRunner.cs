@@ -1,5 +1,6 @@
 ﻿using System.Diagnostics;
 using System.Text;
+using Analyzer;
 using Analyzer.Interfaces;
 using Analyzer.Plotting.AggregatePlots;
 using Analyzer.Plotting.ComparativePlots;
@@ -158,124 +159,47 @@ namespace Test
             TopDownRunner.AllResults.Skip(1).First().PlotChimeraBreakdownStackedColumn_Scaled(ResultType.Peptide);
         }
 
- 
-
         [Test]
-        public static void WeekendRunner()
+        public static void RunProformaShit_SumbissionDirectory()
         {
+            string resultDirectoryPath = @"D:\Projects\Chimeras\SumbissionDirectory\Mann_11cell_analysis";
+            var allResults = new AllResults(resultDirectoryPath, Directory.GetDirectories(resultDirectoryPath)
+                           .Where(p => !p.Contains("Figures") && !p.Contains("Prosight") && !p.Contains("Proforma"))
+                           .Select(datasetDirectory => new CellLineResults(datasetDirectory)).ToList());
 
-            string dir = @"B:\Users\Nic\Chimeras\InternalMMAnalysis\Mann_11cell_lines";
-            string toReplace = "Mann_11cell_lines_";
-            foreach (var cellLineDir in Directory.GetDirectories(dir))
+            foreach (var cellLine in allResults)
             {
-                if (cellLineDir.Contains("Generate"))
-                    continue;
-
-                var cellLine = Path.GetFileNameWithoutExtension(cellLineDir);
-                foreach (var runDir in Directory.GetDirectories(cellLineDir))
+                foreach (var result in cellLine)
                 {
-                    if (runDir.Contains("Figure"))
-                        continue;
-                    var files = Directory.GetFiles(runDir, "*.csv");
-                    foreach (var file in files)
-                    {
-                        if (Path.GetFileNameWithoutExtension(file).StartsWith(toReplace))
-                        {
-                            string newName = file.Replace(toReplace, $"{cellLine}_");
-                            File.Move(file, newName);
-                        }
-                            
-                    }
+                    if (result is MsFraggerResult msf)
+                        msf.ToPsmProformaFile();
                 }
+            }
+
+            var bigResultPath = @"D:\Projects\Chimeras\SumbissionDirectory\Mann_11cell_analysis\ProformaSummary";
+
+            var temp = allResults.SelectMany(p => p.Results)
+                .GroupBy(p => p.Condition).ToDictionary(p => p.Key, p => p.ToList());
+
+            foreach (var condition in temp)
+            {
+                var proforomaFileName = Path.Combine(bigResultPath, condition.Key + "_PSM_" + FileIdentifiers.ProformaFile);
+                var records = new List<ProformaRecord>();
+                foreach (var result in condition.Value)
+                {
+                    if (result is MsFraggerResult msf)
+                        records.AddRange(msf.ToPsmProformaFile().Results);
+                }
+
+                var newFile = new ProformaFile(proforomaFileName)
+                {
+                    Results = records
+                };
+
+                newFile.WriteResults(proforomaFileName);
             }
         }
 
-        [Test]
-        public static void TESTNAME()
-        {
-            var cellLine = AllResults.First();
-            var frag = (MsFraggerResult)cellLine.First(p => p.Condition.Contains("ReviewdDatabaseNoPhospho_MsFraggerDDA+"));
-            //frag.CreateRetentionTimePredictionFile();
-            frag.PlotChronologerDeltaKernelPDF();
-
-        }
-
-        [Test]
-        public static void GeneParserForBurke()
-        {
-            string geneOfInterest = "C11orf68";
-            int psmCount = 0;
-            int onePercentPsmCount = 0;
-            int peptideCount = 0;
-            int onePercentPeptideCount = 0;
-            int onePercentProteinCount = 0;
-            int proteinCount = 0;
-            List<string> filesFoundIn = new List<string>();
-            foreach (var cellLine in AllResults)
-            {
-                var mmResults = cellLine.First(p => p.Condition == "MetaMorpheusWithLibrary") as MetaMorpheusResult;
-
-                foreach (var psm in SpectrumMatchTsvReader.ReadPsmTsv(mmResults.PsmPath, out _))
-                    if (psm.GeneName.Contains(geneOfInterest) || psm.Description.Contains(geneOfInterest, StringComparison.InvariantCultureIgnoreCase))
-                    {
-                        psmCount++;
-                        filesFoundIn.Add(psm.FileNameWithoutExtension);
-                        if (psm.QValue <= 0.01)
-                            onePercentPsmCount++;
-                    }
-
-                foreach (var peptide in SpectrumMatchTsvReader.ReadPsmTsv(mmResults.PeptidePath, out _))
-                    if (peptide.GeneName.Contains(geneOfInterest) || peptide.Description.Contains(geneOfInterest, StringComparison.InvariantCultureIgnoreCase))
-                    {
-                        peptideCount++;
-                        filesFoundIn.Add(peptide.FileNameWithoutExtension);
-                        if (peptide.QValue <= 0.01)
-                            onePercentPeptideCount++;
-                    }
-                using (var sw = new StreamReader(File.OpenRead(mmResults.ProteinPath)))
-                {
-                    var header = sw.ReadLine();
-                    var headerSplit = header.Split('\t');
-                    var qValueIndex = Array.IndexOf(headerSplit, "Protein QValue");
-                    var geneIndex = Array.IndexOf(headerSplit, "Gene");
-
-
-                    while (!sw.EndOfStream)
-                    {
-                        var line = sw.ReadLine();
-                        var values = line.Split('\t');
-                        if (values[geneIndex].Contains(geneOfInterest, StringComparison.InvariantCultureIgnoreCase))
-                        {
-                            proteinCount++;
-                            if (double.Parse(values[qValueIndex]) <= 0.01)
-                                onePercentProteinCount++;
-                        }
-                    }
-                }
-
-
-            }   
-            filesFoundIn = filesFoundIn.Distinct().ToList();
-            var sb = new StringBuilder();
-            sb.AppendLine($"Gene {geneOfInterest} was found in:");
-            sb.AppendLine($"{psmCount} Psms");
-            sb.AppendLine($"{onePercentPsmCount} Psms with qValue <= 0.01");
-            sb.AppendLine($"{peptideCount} Peptides");
-            sb.AppendLine($"{onePercentPeptideCount} Peptides with qValue <= 0.01");
-            sb.AppendLine($"{proteinCount} Proteins");
-            sb.AppendLine($"{onePercentProteinCount} Proteins with qValue <= 0.01");
-            sb.AppendLine($"In the following files:");
-            sb.AppendLine(string.Join('\n', filesFoundIn));
-            var result = sb.ToString();
-        }
-
-
-
-        [Test]
-        public static void ChimerysResultSplitter()
-        {
-            
-        }
 
     }
 }

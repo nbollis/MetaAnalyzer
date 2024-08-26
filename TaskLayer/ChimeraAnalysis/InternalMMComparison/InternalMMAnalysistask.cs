@@ -20,6 +20,7 @@ using TaskLayer.CMD;
 using System.Security.Cryptography;
 using Analyzer.FileTypes.Internal;
 using Easy.Common.Extensions;
+using Analyzer;
 
 namespace TaskLayer.ChimeraAnalysis
 {
@@ -268,19 +269,56 @@ namespace TaskLayer.ChimeraAnalysis
             //    }
             //}
 
+            Log("Creating Proforma Files", 1);
+            foreach (var cellLineDictEntry in cellLineDict)
+            {
+                var cellLine = Path.GetFileNameWithoutExtension(cellLineDictEntry.Key);
+
+                Log($"Processing Cell Line {cellLine}", 1);
+                foreach (var singleRunPath in cellLineDictEntry.Value)
+                {
+                    if (singleRunPath.Contains(NonChimericDescriptor))
+                        continue;
+
+                    var result = new MetaMorpheusResult(singleRunPath);
+                    result.ToPsmProformaFile();
+                }
+            }
+
+            var proformaGroups = cellLineDict.SelectMany(p => p.Value)
+                .Select(p => new MetaMorpheusResult(p))
+                .GroupBy(p => p.Condition.ConvertConditionName())
+                .ToDictionary(p => p.Key, p => p.ToList());
+            var proformaResultPath = Path.Combine(BulkFigureDirectory, "ProformaResults");
+            foreach (var condition in proformaGroups)
+            {
+                var proforomaFileName = Path.Combine(proformaResultPath, condition.Key + "_PSM_" + FileIdentifiers.ProformaFile);
+                var records = new List<ProformaRecord>();
+                foreach (var result in condition.Value)
+                    records.AddRange(result.ToPsmProformaFile().Results);
+                var newFile = new ProformaFile(proforomaFileName)
+                {
+                    Results = records
+                };
+
+                newFile.WriteResults(proforomaFileName);
+            }
 
 
             var resultsForInternalComparison = cellLineDict.SelectMany(p => p.Value)
-                .Where(p => !p.Contains($"WithChimeras_{Version}_NonChimericLibrary"))
+                .Where(p => !p.Contains($"{ChimericDescriptor}_{Version}_NonChimericLibrary"))
                 .Select(p => new MetaMorpheusResult(p))
                 .ToList();
-            //GetResultCountFile(resultsForInternalComparison);
+            GetResultCountFile(resultsForInternalComparison);
             Log($"Plotting Bulk Internal Comparison", 0);
-            PlotCellLineBarCharts(resultsForInternalComparison);
+            //PlotCellLineBarCharts(resultsForInternalComparison);
+
+            resultsForInternalComparison = resultsForInternalComparison
+                .Where(p => p.Condition.Contains($"{ChimericDescriptor}_{Version}_ChimericLibrary"))
+                .ToList();
             PlotChimeraBreakdownBarChart(resultsForInternalComparison);
             PlotPossibleFeatures(resultsForInternalComparison);
             PlotFractionalIntensityPlots(resultsForInternalComparison);
-            
         }
 
         #region MetaMorpheus search running
@@ -606,14 +644,21 @@ namespace TaskLayer.ChimeraAnalysis
             var noIdString = "No ID";
             bool isTopDown = results.First().IsTopDown;
             var resultsToPlot = results.SelectMany(p => p.ChimericSpectrumSummaryFile)
+                .Where(p => 
+                    p.PEP_QValue <= 0.01 
+                    && p.PossibleFeatureCount != 0 
+                    && p.Type != noIdString 
+                    && p is not { PrecursorCharge: 1, PossibleFeatureCount: 1 })
                 .ToList();
 
-
+            //var temp = resultsToPlot.Count(p => p is { PrecursorCharge: 1, PossibleFeatureCount: 1 } && p.Type == ResultType.Psm.ToString());
+            //var temp2 = resultsToPlot.Count(p => p is { PrecursorCharge: 1, PossibleFeatureCount: 1 } && p.Type == ResultType.Peptide.ToString());
+            //var temp3 = resultsToPlot.Count(p => p.PEP_QValue > 0.01);
 
             var resultType = ResultType.Psm;
-            var records = resultsToPlot.Where(p => p.Type == resultType.ToString() && p.PossibleFeatureCount != 0).ToList();
-            var chimeric = records.Where(p => p.IsChimeric && p.Type != noIdString).ToList();
-            var nonChimeric = records.Where(p => !p.IsChimeric && p.Type != noIdString).ToList();
+            var records = resultsToPlot.Where(p => p.Type == resultType.ToString()).ToList();
+            var chimeric = records.Where(p => p.IsChimeric).ToList();
+            var nonChimeric = records.Where(p => !p.IsChimeric).ToList();
 
             var chimericKde = GenericPlots.KernelDensityPlot(chimeric.Select(p =>
                 (double)p.PossibleFeatureCount).ToList(), "Chimeric ID", "Features per Isolation Window", "Density", 0.5);
@@ -639,9 +684,9 @@ namespace TaskLayer.ChimeraAnalysis
 
 
             resultType = ResultType.Peptide;
-            records = resultsToPlot.Where(p => p.Type == resultType.ToString() && p.PossibleFeatureCount != 0).ToList();
-            chimeric = records.Where(p => p.IsChimeric && p.Type != noIdString).ToList();
-            nonChimeric = records.Where(p => !p.IsChimeric && p.Type != noIdString).ToList();
+            records = resultsToPlot.Where(p => p.Type == resultType.ToString()).ToList();
+            chimeric = records.Where(p => p.IsChimeric).ToList();
+            nonChimeric = records.Where(p => !p.IsChimeric).ToList();
 
             minMax = null;
             chimericKde = GenericPlots.KernelDensityPlot(chimeric.Select(p =>
@@ -670,15 +715,19 @@ namespace TaskLayer.ChimeraAnalysis
             Log($"Fractional Intensity", 1);
             bool isTopDown = results.First().IsTopDown;
             var resultsToPlot = results.SelectMany(p => p.ChimericSpectrumSummaryFile)
+                .Where(p =>
+                    p.PEP_QValue <= 0.01
+                    && p.Type != "No ID")
                 .ToList();
-            GenerateFractionalIntensityPlots(ResultType.Psm, resultsToPlot, true, true, isTopDown);
-            GenerateFractionalIntensityPlots(ResultType.Psm, resultsToPlot, true, false, isTopDown);
-            GenerateFractionalIntensityPlots(ResultType.Peptide, resultsToPlot, true, true, isTopDown);
-            GenerateFractionalIntensityPlots(ResultType.Peptide, resultsToPlot, true, false, isTopDown);
 
-            GenerateFractionalIntensityPlots(ResultType.Psm, resultsToPlot, false, false, isTopDown);
+            GenerateFractionalIntensityPlots(ResultType.Psm, resultsToPlot, true, true, isTopDown);
+            //GenerateFractionalIntensityPlots(ResultType.Psm, resultsToPlot, true, false, isTopDown);
+            GenerateFractionalIntensityPlots(ResultType.Peptide, resultsToPlot, true, true, isTopDown);
+            //GenerateFractionalIntensityPlots(ResultType.Peptide, resultsToPlot, true, false, isTopDown);
+
+            //GenerateFractionalIntensityPlots(ResultType.Psm, resultsToPlot, false, false, isTopDown);
             GenerateFractionalIntensityPlots(ResultType.Psm, resultsToPlot, false, true, isTopDown);
-            GenerateFractionalIntensityPlots(ResultType.Peptide, resultsToPlot, false, false, isTopDown);
+            //GenerateFractionalIntensityPlots(ResultType.Peptide, resultsToPlot, false, false, isTopDown);
             GenerateFractionalIntensityPlots(ResultType.Peptide, resultsToPlot, false, true, isTopDown);
         }
 
@@ -772,7 +821,7 @@ namespace TaskLayer.ChimeraAnalysis
                 .WithLayout(PlotlyBase.DefaultLayoutNoLegend);
             outName =
                 $"{Version}_SpectrumSummary_{outPrecursor}FractionalIntensity_{outType}_{Labels.GetLabel(isTopDown, resultType)}_Combined";
-            combinedHistKde.SaveJPG(Path.Combine(BulkFigureDirectory, outName), null, 600, 500);
+            combinedHistKde.SavePNG(Path.Combine(BulkFigureDirectory, outName), null, 600, 500);
         }
 
         #endregion
