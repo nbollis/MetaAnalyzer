@@ -406,6 +406,11 @@ namespace Analyzer.SearchType
             }
         }
 
+        public override ProformaFile ToPsmProformaFile()
+        {
+            throw new NotImplementedException();
+        }
+
         public IEnumerator<MsPathFinderTIndividualFileResult> GetEnumerator()
         {
             return IndividualFileResults.GetEnumerator();

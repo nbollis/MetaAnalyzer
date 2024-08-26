@@ -68,6 +68,8 @@ namespace Analyzer.SearchType
 
         public BulkResultCountComparisonFile BulkResultCountComparisonFile =>
             _bulkResultCountComparisonFile ??= GetBulkResultCountComparisonFile();
+        protected string _proformaPsmFilePath => Path.Combine(DirectoryPath, $"{DatasetName}_{Condition}_PSMs_{FileIdentifiers.ProformaFile}");
+        protected ProformaFile? _proformaPsmFile;
 
         #region Base Sequence Only Filtering
 
@@ -120,9 +122,9 @@ namespace Analyzer.SearchType
         public abstract BulkResultCountComparisonFile? GetIndividualFileComparison(string path = null);
         public abstract ChimeraCountingFile CountChimericPsms();
         public abstract BulkResultCountComparisonFile GetBulkResultCountComparisonFile(string path = null);
+        public abstract ProformaFile ToPsmProformaFile();
 
         
-
         public override string ToString()
         {
             return $"{DatasetName}_{Condition}";

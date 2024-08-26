@@ -233,9 +233,7 @@ namespace Analyzer.SearchType
             return retentionTimePredictionFile;
         }
 
-        string _proformaPsmFilePath => Path.Combine(DirectoryPath, $"{DatasetName}_{Condition}_PSMs_{FileIdentifiers.ProformaFile}");
-        private ProformaFile? _proformaPsmFile;
-        public ProformaFile ToPsmProformaFile()
+        public override ProformaFile ToPsmProformaFile()
         {
             if (File.Exists(_proformaPsmFilePath) && !Override)
                 return _proformaPsmFile ??= new ProformaFile(_proformaPsmFilePath);

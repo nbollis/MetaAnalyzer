@@ -200,6 +200,12 @@ namespace Test
             }
         }
 
-
+        [Test]
+        public static void RunProformaShit_TempChimerys()
+        {
+            var pspd = new ProteomeDiscovererResult(
+                @"B:\Users\Nic\Chimeras\Chimerys\Chimerys");
+            pspd.ToPsmProformaFile();
+        }
     }
 }

@@ -1375,36 +1375,52 @@ namespace Analyzer.SearchType
             return file;
         }
 
-        string _proformaPsmFilePath => Path.Combine(DirectoryPath, $"{DatasetName}_{Condition}_PSMs_{FileIdentifiers.ProformaFile}");
-        private ProformaFile? _proformaPsmFile;
-        public ProformaFile ToPsmProformaFile()
+        public override ProformaFile ToPsmProformaFile()
         {
             if (File.Exists(_proformaPsmFilePath) && !Override)
                 return _proformaPsmFile ??= new ProformaFile(_proformaPsmFilePath);
-
+            string condition = Condition.ConvertConditionName();
             List<ProformaRecord> records = new();
             foreach (var file in IndividualFileResults)
             {
+                string fileName = file.FileName.ConvertFileName();
                 foreach (var psm in file.FilteredPsms)
                 {
                     int modMass = 0;
-
                     if (psm.FullSequence.Contains('['))
                         modMass += new PeptideWithSetModifications(psm.FullSequence.Split('|')[0].Trim(),
                             GlobalVariables.AllModsKnownDictionary).AllModsOneIsNterminus
                             .Sum(p => (int)p.Value.MonoisotopicMass!.RoundedDouble(0)!);
 
-                    var record = new ProformaRecord()
+                    ProformaRecord record;
+                    if (psm.AmbiguityLevel != "1")
                     {
-                        Condition = Condition,
-                        FileName = psm.FileNameWithoutExtension.ConvertFileName(),
-                        BaseSequence = psm.BaseSeq,
-                        ModificationMass = modMass,
-                        PrecursorCharge = psm.PrecursorCharge,
-                        ProteinAccession = psm.ProteinAccession,
-                        ScanNumber = psm.Ms2ScanNumber,
-                        FullSequence = psm.FullSequence
-                    };
+                        record = new ProformaRecord()
+                        {
+                            Condition = condition,
+                            FileName = fileName,
+                            BaseSequence = psm.BaseSeq.Split('|')[0].Trim(),
+                            ModificationMass = modMass,
+                            PrecursorCharge = psm.PrecursorCharge,
+                            ProteinAccession = psm.ProteinAccession.Split('|')[0].Trim(),
+                            ScanNumber = psm.Ms2ScanNumber,
+                            FullSequence = psm.FullSequence.Split('|')[0].Trim()
+                        };
+                    }
+                    else
+                    {
+                        record = new ProformaRecord()
+                        {
+                            Condition = condition,
+                            FileName = fileName,
+                            BaseSequence = psm.BaseSeq,
+                            ModificationMass = modMass,
+                            PrecursorCharge = psm.PrecursorCharge,
+                            ProteinAccession = psm.ProteinAccession,
+                            ScanNumber = psm.Ms2ScanNumber,
+                            FullSequence = psm.FullSequence
+                        };
+                    }
                     records.Add(record);
                 }
             }

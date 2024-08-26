@@ -4,8 +4,10 @@ using Analyzer.Util;
 using MassSpectrometry;
 using Readers;
 using Analyzer.Interfaces;
+using Analyzer.Plotting.Util;
 using Chemistry;
 using Easy.Common.Extensions;
+using Proteomics.ProteolyticDigestion;
 
 namespace Analyzer.SearchType
 {
@@ -296,6 +298,54 @@ namespace Analyzer.SearchType
                 }
             }
         }
+
+        public override ProformaFile ToPsmProformaFile()
+        {
+            if (File.Exists(_proformaPsmFilePath) && !Override)
+                return _proformaPsmFile ??= new ProformaFile(_proformaPsmFilePath);
+
+            var spectraFileGroup = PrsmFile
+                .GroupBy(p => IdToFileNameDictionary[p.FileID])
+                .ToDictionary(p => p.Key, 
+                    p => p.ToArray());
+
+            var condition = Condition.ConvertConditionName();
+            List<ProformaRecord> records = new();
+            foreach (var fileGroup in spectraFileGroup)
+            {
+                var fileName = fileGroup.Key.ConvertFileName();
+                foreach (var psmResult in fileGroup.Value)
+                {
+                    if (IsTopDown ? psmResult.NegativeLogEValue < 5 : psmResult.QValue > 0.01)
+                        continue;
+
+                    int modMass = 0;
+                    if (psmResult.FullSequence.Contains('['))
+                        modMass += new PeptideWithSetModifications(psmResult.FullSequence,
+                                GlobalVariables.AllModsKnownDictionary).AllModsOneIsNterminus
+                            .Sum(p => (int)p.Value.MonoisotopicMass!.RoundedDouble(0)!);
+
+                    var record = new ProformaRecord()
+                    {
+                        Condition = condition,
+                        FileName = fileName,
+                        BaseSequence = psmResult.BaseSequence,
+                        FullSequence = psmResult.FullSequence,
+                        ModificationMass = modMass,
+                        PrecursorCharge = psmResult.Charge,
+                        ProteinAccession = psmResult.ProteinAccession,
+                        ScanNumber = psmResult.OneBasedScanNumber,
+                    };
+                    records.Add(record);
+                }
+            }
+
+            var proformaFile = new ProformaFile(_proformaPsmFilePath) { Results = records };
+            proformaFile.WriteResults(_proformaPsmFilePath);
+            return _proformaPsmFile = proformaFile;
+        }
+
+
 
         public new void Dispose()
         {
