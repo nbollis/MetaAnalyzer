@@ -24,7 +24,7 @@ namespace Test
 
         internal static AllResults? _allResults;
         internal static AllResults AllResults => _allResults ??= new AllResults(DirectoryPath, Directory.GetDirectories(DirectoryPath)
-                   .Where(p => !p.Contains("Figures") && !p.Contains("Proforma") && !p.Contains("Prosight") && RunOnAll || p.Contains("Hela"))
+                   .Where(p => !p.Contains("Figures") && !p.Contains("ProcessedResults") && !p.Contains("Prosight") && RunOnAll || p.Contains("Hela"))
                    .Select(datasetDirectory => new CellLineResults(datasetDirectory)).ToList());
 
         [OneTimeSetUp]
@@ -111,7 +111,7 @@ namespace Test
                 .Where(p => p.Count() == 11)
                 .ToDictionary(p => p.Key, p => p.ToList());
 
-            var bigResultPath = @"B:\Users\Nic\Chimeras\Mann_11cell_analysis\ProformaSummary";
+            var bigResultPath = @"B:\Users\Nic\Chimeras\Mann_11cell_analysis\ProcessedResults";
             if (!Directory.Exists(bigResultPath))
                 Directory.CreateDirectory(bigResultPath);
 
@@ -120,13 +120,8 @@ namespace Test
                 if (group.Value.First() is MetaMorpheusResult mm && !mm.IndividualFileResults.Any())
                     continue;
 
-                //foreach (var result in group.Value)
-                //    result.ToPsmProformaFile();
-
-                foreach (var result in group.Value.Where(p => p is MetaMorpheusResult))
-                    ((MetaMorpheusResult)result).CountProteins();
-
-
+                foreach (var result in group.Value)
+                    result.ToPsmProformaFile();
 
                 var allRecords = group.Value.SelectMany(p => p.ToPsmProformaFile().Results).ToList();
                 var proforomaFileName = Path.Combine(bigResultPath, group.Key + "_PSM_" + FileIdentifiers.ProformaFile);
@@ -201,7 +196,7 @@ namespace Test
         {
             string resultDirectoryPath = @"D:\Projects\Chimeras\SumbissionDirectory\Mann_11cell_analysis";
             var allResults = new AllResults(resultDirectoryPath, Directory.GetDirectories(resultDirectoryPath)
-                           .Where(p => !p.Contains("Figures") && !p.Contains("Prosight") && !p.Contains("Proforma"))
+                           .Where(p => !p.Contains("Figures") && !p.Contains("Prosight") && !p.Contains("ProcessedResults"))
                            .Select(datasetDirectory => new CellLineResults(datasetDirectory)).ToList());
 
             foreach (var cellLine in allResults)
@@ -213,7 +208,7 @@ namespace Test
                 }
             }
 
-            var bigResultPath = @"D:\Projects\Chimeras\SumbissionDirectory\Mann_11cell_analysis\ProformaSummary";
+            var bigResultPath = @"D:\Projects\Chimeras\SumbissionDirectory\Mann_11cell_analysis\ProcessedResults";
 
             var temp = allResults.SelectMany(p => p.Results)
                 .GroupBy(p => p.Condition).ToDictionary(p => p.Key, p => p.ToList());
@@ -243,6 +238,41 @@ namespace Test
             var pspd = new ProteomeDiscovererResult(
                 @"B:\Users\Nic\Chimeras\Chimerys\Chimerys");
             pspd.ToPsmProformaFile();
+        }
+
+        [Test]
+        public static void RunProteinCounting()
+        {
+            // Mann 11 Directory
+            var conditionGroupedResult = AllResults.SelectMany(p => p.Results)
+                .GroupBy(p => p.Condition)
+                .Where(p => p.Count() == 11)
+                .ToDictionary(p => p.Key, p => p.ToList());
+
+            var bigResultPath = @"B:\Users\Nic\Chimeras\Mann_11cell_analysis\ProcessedResults";
+            if (!Directory.Exists(bigResultPath))
+                Directory.CreateDirectory(bigResultPath);
+
+            foreach (var group in conditionGroupedResult)
+            {
+                if (group.Value.First() is MetaMorpheusResult mm && !mm.IndividualFileResults.Any())
+                    continue;
+
+                foreach (var result in group.Value)
+                    result.CountProteins();
+
+                var finalResult = group.Value.Select(p => p.CountProteins())
+                    .Aggregate((a, b) => a + b);
+                var finalResultOutPath = Path.Combine(bigResultPath, group.Key + FileIdentifiers.ProteinCountingFile);
+                finalResult.WriteResults(finalResultOutPath);
+
+                group.Value.ForEach(p => p.Dispose());
+            }
+
+            // Chimerys
+            var pspd = new ProteomeDiscovererResult(
+                @"B:\Users\Nic\Chimeras\Chimerys\Chimerys");
+            pspd.CountProteins();
         }
     }
 }

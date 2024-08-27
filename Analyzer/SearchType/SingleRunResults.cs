@@ -138,6 +138,7 @@ namespace Analyzer.SearchType
             _chimeraPsmFile = null;
             _bulkResultCountComparisonFile = null;
             _proformaPsmFile = null;
+            _proteinCountingFile = null;
         }
     }
 }
