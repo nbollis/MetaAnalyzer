@@ -207,7 +207,7 @@ namespace Analyzer.FileTypes.External
         }
 
         [Ignore]
-        private static Dictionary<(double, char), string> FraggerToMetaMorpheusModDict => new()
+        internal static Dictionary<(double, char), string> FraggerToMetaMorpheusModDict => new()
         {
             { (57.0214, 'C'), "[Common Biological : Carbamidomethyl on C]" },
             { (15.9949, 'M'), "[Common Variable : Oxidation on M]" },

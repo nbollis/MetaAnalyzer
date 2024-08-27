@@ -1429,7 +1429,62 @@ namespace Analyzer.SearchType
             return _proformaPsmFile = proformaFile;
         }
 
+        public override ProformaFile ToPeptideProformaFile()
+        {
+            if (File.Exists(_proformaPeptideFilePath) && !Override)
+                return _proformaPeptideFile ??= new ProformaFile(_proformaPeptideFilePath);
 
+            List<ProformaRecord> records = new();
+            string condition = Condition.ConvertConditionName();
+            foreach (var file in IndividualFileResults)
+            {
+                string fileName = file.FileName.ConvertFileName();
+                foreach (var peptide in file.AllPeptides
+                             .Where(p => p is { DecoyContamTarget: "T", PEP_QValue: <= 0.01 }))
+                {
+                    int modMass = 0;
+                    if (peptide.FullSequence.Contains('['))
+                        modMass += new PeptideWithSetModifications(peptide.FullSequence.Split('|')[0].Trim(),
+                                GlobalVariables.AllModsKnownDictionary).AllModsOneIsNterminus
+                            .Sum(p => (int)p.Value.MonoisotopicMass!.RoundedDouble(0)!);
+
+                    ProformaRecord record;
+                    if (peptide.AmbiguityLevel != "1")
+                    {
+                        record = new ProformaRecord()
+                        {
+                            Condition = condition,
+                            FileName = fileName,
+                            BaseSequence = peptide.BaseSeq.Split('|')[0].Trim(),
+                            ModificationMass = modMass,
+                            PrecursorCharge = peptide.PrecursorCharge,
+                            ProteinAccession = peptide.ProteinAccession.Split('|')[0].Trim(),
+                            ScanNumber = peptide.Ms2ScanNumber,
+                            FullSequence = peptide.FullSequence.Split('|')[0].Trim()
+                        };
+                    }
+                    else
+                    {
+                        record = new ProformaRecord()
+                        {
+                            Condition = condition,
+                            FileName = fileName,
+                            BaseSequence = peptide.BaseSeq,
+                            ModificationMass = modMass,
+                            PrecursorCharge = peptide.PrecursorCharge,
+                            ProteinAccession = peptide.ProteinAccession,
+                            ScanNumber = peptide.Ms2ScanNumber,
+                            FullSequence = peptide.FullSequence
+                        };
+                    }
+                    records.Add(record);
+                }
+            }
+
+            var proformaFile = new ProformaFile(_proformaPeptideFilePath) { Results = records };
+            proformaFile.WriteResults(_proformaPeptideFilePath);
+            return _proformaPeptideFile = proformaFile;
+        }
 
         public new void Dispose()
         {

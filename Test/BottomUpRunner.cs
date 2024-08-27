@@ -24,7 +24,7 @@ namespace Test
 
         internal static AllResults? _allResults;
         internal static AllResults AllResults => _allResults ??= new AllResults(DirectoryPath, Directory.GetDirectories(DirectoryPath)
-                   .Where(p => !p.Contains("Figures") && !p.Contains("Prosight") && RunOnAll || p.Contains("Hela"))
+                   .Where(p => !p.Contains("Figures") && !p.Contains("Proforma") && !p.Contains("Prosight") && RunOnAll || p.Contains("Hela"))
                    .Select(datasetDirectory => new CellLineResults(datasetDirectory)).ToList());
 
         [OneTimeSetUp]
@@ -101,6 +101,38 @@ namespace Test
             AllResults.CountChimericPeptides();
             AllResults.GetChimeraBreakdownFile();
             AllResults.Override = false;
+        }
+
+        [Test]
+        public static void RunProformaForAllInMann11ResultDirectory()
+        {
+            var conditionGroupedResult = AllResults.SelectMany(p => p.Results)
+                .GroupBy(p => p.Condition)
+                .Where(p => p.Count() == 11)
+                .ToDictionary(p => p.Key, p => p.ToList());
+
+            var bigResultPath = @"B:\Users\Nic\Chimeras\Mann_11cell_analysis\ProformaSummary";
+            if (!Directory.Exists(bigResultPath))
+                Directory.CreateDirectory(bigResultPath);
+
+            foreach (var group in conditionGroupedResult)
+            {
+                if (group.Value.First() is MetaMorpheusResult mm && !mm.IndividualFileResults.Any())
+                    continue;
+
+                foreach (var result in group.Value)
+                    result.ToPsmProformaFile();
+                
+                var allRecords = group.Value.SelectMany(p => p.ToPsmProformaFile().Results).ToList();
+                var proforomaFileName = Path.Combine(bigResultPath, group.Key + "_PSM_" + FileIdentifiers.ProformaFile);
+                var newFile = new ProformaFile(proforomaFileName)
+                {
+                    Results = allRecords
+                };
+                newFile.WriteResults(proforomaFileName);
+                
+                group.Value.ForEach(p => p.Dispose());
+            }
         }
 
 

@@ -274,9 +274,49 @@ namespace Analyzer.SearchType
             return _proformaPsmFile = proformaFile;
         }
 
+        public override ProformaFile ToPeptideProformaFile()
+        {
+            if (File.Exists(_proformaPeptideFilePath) && !Override)
+                return _proformaPeptideFile ??= new ProformaFile(_proformaPeptideFilePath);
 
-        string _proformaPeptideFilePath => Path.Combine(DirectoryPath, $"{DatasetName}_{Condition}_Peptides_{FileIdentifiers.ProformaFile}");
-        private ProformaFile? _proformaPeptideFile;
+            List<ProformaRecord> records = new();
+            foreach (var file in IndividualFileResults)
+            {
+                file.PsmFile.LoadResults();
+                foreach (var psm in file.PeptideFile.Results)
+                {
+                    if (!psm.PassesConfidenceFilter)
+                        continue;
+
+                    string fileNameWithoutExtension = Path.GetFileNameWithoutExtension(file.PsmFile.First().FileNameWithoutExtension);
+                    string fileName = fileNameWithoutExtension!.Replace("interact-", "");
+
+                    int modMass = 0;
+                    if (psm.AssignedModifications != "")
+                        modMass = psm.AssignedModifications.Split(',')
+                            .Sum(p => (int)Math.Round(MsFraggerPsm.ParseString(p.Trim()).Item3));
+
+                    var record = new ProformaRecord()
+                    {
+                        Condition = Condition,
+                        FileName = fileName,
+                        BaseSequence = psm.BaseSequence,
+                        ModificationMass = modMass,
+                        PrecursorCharge = psm.Charge,
+                        ProteinAccession = psm.ProteinAccession,
+                        ScanNumber = psm.OneBasedScanNumber,
+                        FullSequence = psm.FullSequence
+                    };
+                    records.Add(record);
+                }
+            }
+
+            var proformaFile = new ProformaFile(_proformaPeptideFilePath) { Results = records };
+            proformaFile.WriteResults(_proformaPeptideFilePath);
+            return _proformaPeptideFile = proformaFile;
+        }
+
+
     }
 
     public class MsFraggerIndividualFileResult

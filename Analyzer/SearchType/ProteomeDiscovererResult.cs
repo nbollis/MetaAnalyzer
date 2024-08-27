@@ -345,7 +345,18 @@ namespace Analyzer.SearchType
             return _proformaPsmFile = proformaFile;
         }
 
+        public override ProformaFile ToPeptideProformaFile()
+        {
+            if (File.Exists(_proformaPeptideFilePath) && !Override)
+                return _proformaPeptideFile ??= new ProformaFile(_proformaPeptideFilePath);
 
+            List<ProformaRecord> records = new();
+
+
+            var proformaFile = new ProformaFile(_proformaPeptideFilePath) { Results = records };
+            proformaFile.WriteResults(_proformaPeptideFilePath);
+            return _proformaPeptideFile = proformaFile;
+        }
 
         public new void Dispose()
         {

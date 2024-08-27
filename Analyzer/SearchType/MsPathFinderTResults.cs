@@ -411,6 +411,21 @@ namespace Analyzer.SearchType
             throw new NotImplementedException();
         }
 
+        public override ProformaFile ToPeptideProformaFile()
+        {
+            throw new NotImplementedException();
+
+
+            if (File.Exists(_proformaPeptideFilePath) && !Override)
+                return _proformaPeptideFile ??= new ProformaFile(_proformaPeptideFilePath);
+
+            List<ProformaRecord> records = new();
+
+            var proformaFile = new ProformaFile(_proformaPeptideFilePath) { Results = records };
+            proformaFile.WriteResults(_proformaPeptideFilePath);
+            return _proformaPeptideFile = proformaFile;
+        }
+
         public IEnumerator<MsPathFinderTIndividualFileResult> GetEnumerator()
         {
             return IndividualFileResults.GetEnumerator();
