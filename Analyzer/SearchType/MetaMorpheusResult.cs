@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Diagnostics;
 using System.IO;
+using System.IO.Enumeration;
 using System.Linq;
 using System.Reflection.Metadata.Ecma335;
 using System.Text;
@@ -14,11 +15,13 @@ using Chemistry;
 using Easy.Common.Extensions;
 using MassSpectrometry;
 using MathNet.Numerics;
+using Proteomics;
 using Proteomics.ProteolyticDigestion;
 using Proteomics.PSM;
 using Proteomics.RetentionTimePrediction;
 using Readers;
 using RetentionTimePrediction;
+using UsefulProteomicsDatabases;
 using Ms1FeatureFile = Analyzer.FileTypes.External.Ms1FeatureFile;
 
 namespace Analyzer.SearchType
@@ -237,8 +240,6 @@ namespace Analyzer.SearchType
             chimeraCountingFile.WriteResults(_chimeraPeptidePath);
             return chimeraCountingFile;
         }
-        
-
         public override BulkResultCountComparisonFile GetBulkResultCountComparisonFile(string? path = null)
         {
             path ??= _bulkResultCountComparisonPath;
@@ -1429,61 +1430,31 @@ namespace Analyzer.SearchType
             return _proformaPsmFile = proformaFile;
         }
 
-        public override ProformaFile ToPeptideProformaFile()
+        public override ProteinCountingFile CountProteins()
         {
-            if (File.Exists(_proformaPeptideFilePath) && !Override)
-                return _proformaPeptideFile ??= new ProformaFile(_proformaPeptideFilePath);
-
-            List<ProformaRecord> records = new();
-            string condition = Condition.ConvertConditionName();
-            foreach (var file in IndividualFileResults)
+            if (File.Exists(_proteinCountingFilePath) && !Override)
+                return _proteinCountingFile ??= new ProteinCountingFile(_proteinCountingFilePath);
+            
+            List <Protein> proteins = new();
+            var proteinDbPaths = ProseFile.DatabasePaths;
+            foreach (var dbPath in proteinDbPaths)
             {
-                string fileName = file.FileName.ConvertFileName();
-                foreach (var peptide in file.AllPeptides
-                             .Where(p => p is { DecoyContamTarget: "T", PEP_QValue: <= 0.01 }))
-                {
-                    int modMass = 0;
-                    if (peptide.FullSequence.Contains('['))
-                        modMass += new PeptideWithSetModifications(peptide.FullSequence.Split('|')[0].Trim(),
-                                GlobalVariables.AllModsKnownDictionary).AllModsOneIsNterminus
-                            .Sum(p => (int)p.Value.MonoisotopicMass!.RoundedDouble(0)!);
-
-                    ProformaRecord record;
-                    if (peptide.AmbiguityLevel != "1")
-                    {
-                        record = new ProformaRecord()
-                        {
-                            Condition = condition,
-                            FileName = fileName,
-                            BaseSequence = peptide.BaseSeq.Split('|')[0].Trim(),
-                            ModificationMass = modMass,
-                            PrecursorCharge = peptide.PrecursorCharge,
-                            ProteinAccession = peptide.ProteinAccession.Split('|')[0].Trim(),
-                            ScanNumber = peptide.Ms2ScanNumber,
-                            FullSequence = peptide.FullSequence.Split('|')[0].Trim()
-                        };
-                    }
-                    else
-                    {
-                        record = new ProformaRecord()
-                        {
-                            Condition = condition,
-                            FileName = fileName,
-                            BaseSequence = peptide.BaseSeq,
-                            ModificationMass = modMass,
-                            PrecursorCharge = peptide.PrecursorCharge,
-                            ProteinAccession = peptide.ProteinAccession,
-                            ScanNumber = peptide.Ms2ScanNumber,
-                            FullSequence = peptide.FullSequence
-                        };
-                    }
-                    records.Add(record);
-                }
+                if (dbPath.EndsWith(".msp"))
+                    continue;
+                if (dbPath.EndsWith(".fasta"))
+                    proteins.AddRange(ProteinDbLoader.LoadProteinFasta(dbPath, true, DecoyType.None, false, out _));
+                else if (dbPath.EndsWith(".xml"))
+                    proteins.AddRange(ProteinDbLoader.LoadProteinXML(dbPath, true, 0,
+                        GlobalVariables.AllModsKnown, false, new List<string>(), out _));
+                else
+                    throw new Exception("Unknown protein database type");
             }
 
-            var proformaFile = new ProformaFile(_proformaPeptideFilePath) { Results = records };
-            proformaFile.WriteResults(_proformaPeptideFilePath);
-            return _proformaPeptideFile = proformaFile;
+            var psms = IndividualFileResults.SelectMany(p => p.FilteredPsms).ToList();
+            var records = ProteinCountingRecord.GetRecords(psms, proteins, Condition);
+            var proteinCountingFile = new ProteinCountingFile(_proteinCountingFilePath) { Results = records };
+            proteinCountingFile.WriteResults(_proteinCountingFilePath);
+            return _proteinCountingFile = proteinCountingFile;
         }
 
         public new void Dispose()
@@ -1589,7 +1560,7 @@ namespace Analyzer.SearchType
         public List<PsmFromTsv> AllPsms => _allPsms ??= SpectrumMatchTsvReader.ReadPsmTsv(PsmPath, out _);
 
         private List<PsmFromTsv>? _filteredPsms;
-        public List<PsmFromTsv> FilteredPsms => _filteredPsms ??= AllPsms.Where(p => p is { DecoyContamTarget: "T", PEP_QValue: <= 0.01 }).ToList();
+        public List<PsmFromTsv> FilteredPsms => _filteredPsms ??= AllPsms.Where(p => p.PassesConfidenceFilter()).ToList();
 
         private List<PsmFromTsv>? _allPeptides;
         public List<PsmFromTsv> AllPeptides => _allPeptides ??= SpectrumMatchTsvReader.ReadPsmTsv(PeptidePath, out _);

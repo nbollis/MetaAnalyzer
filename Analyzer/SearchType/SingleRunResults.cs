@@ -70,8 +70,9 @@ namespace Analyzer.SearchType
             _bulkResultCountComparisonFile ??= GetBulkResultCountComparisonFile();
         protected string _proformaPsmFilePath => Path.Combine(DirectoryPath, $"{DatasetName}_{Condition}_PSMs_{FileIdentifiers.ProformaFile}");
         protected ProformaFile? _proformaPsmFile;
-        protected string _proformaPeptideFilePath => Path.Combine(DirectoryPath, $"{DatasetName}_{Condition}_Peptides_{FileIdentifiers.ProformaFile}");
-        protected ProformaFile? _proformaPeptideFile;
+
+        protected string _proteinCountingFilePath => Path.Combine(DirectoryPath, $"{DatasetName}_{Condition}_Proteins_{FileIdentifiers.ProteinCountingFile}");
+        protected ProteinCountingFile? _proteinCountingFile;
 
         #region Base Sequence Only Filtering
 
@@ -125,8 +126,7 @@ namespace Analyzer.SearchType
         public abstract ChimeraCountingFile CountChimericPsms();
         public abstract BulkResultCountComparisonFile GetBulkResultCountComparisonFile(string path = null);
         public abstract ProformaFile ToPsmProformaFile();
-        public abstract ProformaFile ToPeptideProformaFile();
-
+        public abstract ProteinCountingFile CountProteins();
         public override string ToString()
         {
             return $"{DatasetName}_{Condition}";

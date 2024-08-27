@@ -120,9 +120,14 @@ namespace Test
                 if (group.Value.First() is MetaMorpheusResult mm && !mm.IndividualFileResults.Any())
                     continue;
 
-                foreach (var result in group.Value)
-                    result.ToPsmProformaFile();
-                
+                //foreach (var result in group.Value)
+                //    result.ToPsmProformaFile();
+
+                foreach (var result in group.Value.Where(p => p is MetaMorpheusResult))
+                    ((MetaMorpheusResult)result).CountProteins();
+
+
+
                 var allRecords = group.Value.SelectMany(p => p.ToPsmProformaFile().Results).ToList();
                 var proforomaFileName = Path.Combine(bigResultPath, group.Key + "_PSM_" + FileIdentifiers.ProformaFile);
                 var newFile = new ProformaFile(proforomaFileName)

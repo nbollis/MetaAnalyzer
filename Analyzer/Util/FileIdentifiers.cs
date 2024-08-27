@@ -21,7 +21,7 @@
         public static string ChimericSpectrumSummary => "ChimericSpectrumSummary.csv";
         public static string MaximumChimeraEstimateCalibAveraged => "MaximumChimeraEstimateCalibAveragedHybrid.csv";
         public static string ProformaFile => "ProformaFile.tsv";
-        
+        public static string ProteinCountingFile => "ProteinCounting.tsv";
         public static string ModificationDistributionFigure => "ModificationDistribution";
 
 

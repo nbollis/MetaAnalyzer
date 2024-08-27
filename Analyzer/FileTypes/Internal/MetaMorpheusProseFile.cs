@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Easy.Common.Extensions;
 
@@ -35,10 +37,13 @@ namespace Analyzer.FileTypes.Internal
                 spec.Add(lines[i].Trim());
             }
 
-            for (int i = dbIndex+1; i < lines.Length; i++)
+            // Define a regex pattern to match file paths
+            string pattern = @"[A-Z]:\\[^\s]+";
+            foreach (Match match in Regex.Matches(lines[dbIndex + 1], pattern))
             {
-                db.Add(lines[i].Trim());
+                db.Add(match.Value);
             }
+
             SpectraFilePaths = spec.ToArray();
             DatabasePaths = db.ToArray();
         }

@@ -2,7 +2,9 @@
 using Analyzer.FileTypes.Internal;
 using Analyzer.Interfaces;
 using Analyzer.Util;
+using Proteomics;
 using RetentionTimePrediction;
+using UsefulProteomicsDatabases;
 
 namespace Analyzer.SearchType
 {
@@ -274,49 +276,21 @@ namespace Analyzer.SearchType
             return _proformaPsmFile = proformaFile;
         }
 
-        public override ProformaFile ToPeptideProformaFile()
+        public override ProteinCountingFile CountProteins()
         {
-            if (File.Exists(_proformaPeptideFilePath) && !Override)
-                return _proformaPeptideFile ??= new ProformaFile(_proformaPeptideFilePath);
+            if (File.Exists(_proteinCountingFilePath) && !Override)
+                return _proteinCountingFile ??= new ProteinCountingFile(_proteinCountingFilePath);
 
-            List<ProformaRecord> records = new();
-            foreach (var file in IndividualFileResults)
-            {
-                file.PsmFile.LoadResults();
-                foreach (var psm in file.PeptideFile.Results)
-                {
-                    if (!psm.PassesConfidenceFilter)
-                        continue;
 
-                    string fileNameWithoutExtension = Path.GetFileNameWithoutExtension(file.PsmFile.First().FileNameWithoutExtension);
-                    string fileName = fileNameWithoutExtension!.Replace("interact-", "");
+            string dbPath = @"B:\Users\Nic\Chimeras\Mann_11cell_analysis\UP000005640_reviewed.fasta";
+            List<Protein> proteins = ProteinDbLoader.LoadProteinFasta(dbPath, true, DecoyType.None, false, out _);
 
-                    int modMass = 0;
-                    if (psm.AssignedModifications != "")
-                        modMass = psm.AssignedModifications.Split(',')
-                            .Sum(p => (int)Math.Round(MsFraggerPsm.ParseString(p.Trim()).Item3));
-
-                    var record = new ProformaRecord()
-                    {
-                        Condition = Condition,
-                        FileName = fileName,
-                        BaseSequence = psm.BaseSequence,
-                        ModificationMass = modMass,
-                        PrecursorCharge = psm.Charge,
-                        ProteinAccession = psm.ProteinAccession,
-                        ScanNumber = psm.OneBasedScanNumber,
-                        FullSequence = psm.FullSequence
-                    };
-                    records.Add(record);
-                }
-            }
-
-            var proformaFile = new ProformaFile(_proformaPeptideFilePath) { Results = records };
-            proformaFile.WriteResults(_proformaPeptideFilePath);
-            return _proformaPeptideFile = proformaFile;
+            var psms = IndividualFileResults.SelectMany(p => p.PsmFile.Results.Cast<ISpectralMatch>()).ToList();
+            var records = ProteinCountingRecord.GetRecords(psms, proteins, Condition);
+            var proteinCountingFile = new ProteinCountingFile(_proteinCountingFilePath) { Results = records };
+            proteinCountingFile.WriteResults(_proteinCountingFilePath);
+            return _proteinCountingFile = proteinCountingFile;
         }
-
-
     }
 
     public class MsFraggerIndividualFileResult

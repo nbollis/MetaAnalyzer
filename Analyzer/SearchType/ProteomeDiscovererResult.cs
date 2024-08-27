@@ -8,6 +8,8 @@ using Analyzer.Plotting.Util;
 using Chemistry;
 using Easy.Common.Extensions;
 using Proteomics.ProteolyticDigestion;
+using Proteomics;
+using UsefulProteomicsDatabases;
 
 namespace Analyzer.SearchType
 {
@@ -345,17 +347,20 @@ namespace Analyzer.SearchType
             return _proformaPsmFile = proformaFile;
         }
 
-        public override ProformaFile ToPeptideProformaFile()
+        public override ProteinCountingFile CountProteins()
         {
-            if (File.Exists(_proformaPeptideFilePath) && !Override)
-                return _proformaPeptideFile ??= new ProformaFile(_proformaPeptideFilePath);
-
-            List<ProformaRecord> records = new();
+            if (File.Exists(_proteinCountingFilePath) && !Override)
+                return _proteinCountingFile ??= new ProteinCountingFile(_proteinCountingFilePath);
 
 
-            var proformaFile = new ProformaFile(_proformaPeptideFilePath) { Results = records };
-            proformaFile.WriteResults(_proformaPeptideFilePath);
-            return _proformaPeptideFile = proformaFile;
+            string dbPath = @"B:\Users\Nic\Chimeras\Mann_11cell_analysis\UP000005640_reviewed.fasta";
+            List<Protein> proteins = ProteinDbLoader.LoadProteinFasta(dbPath, true, DecoyType.None, false, out _);
+
+            var psms = PrsmFile.Results.Cast<ISpectralMatch>().ToList();
+            var records = ProteinCountingRecord.GetRecords(psms, proteins, Condition);
+            var proteinCountingFile = new ProteinCountingFile(_proteinCountingFilePath) { Results = records };
+            proteinCountingFile.WriteResults(_proteinCountingFilePath);
+            return _proteinCountingFile = proteinCountingFile;
         }
 
         public new void Dispose()

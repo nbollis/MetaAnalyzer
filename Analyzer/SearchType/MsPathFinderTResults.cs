@@ -5,7 +5,9 @@ using Analyzer.Interfaces;
 using Analyzer.Util;
 using Easy.Common.Extensions;
 using MassSpectrometry;
+using Proteomics;
 using Readers;
+using UsefulProteomicsDatabases;
 
 namespace Analyzer.SearchType
 {
@@ -411,19 +413,22 @@ namespace Analyzer.SearchType
             throw new NotImplementedException();
         }
 
-        public override ProformaFile ToPeptideProformaFile()
+        public override ProteinCountingFile CountProteins()
         {
             throw new NotImplementedException();
+            //if (File.Exists(_proteinCountingFilePath) && !Override)
+            //    return _proteinCountingFile ??= new ProteinCountingFile(_proteinCountingFilePath);
 
 
-            if (File.Exists(_proformaPeptideFilePath) && !Override)
-                return _proformaPeptideFile ??= new ProformaFile(_proformaPeptideFilePath);
+            //string dbPath = @"B:\Users\Nic\Chimeras\Mann_11cell_analysis\UP000005640_reviewed.fasta";
+            //List<Protein> proteins = ProteinDbLoader.LoadProteinFasta(dbPath, true, DecoyType.None, false, out _);
 
-            List<ProformaRecord> records = new();
+            //var psms = IndividualFileResults.SelectMany(p => p.PsmFile.Results.Cast<ISpectralMatch>()).ToList();
+            //var records = ProteinCountingRecord.GetRecords(psms, proteins, Condition);
+            //var proteinCountingFile = new ProteinCountingFile(_proteinCountingFilePath) { Results = records };
+            //proteinCountingFile.WriteResults(_proteinCountingFilePath);
+            //return _proteinCountingFile = proteinCountingFile;
 
-            var proformaFile = new ProformaFile(_proformaPeptideFilePath) { Results = records };
-            proformaFile.WriteResults(_proformaPeptideFilePath);
-            return _proformaPeptideFile = proformaFile;
         }
 
         public IEnumerator<MsPathFinderTIndividualFileResult> GetEnumerator()
