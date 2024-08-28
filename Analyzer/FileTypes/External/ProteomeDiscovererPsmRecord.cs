@@ -93,11 +93,11 @@ namespace Analyzer.FileTypes.External
 
         #region ISpectralMatch Members
 
-        public int OneBasedScanNumber => int.Parse(Ms2ScanNumber);
-        public double RetentionTime => RT;
+        [Ignore] public int OneBasedScanNumber => int.Parse(Ms2ScanNumber);
+        [Ignore] public double RetentionTime => RT;
 
-        private string? _fullSequence;
-        public string FullSequence
+        [Ignore] private string? _fullSequence;
+        [Ignore] public string FullSequence
         {
             get
             {
@@ -127,15 +127,15 @@ namespace Analyzer.FileTypes.External
                 return sb.ToString();
             }
         }
-        public string FileNameWithoutExtension { get; }
-        public double MonoisotopicMass => TheoreticalMass;
-        public string ProteinAccession => ProteinAccessions;
+        [Ignore] public string FileNameWithoutExtension { get; }
+        [Ignore] public double MonoisotopicMass => TheoreticalMass;
+        [Ignore] public string ProteinAccession => ProteinAccessions;
 
         // decoys are not reported by default
-        public bool IsDecoy => false;
-        public double ConfidenceMetric => NegativeLogEValue;
-        public double SecondaryConfidenceMetric => QValue;
-        public bool PassesConfidenceFilter { get; }
+        [Ignore] public bool IsDecoy => false;
+        [Ignore] public double ConfidenceMetric => NegativeLogEValue;
+        [Ignore] public double SecondaryConfidenceMetric => QValue;
+        [Ignore] public bool PassesConfidenceFilter { get; }
 
         #endregion
 
@@ -315,8 +315,8 @@ namespace Analyzer.FileTypes.External
         [Name("# Protein Groups")]
         public int ProteinGroupCount { get; set; }
 
-        [NotMapped] private double? _calculatedMz;
-        [NotMapped] public double CalculatedMz => _calculatedMz ??= Mz.ToMz(Charge);
+        [Ignore] private double? _calculatedMz;
+        [Ignore] public double CalculatedMz => _calculatedMz ??= Mz.ToMz(Charge);
 
         public bool Equals(ProteomeDiscovererPsmRecord? other)
         {

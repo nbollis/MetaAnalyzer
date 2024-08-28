@@ -1,17 +1,15 @@
 ﻿using System.Diagnostics;
-using System.Text;
+using System.Numerics;
 using Analyzer;
+using Analyzer.FileTypes.Internal;
 using Analyzer.Interfaces;
-using Analyzer.Plotting.AggregatePlots;
-using Analyzer.Plotting.ComparativePlots;
+using Analyzer.Plotting;
 using Analyzer.Plotting.IndividualRunPlots;
 using Analyzer.Plotting.Util;
 using Analyzer.SearchType;
 using Analyzer.Util;
-using Calibrator;
-using CMD;
-using Readers;
-using TaskLayer.ChimeraAnalysis;
+using Easy.Common.Extensions;
+using Plotly.NET;
 using UsefulProteomicsDatabases;
 
 namespace Test
@@ -31,6 +29,60 @@ namespace Test
         public static void OneTimeSetup() { Loaders.LoadElements(); }
 
 
+        [Test]
+        public static void PlotAllFigures()
+        {
+
+
+            foreach (CellLineResults cellLine in AllResults)
+            {
+                //cellLine.PlotIndividualFileResults(ResultType.Psm);
+                //cellLine.PlotIndividualFileResults(ResultType.Peptide);
+                //cellLine.PlotIndividualFileResults(ResultType.Protein);
+                //cellLine.PlotCellLineRetentionTimePredictions();
+                //cellLine.PlotCellLineSpectralSimilarity();
+                //cellLine.PlotCellLineChimeraBreakdown();
+                //cellLine.PlotCellLineChimeraBreakdown_TargetDecoy();
+                //cellLine.PlotChronologerDeltaKernelPDF();
+                //cellLine.PlotChronologerVsPercentHi();
+                foreach (var individualResult in cellLine
+                             .Where(p => cellLine.GetSingleResultSelector().Contains(p.Condition)))
+                {
+                    if (individualResult is not MetaMorpheusResult mm) continue;
+
+                    mm.PlotChimeraBreakDownStackedColumn_Scaled(ResultType.Psm);
+                    mm.PlotChimeraBreakDownStackedColumn_Scaled(ResultType.Peptide);
+
+                    //mm.PlotPepFeaturesScatterGrid();
+                    //mm.PlotTargetDecoyCurves();
+                    //mm.ExportCombinedChimeraTargetDecoyExploration(mm.FigureDirectory, mm.Condition);
+                }
+                //cellLine.Dispose(); 
+                cellLine.PlotChimeraBreakdownStackedColumn_Scaled(ResultType.Psm);
+                cellLine.PlotChimeraBreakdownStackedColumn_Scaled(ResultType.Peptide);
+            }
+
+            //AllResults.PlotInternalMMComparison();
+            //AllResults.PlotBulkResultComparisons();
+            //AllResults.PlotStackedIndividualFileComparison();
+            //AllResults.PlotBulkResultChimeraBreakDown();
+            //AllResults.PlotStackedSpectralSimilarity();
+            //AllResults.PlotAggregatedSpectralSimilarity();
+            //AllResults.PlotBulkResultChimeraBreakDown();
+            //AllResults.PlotBulkResultChimeraBreakDown_TargetDecoy();
+            //AllResults.PlotChronologerVsPercentHi();
+            //AllResults.PlotBulkChronologerDeltaPlotKernalPDF();
+            //AllResults.PlotGridChronologerDeltaPlotKernalPDF();
+
+            AllResults.PlotChimeraBreakdownStackedColumn_Scaled(ResultType.Psm);
+            AllResults.PlotChimeraBreakdownStackedColumn_Scaled(ResultType.Peptide);
+            TopDownRunner.AllResults.PlotChimeraBreakdownStackedColumn_Scaled(ResultType.Psm);
+            TopDownRunner.AllResults.PlotChimeraBreakdownStackedColumn_Scaled(ResultType.Peptide);
+            TopDownRunner.AllResults.First().PlotChimeraBreakdownStackedColumn_Scaled(ResultType.Psm);
+            TopDownRunner.AllResults.First().PlotChimeraBreakdownStackedColumn_Scaled(ResultType.Peptide);
+            TopDownRunner.AllResults.Skip(1).First().PlotChimeraBreakdownStackedColumn_Scaled(ResultType.Psm);
+            TopDownRunner.AllResults.Skip(1).First().PlotChimeraBreakdownStackedColumn_Scaled(ResultType.Peptide);
+        }
         [Test]
         public static void RunAllParsing()
         {
@@ -135,62 +187,6 @@ namespace Test
             }
         }
 
-
-        [Test]
-        public static void PlotAllFigures()
-        {
-            
-
-            foreach (CellLineResults cellLine in AllResults)
-            {
-                //cellLine.PlotIndividualFileResults(ResultType.Psm);
-                //cellLine.PlotIndividualFileResults(ResultType.Peptide);
-                //cellLine.PlotIndividualFileResults(ResultType.Protein);
-                //cellLine.PlotCellLineRetentionTimePredictions();
-                //cellLine.PlotCellLineSpectralSimilarity();
-                    //cellLine.PlotCellLineChimeraBreakdown();
-                //cellLine.PlotCellLineChimeraBreakdown_TargetDecoy();
-                //cellLine.PlotChronologerDeltaKernelPDF();
-                //cellLine.PlotChronologerVsPercentHi();
-                foreach (var individualResult in cellLine
-                             .Where(p => cellLine.GetSingleResultSelector().Contains(p.Condition)))
-                {
-                    if (individualResult is not MetaMorpheusResult mm) continue;
-              
-                    mm.PlotChimeraBreakDownStackedColumn_Scaled(ResultType.Psm);
-                    mm.PlotChimeraBreakDownStackedColumn_Scaled(ResultType.Peptide);
-
-                    //mm.PlotPepFeaturesScatterGrid();
-                    //mm.PlotTargetDecoyCurves();
-                    //mm.ExportCombinedChimeraTargetDecoyExploration(mm.FigureDirectory, mm.Condition);
-                }
-                //cellLine.Dispose(); 
-                cellLine.PlotChimeraBreakdownStackedColumn_Scaled(ResultType.Psm);
-                cellLine.PlotChimeraBreakdownStackedColumn_Scaled(ResultType.Peptide);
-            }
-
-            //AllResults.PlotInternalMMComparison();
-            //AllResults.PlotBulkResultComparisons();
-            //AllResults.PlotStackedIndividualFileComparison();
-            //AllResults.PlotBulkResultChimeraBreakDown();
-            //AllResults.PlotStackedSpectralSimilarity();
-            //AllResults.PlotAggregatedSpectralSimilarity();
-            //AllResults.PlotBulkResultChimeraBreakDown();
-            //AllResults.PlotBulkResultChimeraBreakDown_TargetDecoy();
-            //AllResults.PlotChronologerVsPercentHi();
-            //AllResults.PlotBulkChronologerDeltaPlotKernalPDF();
-            //AllResults.PlotGridChronologerDeltaPlotKernalPDF();
-
-            AllResults.PlotChimeraBreakdownStackedColumn_Scaled(ResultType.Psm);
-            AllResults.PlotChimeraBreakdownStackedColumn_Scaled(ResultType.Peptide);
-            TopDownRunner.AllResults.PlotChimeraBreakdownStackedColumn_Scaled(ResultType.Psm);
-            TopDownRunner.AllResults.PlotChimeraBreakdownStackedColumn_Scaled(ResultType.Peptide);
-            TopDownRunner.AllResults.First().PlotChimeraBreakdownStackedColumn_Scaled(ResultType.Psm);
-            TopDownRunner.AllResults.First().PlotChimeraBreakdownStackedColumn_Scaled(ResultType.Peptide);
-            TopDownRunner.AllResults.Skip(1).First().PlotChimeraBreakdownStackedColumn_Scaled(ResultType.Psm);
-            TopDownRunner.AllResults.Skip(1).First().PlotChimeraBreakdownStackedColumn_Scaled(ResultType.Peptide);
-        }
-
         [Test]
         public static void RunProformaShit_SumbissionDirectory()
         {
@@ -257,17 +253,19 @@ namespace Test
             {
                 if (group.Value.First() is MetaMorpheusResult mm && !mm.IndividualFileResults.Any())
                     continue;
+                var finalResultOutPath = Path.Combine(bigResultPath, group.Key + "_" + FileIdentifiers.ProteinCountingFile);
+
+                // Remove this to override
+                if (File.Exists(finalResultOutPath))
+                    continue;
 
                 foreach (var result in group.Value)
                 {
-                    result.Override = true;
                     result.CountProteins();
-                    result.Override = false;
                 }
 
                 var finalResult = group.Value.Select(p => p.CountProteins())
                     .Aggregate((a, b) => a + b);
-                var finalResultOutPath = Path.Combine(bigResultPath, group.Key + "_" +FileIdentifiers.ProteinCountingFile);
                 finalResult.WriteResults(finalResultOutPath);
 
                 group.Value.ForEach(p => p.Dispose());
@@ -277,6 +275,144 @@ namespace Test
             var pspd = new ProteomeDiscovererResult(
                 @"B:\Users\Nic\Chimeras\Chimerys\Chimerys");
             pspd.CountProteins();
+        }
+
+        [Test]
+        public static void TestProteinCountPlots()
+        {
+            var dirPath = @"B:\Users\Nic\Chimeras\Mann_11cell_analysis\ProcessedResults";
+            var filePaths = Directory.GetFiles(dirPath, $"*{FileIdentifiers.ProteinCountingFile}");
+            var files = filePaths.Select(p => new ProteinCountingFile(p)).ToList();
+            var results = files.SelectMany(p => p.Results).ToList();
+
+            var plot = results.GetProteinCountPlotsStacked(DistributionPlotTypes.BoxPlot);
+            plot.Show();
+
+        }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        static double LogFactorial(int n)
+        {
+            if (n < 1)
+                return -1;
+
+            var logFactorial = Enumerable.Range(1, n).Select(p => Math.Log(p)).Aggregate((a, b) => a + b);
+            return logFactorial;
+        }
+
+        private static ulong GetFactorial(ulong n)
+        {
+            if (n == 0)
+            {
+                return 1;
+            }
+            return n * GetFactorial(n - 1);
+        }
+
+        private static double GetFactorial(double n)
+        {
+            if (n == 0)
+            {
+                return 1;
+            }
+            return n * GetFactorial(n - 1);
+        }
+
+        private static int GetFactorial(int n)
+        {
+            if (n == 0)
+            {
+                return 1;
+            }
+            return n * GetFactorial(n - 1);
+        }
+
+        private static BigInteger GetFactorial(BigInteger n)
+        {
+            if (n == 0)
+            {
+                return 1;
+            }
+            return n * GetFactorial(n - 1);
+        }
+
+        [Test]
+        public static void TestFactorial()
+        {
+            int lastValue = 0;
+            for (int i = 1; i < 10000; i++)
+            {
+                var val = LogFactorial(i);
+                if (lastValue > val)
+                {
+                    Console.WriteLine($"Log Factorial Maxed Out at {i}");
+                    break;
+                }
+                lastValue = (int)val;
+            }
+
+            ulong lastValue2 = 0;
+            for (ulong i = 1; i < 1000; i++)
+            {
+                var val = GetFactorial(i);
+                if (lastValue2 > val)
+                {
+                    Console.WriteLine($"Ulong Factorial Maxed Out at {i}");
+                    break;
+                }
+                lastValue2 = val;
+            }
+
+            double lastValue3 = 0;
+            for (double i = 1; i < 1000; i++)
+            {
+                var val = GetFactorial(i);
+                if (lastValue3 > val || !val.IsFinite())
+                {
+                    Console.WriteLine($"Double Factorial Maxed Out at {i}");
+                    break;
+                }
+                lastValue3 = val;
+            }
+
+            int lastValue4 = 0;
+            for (int i = 1; i < 1000; i++)
+            {
+                var val = GetFactorial(i);
+                if (lastValue4 > val)
+                {
+                    Console.WriteLine($"Int Factorial Maxed Out at {i}");
+                    break;
+                }
+                lastValue4 = (int)val;
+            }
+
+            BigInteger lastValue5 = 0;
+            for (BigInteger i = 1; i < 10000; i++)
+            {
+                var val = GetFactorial(i);
+                if (lastValue5 > val)
+                {
+                    Console.WriteLine($"BigInteger Factorial Maxed Out at {i}");
+                    break;
+                }
+                lastValue5 = val;
+            }
         }
     }
 }
