@@ -9,22 +9,24 @@ using Analyzer.Util.TypeConverters;
 using CsvHelper;
 using CsvHelper.Configuration;
 using CsvHelper.Configuration.Attributes;
+using Easy.Common.Extensions;
 using Proteomics;
 using Proteomics.PSM;
 using Readers;
 using TorchSharp;
 
-namespace Analyzer
+namespace Analyzer.FileTypes.Internal
 {
     public class ProteinCountingRecord
     {
-        public static CsvConfiguration CsvContext => new CsvConfiguration(System.Globalization.CultureInfo.InvariantCulture)
-        {
-            Delimiter = "\t",
-            HasHeaderRecord = true,
-        };
+        public static CsvConfiguration CsvContext =>
+            new CsvConfiguration(System.Globalization.CultureInfo.InvariantCulture)
+            {
+                Delimiter = "\t",
+                HasHeaderRecord = true
+            };
 
-        [Optional] public string Condition { get; set; }
+        public string Condition { get; set; }
         public string ProteinAccession { get; set; }
         public string AnnotatedSequence { get; set; } 
         public double SequenceCoverage { get; set; }
@@ -43,7 +45,7 @@ namespace Analyzer
             FullSequences = new List<string>();
         }
 
-        public void Resolve()
+        internal void Resolve()
         {
             BaseSequences = BaseSequences.Distinct().ToList();
             FullSequences = FullSequences.Distinct().ToList();
@@ -58,15 +60,22 @@ namespace Analyzer
         {
             if (a.ProteinAccession != b.ProteinAccession)
                 throw new ArgumentException("Protein Accessions must be the same to add counts");
+            if (a.Condition != b.Condition)
+                throw new ArgumentException("Conditions must be the same to add counts");
 
-            return new ProteinCountingRecord
+
+            var newRecord =  new ProteinCountingRecord
             {
+                Condition = a.Condition,
                 ProteinAccession = a.ProteinAccession,
                 AnnotatedSequence = a.AnnotatedSequence,
                 PsmCount = a.PsmCount + b.PsmCount,
                 BaseSequences = a.BaseSequences.Union(b.BaseSequences).ToList(),
                 FullSequences = a.FullSequences.Union(b.FullSequences).ToList()
             };
+
+            newRecord.Resolve();
+            return newRecord;
         }
 
         public static List<ProteinCountingRecord> GetRecords(List<PsmFromTsv> psms, List<Protein> databaseProteins, string condition = "")
@@ -106,6 +115,7 @@ namespace Analyzer
                 }
             }
 
+            resultDict.ForEach(p => p.Value.Resolve());
             return resultDict.Values.ToList();
         }
 
@@ -147,9 +157,9 @@ namespace Analyzer
                 }
             }
 
+            resultDict.ForEach(p => p.Value.Resolve());
             return resultDict.Values.ToList();
         }
-
     }
 
     public class ProteinCountingFile : ResultFile<ProteinCountingRecord>, IResultFile

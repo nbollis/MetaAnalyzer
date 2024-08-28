@@ -1436,7 +1436,7 @@ namespace Analyzer.SearchType
                 return _proteinCountingFile ??= new ProteinCountingFile(_proteinCountingFilePath);
             
             List <Protein> proteins = new();
-            var proteinDbPaths = ProseFile.DatabasePaths;
+            var proteinDbPaths = ProseFile.DatabasePaths.Select(p => p.Replace("Z:", "B:")).ToList();
             foreach (var dbPath in proteinDbPaths)
             {
                 if (dbPath.EndsWith(".msp"))

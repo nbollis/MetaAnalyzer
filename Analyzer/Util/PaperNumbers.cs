@@ -13,8 +13,6 @@ namespace Analyzer.Util
 {
     public static class ChimeraPaperNumbers
     {
-
-        
         public static double GetFractionContainingSinglePrecursorLeadingToConfidentId(this MetaMorpheusResult mmResult, ResultType resultType = ResultType.Psm)
         {
             var summary = mmResult.ChimericSpectrumSummaryFile;

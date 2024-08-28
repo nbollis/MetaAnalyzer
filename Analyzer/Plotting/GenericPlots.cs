@@ -190,6 +190,17 @@ namespace Analyzer.Plotting
                 return chart.WithXAxisStyle(Title.init(xTitle));
         }
 
+        public static GenericChart.GenericChart ViolinPlot(List<double> values, string label)
+        {
+            var labels = Enumerable.Repeat(label, values.Count).ToArray();
+            var violin = Chart.Violin<string, double, string> (labels, values,
+                    label, MarkerColor: label.ConvertConditionToColor(),
+                        MeanLine: MeanLine.init(true, label.ConvertConditionToColor()), ShowLegend: false)
+                .WithLayout(PlotlyBase.DefaultLayout)
+                .WithSize(1000, 600);
+            return violin;
+        }
+
         public static GenericChart.GenericChart BoxPlot(List<double> values, string title, string xTitle = "",
             string yTitle = "", bool showOutliers = true)
         {

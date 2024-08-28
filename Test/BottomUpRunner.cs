@@ -259,11 +259,15 @@ namespace Test
                     continue;
 
                 foreach (var result in group.Value)
+                {
+                    result.Override = true;
                     result.CountProteins();
+                    result.Override = false;
+                }
 
                 var finalResult = group.Value.Select(p => p.CountProteins())
                     .Aggregate((a, b) => a + b);
-                var finalResultOutPath = Path.Combine(bigResultPath, group.Key + FileIdentifiers.ProteinCountingFile);
+                var finalResultOutPath = Path.Combine(bigResultPath, group.Key + "_" +FileIdentifiers.ProteinCountingFile);
                 finalResult.WriteResults(finalResultOutPath);
 
                 group.Value.ForEach(p => p.Dispose());
