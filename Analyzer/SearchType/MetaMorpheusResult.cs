@@ -1410,6 +1410,27 @@ namespace Analyzer.SearchType
                     }
                     else
                     {
+                        if (psm.Accession.Contains('|'))
+                        {
+                            var accessions = psm.Accession.Split('|');
+                            foreach (var accession in accessions)
+                            {
+                                record = new ProformaRecord()
+                                {
+                                    Condition = condition,
+                                    FileName = fileName,
+                                    BaseSequence = psm.BaseSeq,
+                                    ModificationMass = modMass,
+                                    PrecursorCharge = psm.PrecursorCharge,
+                                    ProteinAccession = accession,
+                                    ScanNumber = psm.Ms2ScanNumber,
+                                    FullSequence = psm.FullSequence
+                                };
+                                records.Add(record);
+                            }
+                            continue;
+                        }
+
                         record = new ProformaRecord()
                         {
                             Condition = condition,

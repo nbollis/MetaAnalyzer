@@ -282,12 +282,13 @@ namespace Test
         {
             var dirPath = @"B:\Users\Nic\Chimeras\Mann_11cell_analysis\ProcessedResults";
             var filePaths = Directory.GetFiles(dirPath, $"*{FileIdentifiers.ProteinCountingFile}");
-            var files = filePaths.Select(p => new ProteinCountingFile(p)).ToList();
+            var files = filePaths
+                .Where(p => p.Contains("FraggerEqu") || (p.Contains("Fragger") && !p.Contains("Reviewd"))).Select(p => new ProteinCountingFile(p)).ToList();
             var results = files.SelectMany(p => p.Results).ToList();
 
             var plot = results.GetProteinCountPlotsStacked(DistributionPlotTypes.BoxPlot);
             plot.Show();
-
+            
         }
 
 

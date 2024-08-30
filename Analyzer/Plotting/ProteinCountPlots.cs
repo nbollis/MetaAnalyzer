@@ -12,7 +12,7 @@ using Chart = Plotly.NET.CSharp.Chart;
 
 namespace Analyzer.Plotting
 {
-    public static class PlotWorkshop
+    public static class ProteinCountPlots
     {
         public enum ProteinCountPlotTypes
         {
@@ -64,20 +64,36 @@ namespace Analyzer.Plotting
                     GetProteinCountPlot(records, ProteinCountPlotTypes.SequenceCoverage, plotType)
                         .WithYAxis(LinearAxis.init<string, string, string, string, string, string>
                                 (Title: Title.init(ProteinCountPlotTypes.SequenceCoverage.GetAxisLabel())),
-                            StyleParam.SubPlotId.NewYAxis(1)),
+                            StyleParam.SubPlotId.NewYAxis(1))
+                        .WithXAxis(LinearAxis.init<string, string, string, string, string, string>
+                                (Title: Title.init("Condition")),
+                            StyleParam.SubPlotId.NewXAxis(1)),
                     GetProteinCountPlot(records, ProteinCountPlotTypes.BaseSequenceCount, plotType)
                         .WithYAxis(LinearAxis.init<string, string, string, string, string, string>
                                 (Title: Title.init(ProteinCountPlotTypes.BaseSequenceCount.GetAxisLabel())),
-                            StyleParam.SubPlotId.NewYAxis(2)),
+                            StyleParam.SubPlotId.NewYAxis(2))
+                        .WithXAxis(LinearAxis.init<string, string, string, string, string, string>
+                                (Title: Title.init("Condition")),
+                            StyleParam.SubPlotId.NewXAxis(2)),
                     GetProteinCountPlot(records, ProteinCountPlotTypes.FullSequenceCount, plotType)
                         .WithYAxis(LinearAxis.init<string, string, string, string, string, string>
                                 (Title: Title.init(ProteinCountPlotTypes.FullSequenceCount.GetAxisLabel())),
-                            StyleParam.SubPlotId.NewYAxis(3)),
-                }, 3, 1, YAxes: new Optional<StyleParam.LinearAxisId[]>(new StyleParam.LinearAxisId[]
+                            StyleParam.SubPlotId.NewYAxis(3))
+                        .WithXAxis(LinearAxis.init<string, string, string, string, string, string>
+                                (Title: Title.init("Condition")),
+                            StyleParam.SubPlotId.NewXAxis(3)),
+                }, 3, 1, 
+                    YAxes: new Optional<StyleParam.LinearAxisId[]>(new StyleParam.LinearAxisId[]
                 {
                     StyleParam.LinearAxisId.NewY(1),
                     StyleParam.LinearAxisId.NewY(2),
                     StyleParam.LinearAxisId.NewY(3),
+                }, true), 
+                    XAxes: new Optional<StyleParam.LinearAxisId[]>(new StyleParam.LinearAxisId[]
+                {
+                    StyleParam.LinearAxisId.NewX(1),
+                    StyleParam.LinearAxisId.NewX(2),
+                    StyleParam.LinearAxisId.NewX(3),
                 }, true))
                 .WithSize(600, 1200)
                 .WithTitle($"Distribution of Protein Counting Metrics");
@@ -86,17 +102,25 @@ namespace Analyzer.Plotting
         }
 
         public static GenericChart.GenericChart GetProteinCountPlot(this List<ProteinCountingRecord> records,
-            ProteinCountPlotTypes resultType, DistributionPlotTypes plotType)
+            ProteinCountPlotTypes resultType, DistributionPlotTypes plotType, bool trimTop10Percent = true)
         {
             string xTitle = "Condition";
             string yTitle = resultType.GetAxisLabel();
             List<GenericChart.GenericChart> toCombine = new();
+
             foreach (var record in records
-                         .Where(p => p.UniqueFullSequences != 0 && p.UniqueBaseSequences != 1)
+                         .Where(p => p is { UniqueFullSequences: > 1, UniqueBaseSequences: > 1 })
                          .GroupBy(p => p.Condition.ConvertConditionName()))
             {
                 var condition = record.Key;
                 var data = record.GetValues(resultType).ToList();
+
+                //if (trimTop10Percent)
+                //{
+                //    var max = data.Max() * 0.25;
+                //    data = data.Where(p => p <= max).ToList();
+                //}
+
                 switch (plotType)
                 {
                     case DistributionPlotTypes.ViolinPlot:
@@ -104,15 +128,15 @@ namespace Analyzer.Plotting
                         break;
 
                     case DistributionPlotTypes.Histogram:
-                        toCombine.Add(GenericPlots.Histogram(data, "", xTitle, yTitle));
+                        toCombine.Add(GenericPlots.Histogram(data, condition, xTitle, yTitle));
                         break;
 
                     case DistributionPlotTypes.BoxPlot:
-                        toCombine.Add(GenericPlots.BoxPlot(data, "", xTitle, yTitle));
+                        toCombine.Add(GenericPlots.BoxPlot(data, condition, xTitle, yTitle, false));
                         break;
 
                     case DistributionPlotTypes.KernelDensity:
-                        toCombine.Add(GenericPlots.KernelDensityPlot(data, "", xTitle, yTitle));
+                        toCombine.Add(GenericPlots.KernelDensityPlot(data, condition, xTitle, yTitle, 0.1));
                         break;
 
                     default:
