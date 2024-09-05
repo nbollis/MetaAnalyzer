@@ -286,11 +286,11 @@ namespace Analyzer.Plotting
                 .ToDictionary(p => p.Key, p => p.Value);
 
             var chart = Chart.Column<double, string, string>(modDict.Values, modDict.Keys, title, MarkerColor: title.ConvertConditionToColor())
-                .WithSize(400, 400)
+                .WithSize(900, 600)
                 .WithTitle(title)
                 .WithXAxisStyle(Title.init(xTitle))
                 .WithYAxisStyle(Title.init(yTitle))
-                .WithLayout(PlotlyBase.DefaultLayout);
+                .WithLayout(PlotlyBase.DefaultLayoutWithLegend);
             return chart;
         }
 

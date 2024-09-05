@@ -135,7 +135,7 @@ namespace Analyzer.FileTypes.External
         [Ignore] public bool IsDecoy => false;
         [Ignore] public double ConfidenceMetric => NegativeLogEValue;
         [Ignore] public double SecondaryConfidenceMetric => QValue;
-        [Ignore] public bool PassesConfidenceFilter { get; }
+        [Ignore] public bool PassesConfidenceFilter => SecondaryConfidenceMetric <= 0.01;
 
         #endregion
 

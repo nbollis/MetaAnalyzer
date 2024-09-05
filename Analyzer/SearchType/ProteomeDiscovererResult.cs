@@ -30,7 +30,8 @@ namespace Analyzer.SearchType
 
         public ProteomeDiscovererResult(string directoryPath) : base(directoryPath)
         {
-            var files = Directory.GetFiles(directoryPath);
+            var files = Directory.GetFiles(directoryPath)
+                .Where(p => !p.EndsWith(".tsv")).ToArray();
             ProteinPath = files.First(p => p.Contains("Proteins"));
             _inputFilePath = files.First(p => p.Contains("Input"));
             if (files.Any(file => file.Contains("PrSMs")))

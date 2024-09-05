@@ -1,4 +1,6 @@
-﻿using Analyzer.Plotting.Util;
+﻿using System.Runtime.CompilerServices;
+using Analyzer.FileTypes.Internal;
+using Analyzer.Plotting.Util;
 using Analyzer.SearchType;
 using Analyzer.Util;
 using Plotly.NET.LayoutObjects;
@@ -33,6 +35,36 @@ namespace Analyzer.Plotting.IndividualRunPlots
                 else
                     chart.SaveInCellLineOnly(cellLine, outName, 800, 600);
             }
+        }
+
+        /// <summary>
+        ///
+        /// assumes ISpectralMatch full sequences are in MetaMorpheus style
+        /// </summary>
+        /// <param name="matches"></param>
+        /// <param name="conditionLabel"></param>
+        /// <returns></returns>
+        public static GenericChart.GenericChart PlotModificationDistribution(this List<ProteinCountingRecord> matches)
+        {
+
+            List<GenericChart.GenericChart> toCombine = new();
+            foreach (var conditionGroup in matches
+                         .Where(p => p is { UniqueFullSequences: > 1, UniqueBaseSequences: > 1 })
+                         .GroupBy(p => p.Condition.ConvertConditionName()))
+            {
+                string condition = conditionGroup.Key;
+                var fullSequences = conditionGroup.SelectMany(p => p.FullSequences)
+                    .Distinct()
+                    .ToList();
+
+                var plot = GenericPlots.ModificationDistribution(fullSequences, condition, "Modification", "Percent", false);
+                toCombine.Add(plot);
+            }
+
+            var finalPlot = Chart.Combine(toCombine);
+            finalPlot.Show();
+            
+            return null;
         }
 
         public static GenericChart.GenericChart GetModificationDistribution(this MetaMorpheusResult result, ResultType resultType = ResultType.Psm, string cellLine = "", bool isTopDown = true)

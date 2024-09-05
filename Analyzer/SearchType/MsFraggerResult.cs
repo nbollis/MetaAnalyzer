@@ -1,6 +1,7 @@
 ﻿using Analyzer.FileTypes.External;
 using Analyzer.FileTypes.Internal;
 using Analyzer.Interfaces;
+using Analyzer.Plotting.Util;
 using Analyzer.Util;
 using Proteomics;
 using RetentionTimePrediction;
@@ -250,7 +251,7 @@ namespace Analyzer.SearchType
                         continue;
 
                     string fileNameWithoutExtension = Path.GetFileNameWithoutExtension(file.PsmFile.First().FileNameWithoutExtension);
-                    string fileName = fileNameWithoutExtension!.Replace("interact-", "");
+                    string fileName = fileNameWithoutExtension!.Replace("interact-", "").ConvertFileName();
 
                     int modMass = 0;
                     if (psm.AssignedModifications != "")
