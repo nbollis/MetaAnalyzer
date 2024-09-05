@@ -1,6 +1,7 @@
 ﻿using System.Runtime.CompilerServices;
 using Analyzer.Plotting.Util;
 using Analyzer.SearchType;
+using TaskLayer.ChimeraAnalysis;
 using TaskLayer.CMD;
 
 namespace TaskLayer
@@ -85,12 +86,12 @@ namespace TaskLayer
                 var dir = Path.GetFullPath(System.Reflection.Assembly.GetEntryAssembly()?.Location);
                 if (dir.Contains("Nic"))
                 {
-                    MaxWeight = 1.0;
+                    MaxWeight = 0.5;
                     Console.WriteLine($"Detected Nic's Computer: Max Weight = {MaxWeight}");
                 }
                 else if (dir.Contains("Artemis"))
                 {
-                    MaxWeight = 0.25;
+                    MaxWeight = 0.5;
                     Console.WriteLine($"Detected Artemis: Max Weight = {MaxWeight}");
                 }
                 else if (dir.Contains("Smith Lab")) // Beefy Boi

@@ -138,8 +138,8 @@ namespace TaskLayer.ChimeraAnalysis
         {
             return isTopDown switch
             {
-                true => GptmdMann11,
-                false => "null"
+                true => "null",
+                false => GptmdMann11,
             };
         }
 
