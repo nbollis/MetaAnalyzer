@@ -31,6 +31,8 @@ namespace TaskLayer.ChimeraAnalysis
         // Paths for setup
         internal static string MetaMorpheusLocation { get; set; }
 
+        public static string UniprotHumanProteomeAndReviewedFasta =>
+            @"B:\Users\Nic\Chimeras\Mann_11cell_analysis\UP000005640_reviewed.fasta";
 
         public static string UniprotHumanProteomeAndReviewedXml =>
             @"B:\Users\Nic\Chimeras\Mann_11cell_analysis\uniprotkb_human_proteome_AND_reviewed_t_2024_03_22.xml";

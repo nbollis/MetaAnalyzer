@@ -17,7 +17,7 @@ namespace TaskLayer
         RetentionTimeComparison = 7,
         ChimericSpectrumSummary = 8,
         RetentionTimeAlignment = 9,
-        LibraryToCustomMzml = 10,
         InternalMetaMorpheusAnalysis = 11,
+        ExternalChimeraPaperAnalysis = 12,
     }
 }

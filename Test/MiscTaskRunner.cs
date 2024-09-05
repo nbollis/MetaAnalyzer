@@ -155,6 +155,19 @@ namespace Test
             task.Run().Wait();
         }
 
+        [Test]
+        public static void RunExternalComparison()
+        {
+            var path = BottomUpRunner.DirectoryPath;
+            var dataDirectoryPath = InternalMetaMorpheusAnalysisTask.Mann11DataFileDirectory;
+            var outputDir = ExternalComparisonTask.Mann11OutputDirectory;
+            var dbPath = ExternalComparisonTask.UniprotHumanProteomeAndReviewedFasta;
+
+            var parameters = new ExternalComparisonParameters(path, outputDir, dataDirectoryPath, dbPath, @"C:\Program Files\MetaMorpheus");
+            var task = new ExternalComparisonTask(parameters);
+            task.Run().Wait();
+        }
+
         #region On the fly tests
 
         [Test]

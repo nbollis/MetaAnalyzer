@@ -252,7 +252,7 @@ namespace Analyzer.Plotting
             return chart;
         }
 
-        internal static GenericChart.GenericChart ModificationDistribution(List<string> fullSequences, string title,
+        public static GenericChart.GenericChart ModificationDistribution(List<string> fullSequences, string title,
             string xTitle = "", string yTitle = "", bool displayCarbamimidoMethyl = false, bool displayRelative = true)
         {
             var modDict = new Dictionary<string, double>();

@@ -308,7 +308,9 @@ namespace Test
                     $"*{FileIdentifiers.ProteinCountingFile}").Select(p => new ProteinCountingFile(p)).First();
             results.AddRange(chimerys.Results);
 
-
+            var chim = GenericPlots.ModificationDistribution(chimerys.SelectMany(p => p.FullSequences).ToList(), "Chimerys", "mod", "count",
+                false, false);
+            chim.Show();
 
             var plot = results.GetProteinCountPlotsStacked(DistributionPlotTypes.BoxPlot);
             plot.Show();

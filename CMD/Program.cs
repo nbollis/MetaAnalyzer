@@ -207,12 +207,6 @@ namespace MyApp
                             allTasks.Add(new SingleRunRetentionTimeCalibrationTask(parameters7));
                             break;
 
-                        case MyTask.LibraryToCustomMzml:
-                            var parameters8 = new BaseResultAnalyzerTaskParameters(CommandLineArguments.InputDirectory,
-                                CommandLineArguments.OverrideFiles, CommandLineArguments.RunOnAll);
-                            allTasks.Add(new LibraryToCustomFileTask(parameters8));
-                            break;
-
                         case MyTask.InternalMetaMorpheusAnalysis:
                             var parameters9 = new InternalMetaMorpheusAnalysisParameters(
                                 CommandLineArguments.InputDirectory,
@@ -222,6 +216,14 @@ namespace MyApp
                             allTasks.Add(new InternalMetaMorpheusAnalysisTask(parameters9));
                             break;
 
+                        case MyTask.ExternalChimeraPaperAnalysis:
+                            var parameters10 = new ExternalComparisonParameters(
+                                CommandLineArguments.InputDirectory,
+                                CommandLineArguments.OutputDirectory, CommandLineArguments.SpectraFileDirectory,
+                                CommandLineArguments.DatabasePath, CommandLineArguments.MetaMorpheusPath,
+                                false, false);
+                            allTasks.Add(new ExternalComparisonTask(parameters10));
+                            break;
 
                         default:
                             throw new ArgumentOutOfRangeException();
