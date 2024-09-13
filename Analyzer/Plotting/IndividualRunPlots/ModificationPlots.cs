@@ -1,4 +1,5 @@
-﻿using System.Runtime.CompilerServices;
+﻿using System.ComponentModel;
+using System.Runtime.CompilerServices;
 using Analyzer.FileTypes.Internal;
 using Analyzer.Plotting.Util;
 using Analyzer.SearchType;
@@ -44,7 +45,7 @@ namespace Analyzer.Plotting.IndividualRunPlots
         /// <param name="matches"></param>
         /// <param name="conditionLabel"></param>
         /// <returns></returns>
-        public static GenericChart.GenericChart PlotModificationDistribution(this List<ProteinCountingRecord> matches)
+        public static GenericChart.GenericChart PlotModificationDistribution(this List<ProteinCountingRecord> matches, ResultType resultType = ResultType.Psm, bool isTopDown = false)
         {
 
             List<GenericChart.GenericChart> toCombine = new();
@@ -53,18 +54,113 @@ namespace Analyzer.Plotting.IndividualRunPlots
                          .GroupBy(p => p.Condition.ConvertConditionName()))
             {
                 string condition = conditionGroup.Key;
-                var fullSequences = conditionGroup.SelectMany(p => p.FullSequences)
-                    .Distinct()
-                    .ToList();
+                var fullSequences = conditionGroup.SelectMany(p => p.FullSequences);
+                if (resultType is ResultType.Peptide)
+                    fullSequences = fullSequences.GroupBy(p => p).Select(p => p.First());
+                
 
-                var plot = GenericPlots.ModificationDistribution(fullSequences, condition, "Modification", "Percent", false);
+                var plot = GenericPlots.ModificationDistribution(fullSequences.ToList(), condition, "Modification", "Count", false, false);
                 toCombine.Add(plot);
             }
 
-            var finalPlot = Chart.Combine(toCombine);
-            finalPlot.Show();
+            var finalPlot = Chart.Combine(toCombine)
+                .WithTitle($"1% {Labels.GetLabel(isTopDown, resultType)}  Modification Distribution")
+                .WithSize(900, 600)
+                .WithLayout(PlotlyBase.DefaultLayoutWithLegend);
+
+            return finalPlot;
+        }
+
+        public static GenericChart.GenericChart GetModificationDistribution(this List<SingleRunResults> runResults,
+            ResultType resultType = ResultType.Psm, bool isTopDown = false)
+        {
+            List<GenericChart.GenericChart> toCombine = new();
+            foreach (var groupResult in runResults.GroupBy(p => p.Condition.ConvertConditionName()))
+            {
+                List<string> fullSequences = new();
+                foreach (var runResult in groupResult)
+                    switch (runResult)
+                    {
+                        case ProteomeDiscovererResult proteomeDiscovererResult:
+                            if (resultType is ResultType.Psm)
+                            {
+                                var sequences = proteomeDiscovererResult.PrsmFile
+                                    .Where(p => p.PassesConfidenceFilter)
+                                    .Select(p => p.FullSequence).ToList();
+                                fullSequences.AddRange(sequences);
+                            }
+                            else
+                            {
+                                var sequences = proteomeDiscovererResult.PrsmFile
+                                    .Where(p => p.PassesConfidenceFilter)
+                                    .GroupBy(p => p.FullSequence)
+                                    .Select(p => p.First().FullSequence)
+                                    .ToList();
+                                fullSequences.AddRange(sequences);
+                            }
+                            break;
+
+                        case MetaMorpheusResult metaMorpheusResult:
+                            if (resultType is ResultType.Psm)
+                            {
+                                var sequences = metaMorpheusResult.IndividualFileResults
+                                    .SelectMany(p => p.FilteredPsms)
+                                    .Select(p => p.FullSequence)
+                                    .ToList();
+                                fullSequences.AddRange(sequences);
+                            }
+                            else
+                            {
+                                var sequences = metaMorpheusResult.IndividualFileResults
+                                    .SelectMany(p => p.AllPeptides)
+                                    .Where(pep => pep.PassesConfidenceFilter())
+                                    .GroupBy(p => p.FullSequence)
+                                    .Select(p => p.First().FullSequence)
+                                    .ToList();
+                                fullSequences.AddRange(sequences);
+                            }
+                            break;
+
+                        case MsFraggerResult msFraggerResult:
+                            if (resultType is ResultType.Psm)
+                            {
+                                var sequences = msFraggerResult.IndividualFileResults
+                                    .SelectMany(file => file.PsmFile)
+                                    .Where(p => p.PassesConfidenceFilter)
+                                    .Select(p => p.FullSequence)
+                                    .ToList();
+                                fullSequences.AddRange(sequences);
+                            }
+                            else
+                            {
+                                var sequences = msFraggerResult.IndividualFileResults
+                                    .SelectMany(file => file.PsmFile)
+                                    .Where(p => p.PassesConfidenceFilter)
+                                    .GroupBy(p => p.FullSequence)
+                                    .Select(p => p.First().FullSequence)
+                                    .ToList();
+                                fullSequences.AddRange(sequences);
+                            }
+
+                            break;
+
+                        default:
+                            throw new ArgumentOutOfRangeException(nameof(runResult));
+                    }
+                
+
+                if (resultType is ResultType.Peptide)
+                    fullSequences = fullSequences.GroupBy(p => p).Select(p => p.First()).ToList();
+                var plot = GenericPlots.ModificationDistribution(fullSequences, groupResult.Key, "Modification",
+                    "Count", false, false);
+                toCombine.Add(plot);
+            }
             
-            return null;
+            var combined = Chart.Combine(toCombine)
+                .WithTitle($"1% {Labels.GetLabel(isTopDown, resultType)} Modification Distribution")
+                .WithSize(900, 600)
+                .WithLayout(PlotlyBase.DefaultLayoutWithLegend);
+            return combined;
         }
 
         public static GenericChart.GenericChart GetModificationDistribution(this MetaMorpheusResult result, ResultType resultType = ResultType.Psm, string cellLine = "", bool isTopDown = true)

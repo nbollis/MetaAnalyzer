@@ -25,6 +25,30 @@ namespace Test
                    .Where(p => !p.Contains("Figures") && !p.Contains("ProcessedResults") && !p.Contains("Prosight") && RunOnAll || p.Contains("Hela"))
                    .Select(datasetDirectory => new CellLineResults(datasetDirectory)).ToList());
 
+        
+        internal static List<MsFraggerResult> MsFraggerResults => new AllResults(DirectoryPath, Directory.GetDirectories(DirectoryPath)
+            .Where(p => !p.Contains("Figures") && !p.Contains("ProcessedResults") && !p.Contains("Prosight"))
+            .Select(datasetDirectory => new CellLineResults(datasetDirectory)).ToList())
+            .SelectMany(cellLine => cellLine.Results.Where(result => result.Condition.Contains("DDA+") && result is MsFraggerResult).Cast<MsFraggerResult>())
+            .ToList();
+
+        internal static ProteomeDiscovererResult ChimerysResult => new ProteomeDiscovererResult(
+                           @"B:\Users\Nic\Chimeras\Chimerys\Chimerys");
+
+
+        #region Submission
+
+        internal static string SubmissionDirectoryPath =
+            @"D:\Projects\Chimeras\SumbissionDirectory\Mann_11cell_analysis";
+        internal static List<MsFraggerResult> DdaPlusResults => new AllResults(SubmissionDirectoryPath,
+                Directory.GetDirectories(SubmissionDirectoryPath)
+                    .Where(p => !p.Contains("Figures") && !p.Contains("ProcessedResults") && !p.Contains("Prosight"))
+                    .Select(datasetDirectory => new CellLineResults(datasetDirectory)).ToList())
+            .SelectMany(cellLine => cellLine.Results.Where(result => result.Condition.Contains("DDA+") && result is MsFraggerResult).Cast<MsFraggerResult>())
+            .ToList();
+
+        #endregion
+
         [OneTimeSetUp]
         public static void OneTimeSetup() { Loaders.LoadElements(); }
 
@@ -162,9 +186,10 @@ namespace Test
         [Test]
         public static void WeekendRunner()
         {
-            RunProformaForAllInMann11ResultDirectory();
-            RunProformaShit_TempChimerys();
-            RunProformaShit_SumbissionDirectory();
+            //RunProformaForAllInMann11ResultDirectory();
+            //RunProformaShit_TempChimerys();
+            //RunProformaShit_SumbissionDirectory();
+            RunProteinCounting();
         }
 
         [Test]
@@ -187,8 +212,10 @@ namespace Test
                 foreach (var result in group.Value)
                 {
                     result.Override = true;
-                    result.ToPsmProformaFile();
+                    //if (result is MsFraggerResult)
+                        result.ToPsmProformaFile();
                     result.Override = false;
+                    result.Dispose();
                 }
 
                 var allRecords = group.Value.SelectMany(p => p.ToPsmProformaFile().Results).ToList();
@@ -218,6 +245,7 @@ namespace Test
                     result.Override = true;
                     result.ToPsmProformaFile();
                     result.Override = false;
+                    result.Dispose();
                 }
                 cellLine.Dispose();
             }
@@ -242,6 +270,7 @@ namespace Test
                 };
 
                 newFile.WriteResults(proforomaFileName);
+                condition.Value.ForEach(p => p.Dispose());
             }
         }
 
@@ -274,12 +303,17 @@ namespace Test
                 var finalResultOutPath = Path.Combine(bigResultPath, group.Key + "_" + FileIdentifiers.ProteinCountingFile);
 
                 // Remove this to override
-                if (File.Exists(finalResultOutPath))
-                    continue;
+                //if (File.Exists(finalResultOutPath))
+                //    continue;
 
                 foreach (var result in group.Value)
                 {
+                    if (result is not MetaMorpheusResult)
+                        continue;
+                    result.Override = true;
                     result.CountProteins();
+                    result.Override = false;
+                    result.Dispose();
                 }
 
                 var finalResult = group.Value.Select(p => p.CountProteins())
@@ -292,36 +326,14 @@ namespace Test
             // Chimerys
             var pspd = new ProteomeDiscovererResult(
                 @"B:\Users\Nic\Chimeras\Chimerys\Chimerys");
+            pspd.Override = true;
             pspd.CountProteins();
         }
 
+ 
+
         [Test]
         public static void TestProteinCountPlots()
-        {
-            var dirPath = @"B:\Users\Nic\Chimeras\Mann_11cell_analysis\ProcessedResults";
-            var filePaths = Directory.GetFiles(dirPath, $"*{FileIdentifiers.ProteinCountingFile}");
-            var files = filePaths
-                .Where(p => p.Contains("FraggerEqu") || (p.Contains("Fragger") && !p.Contains("Reviewd"))).Select(p => new ProteinCountingFile(p)).ToList();
-            var results = files.SelectMany(p => p.Results).ToList();
-
-            var chimerys = Directory.GetFiles(@"B:\Users\Nic\Chimeras\Chimerys\Chimerys",
-                    $"*{FileIdentifiers.ProteinCountingFile}").Select(p => new ProteinCountingFile(p)).First();
-            results.AddRange(chimerys.Results);
-
-            var chim = GenericPlots.ModificationDistribution(chimerys.SelectMany(p => p.FullSequences).ToList(), "Chimerys", "mod", "count",
-                false, false);
-            chim.Show();
-
-            var plot = results.GetProteinCountPlotsStacked(DistributionPlotTypes.BoxPlot);
-            plot.Show();
-            
-        }
-
-
-
-
-        [Test]
-        public static void RunModificationPlots()
         {
             // Mann 11 Directory
             var conditionGroupedResult = AllResults.SelectMany(p => p.Results)
@@ -332,36 +344,51 @@ namespace Test
             var bigResultPath = @"B:\Users\Nic\Chimeras\Mann_11cell_analysis\ProcessedResults";
             if (!Directory.Exists(bigResultPath))
                 Directory.CreateDirectory(bigResultPath);
-
-            foreach (var group in conditionGroupedResult)
+            var mm = conditionGroupedResult.Where(p => p.Key.Contains("IndividualFilesFraggerEquivalentWithChimeras"))
+                .SelectMany(m => m.Value);
+            List<SingleRunResults> runResults = new()
             {
-                if (group.Value.First() is MetaMorpheusResult mm && !mm.IndividualFileResults.Any())
-                    continue;
-                var finalResultOutPath = Path.Combine(bigResultPath, group.Key + "_" + FileIdentifiers.ProteinCountingFile);
+                ChimerysResult,
+                MsFraggerResults,
+                mm
+            };
 
-                // Remove this to override
-                if (File.Exists(finalResultOutPath))
-                    continue;
+            var records = runResults.SelectMany(p => p.CountProteins())
+                .Where(p => p is { UniqueFullSequences: > 1, UniqueBaseSequences: > 1 }).ToList();
+            records.GetProteinCountPlotsStacked(ProteinCountPlots.ProteinCountPlotTypes.BaseSequenceCount).Show();
+            records.GetProteinCountPlotsStacked(ProteinCountPlots.ProteinCountPlotTypes.FullSequenceCount).Show();
+            records.GetProteinCountPlotsStacked(ProteinCountPlots.ProteinCountPlotTypes.SequenceCoverage).Show();
 
-                foreach (var result in group.Value)
-                {
-                    result.CountProteins();
-                }
-
-                var finalResult = group.Value.Select(p => p.CountProteins())
-                    .Aggregate((a, b) => a + b);
-                finalResult.WriteResults(finalResultOutPath);
-
-                group.Value.ForEach(p => p.Dispose());
-            }
-
-            // Chimerys
-            var pspd = new ProteomeDiscovererResult(
-                @"B:\Users\Nic\Chimeras\Chimerys\Chimerys");
-            pspd.CountProteins();
         }
 
+        [Test]
+        public static void TestModificationPlots()
+        {
+            // Mann 11 Directory
+            var conditionGroupedResult = AllResults.SelectMany(p => p.Results)
+                .GroupBy(p => p.Condition)
+                .Where(p => p.Count() == 11)
+                .ToDictionary(p => p.Key, p => p.ToList());
 
+            var bigResultPath = @"B:\Users\Nic\Chimeras\Mann_11cell_analysis\ProcessedResults";
+            if (!Directory.Exists(bigResultPath))
+                Directory.CreateDirectory(bigResultPath);
+            var mm = conditionGroupedResult.Where(p => p.Key.Contains("IndividualFilesFraggerEquivalentWithChimeras"))
+                .SelectMany(m => m.Value);
+            List<SingleRunResults> runResults = new()
+            {
+                ChimerysResult,
+                MsFraggerResults,
+                mm
+            };
+
+            var records = runResults.SelectMany(p => p.CountProteins())
+                .Where(p => p is { UniqueFullSequences: > 1, UniqueBaseSequences: > 1 }).ToList();
+
+            //records.PlotModificationDistribution().Show();
+
+            runResults.GetModificationDistribution().Show();
+        }
 
 
 

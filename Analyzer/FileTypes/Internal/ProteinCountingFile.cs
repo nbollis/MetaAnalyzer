@@ -101,19 +101,38 @@ namespace Analyzer.FileTypes.Internal
             }
 
             // add psm result
+
+            // Splitting Proteins
+            //foreach (var psm in filtered)
+            //{
+            //    foreach (var accession in psm.ProteinAccession.Split('|'))
+            //    {
+            //        resultDict[accession].PsmCount++;
+            //        foreach (var baseSeq in psm.BaseSeq.Split('|'))
+            //            if (!resultDict[accession].BaseSequences.Contains(baseSeq))
+            //                resultDict[accession].BaseSequences.Add(baseSeq);
+            //        foreach (var fullSeq in psm.FullSequence.Split('|'))
+            //            if (!resultDict[accession].FullSequences.Contains(fullSeq))
+            //                resultDict[accession].FullSequences.Add(fullSeq);
+            //    }
+            //}
+
+            // Trimming Proteins
             foreach (var psm in filtered)
             {
-                foreach (var accession in psm.ProteinAccession.Split('|'))
-                {
-                    resultDict[accession].PsmCount++;
-                    foreach (var baseSeq in psm.BaseSeq.Split('|'))
-                        if (!resultDict[accession].BaseSequences.Contains(baseSeq))
-                            resultDict[accession].BaseSequences.Add(baseSeq);
-                    foreach (var fullSeq in psm.FullSequence.Split('|'))
-                        if (!resultDict[accession].FullSequences.Contains(fullSeq))
-                            resultDict[accession].FullSequences.Add(fullSeq);
-                }
+                var accession = psm.ProteinAccession.Split('|').First();
+
+                resultDict[accession].PsmCount++;
+
+                var baseSequence = psm.BaseSeq.Split('|').First();
+                if (!resultDict[accession].BaseSequences.Contains(baseSequence))
+                    resultDict[accession].BaseSequences.Add(baseSequence);
+
+                var fullSequence = psm.FullSequence.Split('|').First();
+                if (!resultDict[accession].FullSequences.Contains(fullSequence))
+                    resultDict[accession].FullSequences.Add(fullSequence);
             }
+
 
             resultDict.ForEach(p => p.Value.Resolve());
             return resultDict.Values.ToList();
@@ -143,18 +162,41 @@ namespace Analyzer.FileTypes.Internal
             }
 
             // add psm result
+
+            // Split
+            //foreach (var psm in filtered)
+            //{
+            //    foreach (var accession in psm.ProteinAccession.Split('|', ';'))
+            //    {
+            //        if (!resultDict.ContainsKey(accession))
+            //            continue;
+            //        resultDict[accession].PsmCount++;
+            //        foreach (var baseSeq in psm.BaseSequence.Split('|', ';'))
+            //            if (!resultDict[accession].BaseSequences.Contains(baseSeq))
+            //                resultDict[accession].BaseSequences.Add(baseSeq);
+            //        foreach (var fullSeq in psm.FullSequence.Split('|', ';'))
+            //            if (!resultDict[accession].FullSequences.Contains(fullSeq))
+            //                resultDict[accession].FullSequences.Add(fullSeq);
+            //    }
+            //}
+
+            // Trimmed
             foreach (var psm in filtered)
             {
-                foreach (var accession in psm.ProteinAccession.Split('|', ';'))
-                {
-                    resultDict[accession].PsmCount++;
-                    foreach (var baseSeq in psm.BaseSequence.Split('|', ';'))
-                        if (!resultDict[accession].BaseSequences.Contains(baseSeq))
-                            resultDict[accession].BaseSequences.Add(baseSeq);
-                    foreach (var fullSeq in psm.FullSequence.Split('|', ';'))
-                        if (!resultDict[accession].FullSequences.Contains(fullSeq))
-                            resultDict[accession].FullSequences.Add(fullSeq);
-                }
+                var accession = psm.ProteinAccession.Split('|', ';').First();
+                
+                if (!resultDict.ContainsKey(accession))
+                    continue;
+
+                resultDict[accession].PsmCount++;
+
+                var baseSequence = psm.BaseSequence.Split('|', ';').First();
+                if (!resultDict[accession].BaseSequences.Contains(baseSequence))
+                    resultDict[accession].BaseSequences.Add(baseSequence);
+
+                var fullSequence = psm.FullSequence.Split('|', ';').First();
+                if (!resultDict[accession].FullSequences.Contains(fullSequence))
+                    resultDict[accession].FullSequences.Add(fullSequence);
             }
 
             resultDict.ForEach(p => p.Value.Resolve());

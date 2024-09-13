@@ -216,8 +216,8 @@ namespace Analyzer.FileTypes.External
             { (79.9663, 'Y'), "[Common Biological : Phosphorylation on Y]" },
             { (14.0156,'K'),  "[Common Biological : Methylation on K]" },
             { (14.0156,'R'),  "[Common Biological : Methylation on R]" },
-            { (42.0106, 'K'), "[Common Biological : Accetylation on K]" },
-            { (42.0106, 'N'), "[Common Biological : Accetylation on X]" },
+            { (42.0106, 'K'), "[Common Biological : Acetylation on K]" },
+            { (42.0106, 'N'), "[Common Biological : Acetylation on X]" },
         };
 
         public static (int, char, double) ParseString(string input)

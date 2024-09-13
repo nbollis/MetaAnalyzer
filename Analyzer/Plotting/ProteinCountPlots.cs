@@ -51,7 +51,7 @@ namespace Analyzer.Plotting
                     GetProteinCountPlot(records, resultType, DistributionPlotTypes.KernelDensity),
                 }, 2, 2)
                 .WithSize(1000, 1000)
-                .WithTitle($"Distribution of {resultType.GetAxisLabel()} per Protein");
+                .WithTitle($"Distribution of {resultType.GetAxisLabel()}");
 
             return chart;
         }
@@ -102,7 +102,7 @@ namespace Analyzer.Plotting
         }
 
         public static GenericChart.GenericChart GetProteinCountPlot(this List<ProteinCountingRecord> records,
-            ProteinCountPlotTypes resultType, DistributionPlotTypes plotType, bool trimTop10Percent = true)
+            ProteinCountPlotTypes resultType, DistributionPlotTypes plotType)
         {
             string xTitle = "Condition";
             string yTitle = resultType.GetAxisLabel();
@@ -115,11 +115,6 @@ namespace Analyzer.Plotting
                 var condition = record.Key;
                 var data = record.GetValues(resultType).ToList();
 
-                //if (trimTop10Percent)
-                //{
-                //    var max = data.Max() * 0.25;
-                //    data = data.Where(p => p <= max).ToList();
-                //}
 
                 switch (plotType)
                 {

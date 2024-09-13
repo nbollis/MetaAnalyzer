@@ -194,7 +194,7 @@ namespace Analyzer.Plotting
         {
             var labels = Enumerable.Repeat(label, values.Count).ToArray();
             var violin = Chart.Violin<string, double, string> (labels, values,
-                    label, MarkerColor: label.ConvertConditionToColor(),
+                    label, MarkerColor: label.ConvertConditionToColor(), 
                         MeanLine: MeanLine.init(true, label.ConvertConditionToColor()), ShowLegend: false)
                 .WithLayout(PlotlyBase.DefaultLayout)
                 .WithSize(1000, 600);
@@ -258,7 +258,8 @@ namespace Analyzer.Plotting
             var modDict = new Dictionary<string, double>();
             foreach (var mod in fullSequences.SelectMany(p =>
                          SpectrumMatchFromTsv.ParseModifications(p).SelectMany(m => m.Value)
-                             .Select(mod => mod.Split(":")[1])))
+                             .Select(mod => mod.Split(":")[1].Trim()
+                                 .Replace("Accetyl", "Acetyl"))))
             {
                 if (!modDict.TryAdd(mod, 1))
                 {
@@ -282,8 +283,8 @@ namespace Analyzer.Plotting
             }
 
             // remove anything where the mod is less than 1% of total modifications
-            modDict = modDict.Where(p => p.Value > 1)
-                .ToDictionary(p => p.Key, p => p.Value);
+            //modDict = modDict.Where(p => p.Value > 1)
+            //    .ToDictionary(p => p.Key, p => p.Value);
 
             var chart = Chart.Column<double, string, string>(modDict.Values, modDict.Keys, title, MarkerColor: title.ConvertConditionToColor())
                 .WithSize(900, 600)

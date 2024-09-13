@@ -1044,6 +1044,10 @@ namespace Analyzer.SearchType
                     }
 
                     break;
+
+                case "Yeast":
+
+
                 default: // all bottom up
                     massSpecFiles = Directory.GetFiles(Path.Combine(@"B:\RawSpectraFiles\Mann_11cell_lines", DatasetName, "CalibratedAveraged"), "*.mzML",
                         SearchOption.AllDirectories).ToList();
@@ -1393,6 +1397,7 @@ namespace Analyzer.SearchType
                             GlobalVariables.AllModsKnownDictionary).AllModsOneIsNterminus
                             .Sum(p => (int)p.Value.MonoisotopicMass!.RoundedDouble(0)!);
 
+                    // Splitting the protein accession and base sequence
                     ProformaRecord record;
                     if (psm.AmbiguityLevel != "1")
                     {
@@ -1443,6 +1448,7 @@ namespace Analyzer.SearchType
                             FullSequence = psm.FullSequence
                         };
                     }
+
                     records.Add(record);
                 }
             }

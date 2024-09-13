@@ -360,7 +360,7 @@ namespace Analyzer.Plotting.IndividualRunPlots
         /// <param name="absolute"></param>
         /// <param name="width"></param>
         /// <returns></returns>
-        internal static GenericChart.GenericChart GetChimeraBreakDownStackedColumn_TargetDecoy(
+        public static GenericChart.GenericChart GetChimeraBreakDownStackedColumn_TargetDecoy(
             this List<ChimeraBreakdownRecord> results, ResultType type, bool isTopDown, bool absolute, out int width)
         {
             (int IdPerSpec, int Parent, double Targets, double Decoys)[] data = absolute
@@ -488,7 +488,8 @@ namespace Analyzer.Plotting.IndividualRunPlots
             massPlot.SaveInCellLineOnly(cellLine, $"{FileIdentifiers.ChimeraBreakdownByMassFigure}_{cellLine.CellLine}_{ResultType.Peptide}", 600, 600);
         }
 
-        internal static (GenericChart.GenericChart Charge, GenericChart.GenericChart Mass) GetChimeraBreakdownByMassAndCharge(this List<ChimeraBreakdownRecord> results, ResultType resultType = ResultType.Psm, bool isTopDown = false)
+        public static (GenericChart.GenericChart Charge, GenericChart.GenericChart Mass) GetChimeraBreakdownByMassAndCharge(this List<ChimeraBreakdownRecord> results, 
+            ResultType resultType = ResultType.Psm, bool isTopDown = false)
         {
             var smLabel = Labels.GetSpectrumMatchLabel(isTopDown);
             var pepLabel = Labels.GetPeptideLabel(isTopDown);

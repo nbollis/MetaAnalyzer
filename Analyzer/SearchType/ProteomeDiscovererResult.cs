@@ -328,6 +328,7 @@ namespace Analyzer.SearchType
                                 GlobalVariables.AllModsKnownDictionary).AllModsOneIsNterminus
                             .Sum(p => (int)p.Value.MonoisotopicMass!.RoundedDouble(0)!);
 
+                    // Splitting proteins
                     ProformaRecord record;
                     if (psmResult.ProteinAccession.Contains(';'))
                     {
@@ -361,6 +362,7 @@ namespace Analyzer.SearchType
                         ProteinAccession = psmResult.ProteinAccession,
                         ScanNumber = psmResult.OneBasedScanNumber,
                     };
+
                     records.Add(record);
                 }
             }

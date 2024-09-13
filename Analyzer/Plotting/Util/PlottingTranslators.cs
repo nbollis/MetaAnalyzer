@@ -436,6 +436,19 @@ public static class PlottingTranslators
         // Jenkins
         {"04-30-13_CAST_Frac4_6uL", "Frac4"},
         {"04-30-13_CAST_Frac5_4uL", "Frac5"},
+
+
+        // Isolation With
+        {"05-11-17_YL_1-2iso_control", "1-25 Iso"},
+        {"05-11-17_YL_2-5iso", "2-5 Iso"},
+        {"05-11-17_YL_5iso", "5 Iso"},
+        {"05-11-17_YL_10iso", "10 Iso"},
+        {"05-11-17_YL_15iso", "15 Iso"},
+        {"05-11-17_YL_20iso", "20 Iso"},
+        {"05-11-17_YL_25iso", "25 Iso"},
+        {"1.25 Iso", " 1.25 Iso"},
+        {"2.5 Iso", " 2.5 Iso"},
+        {"5 Iso", " 5 Iso"},
     };
 
     private static Dictionary<string, string> ConditionNameConversionDictionary = new()
@@ -459,7 +472,7 @@ public static class PlottingTranslators
         { "ReviewdDatabaseNoPhospho_MsFragger", "MsFragger" },
         { "ReviewdDatabaseNoPhospho_MsFraggerDDA", "MsFragger" },
         { "MsFraggerDDA", "MsFraggerDDA" },
-        { "ReviewdDatabaseNoPhospho_MsFraggerDDA+", "MsFraggerDDA+" },
+        { "ReviewdDatabaseNoPhospho_MsFraggerDDA+", "No P MsFraggerDDA+" },
         { "MsFraggerDDA+", "MsFraggerDDA+" },
         { "Chimerys", "\u2800Chimerys"},
 
