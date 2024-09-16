@@ -99,6 +99,16 @@ namespace TaskLayer
                     MaxWeight = 2;
                     Console.WriteLine($"Detected Beefy Boi: Max Weight = {MaxWeight}");
                 }
+                else if (dir.Contains("Michael Shortreed"))
+                {
+                    MaxWeight = 2;
+                    Console.WriteLine($"Detected Shortreed Old: Max Weight = {MaxWeight}");
+                }
+                else if (dir.Contains("trish")) // Beefy Boi
+                {
+                    MaxWeight = 2.5;
+                    Console.WriteLine($"Detected Shortreed New: Max Weight = {MaxWeight}");
+                }
                 else
                     Console.WriteLine($"Unknown Computer: Default Max Weight = {MaxWeight}");
                 
