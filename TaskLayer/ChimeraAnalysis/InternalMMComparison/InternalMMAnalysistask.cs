@@ -86,7 +86,7 @@ namespace TaskLayer.ChimeraAnalysis
 
         #endregion
 
-        public static string Version => "105";
+        public static string Version => "106";
         private static string NonChimericDescriptor => "MetaMorpheusNoChimeras";
         private static string ChimericDescriptor => "MetaMorpheusWithChimeras";
         private static string BulkFigureDirectory { get; set; }
@@ -356,7 +356,7 @@ namespace TaskLayer.ChimeraAnalysis
                 string gptmd = GetGptmdPath(true, isTopDown);
                 string search = GetSearchPath(true, isTopDown, true);
                 var chimLibPrcess = new InternalMetaMorpheusCmdProcess(specToRun, parameters.DatabasePath, gptmd, search, chimericOutPath,
-                    $"Generating Chimeric Library for {descriptor} in {dataset}", 0.5, MetaMorpheusLocation);
+                    $"Generating Chimeric Library for {descriptor} in {dataset}", 1, MetaMorpheusLocation);
                 toReturn.Add(chimLibPrcess);
 
                 string nonChimericOutPath = Path.Combine(parameters.OutputDirectory,
@@ -365,7 +365,7 @@ namespace TaskLayer.ChimeraAnalysis
                 search = GetSearchPath(false, isTopDown, true);
                 var nonChimLibProcess = new InternalMetaMorpheusCmdProcess(specToRun, parameters.DatabasePath, gptmd, search,
                     nonChimericOutPath,
-                    $"Generating Non-Chimeric Library for {descriptor} in {dataset}", 0.5, MetaMorpheusLocation);
+                    $"Generating Non-Chimeric Library for {descriptor} in {dataset}", 1, MetaMorpheusLocation);
                 toReturn.Add(nonChimLibProcess);
 
                 foreach (var cellLine in manager.CellLines)
@@ -386,7 +386,7 @@ namespace TaskLayer.ChimeraAnalysis
                     search = GetSearchPath(true, isTopDown, false);
                     var individualProcess = new InternalMetaMorpheusCmdProcess(spec, parameters.DatabasePath, gptmd, search,
                         chimWithChimOutPath,
-                        $"Searching with Chimeric Library for Replicate {i} in {cellLine.CellLine}", 0.25,
+                        $"Searching with Chimeric Library for Replicate {i} in {cellLine.CellLine}", 0.5,
                         MetaMorpheusLocation, $"{cellLine.CellLine} rep {i}");
                     individualProcess.DependsOn(chimLibPrcess);
                     toReturn.Add(individualProcess);
@@ -398,7 +398,7 @@ namespace TaskLayer.ChimeraAnalysis
                     search = GetSearchPath(true, isTopDown, false);
                     individualProcess = new InternalMetaMorpheusCmdProcess(spec, parameters.DatabasePath, gptmd, search,
                         chimWithNonChimOutPath,
-                        $"Searching Chimeric with Non-Chimeric Library for Replicate {i} in {cellLine.CellLine}", 0.25,
+                        $"Searching Chimeric with Non-Chimeric Library for Replicate {i} in {cellLine.CellLine}", 0.5,
                         MetaMorpheusLocation, $"{cellLine.CellLine} rep {i}");
                     individualProcess.DependsOn(nonChimLibProcess);
                     toReturn.Add(individualProcess);
@@ -410,7 +410,7 @@ namespace TaskLayer.ChimeraAnalysis
                     search = GetSearchPath(false, isTopDown, false);
                     individualProcess = new InternalMetaMorpheusCmdProcess(spec, parameters.DatabasePath, gptmd, search,
                         nonChimWithNonChimOutPath,
-                        $"Searching Non-Chimeric with Non-Chimeric Library for Replicate {i} in {cellLine.CellLine}", 0.25,
+                        $"Searching Non-Chimeric with Non-Chimeric Library for Replicate {i} in {cellLine.CellLine}", 0.5,
                         MetaMorpheusLocation);
                     individualProcess.DependsOn(nonChimLibProcess);
                     toReturn.Add(individualProcess);

@@ -86,12 +86,12 @@ namespace TaskLayer
                 var dir = Path.GetFullPath(System.Reflection.Assembly.GetEntryAssembly()?.Location);
                 if (dir.Contains("Nic"))
                 {
-                    MaxWeight = 0.5;
+                    MaxWeight = 1;
                     Console.WriteLine($"Detected Nic's Computer: Max Weight = {MaxWeight}");
                 }
                 else if (dir.Contains("Artemis"))
                 {
-                    MaxWeight = 0.5;
+                    MaxWeight = 1;
                     Console.WriteLine($"Detected Artemis: Max Weight = {MaxWeight}");
                 }
                 else if (dir.Contains("Smith Lab")) // Beefy Boi
