@@ -984,7 +984,7 @@ namespace Analyzer.SearchType
             {
                 case "Ecoli":
                     massSpecFiles = Directory
-                        .GetFiles(@"B:\Users\Nic\Chimeras\TopDown_Analysis\Ecoli\SearchResults\MetaMorpheus\Task2-AveragingTask",
+                        .GetFiles(@"B:\RawSpectraFiles\Ecoli_SEC_CZE\CalibratedAveraged",
                             "*.mzML").ToList();
                     fullDeconDirectory = Path.Combine(@"B:\Users\Nic\Chimeras\TopDown_Analysis\Ecoli\DeconResults",
                         specificDir);
@@ -998,7 +998,7 @@ namespace Analyzer.SearchType
 
                 case "Jurkat" when IsTopDown:
                 case "Chimeras" when IsTopDown:
-                    massSpecFiles = Directory.GetFiles(@"B:\Users\Nic\Chimeras\TopDown_Analysis\Jurkat\SearchResults\MetaMorpheus\Task2-AveragingTask", "*.mzML",
+                    massSpecFiles = Directory.GetFiles(@"B:\RawSpectraFiles\JurkatTopDown\CalibratedAveraged", "*.mzML",
                                                SearchOption.AllDirectories).Where(p => p.Contains("rep2")).ToList();
                     fullDeconDirectory = Path.Combine(@"B:\Users\Nic\Chimeras\TopDown_Analysis\Jurkat\DeconResults",
                         specificDir);

@@ -456,7 +456,7 @@ public static class PlottingTranslators
         // Bottom up
         { "MetaMorpheusWithLibrary", "MetaMorpheus⠀" }, // old
         { "MetaMorpheusNoChimerasWithLibrary", "MetaMorpheus No Chimeras" }, // old
-        { "MetaMorpheusFraggerEquivalent_IndividualFilesFraggerEquivalentWithChimeras", "MetaMorpheus⠀" },
+        { "MetaMorpheusFraggerEquivalent_IndividualFilesFraggerEquivalentWithChimeras", "Reduced MetaMorpheus⠀" },
         { "MetaMorpheus_ExternalComparison_Chimeras", "MetaMorpheus⠀" },
         { "MetaMorpheusWithChimeras_105_ChimericLibrary_Rep1", "MetaMorpheus⠀" },
         { "MetaMorpheusWithChimeras_105_ChimericLibrary_Rep2", "MetaMorpheus⠀" },
@@ -469,11 +469,13 @@ public static class PlottingTranslators
         { "MetaMorpheusWithChimeras_105_NonChimericLibrary_Rep1", "MetaMorpheus Chimeras (Non-chimeric library)" },
         { "MetaMorpheusWithChimeras_105_NonChimericLibrary_Rep2", "MetaMorpheus Chimeras (Non-chimeric library)" },
         { "MetaMorpheusWithChimeras_105_NonChimericLibrary_Rep3", "MetaMorpheus Chimeras (Non-chimeric library)" },
-        { "ReviewdDatabaseNoPhospho_MsFragger", "MsFragger" },
-        { "ReviewdDatabaseNoPhospho_MsFraggerDDA", "MsFragger" },
+        
+        { "ReviewdDatabaseNoPhospho_MsFragger", "No P MsFragger" },
+        { "ReviewdDatabaseNoPhospho_MsFraggerDDA", "No P MsFragger" },
         { "MsFraggerDDA", "MsFraggerDDA" },
         { "ReviewdDatabaseNoPhospho_MsFraggerDDA+", "No P MsFraggerDDA+" },
-        { "MsFraggerDDA+", "MsFraggerDDA+" },
+        { "ReviewdDatabase_MsFraggerDDA+", "MsFraggerDDA+" },
+        { "MsFraggerDDA+", "OG MsFraggerDDA+" },
         { "Chimerys", "\u2800Chimerys"},
 
         // Top Down

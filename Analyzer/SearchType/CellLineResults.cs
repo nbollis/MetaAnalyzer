@@ -43,7 +43,7 @@ public class CellLineResults : IEnumerable<SingleRunResults>, IDisposable
 
         if (directoryPath.Contains("TopDown") || directoryPath.Contains("PEP"))
         {
-            var calibAveragedDir = Path.Combine(@"B:\Users\Nic\Chimeras\TopDown_Analysis\Jurkat\SearchResults", "MetaMorpheus", "Task2-AveragingTask");
+            var calibAveragedDir = Path.Combine(@"B:\RawSpectraFiles\JurkatTopDown\CalibratedAveraged");
             _dataFilePaths = Directory.GetFiles(calibAveragedDir, "*.mzML", SearchOption.AllDirectories);
         }
         else

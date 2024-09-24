@@ -43,6 +43,11 @@ namespace TaskLayer.ChimeraAnalysis
         public static string Mann11OutputDirectory =>
             @"B:\Users\Nic\Chimeras\InternalMMAnalysis\Mann_11cell_lines";
 
+        public static string JurkatTopDownDataFileDirectory =>
+            @"B:\RawSpectraFiles\JurkatTopDown";
+
+        public static string JurkatTopDownOutputDirectory =>
+            @"B:\Users\Nic\Chimeras\InternalMMAnalysis\TopDown_Jurkat";
 
         // Bottom Up Tomls
         public static string GptmdNoChimerasMann11 =>
@@ -66,22 +71,22 @@ namespace TaskLayer.ChimeraAnalysis
 
         // Top-Down Tomls
         public static string Search_BuildChimericLibraryJurkatTd =>
-            @"";
+            @"B:\Users\Nic\Chimeras\TopDown_Analysis\Jurkat\Search_WithChimeras_BuildLibrary.toml";
 
         public static string Search_BuildNonChimericLibraryJurkatTd =>
-            @"";
+            @"B:\Users\Nic\Chimeras\TopDown_Analysis\Jurkat\Search_NoChimeras_BuildLibrary.toml";
 
         public static string GptmdNoChimerasJurkatTd =>
-            @"";
+            @"B:\Users\Nic\Chimeras\TopDown_Analysis\Jurkat\GPTMD_NoChimeras.toml";
 
         public static string GptmdWithChimerasJurkatTd =>
-            @"";
+            @"B:\Users\Nic\Chimeras\TopDown_Analysis\Jurkat\GPTMD_Chimeras.toml";
 
         public static string SearchNoChimerasJurkatTd =>
-            @"";
+            @"B:\Users\Nic\Chimeras\TopDown_Analysis\Jurkat\Search_NoChimeras.toml";
 
         public static string SearchWithChimerasJurkatTd =>
-            @"";
+            @"B:\Users\Nic\Chimeras\TopDown_Analysis\Jurkat\Search_WithChimeras.toml";
 
 
         #endregion
@@ -124,123 +129,123 @@ namespace TaskLayer.ChimeraAnalysis
                     cellLineDict[cellLineDirectory].Add(runDirectory);
             }
 
-            //// Run MM Task basic processing 
-            //int degreesOfParallelism = (int)(MaxWeight / 0.25);
-            //Parallel.ForEach(cellLineDict.SelectMany(p => p.Value),
-            //    new ParallelOptions() { MaxDegreeOfParallelism = Math.Max(degreesOfParallelism, 1) },
-            //    singleRunPath =>
-            //    {
-            //        var mmResult = new MetaMorpheusResult(singleRunPath);
-            //        Log($"Processing {mmResult.DatasetName} {mmResult.Condition}", 1);
+            // Run MM Task basic processing 
+            int degreesOfParallelism = (int)(MaxWeight / 0.25);
+            Parallel.ForEach(cellLineDict.SelectMany(p => p.Value),
+                new ParallelOptions() { MaxDegreeOfParallelism = Math.Max(degreesOfParallelism, 1) },
+                singleRunPath =>
+                {
+                    var mmResult = new MetaMorpheusResult(singleRunPath);
+                    Log($"Processing {mmResult.DatasetName} {mmResult.Condition}", 1);
 
-            //        Log($"Tabulating Result Counts: {mmResult.DatasetName} {mmResult.Condition}", 2);
-            //        _ = mmResult.GetIndividualFileComparison();
-            //        _ = mmResult.GetBulkResultCountComparisonFile();
+                    Log($"Tabulating Result Counts: {mmResult.DatasetName} {mmResult.Condition}", 2);
+                    _ = mmResult.GetIndividualFileComparison();
+                    _ = mmResult.GetBulkResultCountComparisonFile();
 
-            //        Log($"Counting Chimeric Psms/Peptides: {mmResult.DatasetName} {mmResult.Condition}", 2);
-            //        mmResult.CountChimericPsms();
-            //        mmResult.CountChimericPeptides();
+                    Log($"Counting Chimeric Psms/Peptides: {mmResult.DatasetName} {mmResult.Condition}", 2);
+                    mmResult.CountChimericPsms();
+                    mmResult.CountChimericPeptides();
 
-            //        Log($"Running Chimera Breakdown Analysis: {mmResult.DatasetName} {mmResult.Condition}", 2);
-            //        var sw = Stopwatch.StartNew();
-            //        _ = mmResult.GetChimeraBreakdownFile();
-            //        sw.Stop();
+                    Log($"Running Chimera Breakdown Analysis: {mmResult.DatasetName} {mmResult.Condition}", 2);
+                    var sw = Stopwatch.StartNew();
+                    _ = mmResult.GetChimeraBreakdownFile();
+                    sw.Stop();
 
-            //        // if it takes less than one minute to get the breakdown, and we are not overriding, do not plot
-            //        if (sw.Elapsed.Minutes < 1 && !parameters.Override)
-            //            return;
+                    // if it takes less than one minute to get the breakdown, and we are not overriding, do not plot
+                    if (sw.Elapsed.Minutes < 1 && !parameters.Override)
+                        return;
 
-            //        mmResult.PlotChimeraBreakDownStackedColumn_Scaled(ResultType.Psm);
-            //        mmResult.PlotChimeraBreakDownStackedColumn_Scaled(ResultType.Peptide);
-            //    });
+                    mmResult.PlotChimeraBreakDownStackedColumn_Scaled(ResultType.Psm);
+                    mmResult.PlotChimeraBreakDownStackedColumn_Scaled(ResultType.Peptide);
+                });
 
-            //Log($"Running Chimeric Spectrum Summaries", 0);
-            //foreach (var cellLineDictEntry in cellLineDict)
-            //{
-            //    var cellLine = Path.GetFileNameWithoutExtension(cellLineDictEntry.Key);
-            //    Log($"Processing Cell Line {cellLine}", 1);
-            //    List<CmdProcess> summaryTasks = new();
-            //    foreach (var singleRunPath in cellLineDictEntry.Value)
-            //    {
-            //        var summaryParams =
-            //            new SingleRunAnalysisParameters(singleRunPath, parameters.Override, false);
-            //        var summaryTask = new SingleRunChimericSpectrumSummaryTask(summaryParams);
-            //        summaryTasks.Add(new ResultAnalyzerTaskToCmdProcessAdaptor(summaryTask, "Chimeric Spectrum Summary", 0.5,
-            //            singleRunPath));
-            //    }
+            Log($"Running Chimeric Spectrum Summaries", 0);
+            foreach (var cellLineDictEntry in cellLineDict)
+            {
+                var cellLine = Path.GetFileNameWithoutExtension(cellLineDictEntry.Key);
+                Log($"Processing Cell Line {cellLine}", 1);
+                List<CmdProcess> summaryTasks = new();
+                foreach (var singleRunPath in cellLineDictEntry.Value)
+                {
+                    var summaryParams =
+                        new SingleRunAnalysisParameters(singleRunPath, parameters.Override, false);
+                    var summaryTask = new SingleRunChimericSpectrumSummaryTask(summaryParams);
+                    summaryTasks.Add(new ResultAnalyzerTaskToCmdProcessAdaptor(summaryTask, "Chimeric Spectrum Summary", 0.5,
+                        singleRunPath));
+                }
 
-            //    try
-            //    {
-            //        await RunProcesses(summaryTasks);
-            //    }
-            //    catch (Exception e)
-            //    {
-            //        Warn($"Error Running Chimeric Spectrum Summary for {cellLine}: {e.Message}");
-            //    }
-            //}
+                try
+                {
+                    await RunProcesses(summaryTasks);
+                }
+                catch (Exception e)
+                {
+                    Warn($"Error Running Chimeric Spectrum Summary for {cellLine}: {e.Message}");
+                }
+            }
 
-            //Log($"Running Retention Time Plots", 0);
-            //foreach (var cellLineDictEntry in cellLineDict)
-            //{
-            //    var cellLine = Path.GetFileNameWithoutExtension(cellLineDictEntry.Key);
+            Log($"Running Retention Time Plots", 0);
+            foreach (var cellLineDictEntry in cellLineDict)
+            {
+                var cellLine = Path.GetFileNameWithoutExtension(cellLineDictEntry.Key);
 
-            //    List<CmdProcess> summaryTasks = new();
-            //    Log($"Processing Cell Line {cellLine}", 1);
-            //    foreach (var singleRunPath in cellLineDictEntry.Value)
-            //    {
-            //        if (singleRunPath.Contains(NonChimericDescriptor))
-            //            continue;
+                List<CmdProcess> summaryTasks = new();
+                Log($"Processing Cell Line {cellLine}", 1);
+                foreach (var singleRunPath in cellLineDictEntry.Value)
+                {
+                    if (singleRunPath.Contains(NonChimericDescriptor))
+                        continue;
 
-            //        foreach (var distribPlotTypes in Enum.GetValues<DistributionPlotTypes>())
-            //        {
-            //            var summaryParams =
-            //                new SingleRunAnalysisParameters(singleRunPath, parameters.Override, false, distribPlotTypes);
-            //            var summaryTask = new SingleRunChimeraRetentionTimeDistribution(summaryParams);
-            //            summaryTasks.Add(new ResultAnalyzerTaskToCmdProcessAdaptor(summaryTask, "Retention Time Plots", 0.25,
-            //                singleRunPath));
-            //        }
-            //    }
+                    foreach (var distribPlotTypes in Enum.GetValues<DistributionPlotTypes>())
+                    {
+                        var summaryParams =
+                            new SingleRunAnalysisParameters(singleRunPath, parameters.Override, false, distribPlotTypes);
+                        var summaryTask = new SingleRunChimeraRetentionTimeDistribution(summaryParams);
+                        summaryTasks.Add(new ResultAnalyzerTaskToCmdProcessAdaptor(summaryTask, "Retention Time Plots", 0.25,
+                            singleRunPath));
+                    }
+                }
 
-            //    try
-            //    {
-            //        await RunProcesses(summaryTasks);
-            //    }
-            //    catch (Exception e)
-            //    {
-            //        Warn($"Error Running Retention Time Plots for {cellLine}: {e.Message}");
-            //    }
-            //}
+                try
+                {
+                    await RunProcesses(summaryTasks);
+                }
+                catch (Exception e)
+                {
+                    Warn($"Error Running Retention Time Plots for {cellLine}: {e.Message}");
+                }
+            }
 
-            //Log($"Running Spectral Angle Comparisons", 0);
-            //foreach (var cellLineDictEntry in cellLineDict)
-            //{
-            //    var cellLine = Path.GetFileNameWithoutExtension(cellLineDictEntry.Key);
+            Log($"Running Spectral Angle Comparisons", 0);
+            foreach (var cellLineDictEntry in cellLineDict)
+            {
+                var cellLine = Path.GetFileNameWithoutExtension(cellLineDictEntry.Key);
 
-            //    List<CmdProcess> summaryTasks = new();
-            //    Log($"Processing Cell Line {cellLine}", 1);
-            //    foreach (var singleRunPath in cellLineDictEntry.Value)
-            //    {
-            //        if (singleRunPath.Contains(NonChimericDescriptor))
-            //            continue;
-            //        foreach (var distribPlotTypes in Enum.GetValues<DistributionPlotTypes>())
-            //        {
-            //            var summaryParams =
-            //                new SingleRunAnalysisParameters(singleRunPath, parameters.Override, false, distribPlotTypes);
-            //            var summaryTask = new SingleRunSpectralAngleComparisonTask(summaryParams);
-            //            summaryTasks.Add(new ResultAnalyzerTaskToCmdProcessAdaptor(summaryTask, "Spectral Angle Comparisons", 0.25,
-            //                singleRunPath));
-            //        }
-            //    }
+                List<CmdProcess> summaryTasks = new();
+                Log($"Processing Cell Line {cellLine}", 1);
+                foreach (var singleRunPath in cellLineDictEntry.Value)
+                {
+                    if (singleRunPath.Contains(NonChimericDescriptor))
+                        continue;
+                    foreach (var distribPlotTypes in Enum.GetValues<DistributionPlotTypes>())
+                    {
+                        var summaryParams =
+                            new SingleRunAnalysisParameters(singleRunPath, parameters.Override, false, distribPlotTypes);
+                        var summaryTask = new SingleRunSpectralAngleComparisonTask(summaryParams);
+                        summaryTasks.Add(new ResultAnalyzerTaskToCmdProcessAdaptor(summaryTask, "Spectral Angle Comparisons", 0.25,
+                            singleRunPath));
+                    }
+                }
 
-            //    try
-            //    {
-            //        await RunProcesses(summaryTasks);
-            //    }
-            //    catch (Exception e)
-            //    {
-            //        Warn($"Error Running Spectral Angle Comparisons for {cellLine}: {e.Message}");
-            //    }
-            //}
+                try
+                {
+                    await RunProcesses(summaryTasks);
+                }
+                catch (Exception e)
+                {
+                    Warn($"Error Running Spectral Angle Comparisons for {cellLine}: {e.Message}");
+                }
+            }
 
             // TODO: Change retention time alignment to operate on the grouped runs
             //Log($"Running Retention Time Alignment", 0);
@@ -341,12 +346,13 @@ namespace TaskLayer.ChimeraAnalysis
             var replicateDict = manager.CellLines.SelectMany(p => p.Replicates)
                 .GroupBy(p => p.Replicate)
                 .ToDictionary(p => p.Key,
-                    p => p.SelectMany(m => m.CalibratedAveragedFilePaths.Values).ToArray());
+                    p => 
+                        p.Select(m => (m.CalibratedAveragedFilePaths.Values, m.CalibratedAveragedSetPrecursorFilePaths.Values)).ToArray());
 
             var reps = replicateDict.Keys.ToArray();
             for (int i = 1; i < replicateDict.Count + 1; i++)
             {
-                var specToRun = replicateDict.Where(p => p.Key != i)
+                var allSpectralPaths = replicateDict.Where(p => p.Key != i)
                     .SelectMany(m => m.Value).ToArray();
                 string descriptor = string.Join('+', reps.Where(p => p != i));
 
@@ -355,6 +361,7 @@ namespace TaskLayer.ChimeraAnalysis
                     $"GenerateChimericLibrary_{Version}_{descriptor}");
                 string gptmd = GetGptmdPath(true, isTopDown);
                 string search = GetSearchPath(true, isTopDown, true);
+                string[] specToRun = allSpectralPaths.SelectMany(p => p.Item1).ToArray();
                 var chimLibPrcess = new InternalMetaMorpheusCmdProcess(specToRun, parameters.DatabasePath, gptmd, search, chimericOutPath,
                     $"Generating Chimeric Library for {descriptor} in {dataset}", 1, MetaMorpheusLocation);
                 toReturn.Add(chimLibPrcess);
@@ -363,6 +370,9 @@ namespace TaskLayer.ChimeraAnalysis
                     $"GenerateNonChimericLibrary_{Version}_{descriptor}");
                 gptmd = GetGptmdPath(false, isTopDown);
                 search = GetSearchPath(false, isTopDown, true);
+                specToRun = isTopDown 
+                    ? allSpectralPaths.SelectMany(p => p.Item2).ToArray()
+                    : allSpectralPaths.SelectMany(p => p.Item1).ToArray();
                 var nonChimLibProcess = new InternalMetaMorpheusCmdProcess(specToRun, parameters.DatabasePath, gptmd, search,
                     nonChimericOutPath,
                     $"Generating Non-Chimeric Library for {descriptor} in {dataset}", 1, MetaMorpheusLocation);
@@ -374,9 +384,9 @@ namespace TaskLayer.ChimeraAnalysis
                     if (!Directory.Exists(cellLineDir))
                         Directory.CreateDirectory(cellLineDir);
 
-                    var spec = cellLine.Replicates
+                    var allSpec = cellLine.Replicates
                         .Where(p => p.Replicate == i)
-                        .SelectMany(m => m.CalibratedAveragedFilePaths.Values)
+                        .Select(m => (m.CalibratedAveragedFilePaths.Values, m.CalibratedAveragedSetPrecursorFilePaths.Values))
                         .ToArray();
 
                     // Search Chimericly with chim lib
@@ -384,6 +394,7 @@ namespace TaskLayer.ChimeraAnalysis
                         $"{ChimericDescriptor}_{Version}_ChimericLibrary_Rep{i}");
                     gptmd = GetGptmdPath(true, isTopDown);
                     search = GetSearchPath(true, isTopDown, false);
+                    string[] spec = allSpec.SelectMany(p => p.Item1).ToArray();
                     var individualProcess = new InternalMetaMorpheusCmdProcess(spec, parameters.DatabasePath, gptmd, search,
                         chimWithChimOutPath,
                         $"Searching with Chimeric Library for Replicate {i} in {cellLine.CellLine}", 0.5,
@@ -396,6 +407,7 @@ namespace TaskLayer.ChimeraAnalysis
                         $"{ChimericDescriptor}_{Version}_NonChimericLibrary_Rep{i}");
                     gptmd = GetGptmdPath(true, isTopDown);
                     search = GetSearchPath(true, isTopDown, false);
+                    spec = allSpec.SelectMany(p => p.Item1).ToArray();
                     individualProcess = new InternalMetaMorpheusCmdProcess(spec, parameters.DatabasePath, gptmd, search,
                         chimWithNonChimOutPath,
                         $"Searching Chimeric with Non-Chimeric Library for Replicate {i} in {cellLine.CellLine}", 0.5,
@@ -408,6 +420,9 @@ namespace TaskLayer.ChimeraAnalysis
                         $"{NonChimericDescriptor}_{Version}_NonChimericLibrary_Rep{i}");
                     gptmd = GetGptmdPath(false, isTopDown);
                     search = GetSearchPath(false, isTopDown, false);
+                    spec = isTopDown
+                        ? allSpec.SelectMany(p => p.Item2).ToArray()
+                        : allSpec.SelectMany(p => p.Item1).ToArray();
                     individualProcess = new InternalMetaMorpheusCmdProcess(spec, parameters.DatabasePath, gptmd, search,
                         nonChimWithNonChimOutPath,
                         $"Searching Non-Chimeric with Non-Chimeric Library for Replicate {i} in {cellLine.CellLine}", 0.5,
@@ -415,10 +430,9 @@ namespace TaskLayer.ChimeraAnalysis
                     individualProcess.DependsOn(nonChimLibProcess);
                     toReturn.Add(individualProcess);
                 }
-
             }
 
-            return toReturn;
+            return toReturn.OrderByDescending(p => p.Weight).ToList();
         }
 
         static string GetGptmdPath(bool isChimeric, bool isTopDown)

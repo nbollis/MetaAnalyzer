@@ -375,19 +375,18 @@ namespace Test
                 Directory.CreateDirectory(bigResultPath);
             var mm = conditionGroupedResult.Where(p => p.Key.Contains("IndividualFilesFraggerEquivalentWithChimeras"))
                 .SelectMany(m => m.Value);
+            var mm2 = conditionGroupedResult.Where(p => p.Key.Contains("MetaMorpheusWithLibrary"))
+                .SelectMany(m => m.Value);
             List<SingleRunResults> runResults = new()
             {
                 ChimerysResult,
-                MsFraggerResults,
-                mm
+                MsFraggerResults.Where(p => p.Condition != "ReviewdDatabase_MsFraggerDDA+"),
+                mm, mm2
             };
-
-            var records = runResults.SelectMany(p => p.CountProteins())
-                .Where(p => p is { UniqueFullSequences: > 1, UniqueBaseSequences: > 1 }).ToList();
-
-            //records.PlotModificationDistribution().Show();
-
             runResults.GetModificationDistribution().Show();
+            runResults.GetModificationDistribution(ResultType.Peptide).Show();
+
+            
         }
 
 

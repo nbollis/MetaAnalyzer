@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Analyzer.FileTypes.Internal;
+using Analyzer.Plotting.IndividualRunPlots;
 using Analyzer.Plotting.Util;
 using Analyzer.SearchType;
 using Analyzer.Util;
@@ -57,6 +58,8 @@ namespace TaskLayer.ChimeraAnalysis
             var processes = BuildProcesses(parameters);
             await RunProcesses(processes);
 
+
+            var isTopDown = !parameters.InputDirectoryPath.Contains("Mann");
             Dictionary<string, List<string>> cellLineDict = new();
             foreach (var cellLineDirectory in Directory.GetDirectories(parameters.OutputDirectory)
                          .Where(p => !p.Contains("Generate") && !p.Contains("Figure")))
@@ -65,6 +68,78 @@ namespace TaskLayer.ChimeraAnalysis
                 foreach (var runDirectory in Directory.GetDirectories(cellLineDirectory).Where(p => !p.Contains("Figure") && p.Contains(Version)))
                     cellLineDict[cellLineDirectory].Add(runDirectory);
             }
+
+            // Run MM Task basic processing 
+            int degreesOfParallelism = (int)(MaxWeight / 0.25);
+            Parallel.ForEach(cellLineDict.SelectMany(p => p.Value),
+                new ParallelOptions() { MaxDegreeOfParallelism = Math.Max(degreesOfParallelism, 1) },
+                singleRunPath =>
+                {
+                    var mmResult = new MetaMorpheusResult(singleRunPath);
+                    Log($"Processing {mmResult.DatasetName} {mmResult.Condition}", 1);
+
+                    Log($"Tabulating Result Counts: {mmResult.DatasetName} {mmResult.Condition}", 2);
+                    _ = mmResult.GetIndividualFileComparison();
+                    _ = mmResult.GetBulkResultCountComparisonFile();
+
+                    Log($"Counting Chimeric Psms/Peptides: {mmResult.DatasetName} {mmResult.Condition}", 2);
+                    mmResult.CountChimericPsms();
+                    mmResult.CountChimericPeptides();
+
+                    Log($"Running Chimera Breakdown Analysis: {mmResult.DatasetName} {mmResult.Condition}", 2);
+                    var sw = Stopwatch.StartNew();
+                    _ = mmResult.GetChimeraBreakdownFile();
+                    sw.Stop();
+
+                    // if it takes less than one minute to get the breakdown, and we are not overriding, do not plot
+                    if (sw.Elapsed.Minutes < 1 && !parameters.Override)
+                        return;
+
+                    mmResult.PlotChimeraBreakDownStackedColumn_Scaled(ResultType.Psm);
+                    mmResult.PlotChimeraBreakDownStackedColumn_Scaled(ResultType.Peptide);
+                });
+
+            Log($"Running Chimeric Spectrum Summaries", 0);
+            foreach (var cellLineDictEntry in cellLineDict)
+            {
+                var cellLine = Path.GetFileNameWithoutExtension(cellLineDictEntry.Key);
+                Log($"Processing Cell Line {cellLine}", 1);
+                List<CmdProcess> summaryTasks = new();
+                foreach (var singleRunPath in cellLineDictEntry.Value)
+                {
+                    var summaryParams =
+                        new SingleRunAnalysisParameters(singleRunPath, parameters.Override, false);
+                    var summaryTask = new SingleRunChimericSpectrumSummaryTask(summaryParams);
+                    summaryTasks.Add(new ResultAnalyzerTaskToCmdProcessAdaptor(summaryTask, "Chimeric Spectrum Summary", 0.5,
+                        singleRunPath));
+                }
+
+                try
+                {
+                    await RunProcesses(summaryTasks);
+                }
+                catch (Exception e)
+                {
+                    Warn($"Error Running Chimeric Spectrum Summary for {cellLine}: {e.Message}");
+                }
+            }
+
+            // Pull in Other software results to add to plots
+            var otherSearchResults = GetOtherSearches(isTopDown);
+            foreach (var runGroup in otherSearchResults.GroupBy(p => p.Condition.ConvertConditionName()))
+            {
+                cellLineDict.Add(runGroup.Key, new());
+                foreach (var run in runGroup)
+                    cellLineDict[runGroup.Key].Add(run.DirectoryPath);
+            }
+
+            // TODO: Comparative bar graphs
+
+
+            // TODO: Run Protein Information
+            // parse
+            // export
+            // plot in R
         }
 
 
@@ -163,6 +238,52 @@ namespace TaskLayer.ChimeraAnalysis
             }
         }
 
+        static List<SingleRunResults> GetOtherSearches(bool isTopDown)
+        {
+            List<SingleRunResults> allOtherResults = new();
+            if (isTopDown)
+            {
+                if (BulkFigureDirectory.Contains("Jurkat"))
+                {
+
+                }
+                else if (BulkFigureDirectory.Contains("Ecoli"))
+                {
+
+                }
+                else
+                {
+                    Debugger.Break();
+                }
+            }
+            else
+            {
+                var dirPath = @"B:\Users\Nic\Chimeras\Mann_11cell_analysis";
+                var allResults = new AllResults(dirPath, Directory.GetDirectories(dirPath)
+                        .Where(p => !p.Contains("Figures") && !p.Contains("ProcessedResults") && !p.Contains("Prosight"))
+                        .Select(datasetDirectory => new CellLineResults(datasetDirectory)).ToList())
+                    .SelectMany(cellLine => cellLine.Results.Where(result => result.Condition.Contains("DDA+") 
+                                                                             && result is MsFraggerResult).Cast<MsFraggerResult>())
+                    .ToList();
+                var fraggerReviewedDbNoPhospho = allResults
+                    .Where(p => p.Condition.ConvertConditionName().Contains("NoPhospho"))
+                    .ToList();
+                var fraggerReviewdWithPhospho = allResults
+                    .Where(p => !p.Condition.ConvertConditionName().Contains("NoPhospho") && p.Condition != "ReviewdDatabase_MsFraggerDDA+")
+                    .ToList();
+
+                allOtherResults.AddRange(fraggerReviewedDbNoPhospho);
+
+
+                string chimerysPath = @"B:\Users\Nic\Chimeras\Chimerys\Chimerys";
+                var chimerys = new ProteomeDiscovererResult(chimerysPath);
+
+                allOtherResults.Add(chimerys);
+            }
+
+            return allOtherResults;
+        }
+
         #endregion
 
         #region Result File Creation
@@ -170,7 +291,7 @@ namespace TaskLayer.ChimeraAnalysis
         private static string BulkResultComparisonFilePath { get; set; }
         private static BulkResultCountComparisonFile? _bulkResultCountComparisonFile;
 
-        internal static BulkResultCountComparisonFile GetResultCountFile(List<MetaMorpheusResult> mmResults)
+        internal static BulkResultCountComparisonFile GetResultCountFile(List<SingleRunResults> mmResults)
         {
             Debugger.Break();
             Log($"Counting Total Results", 0);
@@ -188,6 +309,7 @@ namespace TaskLayer.ChimeraAnalysis
             foreach (var conditionGroup in mmResults.GroupBy(p => p.Condition.ConvertConditionName()))
             {
                 string condition = conditionGroup.Key;
+                // Combine all 3 replicates into one for MM, just use as is for all else
                 foreach (var cellLineGroup in conditionGroup.GroupBy(p => p.DatasetName))
                 {
                     string cellLine = cellLineGroup.Key;
@@ -197,53 +319,97 @@ namespace TaskLayer.ChimeraAnalysis
                     if (cellLineGroup.Count() != 2 && isTopDown)
                         Debugger.Break();
 
-                    int psmCount = cellLineGroup.Sum(p =>
-                        p.AllPsms.Count(psm => !psm.IsDecoy() && psm.PEP_QValue <= 0.01));
-                    int allPsmCount = cellLineGroup.Sum(p => p.AllPsms.Count(psm => !psm.IsDecoy()));
+                    int psmCount = 0;
+                    int allPsmCount = 0;
+                    int peptideCount = 0;
+                    int allPeptideCount = 0;
+                    int proteinGroupCount = 0;
+                    int allProteinGroupCount = 0;
 
-                    int peptideCount = cellLineGroup.SelectMany(p =>
-                            p.AllPeptides.Where(peptide => !peptide.IsDecoy() && peptide.PEP_QValue <= 0.01))
-                        .DistinctBy(peptide => peptide.FullSequence)
-                        .Count();
-                    int allPeptideCount = cellLineGroup.SelectMany(p => p.AllPeptides.Where(peptide => !peptide.IsDecoy()))
-                        .DistinctBy(peptide => peptide.FullSequence)
-                        .Count();
 
-                    List<string> accessions = new();
-                    List<string> unfilteredAccessions = new();
-                    cellLineGroup.ForEach(group =>
+                    switch (cellLineGroup.First())
                     {
-                        using (var sw = new StreamReader(File.OpenRead(group.ProteinPath)))
-                        {
-                            var header = sw.ReadLine();
-                            var headerSplit = header.Split('\t');
-                            var qValueIndex = Array.IndexOf(headerSplit, "Protein QValue");
-                            var decoyContamTargetIndex = Array.IndexOf(headerSplit, "Protein Decoy/Contaminant/Target");
-                            var accessionIndex = Array.IndexOf(headerSplit, "Protein Accession");
+                        case MetaMorpheusResult:
+                            var group = cellLineGroup.Cast<MetaMorpheusResult>().ToArray();
+                            psmCount = group.Sum(p =>
+                                p.AllPsms.Count(psm => !psm.IsDecoy() && psm.PEP_QValue <= 0.01));
+                            allPsmCount = group.Sum(p => p.AllPsms.Count(psm => !psm.IsDecoy()));
 
-                            while (!sw.EndOfStream)
+                            peptideCount = group.SelectMany(p =>
+                                    p.AllPeptides.Where(peptide => !peptide.IsDecoy() && peptide.PEP_QValue <= 0.01))
+                                .DistinctBy(peptide => peptide.FullSequence)
+                                .Count();
+                            allPeptideCount = group.SelectMany(p => p.AllPeptides.Where(peptide => !peptide.IsDecoy()))
+                                .DistinctBy(peptide => peptide.FullSequence)
+                                .Count();
+
+                            List<string> accessions = new();
+                            List<string> unfilteredAccessions = new();
+                            cellLineGroup.ForEach(group =>
                             {
-                                var line = sw.ReadLine();
-                                var values = line.Split('\t');
+                                using (var sw = new StreamReader(File.OpenRead(group.ProteinPath)))
+                                {
+                                    var header = sw.ReadLine();
+                                    var headerSplit = header.Split('\t');
+                                    var qValueIndex = Array.IndexOf(headerSplit, "Protein QValue");
+                                    var decoyContamTargetIndex = Array.IndexOf(headerSplit, "Protein Decoy/Contaminant/Target");
+                                    var accessionIndex = Array.IndexOf(headerSplit, "Protein Accession");
 
-                                if (values[decoyContamTargetIndex].Contains('D'))
-                                    continue;
+                                    while (!sw.EndOfStream)
+                                    {
+                                        var line = sw.ReadLine();
+                                        var values = line.Split('\t');
 
-                                var internalAccessions = values[accessionIndex].Split('|')
-                                    .Select(p => p.Trim()).ToArray();
-                                unfilteredAccessions.AddRange(internalAccessions);
+                                        if (values[decoyContamTargetIndex].Contains('D'))
+                                            continue;
 
-                                if (double.Parse(values[qValueIndex]) > 0.01)
-                                    continue;
+                                        var internalAccessions = values[accessionIndex].Split('|')
+                                            .Select(p => p.Trim()).ToArray();
+                                        unfilteredAccessions.AddRange(internalAccessions);
+
+                                        if (double.Parse(values[qValueIndex]) > 0.01)
+                                            continue;
 
 
-                                accessions.AddRange(internalAccessions);
-                            }
-                        }
-                    });
+                                        accessions.AddRange(internalAccessions);
+                                    }
+                                }
+                            });
 
-                    var proteinGroupCount = accessions.Distinct().Count();
-                    var allProteinGroupCount = unfilteredAccessions.Distinct().Count();
+                            proteinGroupCount = accessions.Distinct().Count();
+                            allProteinGroupCount = accessions.Distinct().Count();
+
+                            break;
+                        case MsFraggerResult:
+                            var group2 = cellLineGroup.Cast<MsFraggerResult>().ToArray();
+                            var psms = group2.SelectMany(m => m.IndividualFileResults)
+                                .SelectMany(p => p.PsmFile).ToList();
+                            psmCount = psms.Count(m => m.PassesConfidenceFilter);
+                            allPsmCount = psms.Count;
+
+                            var peptides = group2.SelectMany(m => m.IndividualFileResults)
+                                .SelectMany(p => p.PeptideFile).ToList();
+                            peptideCount = peptides.Count(p => p.Probability >= 0.99);
+
+                            var proteins = group2.SelectMany(m => m.IndividualFileResults)
+                                .SelectMany(p => p.ProteinFile).ToList();
+                            proteinGroupCount = proteins.GroupBy(p => p.Accession).Count();
+                            allProteinGroupCount = proteins.Where(p => p.ProteinProbability >= 0.99)
+                                .GroupBy(p => p.Accession).Count();
+                            break;
+                        case ProteomeDiscovererResult:
+                            var group3 = cellLineGroup.Cast<ProteomeDiscovererResult>().ToArray();
+
+                            break;
+                        case MsPathFinderTResults:
+
+                            break;
+                    }
+
+                    
+                    
+
+                    
 
                     var result = new BulkResultCountComparison()
                     {

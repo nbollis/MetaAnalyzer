@@ -213,6 +213,7 @@ namespace Analyzer.FileTypes.Internal
         {
             using var csv = new CsvReader(new StreamReader(FilePath), ProteinCountingRecord.CsvContext);
             Results = csv.GetRecords<ProteinCountingRecord>().ToList();
+            Results.ForEach(m => m.Resolve());
         }
 
         public override void WriteResults(string outputPath)

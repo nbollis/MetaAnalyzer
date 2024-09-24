@@ -258,7 +258,7 @@ namespace Analyzer.Plotting
             var modDict = new Dictionary<string, double>();
             foreach (var mod in fullSequences.SelectMany(p =>
                          SpectrumMatchFromTsv.ParseModifications(p).SelectMany(m => m.Value)
-                             .Select(mod => mod.Split(":")[1].Trim()
+                             .Select(mod => mod.Split(":")[1].Split(' ')[0].Trim()
                                  .Replace("Accetyl", "Acetyl"))))
             {
                 if (!modDict.TryAdd(mod, 1))
@@ -271,6 +271,15 @@ namespace Analyzer.Plotting
             {
                 modDict.Remove("Carbamidomethyl on C");
                 modDict.Remove("Carbamidomethyl on U");
+                modDict.Remove("Carbamidomethyl");
+            }
+
+            if (false)
+            {
+                foreach (var keyValuePair in modDict.Where(p => p.Key.Contains("Deamida") || p.Key.Contains("Hydrox")))
+                {
+                    modDict.Remove(keyValuePair.Key);
+                }
             }
 
             if (displayRelative)
@@ -282,9 +291,9 @@ namespace Analyzer.Plotting
                 }
             }
 
-            // remove anything where the mod is less than 1% of total modifications
-            //modDict = modDict.Where(p => p.Value > 1)
-            //    .ToDictionary(p => p.Key, p => p.Value);
+            // remove anything where the mod is less than 1 % of total modifications
+            modDict = modDict.Where(p => p.Value > 1)
+                .ToDictionary(p => p.Key, p => p.Value);
 
             var chart = Chart.Column<double, string, string>(modDict.Values, modDict.Keys, title, MarkerColor: title.ConvertConditionToColor())
                 .WithSize(900, 600)

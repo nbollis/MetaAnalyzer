@@ -162,6 +162,19 @@ namespace Test
         }
 
         [Test]
+        public static void RunInternalMMComparison_TopDown()
+        {
+            var path = TopDownRunner.DirectoryPath;
+            var dataDirectoryPath = InternalMetaMorpheusAnalysisTask.JurkatTopDownDataFileDirectory;
+            var outputDir = InternalMetaMorpheusAnalysisTask.JurkatTopDownOutputDirectory;
+            var dbPath = InternalMetaMorpheusAnalysisTask.UniprotHumanProteomeAndReviewedXml;
+
+            var parameters = new InternalMetaMorpheusAnalysisParameters(path, outputDir, dataDirectoryPath, dbPath, @"C:\Program Files\MetaMorpheus");
+            var task = new InternalMetaMorpheusAnalysisTask(parameters);
+            task.Run().Wait();
+        }
+
+        [Test]
         public static void RunExternalComparison()
         {
             var path = BottomUpRunner.DirectoryPath;

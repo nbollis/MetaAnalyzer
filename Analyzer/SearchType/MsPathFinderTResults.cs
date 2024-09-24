@@ -481,7 +481,7 @@ namespace Analyzer.SearchType
 
             string rawFileDirPath = pbfFilePath.Contains("Ecoli") ?
                 @"B:\RawSpectraFiles\Ecoli_SEC_CZE" :
-                @"B:\Users\Nic\Chimeras\TopDown_Analysis\Jurkat\DataFiles";
+                @"B:\RawSpectraFiles\JurkatTopDown";
             string rawPath = Path.Combine(rawFileDirPath, Path.GetFileNameWithoutExtension(pbfFilePath)+".raw");
             if (File.Exists(rawPath))
                 RawFilePath = rawPath;

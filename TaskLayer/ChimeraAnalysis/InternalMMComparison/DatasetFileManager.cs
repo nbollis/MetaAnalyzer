@@ -41,11 +41,16 @@ internal class DatasetFileManager
 
 
         CellLines = new();
-        foreach (var cellLineDataDir in Directory.GetDirectories(dataDirectoryPath))
+        if (isTopDown)
         {
-            var cellLineName = Path.GetFileNameWithoutExtension(cellLineDataDir);
-            CellLines.Add(new CellLineFileManager(cellLineName, cellLineDataDir));
+            CellLines.Add(new CellLineFileManager("Jurkat", dataDirectoryPath, true));
         }
+        else
+            foreach (var cellLineDataDir in Directory.GetDirectories(dataDirectoryPath))
+            {
+                var cellLineName = Path.GetFileNameWithoutExtension(cellLineDataDir);
+                CellLines.Add(new CellLineFileManager(cellLineName, cellLineDataDir));
+            }
     }
 }
 
@@ -60,34 +65,75 @@ internal class CellLineFileManager
     {
         get
         {
-            if (calibratedAveragedFilePaths == null)
+            if (calibratedAveragedFilePaths != null) return calibratedAveragedFilePaths;
+            calibratedAveragedFilePaths = new Dictionary<string, string>();
+            foreach (var kvp in Replicates
+                         .SelectMany(replicate => replicate.CalibratedAveragedFilePaths))
             {
-                calibratedAveragedFilePaths = new Dictionary<string, string>();
-                foreach (var replicate in Replicates)
-                {
-                    foreach (var kvp in replicate.CalibratedAveragedFilePaths)
-                    {
-                        calibratedAveragedFilePaths.Add(kvp.Key, kvp.Value);
-                    }
-                }
+                calibratedAveragedFilePaths.Add(kvp.Key, kvp.Value);
             }
             return calibratedAveragedFilePaths;
         }
     }
 
-    public CellLineFileManager(string cellLine, string dataDirectoryPath)
+    private Dictionary<string, string>? calibratedAveragedSetPrecursorFilePaths;
+    public Dictionary<string, string> CalibratedAveragedSetPrecursorFilePaths
+    {
+        get
+        {
+            if (calibratedAveragedSetPrecursorFilePaths != null) return calibratedAveragedSetPrecursorFilePaths;
+            calibratedAveragedSetPrecursorFilePaths = new Dictionary<string, string>();
+            foreach (var kvp in Replicates
+                         .SelectMany(replicate => replicate.CalibratedAveragedFilePaths))
+            {
+                calibratedAveragedSetPrecursorFilePaths.Add(kvp.Key, kvp.Value);
+            }
+            return calibratedAveragedSetPrecursorFilePaths;
+        }
+    }
+
+    public CellLineFileManager(string cellLine, string dataDirectoryPath, bool useSetPrecursor = false)
     {
         CellLine = cellLine;
         DataDirectoryPath = dataDirectoryPath;
 
         Replicates = new();
         var calibratedAveragedDir = Path.Combine(dataDirectoryPath, "CalibratedAveraged");
-        foreach (var calibAvgRepGroup in Directory.GetFiles(calibratedAveragedDir, "*.mzML")
-                     .GroupBy(p => int.Parse(Path.GetFileNameWithoutExtension(p).ConvertFileName().Split('_')[1])))
+        var calibAveragedSetPrecursorDir = Path.Combine(dataDirectoryPath, "CalibratedAveragedSetPrecursor");
+
+        // top-down jurkat
+        if (useSetPrecursor)
         {
-            if (calibAvgRepGroup.Count() != 6)
-                Debugger.Break();
-            Replicates.Add(new ReplicateFileManager(calibAvgRepGroup.Key, calibAvgRepGroup.ToArray()));
+            var calibratedFiles = Directory.GetFiles(calibratedAveragedDir, "*.mzML");
+            var calibratedSetPrecursorFiles = Directory.GetFiles(calibAveragedSetPrecursorDir, "*.mzML");
+
+            List<(string original, string setPrecursor)> files = new();
+            foreach (var item in calibratedFiles.Zip(calibratedSetPrecursorFiles, (calibrated, setPrecursor) => (calibrated, setPrecursor)))
+            {
+                files.Add((item.Item1, item.Item2));
+            }
+
+            foreach (var replicateFileGroup in files.GroupBy(p =>
+                         int.Parse(Path.GetFileNameWithoutExtension(p.Item1).ConvertFileName().Split('_')[0])))
+            {
+                if (replicateFileGroup.Count() != 10)
+                    Debugger.Break();
+
+                Replicates.Add(new ReplicateFileManager(replicateFileGroup.Key,
+                    replicateFileGroup.Select(p => p.original).ToArray(),
+                    replicateFileGroup.Select(p => p.setPrecursor).ToArray()));
+            }
+        }
+        else
+        {
+            foreach (var calibAvgRepGroup in Directory.GetFiles(calibratedAveragedDir, "*.mzML")
+                         .GroupBy(p => int.Parse(Path.GetFileNameWithoutExtension(p).ConvertFileName().Split('_')[1])))
+            {
+                if (calibAvgRepGroup.Count() != 6)
+                    Debugger.Break();
+
+                Replicates.Add(new ReplicateFileManager(calibAvgRepGroup.Key, calibAvgRepGroup.ToArray()));
+            }
         }
     }
 }
@@ -96,8 +142,11 @@ internal class ReplicateFileManager
 {
     public int Replicate { get; init; }
     public Dictionary<string, string> CalibratedAveragedFilePaths { get; init; }
+    public Dictionary<string, string> CalibratedAveragedSetPrecursorFilePaths { get; init; }
 
-    public ReplicateFileManager(int replicate, string[] calibAveragedFilePaths)
+
+    public ReplicateFileManager(int replicate, string[] calibAveragedFilePaths,
+        string[]? calibAveragedSetPrecursorFilePaths = null)
     {
         Replicate = replicate;
         CalibratedAveragedFilePaths = new();
@@ -105,6 +154,14 @@ internal class ReplicateFileManager
         {
             var fileName = Path.GetFileNameWithoutExtension(file);
             CalibratedAveragedFilePaths.Add(fileName.ConvertFileName(), file);
+        }
+
+        CalibratedAveragedSetPrecursorFilePaths = new();
+        if (calibAveragedSetPrecursorFilePaths == null) return;
+        foreach (var file in calibAveragedSetPrecursorFilePaths)
+        {
+            var fileName = Path.GetFileNameWithoutExtension(file);
+            CalibratedAveragedSetPrecursorFilePaths.Add(fileName.ConvertFileName(), file);
         }
     }
 }
