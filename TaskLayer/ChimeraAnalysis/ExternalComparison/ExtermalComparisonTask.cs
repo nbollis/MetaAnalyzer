@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Analyzer;
 using Analyzer.FileTypes.Internal;
 using Analyzer.Plotting.IndividualRunPlots;
 using Analyzer.Plotting.Util;
@@ -135,11 +136,102 @@ namespace TaskLayer.ChimeraAnalysis
 
             // TODO: Comparative bar graphs
 
+            // Run Protein Information
+            Log("Creating Proforma Files", 1);
+            foreach (var cellLineDictEntry in cellLineDict)
+            {
+                var cellLine = Path.GetFileNameWithoutExtension(cellLineDictEntry.Key);
 
-            // TODO: Run Protein Information
-            // parse
-            // export
+                Log($"Processing Cell Line {cellLine}", 1);
+                foreach (var singleRunPath in cellLineDictEntry.Value)
+                {
+                    SingleRunResults result;
+                    if (singleRunPath.Contains("MetaMorpheus"))
+                        result = new MetaMorpheusResult(singleRunPath);
+                    else if (singleRunPath.Contains("Fragger"))
+                        result = new MsFraggerResult(singleRunPath);
+                    else if (singleRunPath.Contains("Chimerys") || singleRunPath.Contains("ProsightPD"))
+                        result = new ProteomeDiscovererResult(singleRunPath);
+                    else if (singleRunPath.Contains("MsPathFinder"))
+                        result = new MsPathFinderTResults(singleRunPath);
+                    else
+                    {
+                        Debugger.Break();
+                        throw new NotImplementedException();
+                    }
+                    result.ToPsmProformaFile();
+                    result.Dispose();
+                }
+            }
+
+            var proformaGroups = cellLineDict.SelectMany(p => p.Value)
+                .Where(p => p.Contains("MetaMorpheus"))
+                .Select(p => new MetaMorpheusResult(p))
+                .GroupBy(p => p.Condition.ConvertConditionName())
+                .ToDictionary(p => p.Key, p => p.ToList());
+            var proformaResultPath = Path.Combine(BulkFigureDirectory, "ProformaResults");
+            foreach (var condition in proformaGroups)
+            {
+                var proforomaFileName = Path.Combine(proformaResultPath, condition.Key + "_PSM_" + FileIdentifiers.ProformaFile);
+                var records = new List<ProformaRecord>();
+                foreach (var result in condition.Value)
+                    records.AddRange(result.ToPsmProformaFile().Results);
+                var newFile = new ProformaFile(proforomaFileName)
+                {
+                    Results = records
+                };
+
+                newFile.WriteResults(proforomaFileName);
+            }
+
+            Log("Creating Protein Counting Files", 1);
+            foreach (var cellLineDictEntry in cellLineDict)
+            {
+                var cellLine = Path.GetFileNameWithoutExtension(cellLineDictEntry.Key);
+
+                Log($"Processing Cell Line {cellLine}", 1);
+                foreach (var singleRunPath in cellLineDictEntry.Value)
+                {
+                    SingleRunResults result;
+                    if (singleRunPath.Contains("MetaMorpheus"))
+                        result = new MetaMorpheusResult(singleRunPath);
+                    else if (singleRunPath.Contains("Fragger"))
+                        result = new MsFraggerResult(singleRunPath);
+                    else if (singleRunPath.Contains("Chimerys") || singleRunPath.Contains("ProsightPD"))
+                        result = new ProteomeDiscovererResult(singleRunPath);
+                    else if (singleRunPath.Contains("MsPathFinder"))
+                        result = new MsPathFinderTResults(singleRunPath);
+                    else
+                    {
+                        Debugger.Break();
+                        throw new NotImplementedException();
+                    }
+                    result.CountProteins();
+                    result.Dispose();
+                }
+            }
+
+            var proteinGroups = cellLineDict.SelectMany(p => p.Value)
+                .Where(p => p.Contains("MetaMorpheus"))
+                .Select(p => new MetaMorpheusResult(p))
+                .GroupBy(p => p.Condition.ConvertConditionName())
+                .ToDictionary(p => p.Key, p => p.ToList());
+            foreach (var condition in proteinGroups)
+            {
+                var proforomaFileName = Path.Combine(proformaResultPath, condition.Key + "_PSM_" + FileIdentifiers.ProteinCountingFile);
+                var records = new List<ProteinCountingRecord>();
+                foreach (var result in condition.Value)
+                    records.AddRange(result.CountProteins().Results);
+                var newFile = new ProteinCountingFile(proforomaFileName)
+                {
+                    Results = records
+                };
+
+                newFile.WriteResults(proforomaFileName);
+            }
             // plot in R
+
+
         }
 
 

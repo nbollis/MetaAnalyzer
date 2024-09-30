@@ -1,23 +1,12 @@
 ﻿using Analyzer.Plotting.Util;
-using System;
-using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
-using System.Runtime.CompilerServices;
-using System.Text;
-using System.Threading.Tasks;
-using Analyzer.Interfaces;
 using Analyzer.Plotting;
-using Analyzer.Plotting.ComparativePlots;
 using Analyzer.Plotting.IndividualRunPlots;
 using Analyzer.SearchType;
 using Analyzer.Util;
-using Calibrator;
-using pepXML.Generated;
 using Plotly.NET;
 using Plotly.NET.ImageExport;
 using TaskLayer.CMD;
-using System.Security.Cryptography;
 using Analyzer.FileTypes.Internal;
 using Easy.Common.Extensions;
 using Analyzer;
@@ -311,6 +300,40 @@ namespace TaskLayer.ChimeraAnalysis
                 newFile.WriteResults(proforomaFileName);
             }
 
+            Log("Creating Protein Counting Files", 1);
+            foreach (var cellLineDictEntry in cellLineDict)
+            {
+                var cellLine = Path.GetFileNameWithoutExtension(cellLineDictEntry.Key);
+
+                Log($"Processing Cell Line {cellLine}", 1);
+                foreach (var singleRunPath in cellLineDictEntry.Value)
+                {
+                    if (singleRunPath.Contains(NonChimericDescriptor))
+                        continue;
+
+                    var result = new MetaMorpheusResult(singleRunPath);
+                    result.CountProteins();
+                }
+            }
+
+            var proteinGroups = cellLineDict.SelectMany(p => p.Value)
+                .Select(p => new MetaMorpheusResult(p))
+                .GroupBy(p => p.Condition.ConvertConditionName())
+                .ToDictionary(p => p.Key, p => p.ToList());
+            foreach (var condition in proteinGroups)
+            {
+                var proforomaFileName = Path.Combine(proformaResultPath, condition.Key + "_PSM_" + FileIdentifiers.ProteinCountingFile);
+                var records = new List<ProteinCountingRecord>();
+                foreach (var result in condition.Value)
+                    records.AddRange(result.CountProteins().Results);
+                var newFile = new ProteinCountingFile(proforomaFileName)
+                {
+                    Results = records
+                };
+
+                newFile.WriteResults(proforomaFileName);
+            }
+
 
             var resultsForInternalComparison = cellLineDict.SelectMany(p => p.Value)
                 .Where(p => !p.Contains($"{ChimericDescriptor}_{Version}_NonChimericLibrary"))
@@ -318,7 +341,7 @@ namespace TaskLayer.ChimeraAnalysis
                 .ToList();
             GetResultCountFile(resultsForInternalComparison);
             Log($"Plotting Bulk Internal Comparison", 0);
-            //PlotCellLineBarCharts(resultsForInternalComparison);
+            PlotCellLineBarCharts(resultsForInternalComparison);
 
             resultsForInternalComparison = resultsForInternalComparison
                 .Where(p => p.Condition.Contains($"{ChimericDescriptor}_{Version}_ChimericLibrary"))
