@@ -80,7 +80,7 @@ namespace TaskLayer.ChimeraAnalysis
             @"B:\Users\Nic\Chimeras\TopDown_Analysis\Jurkat\GPTMD_NoChimeras.toml";
 
         public static string GptmdWithChimerasJurkatTd =>
-            @"B:\Users\Nic\Chimeras\TopDown_Analysis\Jurkat\GPTMD_Chimeras.toml";
+            @"B:\Users\Nic\Chimeras\TopDown_Analysis\Jurkat\GPTMD_WithChimeras.toml";
 
         public static string SearchNoChimerasJurkatTd =>
             @"B:\Users\Nic\Chimeras\TopDown_Analysis\Jurkat\Search_NoChimeras.toml";
