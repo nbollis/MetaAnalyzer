@@ -958,13 +958,12 @@ namespace Analyzer.SearchType
 
         public ChimericSpectrumSummaryFile GetChimericSpectrumSummaryFile()
         {
-            if (_chimericSpectrumSummaryFilePath.TryGetFile<ChimericSpectrumSummaryFile>(out var loadedFile))
-                if (!Override && loadedFile != null)
-                {
-                    Log("Summary File Found, loading in file");
-                    return loadedFile;
-                }
-
+            if (!Override && File.Exists(_chimericSpectrumSummaryFilePath))
+            {
+                Log("Summary File Found, loading in file");
+                return new ChimericSpectrumSummaryFile(_chimericSpectrumSummaryFilePath);
+            }
+            
             // get mass spec files
             Log($"Parsing Directories for run {Condition}",1);
             List<string> massSpecFiles = new();

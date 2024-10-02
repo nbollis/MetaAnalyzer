@@ -193,7 +193,7 @@ namespace Test
         [Test]
         public static void IsolationWidthStudy()
         {
-            string path = @"R:\Nic\09-12-24_YL-stnds_change-iso-window\SecondSearch";
+            string path = @"R:\Nic\IsolationWindowScaling\SearchResults\BU_OnlySearch_1";
             var mm = new MetaMorpheusResult(path, "Yeast", "IsolationWidth");
             var indFile = mm.GetIndividualFileComparison() ?? throw new NullReferenceException();
             int widthSq = 600;

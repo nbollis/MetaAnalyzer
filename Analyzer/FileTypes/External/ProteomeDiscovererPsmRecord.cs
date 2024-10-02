@@ -38,11 +38,12 @@ namespace Analyzer.FileTypes.External
 
         public static string ConvertProteomeDiscovererModification(ProteomeDiscovererMod pdMod, IEnumerable<Modification> allKnownMods)
         {
-            var targetResidueMatching = allKnownMods.Where(p => p.Target.ToString().Contains(pdMod.ModifiedResidue))
+            
+            var targetResidueMatching = allKnownMods.Where(p => p.Target.ToString().Contains(pdMod.ModifiedResidue) || p.Target.ToString().Contains("on X"))
                 .ToArray();
-            var nameMatching = targetResidueMatching.Where(p => 
-                    p.IdWithMotif.Contains(pdMod.ModName) 
-                    && p.IdWithMotif.Contains($" on {pdMod.ModifiedResidue}")                      
+            var nameMatching = allKnownMods.Where(p => 
+                    p.IdWithMotif.Contains(pdMod.ModName.Replace("-L-lysine", "")) 
+                    && (p.IdWithMotif.Contains($" on {pdMod.ModifiedResidue}") || p.IdWithMotif.Contains(" on X"))                      
                     /*&& !p.OriginalId.Contains("DTT")*/)
                 .ToArray();
 
@@ -83,6 +84,8 @@ namespace Analyzer.FileTypes.External
                 "Unimod" when modToReturn.OriginalId.Contains("Carbamido") => "Common Fixed",
                 "Unimod" when modToReturn.OriginalId.Contains("Oxidation") => "Common Variable",
                 "Unimod" when modToReturn.OriginalId.Contains("Phosphoryl") => "Common Biological",
+                "Unimod" when modToReturn.OriginalId.Contains("Acetyl") => "Common Biological",
+                "Unimod" when modToReturn.OriginalId.Contains("Methy") => "Common Biological",
                 _ => modToReturn.ModificationType
             };
 

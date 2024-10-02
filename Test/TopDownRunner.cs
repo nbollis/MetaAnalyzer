@@ -154,8 +154,41 @@ namespace Test
             var topDownAveragePercent = topDown.Average(p => p.Item3);
             var bottomUpAveragePercent = bottomUp.Average(p => p.Item3);
         }
-    
 
+
+
+
+
+        [Test]
+        public static void RunProteinCountingAndProForma()
+        {
+            List<string> errors = new();
+            foreach (var cellLine in AllResults)
+            {
+                foreach (var result in cellLine)
+                {
+                    try
+                    {
+                        result.CountProteins();
+                    }
+                    catch (Exception e)
+                    {
+                        errors.Add($"Counting: {result.Condition} {result.DatasetName} {e.Message}");
+                    }
+
+                    try
+                    {
+                        result.ToPsmProformaFile();
+                    }
+                    catch (Exception e)
+                    {
+                        errors.Add($"ProForma: {result.Condition} {result.DatasetName} {e.Message}");
+                    }
+                }
+            }
+
+            errors.ForEach(Console.WriteLine);
+        }
 
     
 
