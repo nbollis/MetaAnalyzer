@@ -339,9 +339,18 @@ namespace TaskLayer.ChimeraAnalysis
                 .Where(p => !p.Contains($"{ChimericDescriptor}_{Version}_NonChimericLibrary"))
                 .Select(p => new MetaMorpheusResult(p))
                 .ToList();
+
             GetResultCountFile(resultsForInternalComparison);
             Log($"Plotting Bulk Internal Comparison", 0);
             PlotCellLineBarCharts(resultsForInternalComparison);
+
+            if (resultsForInternalComparison.All(p => p.IsTopDown) &&
+                resultsForInternalComparison.First().DirectoryPath.Contains("Jurkat"))
+            {
+                resultsForInternalComparison = resultsForInternalComparison
+                    .Where(p => p.Condition.Contains($"Rep2"))
+                    .ToList();
+            }
 
             resultsForInternalComparison = resultsForInternalComparison
                 .Where(p => p.Condition.Contains($"{ChimericDescriptor}_{Version}_ChimericLibrary"))

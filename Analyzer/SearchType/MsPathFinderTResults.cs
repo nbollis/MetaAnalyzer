@@ -2,6 +2,7 @@
 using Analyzer.FileTypes.External;
 using Analyzer.FileTypes.Internal;
 using Analyzer.Interfaces;
+using Analyzer.Plotting.Util;
 using Analyzer.Util;
 using Easy.Common.Extensions;
 using MassSpectrometry;
@@ -410,7 +411,19 @@ namespace Analyzer.SearchType
 
         public override ProformaFile ToPsmProformaFile()
         {
-            throw new NotImplementedException();
+            if (File.Exists(_proformaPsmFilePath) && !Override)
+                return _proformaPsmFile ??= new ProformaFile(_proformaPsmFilePath);
+            string condition = Condition.ConvertConditionName();
+            List<ProformaRecord> records = new();
+            foreach (var file in IndividualFileResults)
+            {
+
+            }
+
+
+            var proformaFile = new ProformaFile(_proformaPsmFilePath) { Results = records };
+            proformaFile.WriteResults(_proformaPsmFilePath);
+            return _proformaPsmFile = proformaFile;
         }
 
         public override ProteinCountingFile CountProteins()

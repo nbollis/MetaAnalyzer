@@ -95,7 +95,9 @@ public static class PlottingTranslators
 
         // Top Down
         {"MetaMorpheus", Color.fromKeyword(ColorKeyword.Purple) }, // ecoli
+        {"MetaMorpheus\u2800", Color.fromKeyword(ColorKeyword.Purple) }, // ecoli
         {"MetaMorpheusNoChimeras", Color.fromKeyword(ColorKeyword.Plum) }, // shared
+        {"MetaMorpheus No Chimeras", Color.fromKeyword(ColorKeyword.Plum) }, // shared
         {"MetaMorpheus_Rep2_WithLibrary", Color.fromKeyword(ColorKeyword.MediumOrchid)}, // jurkat
         {"MetaMorpheus_Rep2_WithLibrary_NewPEP_NoNorm", Color.fromKeyword(ColorKeyword.Purple)},
         {"MetaMorpheus_NewPEP_NoNormNoMult", Color.fromKeyword(ColorKeyword.Purple)},
@@ -453,22 +455,34 @@ public static class PlottingTranslators
 
     private static Dictionary<string, string> ConditionNameConversionDictionary = new()
     {
-        // Bottom up
-        { "MetaMorpheusWithLibrary", "MetaMorpheus⠀" }, // old
-        { "MetaMorpheusNoChimerasWithLibrary", "MetaMorpheus No Chimeras" }, // old
-        { "MetaMorpheusFraggerEquivalent_IndividualFilesFraggerEquivalentWithChimeras", "Reduced MetaMorpheus⠀" },
-        { "MetaMorpheus_ExternalComparison_Chimeras", "MetaMorpheus⠀" },
+
+        // MM General
         { "MetaMorpheusWithChimeras_105_ChimericLibrary_Rep1", "MetaMorpheus⠀" },
         { "MetaMorpheusWithChimeras_105_ChimericLibrary_Rep2", "MetaMorpheus⠀" },
         { "MetaMorpheusWithChimeras_105_ChimericLibrary_Rep3", "MetaMorpheus⠀" },
-        { "MetaMorpheusFraggerEquivalent_IndividualFilesFraggerEquivalentNoChimeras", "MetaMorpheus No Chimeras" },
-        { "MetaMorpheus_ExternalComparison_NoChimeras", "MetaMorpheus No Chimeras" },
         { "MetaMorpheusNoChimeras_105_NonChimericLibrary_Rep1", "MetaMorpheus No Chimeras" },
         { "MetaMorpheusNoChimeras_105_NonChimericLibrary_Rep2", "MetaMorpheus No Chimeras" },
         { "MetaMorpheusNoChimeras_105_NonChimericLibrary_Rep3", "MetaMorpheus No Chimeras" },
         { "MetaMorpheusWithChimeras_105_NonChimericLibrary_Rep1", "MetaMorpheus Chimeras (Non-chimeric library)" },
         { "MetaMorpheusWithChimeras_105_NonChimericLibrary_Rep2", "MetaMorpheus Chimeras (Non-chimeric library)" },
         { "MetaMorpheusWithChimeras_105_NonChimericLibrary_Rep3", "MetaMorpheus Chimeras (Non-chimeric library)" },
+        { "MetaMorpheusWithChimeras_106_ChimericLibrary_Rep1", "MetaMorpheus\u2800" },
+        { "MetaMorpheusWithChimeras_106_ChimericLibrary_Rep2", "MetaMorpheus\u2800" },
+        { "MetaMorpheusWithChimeras_106_ChimericLibrary_Rep3", "MetaMorpheus\u2800" },
+        { "MetaMorpheusNoChimeras_106_NonChimericLibrary_Rep1", "MetaMorpheus No Chimeras" },
+        { "MetaMorpheusNoChimeras_106_NonChimericLibrary_Rep2", "MetaMorpheus No Chimeras" },
+        { "MetaMorpheusNoChimeras_106_NonChimericLibrary_Rep3", "MetaMorpheus No Chimeras" },
+        { "MetaMorpheusWithChimeras_106_NonChimericLibrary_Rep1", "MetaMorpheus Chimeras (Non-chimeric library)" },
+        { "MetaMorpheusWithChimeras_106_NonChimericLibrary_Rep2", "MetaMorpheus Chimeras (Non-chimeric library)" },
+        { "MetaMorpheusWithChimeras_106_NonChimericLibrary_Rep3", "MetaMorpheus Chimeras (Non-chimeric library)" },
+
+        // Bottom up
+        { "MetaMorpheusWithLibrary", "MetaMorpheus⠀" }, // old
+        { "MetaMorpheusNoChimerasWithLibrary", "MetaMorpheus No Chimeras" }, // old
+        { "MetaMorpheusFraggerEquivalent_IndividualFilesFraggerEquivalentWithChimeras", "Reduced MetaMorpheus⠀" },
+        { "MetaMorpheus_ExternalComparison_Chimeras", "MetaMorpheus⠀" },
+        { "MetaMorpheusFraggerEquivalent_IndividualFilesFraggerEquivalentNoChimeras", "MetaMorpheus No Chimeras" },
+        { "MetaMorpheus_ExternalComparison_NoChimeras", "MetaMorpheus No Chimeras" },
         
         { "ReviewdDatabaseNoPhospho_MsFragger", "No P MsFragger" },
         { "ReviewdDatabaseNoPhospho_MsFraggerDDA", "No P MsFragger" },
@@ -486,6 +500,7 @@ public static class PlottingTranslators
         { "MetaMorpheus_NewPEP_NoNormNoMult", "MetaMorpheus\u2800" }, // temp until actual final is finished
         { "MetaMorpheusNoChimeras", "MetaMorpheus No Chimeras" },
         { "MetaMorpheus_NoChimeras", "MetaMorpheus No Chimeras" },
+
 
         { "MsPathFinderTWithModsNoChimeras", "MsPathFinderT  No Chimeras" },
         { "MsPathFinderTWithModsNoChimerasRep2", "MsPathFinderT  No Chimeras" },

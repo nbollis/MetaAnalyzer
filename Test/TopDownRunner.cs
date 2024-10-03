@@ -21,7 +21,25 @@ namespace Test
         [OneTimeSetUp]
         public static void OneTimeSetup() { Loaders.LoadElements(); }
 
-      
+
+
+
+
+        [Test]
+        public static void PaperInternalMMParsing()
+        {
+            string path = @"B:\Users\Nic\Chimeras\InternalMMAnalysis\TopDown_Jurkat\Jurkat";
+            var groupedRuns = Directory.GetDirectories(path)
+                .Select(p => new MetaMorpheusResult(p))
+                .GroupBy(p => p.Condition.ConvertConditionName())
+                .ToDictionary(p => p.Key, p => p.ToList());
+
+
+
+        }
+
+
+
 
         [Test]
         public static void RunAllParsing()
