@@ -157,6 +157,41 @@ public static class PlottingTranslators
         {"TopDown - Post Calibration", Color.fromKeyword(ColorKeyword.DarkGoldenRod)},
         {"TopDown - Post Averaging", Color.fromKeyword(ColorKeyword.DarkRed)},
         {"TopDown - Post GPTMD", Color.fromKeyword(ColorKeyword.DarkGreen)},
+
+
+        // Isolation Window Study 
+        {"1 m/z - Rep1", Color.fromHex("#440154")},
+        {"1 m/z - Rep2", Color.fromHex("#440154")},
+        {"1 m/z - Rep3", Color.fromHex("#440154")},
+        {"1 m/z - YeastPeppiB", Color.fromHex("#440154")},
+        {"2 m/z - Rep1", Color.fromHex("#472b7a")},
+        {"2 m/z - Rep2", Color.fromHex("#472b7a")},
+        {"2 m/z - Rep3", Color.fromHex("#472b7a")},
+        {"2 m/z - YeastPeppiB", Color.fromHex("#472b7a")},
+        {"4 m/z - Rep1", Color.fromHex("#3b528b")},
+        {"4 m/z - Rep2", Color.fromHex("#3b528b")},
+        {"4 m/z - Rep3", Color.fromHex("#3b528b")},
+        {"4 m/z - YeastPeppiB", Color.fromHex("#3b528b")},
+        {"6 m/z - Rep1", Color.fromHex("#2c728e")},
+        {"6 m/z - Rep2", Color.fromHex("#2c728e")},
+        {"6 m/z - Rep3", Color.fromHex("#2c728e")},
+        {"6 m/z - YeastPeppiB", Color.fromHex("#2c728e")},
+        {"8 m/z - Rep1", Color.fromHex("#21918c")},
+        {"8 m/z - Rep2", Color.fromHex("#21918c")},
+        {"8 m/z - Rep3", Color.fromHex("#21918c")},
+        {"8 m/z - YeastPeppiB", Color.fromHex("#21918c")},
+        {"10 m/z - Rep1", Color.fromHex("#35b779")},
+        {"10 m/z - Rep2", Color.fromHex("#35b779")},
+        {"10 m/z - Rep3", Color.fromHex("#35b779")},
+        {"10 m/z - YeastPeppiB", Color.fromHex("#35b779")},
+        {"15 m/z - Rep1", Color.fromHex("#7ad151")},
+        {"15 m/z - Rep2", Color.fromHex("#7ad151")},
+        {"15 m/z - Rep3", Color.fromHex("#7ad151")},
+        {"15 m/z - YeastPeppiB", Color.fromHex("#7ad151")},
+        {"20 m/z - Rep1", Color.fromHex("#fde725")},
+        {"20 m/z - Rep2", Color.fromHex("#fde725")},
+        {"20 m/z - Rep3", Color.fromHex("#fde725")},
+        {"20 m/z - YeastPeppiB", Color.fromHex("#fde725")},
     };
 
     private static Dictionary<string, string> FileNameConversionDictionary = new()
@@ -451,6 +486,8 @@ public static class PlottingTranslators
         {"1.25 Iso", " 1.25 Iso"},
         {"2.5 Iso", " 2.5 Iso"},
         {"5 Iso", " 5 Iso"},
+
+
     };
 
     private static Dictionary<string, string> ConditionNameConversionDictionary = new()
@@ -523,8 +560,6 @@ public static class PlottingTranslators
         {"ProsightPD_15", "ProsightPD\u280015 Chimeras"},
     };
 
-    private static Dictionary<string, char> ConditionToInvidisbleCharacterDictionary = new();
-
     public static Queue<Color> ColorQueue { get; }
 
     #endregion
@@ -540,7 +575,27 @@ public static class PlottingTranslators
     public static string ConvertFileName(this string fileName)
     {
         var name = fileName.Replace("-calib", "").Replace("-averaged", "");
-        return FileNameConversionDictionary.ContainsKey(name) ? FileNameConversionDictionary[name] : fileName;
+
+
+        if (FileNameConversionDictionary.TryGetValue(name, out string? value) && value != null)
+        {
+            return value;
+        }
+        else if (fileName.Contains("_DDA_Rep") || fileName.Contains("_DDA_YeastPeppiB")) // for my isolation window experiments
+        {
+            var splits = fileName.Split('_');
+
+            if (splits[2].Length == 1) // if single digit, add space to ensure proper order
+                splits[2] = $" {splits[2]}";
+
+            var returnName = $"{splits[2]} m/z - {splits[4]}";
+            FileNameConversionDictionary.TryAdd(name, returnName);
+            return returnName;
+        }
+        else
+        {
+            return name;
+        }
     }
 
     public static IEnumerable<string> ConvertConditionNames(this IEnumerable<string> conditions)
@@ -556,6 +611,8 @@ public static class PlottingTranslators
     public static Color ConvertConditionToColor(this string condition)
     {
         if (ConditionToColorDictionary.TryGetValue(condition, out var color))
+            return color;
+        else if (ConditionToColorDictionary.TryGetValue(condition.Trim(), out color))
             return color;
         else
         {
