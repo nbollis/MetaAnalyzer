@@ -4,8 +4,8 @@
     {
         static void Main(string[] args)
         {
-            int degreeOfParallelism = 6;
-            int threadsTouse = 30 / degreeOfParallelism;
+            int degreeOfParallelism = 4;
+            int threadsTouse = 16 / degreeOfParallelism;
             var prompts = MsPathFinderTParams.AllParamsLeftToRun
                 .SelectMany(p => GenerateCommandPromptsOfThoseLeftToRun(p, threadsTouse)).ToArray();
 
@@ -27,7 +27,7 @@
                                 Arguments = $"{prompt}",
                                 UseShellExecute = true,
                                 CreateNoWindow = true,
-                                WorkingDirectory = @"C:\Informed-Proteomics"
+                                WorkingDirectory = @"C:\Program Files\Informed-Proteomics"
                             }
                         };
                         proc.Start();

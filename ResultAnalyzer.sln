@@ -20,7 +20,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Calibrator", "Calibrator\Ca
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RetentionTimePrediction", "RetentionTimePrediction\RetentionTimePrediction.csproj", "{23872B49-7F87-4A0C-86A2-59612638801D}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MsPathFinderTRunner", "MsPathFinderTRunner\MsPathFinderTRunner.csproj", "{212F9336-1C2B-4C5C-A1FC-9DD8FA9B35AC}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MsPathFinderTRunner", "MsPathFinderTRunner\MsPathFinderTRunner.csproj", "{212F9336-1C2B-4C5C-A1FC-9DD8FA9B35AC}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GradientDevelopment", "GradientDevelopment\GradientDevelopment.csproj", "{2F0EB7AC-4D19-4376-AF20-02794F54809D}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -60,6 +62,10 @@ Global
 		{212F9336-1C2B-4C5C-A1FC-9DD8FA9B35AC}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{212F9336-1C2B-4C5C-A1FC-9DD8FA9B35AC}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{212F9336-1C2B-4C5C-A1FC-9DD8FA9B35AC}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2F0EB7AC-4D19-4376-AF20-02794F54809D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2F0EB7AC-4D19-4376-AF20-02794F54809D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2F0EB7AC-4D19-4376-AF20-02794F54809D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2F0EB7AC-4D19-4376-AF20-02794F54809D}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

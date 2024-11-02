@@ -238,7 +238,7 @@ namespace Analyzer.Plotting
             }
 
 
-        NoNorm:
+            NoNorm:
             var chart = Chart.Histogram2DContour<T, double, double>(xValues, yValues, Z: zValues, YBins: Bins.init(null, null, 0.1)
                     /*HistNorm: StyleParam.HistNorm.Percent*//*, HistFunc: StyleParam.HistFunc.Avg*/)
                 //var chart = Chart.BoxPlot<T, double, string>(xValues, yValues, Name: title, MarkerColor: title.ConvertConditionToColor()

@@ -135,6 +135,12 @@ namespace Test
         [Test]
         public static void MsPathTDatasetInfoGenerator()
         {
+
+            var path =
+                @"B:\Users\Nic\Chimeras\TopDown_Analysis\Jurkat\SearchResults\MsPathFinderTWithMods_15Rep2_Final";
+            var result = new MsPathFinderTResults(path);
+
+
             foreach (MsPathFinderTResults mspt in AllResults.SelectMany(p => p.Results)
                 .Where(p => p is MsPathFinderTResults mspt && mspt.IndividualFileResults.Count is 20 or 43 or 10))
             {
