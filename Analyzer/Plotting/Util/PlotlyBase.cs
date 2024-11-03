@@ -31,6 +31,18 @@ namespace Analyzer.Plotting.Util
                 XAnchor: StyleParam.XAnchorPosition.Center,
                 YAnchor: StyleParam.YAnchorPosition.Top
             ), Font: Font.init(null, 16, null));
+
+        public static Layout DefaultLayoutWithLegendLargerText => Layout.init<string>(
+            //PaperBGColor: Color.fromARGB(0, 0,0,0),
+            //PlotBGColor: Color.fromARGB(0, 0, 0, 0),
+            //PaperBGColor: Color.fromKeyword(ColorKeyword.White),
+            //PlotBGColor: Color.fromKeyword(ColorKeyword.White),
+            ShowLegend: true,
+            Legend: Legend.init(X: 0.5, Y: -0.2, Orientation: StyleParam.Orientation.Horizontal, EntryWidth: 0,
+                VerticalAlign: StyleParam.VerticalAlign.Bottom,
+                XAnchor: StyleParam.XAnchorPosition.Center,
+                YAnchor: StyleParam.YAnchorPosition.Top
+            ), Font: Font.init(null, 18, null));
         public static Layout DefaultLayoutNoLegend => Layout.init<string>(
             //PaperBGColor: Color.fromARGB(0, 0,0,0),
             //PlotBGColor: Color.fromARGB(0, 0, 0, 0),

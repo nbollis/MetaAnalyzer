@@ -8,7 +8,10 @@
         public static string MinFragmentNeeded => "MinFragmentsNeededHistogram.csv";
 
 
+        // Gradient Analysis
 
+        public static string ExtractedGradientInformation = "ExtractedGradientData";
+        public static string GradientFigure = "IdsVsRt";
 
         // Chimera Analysis
         public static string ChimeraCountingFile => "ChimeraCounting.csv";

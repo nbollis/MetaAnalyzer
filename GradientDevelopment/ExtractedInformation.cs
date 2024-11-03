@@ -22,6 +22,9 @@ namespace GradientDevelopment
         [Name("MobilePhaseB")]
         public string MobilePhaseB { get; set; }
 
+        [Name("GradientName")]
+        public string GradientName { get; set; }
+
         [Name("Tic")]
         [TypeConverter(typeof(AnonymousDoubleArrayToStringConverter))]
         public (double, double)[] Tic { get; set; }
@@ -38,10 +41,11 @@ namespace GradientDevelopment
         [TypeConverter(typeof(AnonymousDoubleArrayToStringConverter))]
         public (double, double)[] FivePercentIds { get; set; }
 
-        public ExtractedInformation(string dataFileName, string mobilePhaseB, (double, double)[] tic, (double, double)[] gradient, (double, double)[] ids, (double, double)[] fivePercentIds)
+        public ExtractedInformation(string dataFileName, string mobilePhaseB, string gradientName, (double, double)[] tic, (double, double)[] gradient, (double, double)[] ids, (double, double)[] fivePercentIds)
         {
             DataFileName = dataFileName;
             MobilePhaseB = mobilePhaseB;
+            GradientName = gradientName;
             Tic = tic;
             Gradient = gradient;
             Ids = ids;
@@ -65,13 +69,14 @@ namespace GradientDevelopment
 
         public override void WriteResults(string outputPath)
         {
-            using var csv = new CsvWriter(new StreamWriter(outputPath), ExtractedInformation.CsvConfiguration);
-
-            csv.WriteHeader<ExtractedInformation>();
-            foreach (var result in Results)
+            using (var csv = new CsvWriter(new StreamWriter(outputPath), ExtractedInformation.CsvConfiguration))
             {
-                csv.NextRecord();
-                csv.WriteRecord(result);
+                csv.WriteHeader<ExtractedInformation>();
+                foreach (var result in Results)
+                {
+                    csv.NextRecord();
+                    csv.WriteRecord(result);
+                }
             }
         }
 

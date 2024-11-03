@@ -1,4 +1,5 @@
-﻿using Readers;
+﻿using MathNet.Numerics;
+using Readers;
 using ThermoFisher.CommonCore.Data.Business;
 using StreamReader = System.IO.StreamReader;
 
@@ -59,17 +60,25 @@ namespace GradientDevelopment
                 }
             }
 
-            var allOsms = osmInfo.ToArray();
-            var filteredOsms = osmInfo.Where(p => p.Q <= 0.05).ToArray();
+            var allOsms = osmInfo.GroupBy(p => p.Rt.Round(2))
+                .Select(p => (p.Key, (double)p.Count()))
+                .OrderBy(p => p.Key)
+                .ToArray();
+            var filteredOsms = osmInfo.Where(p => p.Q <= 0.05)
+                .GroupBy(p => p.Rt.Round(2))
+                .OrderBy(p => p.Key)
+                .Select(p => (p.Key, (double)p.Count()))
+                .ToArray();
 
             // Interpolation
-            var xValues = Enumerable.Range(0, (int)((maxRt - minRt) / 0.1) + 1).Select(i => minRt + i * 0.1).ToArray();
-            var interpolatedTic = Interpolate(tic, xValues);
-            var interpolatedGrad = Interpolate(grad, xValues);
-            var interpolatedAllOsms = Interpolate(allOsms, xValues);
-            var interpolatedFilteredOsms = Interpolate(filteredOsms, xValues);
+            //var xValues = Enumerable.Range(0, (int)((maxRt - minRt) / 0.1) + 1).Select(i => minRt + i * 0.1).ToArray();
+            //var interpolatedTic = Interpolate(tic, xValues);
+            //var interpolatedGrad = Interpolate(grad, xValues);
+            //var interpolatedAllOsms = Interpolate(allOsms, xValues);
+            //var interpolatedFilteredOsms = Interpolate(filteredOsms, xValues);
 
-            var info = new ExtractedInformation(DataFileName, MobilePhaseB, interpolatedTic, interpolatedGrad, interpolatedAllOsms, interpolatedFilteredOsms);
+            var gradName = Path.GetFileNameWithoutExtension(GradientPath);
+            var info = new ExtractedInformation(DataFileName, MobilePhaseB, gradName, tic, grad, allOsms, filteredOsms);
             return info;
         }
 

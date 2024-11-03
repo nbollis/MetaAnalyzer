@@ -54,7 +54,7 @@ public static class PlottingTranslators
     /// MsPathFinderT -> Yellow
     /// ProsightPD -> Red
     /// </summary>
-    private static Dictionary<string, Color> ConditionToColorDictionary = new()
+    public static Dictionary<string, Color> ConditionToColorDictionary = new()
     {
         // Bottom Up
         {"MetaMorpheusWithLibrary", Color.fromKeyword(ColorKeyword.Purple) },
@@ -192,6 +192,11 @@ public static class PlottingTranslators
         {"20 m/z - Rep2", Color.fromHex("#fde725")},
         {"20 m/z - Rep3", Color.fromHex("#fde725")},
         {"20 m/z - YeastPeppiB", Color.fromHex("#fde725")},
+
+
+        // Gradient Development
+        {"MeOH", Color.fromKeyword(ColorKeyword.Orchid)},
+        {"ACN", Color.fromKeyword(ColorKeyword.FireBrick)}
     };
 
     private static Dictionary<string, string> FileNameConversionDictionary = new()
