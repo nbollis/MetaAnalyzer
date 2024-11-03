@@ -195,7 +195,7 @@ public static class PlottingTranslators
 
 
         // Gradient Development
-        {"MeOH", Color.fromKeyword(ColorKeyword.Orchid)},
+        {"MeOH", Color.fromKeyword(ColorKeyword.Purple)},
         {"ACN", Color.fromKeyword(ColorKeyword.FireBrick)}
     };
 

@@ -85,7 +85,6 @@ namespace Test
                     run.Tic.Select(p => p.Item2).ToArray(),
                     MarkerColor: Color.fromKeyword(ColorKeyword.Blue),
                     Name: "TIC",
-                    Opacity: 0.8,
                     HistNorm: StyleParam.HistNorm.None, HistFunc: StyleParam.HistFunc.Avg,
                     NBinsX: numBins)
                 .WithAxisAnchor(Y: 3);
@@ -106,7 +105,8 @@ namespace Test
                 //    Id: StyleParam.SubPlotId.NewYAxis(2), Overlaying: StyleParam.LinearAxisId.NewY(1))
                 .WithYAxisStyle(Title.init("TIC"), Side: StyleParam.Side.Right, 
                     Id: StyleParam.SubPlotId.NewYAxis(3), Overlaying: StyleParam.LinearAxisId.NewY(1))
-                .WithYAxisStyle(Title.init($"%{run.MobilePhaseB}"), Side: StyleParam.Side.Left,
+                .WithYAxisStyle(Title.init($"%{run.MobilePhaseB}"), Side: StyleParam.Side.Left, 
+                    MinMax: new FSharpOption<Tuple<IConvertible, IConvertible>>(new Tuple<IConvertible, IConvertible>(0,100)),
                     Id: StyleParam.SubPlotId.NewYAxis(4), Overlaying: StyleParam.LinearAxisId.NewY(1))
                 .WithXAxisStyle(Title.init("Retention Time"), 
                     Domain: new FSharpOption<Tuple<IConvertible, IConvertible>>(new Tuple<IConvertible, IConvertible>(0.15, 1)))
