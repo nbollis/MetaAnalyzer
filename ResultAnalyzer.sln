@@ -24,6 +24,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MsPathFinderTRunner", "MsPa
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GradientDevelopment", "GradientDevelopment\GradientDevelopment.csproj", "{2F0EB7AC-4D19-4376-AF20-02794F54809D}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RadicalFragmentation", "RadicalFragmentaiton\RadicalFragmentation.csproj", "{8B826AF4-2262-4AAC-900A-6C999CB292AB}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -66,6 +68,10 @@ Global
 		{2F0EB7AC-4D19-4376-AF20-02794F54809D}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{2F0EB7AC-4D19-4376-AF20-02794F54809D}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{2F0EB7AC-4D19-4376-AF20-02794F54809D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8B826AF4-2262-4AAC-900A-6C999CB292AB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8B826AF4-2262-4AAC-900A-6C999CB292AB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8B826AF4-2262-4AAC-900A-6C999CB292AB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8B826AF4-2262-4AAC-900A-6C999CB292AB}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
