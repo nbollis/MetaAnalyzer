@@ -29,6 +29,7 @@
     <ProjectReference Include="..\Calibrator\Calibrator.csproj" />
     <ProjectReference Include="..\CMD\CMD.csproj" />
     <ProjectReference Include="..\GradientDevelopment\GradientDevelopment.csproj" />
+    <ProjectReference Include="..\RadicalFragmentaiton\RadicalFragmentation.csproj" />
     <ProjectReference Include="..\RetentionTimePrediction\RetentionTimePrediction.csproj" />
   </ItemGroup>
 
@@ -37,6 +38,9 @@
   </ItemGroup>
 
   <ItemGroup>
+    <None Update="ProteolyticDigestion\proteases.tsv">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
     <None Update="TestData\ProteomeDiscoverer_TestData_PeptideGroups.txt">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>

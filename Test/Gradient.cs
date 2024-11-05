@@ -32,7 +32,9 @@ namespace Test
             var results = new List<ExtractedInformation>();
             foreach (var runInformation in StoredInformation.RunInformationList)
             {
-                results.Add(runInformation.GetExtractedRunInformation());
+                var info = runInformation.GetExtractedRunInformation();
+                if (info.FivePercentIds.Any())
+                    results.Add(info);
             }
             //results.Add(StoredInformation.RunInformationList[0].GetExtractedRunInformation());
 

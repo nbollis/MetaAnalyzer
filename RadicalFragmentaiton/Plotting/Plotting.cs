@@ -15,18 +15,6 @@ namespace RadicalFragmentation;
 
 internal static class Plotting
 {
-    public static Layout DefaultLayoutWithLegend => Layout.init<string>(
-        //PaperBGColor: Color.fromARGB(0, 0,0,0),
-        //PlotBGColor: Color.fromARGB(0, 0, 0, 0),
-        PaperBGColor: Color.fromKeyword(ColorKeyword.White),
-        PlotBGColor: Color.fromKeyword(ColorKeyword.White),
-        ShowLegend: true,
-        Legend: Legend.init(X: 0.5, Y: -0.2, Orientation: StyleParam.Orientation.Horizontal, EntryWidth: 0,
-            VerticalAlign: StyleParam.VerticalAlign.Bottom,
-            XAnchor: StyleParam.XAnchorPosition.Center,
-            YAnchor: StyleParam.YAnchorPosition.Top
-        ));
-
     public static void CreateAminoAcidFrequencyFigure(this RadicalFragmentationExplorer explorer, bool higherResolution = false)
     {
         var modifications = GlobalVariables.AllModsKnown;
@@ -152,7 +140,7 @@ internal static class Plotting
         var combined = Chart.Combine(toCombine)
             .WithTitle($"{species} Fragments per {typeText} (Ambiguity Level {ambiguityLevel})")
             .WithXAxisStyle(Title.init("Fragment Count"))
-            .WithLayout(DefaultLayoutWithLegend)
+            .WithLayout(GenericPlots.DefaultLayoutWithLegend)
             .WithYAxisStyle(Title.init($"Count of {typeText}s"));
 
         return combined;
@@ -199,7 +187,7 @@ internal static class Plotting
                 $"{species} Fragments Needed to Distinguish from other {typeText}s (Ambiguity Level {ambiguityLevel})")
             .WithXAxisStyle(Title.init("Fragments Needed"))
             .WithYAxisStyle(Title.init($"Log(Count of {typeText}s)"))
-            .WithLayout(DefaultLayoutWithLegend)
+            .WithLayout(GenericPlots.DefaultLayoutWithLegend)
             .WithYAxis(LinearAxis.init<int, int, int, int, int, int>(AxisType: StyleParam.AxisType.Log));
         return combined;
     }
@@ -236,7 +224,7 @@ internal static class Plotting
                 $"{species}: {typeText}s Identified by Number of Fragments")
             .WithXAxisStyle(Title.init($"Fragment Ions Required"))
             .WithXAxis(LinearAxis.init<int, int, int, int, int, int>(Tick0: 0, DTick: 1))
-            .WithLayout(DefaultLayoutWithLegend)
+            .WithLayout(GenericPlots.DefaultLayoutWithLegend)
             .WithYAxisStyle(Title.init($"Percent of {typeText}s Identified"));
         return combined;
     }
