@@ -1,4 +1,5 @@
-﻿using Omics.Modifications;
+﻿using MathNet.Numerics;
+using Omics.Modifications;
 using Plotly.NET;
 using Proteomics;
 using Proteomics.ProteolyticDigestion;
@@ -29,6 +30,8 @@ internal class DatabaseMassPlot
 
     internal GenericChart.GenericChart GeneratePlot()
     {
+        int roundTo = 1;
+        double maxMass = 60000;
         var modifications = NumberOfMods == 0 ? new List<Modification>() : GlobalVariables.AllModsKnown;
         var topDownDigestionParams = new DigestionParams("top-down", MissedCleavages, 2,
             Int32.MaxValue, 100000, InitiatorMethionineBehavior.Retain, NumberOfMods);
@@ -40,24 +43,28 @@ internal class DatabaseMassPlot
 
 
         List<double> proteoformMasses = proteins.SelectMany(prot => prot.Digest(topDownDigestionParams, fixedMods, variableMods)
+                .Where(p => p.MonoisotopicMass <= maxMass)
                 .DistinctBy(p => p.FullSequence))
-            .Select(proteoform => proteoform.MonoisotopicMass)
+            .Select(proteoform => proteoform.MonoisotopicMass.Round(roundTo))
             .ToList();
         List<double> peptidoformMasses = proteins.SelectMany(prot => prot.Digest(bottomUpDigestionParams, fixedMods, variableMods)
+                .Where(p => p.MonoisotopicMass <= maxMass)
                 .DistinctBy(p => p.FullSequence))
-            .Select(peptidoform => peptidoform.MonoisotopicMass)
+            .Select(peptidoform => peptidoform.MonoisotopicMass.Round(roundTo))
             .ToList();
 
 
         proteins.ForEach(prot => prot.OneBasedPossibleLocalizedModifications.Clear());
         List<double> proteinMasses = proteins.SelectMany(prot => prot.Digest(topDownDigestionParams, fixedMods, variableMods)
+                .Where(p => p.MonoisotopicMass <= maxMass)
                 .DistinctBy(p => p.BaseSequence))
-            .Select(protein => protein.MonoisotopicMass)
+            .Select(protein => protein.MonoisotopicMass.Round(roundTo))
             .ToList();
 
         List<double> peptideMasses = proteins.SelectMany(prot => prot.Digest(bottomUpDigestionParams, fixedMods, variableMods)
+                .Where(p => p.MonoisotopicMass <= maxMass)
                 .DistinctBy(p => p.BaseSequence))
-            .Select(peptidoform => peptidoform.MonoisotopicMass)
+            .Select(peptidoform => peptidoform.MonoisotopicMass.Round(roundTo))
             .ToList();
 
         var peptidePlot = GetSingleChart(peptideMasses, "Peptide");
@@ -75,7 +82,6 @@ internal class DatabaseMassPlot
             .WithLayout(GenericPlots.DefaultLayoutWithLegend);
         return combined;
     }
-
 
     private GenericChart.GenericChart GetSingleChart(List<double> masses, string label)
     {

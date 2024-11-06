@@ -12,7 +12,7 @@ namespace GradientDevelopment
         internal static string GradientDirectory = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Gradients");
         internal static string GradientDevelopmentDataDirectory = @"B:\Users\Nic\RNA\FLuc\GradientDevelopment";
         internal static string FluxMethDataDirectory = @"B:\Users\Nic\RNA\FLuc\FLuc Methylation Experiment\m5C_transcription";
-        internal static string GradientDevelopmentBigSearch = Path.Combine(GradientDevelopmentDataDirectory, @"Round6Search\Task1-RnaSearchTask\AllOSMs.osmtsv");
+        internal static string GradientDevelopmentBigSearch = Path.Combine(GradientDevelopmentDataDirectory, @"Round7Search\Task1-RnaSearchTask\AllOSMs.osmtsv");
 
         public static List<RunInformation> RunInformationList = new List<RunInformation>()
         {
@@ -37,6 +37,12 @@ namespace GradientDevelopment
 
             // Round 7
             new( Path.Combine(GradientDevelopmentDataDirectory, "241105_FLuc_45Dig_TEAAandAA_Spike_6ug_120-3Pfizer8.raw"), Path.Combine(GradientDirectory, "Pfizer8.csv"), GradientDevelopmentBigSearch, "MeOH"),
+            new( Path.Combine(GradientDevelopmentDataDirectory, "241105_FLuc_45Dig_TEAAandAA_Spike_6ug_120-2Pfizer9.raw"), Path.Combine(GradientDirectory, "Pfizer9.csv"), GradientDevelopmentBigSearch, "MeOH"),
+
+            // Round 8
+            new( Path.Combine(GradientDevelopmentDataDirectory, ""), Path.Combine(GradientDirectory, "Pfizer10.csv"), GradientDevelopmentBigSearch, "MeOH"),
+            new( Path.Combine(GradientDevelopmentDataDirectory, ""), Path.Combine(GradientDirectory, "Pfizer11.csv"), GradientDevelopmentBigSearch, "MeOH"),
+            new( Path.Combine(GradientDevelopmentDataDirectory, ""), Path.Combine(GradientDirectory, "Pfizer1.csv"), GradientDevelopmentBigSearch, "MeOH"),
         };
     }
 
