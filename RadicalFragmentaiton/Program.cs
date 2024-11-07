@@ -1,5 +1,6 @@
 ﻿using CommandLine;
 using CommandLine.Text;
+using RadicalFragmentation.Processing;
 using System.Diagnostics;
 
 namespace RadicalFragmentation

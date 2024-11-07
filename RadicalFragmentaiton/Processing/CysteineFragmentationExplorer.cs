@@ -2,7 +2,7 @@
 using Proteomics;
 using Proteomics.AminoAcidPolymer;
 
-namespace RadicalFragmentation;
+namespace RadicalFragmentation.Processing;
 
 internal class CysteineFragmentationExplorer : RadicalFragmentationExplorer
 {

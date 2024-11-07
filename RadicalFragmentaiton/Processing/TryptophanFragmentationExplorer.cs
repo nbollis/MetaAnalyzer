@@ -2,7 +2,7 @@
 using Proteomics;
 using Proteomics.ProteolyticDigestion;
 
-namespace RadicalFragmentation;
+namespace RadicalFragmentation.Processing;
 
 internal class TryptophanFragmentationExplorer : RadicalFragmentationExplorer
 {
@@ -53,7 +53,7 @@ internal class TryptophanFragmentationExplorer : RadicalFragmentationExplorer
     public TryptophanFragmentationExplorer(string databasePath, int numberOfMods, string species, int ambiguityLevel = 1, string? baseDirectory = null)
         : base(databasePath, numberOfMods, species, int.MaxValue, ambiguityLevel, baseDirectory)
     {
-        digestionParameters = new DigestionParams("tryptophan oxidation", 0, 7, Int32.MaxValue, 100000,
+        digestionParameters = new DigestionParams("tryptophan oxidation", 0, 7, int.MaxValue, 100000,
             InitiatorMethionineBehavior.Retain, NumberOfMods);
     }
 

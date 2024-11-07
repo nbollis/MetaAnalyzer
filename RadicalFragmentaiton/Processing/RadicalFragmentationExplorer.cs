@@ -4,7 +4,7 @@ using Proteomics;
 using Proteomics.ProteolyticDigestion;
 using UsefulProteomicsDatabases;
 
-namespace RadicalFragmentation;
+namespace RadicalFragmentation.Processing;
 
 public abstract class RadicalFragmentationExplorer
 {
@@ -112,7 +112,7 @@ public abstract class RadicalFragmentationExplorer
     #endregion
 
     #region Methods
-    protected DigestionParams PrecursorDigestionParams => new DigestionParams("top-down", 0, 2, Int32.MaxValue, 100000,
+    protected DigestionParams PrecursorDigestionParams => new DigestionParams("top-down", 0, 2, int.MaxValue, 100000,
         InitiatorMethionineBehavior.Retain, NumberOfMods);
 
     public PrecursorFragmentMassFile CreateIndexedFile()
@@ -338,12 +338,12 @@ public abstract class RadicalFragmentationExplorer
     protected static IEnumerable<List<double>> GenerateCombinations(List<double> fragmentMasses)
     {
         int n = fragmentMasses.Count;
-        for (int i = 0; i < (1 << n); i++)
+        for (int i = 0; i < 1 << n; i++)
         {
             List<double> combination = new List<double>();
             for (int j = 0; j < n; j++)
             {
-                if ((i & (1 << j)) > 0)
+                if ((i & 1 << j) > 0)
                 {
                     combination.Add(fragmentMasses[j]);
                 }

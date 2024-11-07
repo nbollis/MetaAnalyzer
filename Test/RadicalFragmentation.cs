@@ -22,7 +22,7 @@ namespace Test
             var path = HumanDatabasePath;
             var plot = new DatabaseMassPlot(path, 2);
             var chart = plot.GeneratePlot();
-            chart.Show();
+            //chart.Show();
         }
     }
 }

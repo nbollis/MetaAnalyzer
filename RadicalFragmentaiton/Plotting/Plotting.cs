@@ -10,6 +10,7 @@ using Plotly.NET.ImageExport;
 using Plotly.NET.LayoutObjects;
 using MathNet.Numerics;
 using UsefulProteomicsDatabases;
+using RadicalFragmentation.Processing;
 
 namespace RadicalFragmentation;
 

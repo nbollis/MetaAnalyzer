@@ -70,7 +70,7 @@ public static class ClassExtensions
 
     public static Dictionary<string, Color> ConditionToColorDictionary = new()
     {
-        {"Peptide", Color.fromKeyword(ColorKeyword.FireBrick)},
+        {"Peptide", Color.fromKeyword(ColorKeyword.LightCoral)},
         {"Peptidoform", Color.fromKeyword(ColorKeyword.Crimson)},
         {"Proteoform", Color.fromKeyword(ColorKeyword.CornflowerBlue)},
         {"Protein", Color.fromKeyword(ColorKeyword.Navy)},
