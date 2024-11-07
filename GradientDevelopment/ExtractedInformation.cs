@@ -16,6 +16,13 @@ namespace GradientDevelopment
             MissingFieldFound = null
         };
 
+        public int Ms2ScansCollected { get; set; }
+        public int PrecursorsFragmented { get; set; }
+        public int OSMCount { get; set; }
+        public int OligoCount { get; set; }
+
+
+
         [Name("DataFileName")]
         public string DataFileName { get; set; }
 
@@ -41,7 +48,9 @@ namespace GradientDevelopment
         [TypeConverter(typeof(AnonymousDoubleArrayToStringConverter))]
         public (double, double)[] FivePercentIds { get; set; }
 
-        public ExtractedInformation(string dataFileName, string mobilePhaseB, string gradientName, (double, double)[] tic, (double, double)[] gradient, (double, double)[] ids, (double, double)[] fivePercentIds)
+        public ExtractedInformation(string dataFileName, string mobilePhaseB, string gradientName,
+            (double, double)[] tic, (double, double)[] gradient, (double, double)[] ids, (double, double)[] fivePercentIds,
+            int ms2ScansCollected, int precursorsFragmented, int osMCount, int oligoCount)
         {
             DataFileName = dataFileName;
             MobilePhaseB = mobilePhaseB;
@@ -50,6 +59,10 @@ namespace GradientDevelopment
             Gradient = gradient;
             Ids = ids;
             FivePercentIds = fivePercentIds;
+            Ms2ScansCollected = ms2ScansCollected;
+            PrecursorsFragmented = precursorsFragmented;
+            OSMCount = osMCount;
+            OligoCount = oligoCount;
         }
 
         public ExtractedInformation()

@@ -24,14 +24,26 @@ namespace GradientDevelopment
 
         public ExtractedInformation GetExtractedRunInformation()
         {
+            var resultsTxtPath = Directory.GetParent(SearchResultPath)!.GetFiles( "results.txt").First();
+            
+            var lines = File.ReadAllLines(resultsTxtPath.FullName);
+            var relevant = lines.Where(p => p.Contains(DataFileName)).ToArray();
+            var ms2Scans = relevant.First(p => p.Contains("MS2 spectra in"));
+            var precursors = relevant.First(p => p.Contains("Precursors fragmented"));
+            var osmLine = relevant.First(p => p.Contains("target PSMs"));
+            var oligLine = relevant.First(p => p.Contains("oligos with q"));
+            var ms2ScanCount = int.Parse(ms2Scans.Split(':')[1].Trim());
+            var precursorCount = int.Parse(precursors.Split(':')[1].Trim());
+            var osmCount = int.Parse(osmLine.Split(':')[1].Trim());
+            var oligoCount = int.Parse(oligLine.Split(':')[1].Trim());
+
+
             var grad = new Gradient(GradientPath).GetGradient();
             var dataFile = MsDataFileReader.GetDataFile(DataFilePath).LoadAllStaticData();
             var tic = dataFile.Scans
                 .Where(p => p.MsnOrder == 1)
                 .Select(p => (p.RetentionTime, p.TotalIonCurrent))
                 .ToArray();
-            double minRt = 0;
-            double maxRt = tic.Max(p => p.RetentionTime);
 
             var osmInfo = new List<(double Rt, double Q)>();
             using (var sw = new StreamReader(File.OpenRead(SearchResultPath)))
@@ -70,15 +82,8 @@ namespace GradientDevelopment
                 .Select(p => (p.Key, (double)p.Count()))
                 .ToArray();
 
-            // Interpolation
-            //var xValues = Enumerable.Range(0, (int)((maxRt - minRt) / 0.1) + 1).Select(i => minRt + i * 0.1).ToArray();
-            //var interpolatedTic = Interpolate(tic, xValues);
-            //var interpolatedGrad = Interpolate(grad, xValues);
-            //var interpolatedAllOsms = Interpolate(allOsms, xValues);
-            //var interpolatedFilteredOsms = Interpolate(filteredOsms, xValues);
-
             var gradName = Path.GetFileNameWithoutExtension(GradientPath);
-            var info = new ExtractedInformation(DataFileName, MobilePhaseB, gradName, tic, grad, allOsms, filteredOsms);
+            var info = new ExtractedInformation(DataFileName, MobilePhaseB, gradName, tic, grad, allOsms, filteredOsms, ms2ScanCount, precursorCount, osmCount, oligoCount);
             return info;
         }
 

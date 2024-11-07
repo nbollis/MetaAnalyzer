@@ -67,36 +67,56 @@ internal class DatabaseMassPlot
             .Select(peptidoform => peptidoform.MonoisotopicMass.Round(roundTo))
             .ToList();
 
-        var peptidePlot = GetSingleChart(peptideMasses, "Peptide");
-        var peptidoformPlot = GetSingleChart(peptidoformMasses, "Peptidoform");
-        var proteinPlot = GetSingleChart(proteinMasses, "Protein");
-        var proteoformPlot = GetSingleChart(proteoformMasses, "Proteoform");
+        var allValues = peptideMasses
+            .Concat(peptidoformMasses)
+            .Concat(proteinMasses)
+            .Concat(proteoformMasses)
+            .ToList();
 
-        var combined = Chart.Combine(new[] { peptidePlot, peptidoformPlot, proteinPlot, proteoformPlot })
+        var peptidePlot = GetSingleCharts(peptideMasses, "Peptide");
+        var peptidoformPlot = GetSingleCharts(peptidoformMasses, "Peptidoform");
+        var proteinPlot = GetSingleCharts(proteinMasses, "Protein");
+        var proteoformPlot = GetSingleCharts(proteoformMasses, "Proteoform");
+
+        var kernelCombined = Chart.Combine(new[]
+            { peptidePlot.KDE, peptidoformPlot.KDE, proteinPlot.KDE, proteoformPlot.KDE })
+            .WithAxisAnchor(Y: 4)
+            .WithYAxisStyle(Title.init("Density"), Side: StyleParam.Side.Right, Id: StyleParam.SubPlotId.NewYAxis(4));
+
+        var histCombined = Chart.Combine(new[]
+            { peptidePlot.Hist, peptidoformPlot.Hist, proteinPlot.Hist, proteoformPlot.Hist })
+            .WithAxisAnchor(Y: 5)
+            .WithYAxisStyle(Title.init("Count"), Side: StyleParam.Side.Left, Id: StyleParam.SubPlotId.NewYAxis(5));
+
+        var combined = Chart.Combine(new[] { kernelCombined, histCombined })
             .WithTitle("Mass Distribution of Peptides, Peptidoforms, Proteins, and Proteoforms")
             .WithYAxisStyle(Title.init("Count"), Side: StyleParam.Side.Left,
-                Id: StyleParam.SubPlotId.NewYAxis(1))
+                Id: StyleParam.SubPlotId.NewYAxis(6))
             .WithYAxisStyle(Title.init("Density"), Side: StyleParam.Side.Right,
-                Id: StyleParam.SubPlotId.NewYAxis(2),
-                Overlaying: StyleParam.LinearAxisId.NewY(1))
-            .WithLayout(GenericPlots.DefaultLayoutWithLegend);
+                Id: StyleParam.SubPlotId.NewYAxis(7),
+                Overlaying: StyleParam.LinearAxisId.NewY(6))
+            .WithLayout(GenericPlots.DefaultLayoutWithLegend)
+            .WithSize(1000, 600);
+
+        kernelCombined.Show();
+        histCombined.Show();
+        combined.Show();
+
         return combined;
     }
 
-    private GenericChart.GenericChart GetSingleChart(List<double> masses, string label)
+    private (GenericChart.GenericChart KDE, GenericChart.GenericChart Hist) GetSingleCharts(List<double> masses, string label)
     {
         var kde = GenericPlots.KernelDensityPlot(masses, label, "Neutral Mass (Da)", "Count")
-            .WithAxisAnchor(Y: 1);
+            .WithAxisAnchor(Y: 1)
+            .WithYAxisStyle(Title.init("Density"), Side: StyleParam.Side.Right,
+                Id: StyleParam.SubPlotId.NewYAxis(1));
+
         var hist = GenericPlots.Histogram(masses, label, "Neutral Mass (Da)", "Density")
-            .WithAxisAnchor(Y: 2);
-        var combined = Chart.Combine(new[] { kde, hist }).WithYAxisStyle(Title.init("Count"), Side: StyleParam.Side.Left,
-                    Id: StyleParam.SubPlotId.NewYAxis(1))
-                .WithYAxisStyle(Title.init("Density"), Side: StyleParam.Side.Right,
-                    Id: StyleParam.SubPlotId.NewYAxis(2),
-                    Overlaying: StyleParam.LinearAxisId.NewY(1))
-                .WithLayout(GenericPlots.DefaultLayoutNoLegend)
-            .WithTitle($"{label} Mass Distribution");
-        combined.Show();
-        return combined;
+            .WithAxisAnchor(Y: 2)
+            .WithYAxisStyle(Title.init("Count"), Side: StyleParam.Side.Left,
+            Id: StyleParam.SubPlotId.NewYAxis(2));
+
+        return (null, hist);
     }
 }
