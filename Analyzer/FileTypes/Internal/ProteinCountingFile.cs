@@ -1,11 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Analyzer.Util;
-using Analyzer.Util.TypeConverters;
+﻿using Analyzer.Util;
 using CsvHelper;
 using CsvHelper.Configuration;
 using CsvHelper.Configuration.Attributes;
@@ -13,7 +6,7 @@ using Easy.Common.Extensions;
 using Proteomics;
 using Proteomics.PSM;
 using Readers;
-using TorchSharp;
+using ResultAnalyzerUtil;
 
 namespace Analyzer.FileTypes.Internal
 {

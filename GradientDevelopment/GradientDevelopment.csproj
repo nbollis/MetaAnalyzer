@@ -12,6 +12,10 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\ResultAnalyzerUtil\ResultAnalyzerUtil.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
     <None Update="Gradients\itwStandard.csv">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>

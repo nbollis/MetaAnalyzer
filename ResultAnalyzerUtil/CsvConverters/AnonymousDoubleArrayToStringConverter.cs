@@ -1,9 +1,9 @@
-﻿using CsvHelper.Configuration;
+﻿using CsvHelper;
+using CsvHelper.Configuration;
 using CsvHelper.TypeConversion;
-using CsvHelper;
 using MathNet.Numerics;
 
-namespace GradientDevelopment
+namespace ResultAnalyzerUtil
 {
     public class AnonymousDoubleArrayToStringConverter : DefaultTypeConverter
     {

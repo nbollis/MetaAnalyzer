@@ -1,8 +1,9 @@
 ﻿using Analyzer.FileTypes.Internal;
 using Analyzer.Plotting.Util;
 using Analyzer.SearchType;
-using Analyzer.Util;
 using Plotly.NET;
+using Plotting.Util;
+using ResultAnalyzerUtil;
 
 namespace Analyzer.Plotting.ComparativePlots
 {
@@ -32,7 +33,7 @@ namespace Analyzer.Plotting.ComparativePlots
                 .OrderBy(b => b.First().Condition.ConvertConditionName())
                 .ToList();
 
-            return GenericPlots.IndividualFileResultBarChart(fileResults, out width, out height, cellLine.CellLine,
+            return AnalyzerGenericPlots.IndividualFileResultBarChart(fileResults, out width, out height, cellLine.CellLine,
                 isTopDown, resultType);
         }
 
@@ -40,7 +41,7 @@ namespace Analyzer.Plotting.ComparativePlots
             out int height, ResultType resultType = ResultType.Psm,  string cellLine = "", bool isTopDown = false)
 
         {
-            return GenericPlots.IndividualFileResultBarChart(fileResults, out width, out height, cellLine, isTopDown, resultType);
+            return AnalyzerGenericPlots.IndividualFileResultBarChart(fileResults, out width, out height, cellLine, isTopDown, resultType);
         }
 
 

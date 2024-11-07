@@ -1,36 +1,18 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Drawing;
+﻿using System.Drawing;
 using System.Drawing.Imaging;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Analyzer.FileTypes.Internal;
 using Analyzer.Plotting.Util;
 using Analyzer.SearchType;
-using Analyzer.Util;
 using MathNet.Numerics;
 using Plotly.NET;
-using Plotly.NET.CSharp;
 using Plotly.NET.ImageExport;
 using Plotly.NET.LayoutObjects;
-using Proteomics.PSM;
+using Plotting.Util;
+using ResultAnalyzerUtil;
 using Chart = Plotly.NET.CSharp.Chart;
 using Color = Plotly.NET.Color;
 using Font = Plotly.NET.Font;
-using GenericChartExtensions = Plotly.NET.CSharp.GenericChartExtensions;
 
-namespace Analyzer.Util
-{
-    public static partial class FileIdentifiers
-    {
-        public static string ComparativeResultFilteringFigure => "AllResults_ComparingPRs";
-        public static string IndividualFileComparativeResultFilteringFigure => "AllResults_ComparingPRs_IndividualFile";
-        public static string ComparativeFileResults_TargetDecoyAbsolute => "AllResults_ComparingPRs_TargetDecoy_Absolute";
-        public static string ComparativeFileResults_TargetDecoyRelative => "AllResults_ComparingPRs_TargetDecoy_Relative";
-        public static string ComparativeTopDownResults => "AllResults_TopDownSummary.png";
-    }
-}
 namespace Analyzer.Plotting.ComparativePlots
 {
     public static class PullRequestComparativePlots

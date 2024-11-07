@@ -1,11 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Formats.Asn1;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Analyzer.SearchType;
+﻿using Analyzer.SearchType;
 using Chemistry;
 using MassSpectrometry;
 using MathNet.Numerics;

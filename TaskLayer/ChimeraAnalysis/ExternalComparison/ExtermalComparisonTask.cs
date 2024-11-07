@@ -1,17 +1,12 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Diagnostics;
 using Analyzer;
 using Analyzer.FileTypes.Internal;
 using Analyzer.Plotting.IndividualRunPlots;
-using Analyzer.Plotting.Util;
 using Analyzer.SearchType;
 using Analyzer.Util;
 using Easy.Common.Extensions;
-using Readers;
+using Plotting.Util;
+using ResultAnalyzerUtil;
 using TaskLayer.CMD;
 
 namespace TaskLayer.ChimeraAnalysis

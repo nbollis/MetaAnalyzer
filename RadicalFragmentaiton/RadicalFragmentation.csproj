@@ -22,21 +22,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<None Update="ProteolyticDigestion\proteases.tsv">
-		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-		</None>
-		<None Update="Resources\Mods.txt">
-			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
-		</None>
-		<None Update="Resources\PSI-MOD.obo.xml">
-			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
-		</None>
-		<None Update="Resources\ptmlist.txt">
-			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
-		</None>
-		<None Update="Resources\unimod.xml">
-			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
-		</None>
+	  <ProjectReference Include="..\ResultAnalyzerUtil\ResultAnalyzerUtil.csproj" />
 	</ItemGroup>
 
 </Project>

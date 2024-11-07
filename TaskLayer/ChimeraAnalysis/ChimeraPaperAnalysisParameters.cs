@@ -1,12 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Analyzer.Plotting.Util;
-using Analyzer.SearchType;
-
-namespace TaskLayer.ChimeraAnalysis
+﻿namespace TaskLayer.ChimeraAnalysis
 {
     public class ChimeraPaperAnalysisParameters : BaseResultAnalyzerTaskParameters
     {

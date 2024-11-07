@@ -1,9 +1,9 @@
 ﻿using System.ComponentModel.DataAnnotations.Schema;
 using System.Globalization;
-using Analyzer.Util.TypeConverters;
 using CsvHelper.Configuration;
 using CsvHelper.Configuration.Attributes;
 using Easy.Common.Extensions;
+using ResultAnalyzerUtil;
 
 namespace Analyzer.FileTypes.External
 {

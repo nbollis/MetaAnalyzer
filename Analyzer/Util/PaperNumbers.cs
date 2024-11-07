@@ -1,13 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Analyzer.FileTypes.Internal;
+﻿using Analyzer.FileTypes.Internal;
 using Analyzer.SearchType;
-using Easy.Common.Extensions;
-using MzLibUtil;
+using ResultAnalyzerUtil;
 
 namespace Analyzer.Util
 {

@@ -1,7 +1,5 @@
-﻿using System.Runtime.CompilerServices;
-using Analyzer.Plotting.Util;
+﻿using Analyzer.Plotting.Util;
 using Analyzer.SearchType;
-using TaskLayer.ChimeraAnalysis;
 using TaskLayer.CMD;
 
 namespace TaskLayer

@@ -1,11 +1,6 @@
-﻿using Analyzer.Plotting;
-using Analyzer.Plotting.AggregatePlots;
-using Analyzer.Plotting.ComparativePlots;
-using Analyzer.Plotting.IndividualRunPlots;
-using Analyzer.Plotting.Util;
+﻿using Analyzer.Plotting.ComparativePlots;
 using Analyzer.SearchType;
 using Analyzer.Util;
-using Plotly.NET;
 
 namespace TaskLayer.JenkinsLikePEPTesting;
 

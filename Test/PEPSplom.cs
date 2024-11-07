@@ -3,8 +3,8 @@ using Analyzer.Plotting;
 using Analyzer.Plotting.ComparativePlots;
 using Analyzer.Plotting.IndividualRunPlots;
 using Analyzer.SearchType;
-using Analyzer.Util;
 using Plotly.NET;
+using ResultAnalyzerUtil;
 
 namespace Test
 {
@@ -85,7 +85,7 @@ namespace Test
             results.ForEach(p => p.Item1.GetIndividualFileComparison());
             var temp = results.Select(p => p.Item1.IndividualFileComparisonFile).ToList();
             
-            var chart = GenericPlots.IndividualFileResultBarChart(temp,
+            var chart = AnalyzerGenericPlots.IndividualFileResultBarChart(temp,
                 out int width, out int height, "PEP Exploration", true, ResultType.Psm);
             chart.Show();
 

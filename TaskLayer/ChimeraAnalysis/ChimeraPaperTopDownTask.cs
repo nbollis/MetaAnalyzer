@@ -1,15 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Analyzer.Interfaces;
+﻿using Analyzer.Interfaces;
 using Analyzer.Plotting.AggregatePlots;
 using Analyzer.Plotting.ComparativePlots;
 using Analyzer.Plotting.IndividualRunPlots;
-using Analyzer.Plotting.Util;
 using Analyzer.SearchType;
-using Analyzer.Util;
+using ResultAnalyzerUtil;
 
 namespace TaskLayer.ChimeraAnalysis
 {

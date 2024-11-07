@@ -1,11 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Easy.Common.Interfaces;
-
-namespace Calibrator
+﻿namespace Calibrator
 {
     public static class MetaAnalyzerExtensions
     {

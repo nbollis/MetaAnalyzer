@@ -3,20 +3,11 @@ using Analyzer.SearchType;
 using Analyzer.Util;
 using Microsoft.FSharp.Core;
 using Plotly.NET;
+using Plotting.Util;
 using Proteomics.PSM;
+using ResultAnalyzerUtil;
 using Chart = Plotly.NET.CSharp.Chart;
 
-
-namespace Analyzer.Util
-{
-    public static partial class FileIdentifiers
-    {
-        public static string RetentionTimeFigure => "RetentionTimeComparison";
-        public static string SpectralAngleFigure => "SpectralAngleComparison";
-        public static string PepGridChartFigure => "PepFeatureAnalysis";
-        public static string TargetDecoyCurve => "TargetDecoyCurve";
-    }
-}
 
 namespace Analyzer.Plotting.IndividualRunPlots
 {

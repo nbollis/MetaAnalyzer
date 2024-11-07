@@ -1,8 +1,4 @@
-﻿using System;
-using System.Diagnostics;
-using System.Reflection.Metadata.Ecma335;
-
-namespace TaskLayer.CMD;
+﻿namespace TaskLayer.CMD;
 
 public abstract class CmdProcess
 {

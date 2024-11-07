@@ -5,7 +5,8 @@ using Analyzer.Plotting.IndividualRunPlots;
 using Analyzer.Plotting.Util;
 using Analyzer.SearchType;
 using Analyzer.Util;
-using Proteomics.PSM;
+using Plotting.Util;
+using ResultAnalyzerUtil;
 using UsefulProteomicsDatabases;
 
 namespace Test

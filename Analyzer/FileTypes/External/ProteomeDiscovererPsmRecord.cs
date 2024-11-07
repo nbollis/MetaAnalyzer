@@ -1,8 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations.Schema;
-using System.Diagnostics;
-using System.Text;
+﻿using System.Text;
 using Analyzer.SearchType;
-using Analyzer.Util;
 using Analyzer.Util.TypeConverters;
 using Chemistry;
 using CsvHelper;
@@ -10,6 +7,7 @@ using CsvHelper.Configuration;
 using CsvHelper.Configuration.Attributes;
 using Omics.Modifications;
 using Readers;
+using ResultAnalyzerUtil;
 
 namespace Analyzer.FileTypes.External
 {

@@ -2,6 +2,7 @@
 using CommandLine.Text;
 using RadicalFragmentation.Processing;
 using System.Diagnostics;
+using Analyzer.Plotting.Util;
 
 namespace RadicalFragmentation
 {

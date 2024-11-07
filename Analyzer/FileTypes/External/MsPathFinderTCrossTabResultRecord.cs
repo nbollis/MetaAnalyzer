@@ -1,11 +1,11 @@
 ﻿using System.ComponentModel.DataAnnotations.Schema;
 using System.Globalization;
-using Analyzer.Util.TypeConverters;
 using CsvHelper;
 using CsvHelper.Configuration;
 using CsvHelper.Configuration.Attributes;
 using Easy.Common.Extensions;
 using Readers;
+using ResultAnalyzerUtil;
 
 namespace Analyzer.FileTypes.External;
 

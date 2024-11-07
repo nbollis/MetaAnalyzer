@@ -8,8 +8,10 @@ using Analyzer.Util;
 using Chemistry;
 using Easy.Common.Extensions;
 using MassSpectrometry;
+using Plotting.Util;
 using Proteomics.PSM;
 using Readers;
+using ResultAnalyzerUtil;
 using Ms1Feature = Analyzer.FileTypes.External.Ms1Feature;
 using Ms1FeatureFile = Analyzer.FileTypes.External.Ms1FeatureFile;
 
@@ -573,13 +575,13 @@ public class CellLineResults : IEnumerable<SingleRunResults>, IDisposable
                     fraggerPeptidesBaseSeq = peptides.DistinctBy(p => p.BaseSequence).Count();
 
                     fraggerPeptidesFullSeq = peptides.GroupBy(p => p,
-                        CustomComparer<MsFraggerPeptide>.MsFraggerPeptideDistinctComparer).Count();
+                        CustomComparerExtensions.MsFraggerPeptideDistinctComparer).Count();
 
                     var onePercentPeptides = peptides.Where(p => p.Probability >= 0.99).ToList();
                     fraggerPeptidesOnePercent = onePercentPeptides.Count();
                     fraggerPeptidesOnePercentBaseSeq = onePercentPeptides.DistinctBy(p => p.BaseSequence).Count();
                     fraggerPeptidesOnePercentFullSeq = onePercentPeptides.GroupBy(p => p,
-                        CustomComparer<MsFraggerPeptide>.MsFraggerPeptideDistinctComparer).Count();
+                        CustomComparerExtensions.MsFraggerPeptideDistinctComparer).Count();
 
                     sw.WriteLine(
                         $"MsFragger,{file},{frag.Condition},{fraggerPeptides},{fraggerPeptidesBaseSeq},{fraggerPeptidesFullSeq},{fraggerPeptidesOnePercent},{fraggerPeptidesOnePercentBaseSeq},{fraggerPeptidesOnePercentFullSeq}");

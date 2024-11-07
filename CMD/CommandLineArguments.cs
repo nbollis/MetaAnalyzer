@@ -1,5 +1,5 @@
-﻿using Analyzer.Plotting.Util;
-using CommandLine;
+﻿using CommandLine;
+using ResultAnalyzerUtil;
 using TaskLayer;
 
 namespace CMD

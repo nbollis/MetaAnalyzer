@@ -1,6 +1,6 @@
-﻿using Analyzer.Util;
+﻿using ResultAnalyzerUtil;
 
-namespace Analyzer.Plotting.Util
+namespace Plotting.Util
 {
     public static class Labels
     {

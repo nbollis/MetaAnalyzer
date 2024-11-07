@@ -8,26 +8,8 @@ using Proteomics.PSM;
 using Analyzer.SearchType;
 using Plotly.NET.ImageExport;
 using Analyzer.Interfaces;
-using Microsoft.FSharp.Core;
-using Plotly.NET.TraceObjects;
-using Tensorboard;
-using System;
-using Easy.Common.Extensions;
-
-
-namespace Analyzer.Util
-{
-    public static partial class FileIdentifiers
-    {
-        public static string ChimeraBreakdownComparison => "ChimeraBreakdownComparison.csv";
-        public static string ChimeraBreakdownComparisonFigure => "ChimeraBreakdown_1%";
-        public static string ChimeraBreakdownComparisonStackedAreaFigure => "ChimeraBreakdownStackedArea_1%";
-        public static string ChimeraBreakdownComparisonStackedAreaPercentFigure => "ChimeraBreakdownStackedAreaPercent_1%";
-        public static string ChimeraBreakdownByChargeStateFigure => "ChimeraBreakdownByChargeState";
-        public static string ChimeraBreakdownByMassFigure => "ChimeraBreakdownByPrecursorMass";
-        public static string ChimeraBreakdownTargetDecoy => "ChimeraBreakdown_TargetDecoy";
-    }
-}
+using Plotting.Util;
+using ResultAnalyzerUtil;
 
 namespace Analyzer.Plotting.IndividualRunPlots
 {

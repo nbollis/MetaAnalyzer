@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Plotly.NET;
-using RadicalFragmentation;
+﻿using Plotting.RadicalFragmentation;
 
 namespace Test
 {
@@ -20,9 +14,9 @@ namespace Test
         public static void RunDbPlot()
         {
             var path = HumanDatabasePath;
-            var plot = new DatabaseMassPlot(path, 2);
-            var chart = plot.GeneratePlot();
-            //chart.Show();
+            string outDir = @"D:\Projects\RadicalFragmentation\MassDistributions";
+            var plot = new DatabaseMassPlots(path, 2, outDir);
+            plot.GeneratePlots();
         }
     }
 }

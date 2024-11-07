@@ -29,7 +29,9 @@
     <ProjectReference Include="..\Calibrator\Calibrator.csproj" />
     <ProjectReference Include="..\CMD\CMD.csproj" />
     <ProjectReference Include="..\GradientDevelopment\GradientDevelopment.csproj" />
+    <ProjectReference Include="..\Plotting\Plotting.csproj" />
     <ProjectReference Include="..\RadicalFragmentaiton\RadicalFragmentation.csproj" />
+    <ProjectReference Include="..\ResultAnalyzerUtil\ResultAnalyzerUtil.csproj" />
     <ProjectReference Include="..\RetentionTimePrediction\RetentionTimePrediction.csproj" />
   </ItemGroup>
 

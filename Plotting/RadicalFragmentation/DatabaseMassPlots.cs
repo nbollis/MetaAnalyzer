@@ -1,39 +1,42 @@
-﻿using Easy.Common.Extensions;
-using MathNet.Numerics;
+﻿using MathNet.Numerics;
 using Microsoft.FSharp.Core;
 using Omics.Modifications;
 using Plotly.NET;
+using Plotly.NET.ImageExport;
 using Plotly.NET.LayoutObjects;
-using Proteomics;
+using Plotting.Util;
 using Proteomics.ProteolyticDigestion;
+using ResultAnalyzerUtil;
 using UsefulProteomicsDatabases;
-using static Plotly.NET.StyleParam.Range;
 using Chart = Plotly.NET.CSharp.Chart;
 
-namespace RadicalFragmentation;
+namespace Plotting.RadicalFragmentation;
 
-internal class DatabaseMassPlot
+public class DatabaseMassPlots
 {
-
-    public DatabaseMassPlot(string dbPath, int mods, int missedCleavages = 0, double ppmBins = 10)
+    public DatabaseMassPlots
+        (string dbPath, int mods, string outputDir, int missedCleavages = 0, double ppmBins = 10)
     {
         DatabasePath = dbPath;
         NumberOfMods = mods;
         MissedCleavages = missedCleavages;
         PpmBins = ppmBins;
+        OutputDirectory = outputDir;
+
+        fixedMods = new();
+        variableMods = new();
     }
 
     private string DatabasePath { get; init; }
+    private string OutputDirectory { get; init; }
     private int NumberOfMods { get; init; } 
     private int MissedCleavages { get; init; } 
     double PpmBins { get; init; }
 
     protected List<Modification> fixedMods;
     protected List<Modification> variableMods;
-    protected List<ProteolysisProduct> proteolysisProducts;
-    protected List<DisulfideBond> disulfideBonds;
 
-    internal GenericChart.GenericChart GeneratePlot()
+    internal GenericChart.GenericChart GeneratePlots()
     {
         int roundTo = 1;
         double maxMass = 60000;
@@ -66,12 +69,6 @@ internal class DatabaseMassPlot
             .Select(protein => protein.MonoisotopicMass.Round(roundTo))
             .ToList();
 
-        var temp = proteins.SelectMany(prot => prot.Digest(topDownDigestionParams, fixedMods, variableMods)
-                .Where(p => p.MonoisotopicMass <= maxMass && p.Parent.FullName.Contains("Histone"))
-                .DistinctBy(p => p.BaseSequence))
-            .Select(protein => protein.MonoisotopicMass.Round(roundTo))
-            .ToList();
-
         List<double> peptideMasses = proteins.SelectMany(prot => prot.Digest(bottomUpDigestionParams, fixedMods, variableMods)
                 .Where(p => p.MonoisotopicMass <= maxMass)
                 .DistinctBy(p => p.BaseSequence))
@@ -87,19 +84,24 @@ internal class DatabaseMassPlot
                 { peptidoformPlot, peptidePlot })
             .WithTitle("Mass Distribution of Peptides and Peptidoforms")
             .WithYAxisStyle(Title.init("Count"))
-            .WithXAxisStyle(Title.init("Neutral Mass (Da)"))
-            .WithLayout(GenericPlots.DefaultLayoutWithLegend)
+            .WithXAxisStyle(Title.init("Neutral Mass (Da)"), 
+                new FSharpOption<Tuple<IConvertible, IConvertible>>(new Tuple<IConvertible, IConvertible>(0, 10000)))
+            .WithLayout(PlotlyBase.DefaultLayoutWithLegend)
             .WithSize(1000, 600);
-        histCombinedPeptides.Show();
+        var peptidePlotPath = Path.Combine(OutputDirectory, "MassHistogram_Peptides");
+        histCombinedPeptides.SavePNG(peptidePlotPath, null, 1000, 600);
 
         var histCombinedProteins = Chart.Combine(new[]
                 { proteoformPlot, proteinPlot })
             .WithTitle("Mass Distribution of Proteins and Proteoforms")
             .WithYAxisStyle(Title.init("Count"))
-            .WithXAxisStyle(Title.init("Neutral Mass (Da)"))
-            .WithLayout(GenericPlots.DefaultLayoutWithLegend)
+            .WithXAxisStyle(Title.init("Neutral Mass (Da)"),
+                new FSharpOption<Tuple<IConvertible, IConvertible>>(new Tuple<IConvertible, IConvertible>(0, maxMass)))
+            .WithLayout(PlotlyBase.DefaultLayoutWithLegend)
             .WithSize(1000, 600);
-        histCombinedProteins.Show();
+        var proteinPlotPath = Path.Combine(OutputDirectory, "MassHistogram_Proteins");
+        histCombinedProteins.SavePNG(proteinPlotPath, null, 1000, 600);
+
 
         peptidePlot = GenericPlots.Histogram(peptideMasses, "Peptide", "Neutral Mass (Da)", "Count");
         peptidoformPlot = GenericPlots.Histogram(peptidoformMasses, "Peptidoform", "Neutral Mass (Da)", "Count");
@@ -109,22 +111,27 @@ internal class DatabaseMassPlot
         histCombinedPeptides = Chart.Combine(new[]
                 { peptidoformPlot, peptidePlot })
             .WithTitle("Mass Distribution of Peptides and Peptidoforms")
-            .WithYAxisStyle(Title.init("Log (Count)"))
+            .WithYAxisStyle(Title.init("Log Count"))
             .WithYAxis(LinearAxis.init<double, double, double, double, double, double>(AxisType: StyleParam.AxisType.Log))
-            .WithXAxisStyle(Title.init("Neutral Mass (Da)"))
-            .WithLayout(GenericPlots.DefaultLayoutWithLegend)
+            .WithXAxisStyle(Title.init("Neutral Mass (Da)"),
+                new FSharpOption<Tuple<IConvertible, IConvertible>>(new Tuple<IConvertible, IConvertible>(0, maxMass)))
+            .WithLayout(PlotlyBase.DefaultLayoutWithLegend)
             .WithSize(1000, 600);
-        histCombinedPeptides.Show();
+        var logPeptidePlotPath = Path.Combine(OutputDirectory, "MassLogHistogram_Peptides");
+        histCombinedPeptides.SavePNG(logPeptidePlotPath, null, 1000, 600);
 
         histCombinedProteins = Chart.Combine(new[]
                 { proteoformPlot, proteinPlot })
             .WithTitle("Mass Distribution of Proteins and Proteoforms")
-            .WithYAxisStyle(Title.init("Log (Count)"))
+            .WithYAxisStyle(Title.init("Log Count"))
             .WithYAxis(LinearAxis.init<double, double, double, double, double, double>(AxisType: StyleParam.AxisType.Log))
-            .WithXAxisStyle(Title.init("Neutral Mass (Da)"))
-            .WithLayout(GenericPlots.DefaultLayoutWithLegend)
+            .WithXAxisStyle(Title.init("Neutral Mass (Da)"),
+                new FSharpOption<Tuple<IConvertible, IConvertible>>(new Tuple<IConvertible, IConvertible>(0, maxMass)))
+            .WithLayout(PlotlyBase.DefaultLayoutWithLegend)
             .WithSize(1000, 600);
-        histCombinedProteins.Show();
+        var logProteinPlotPath = Path.Combine(OutputDirectory, "MassLogHistogram_Proteins");
+        histCombinedProteins.SavePNG(logProteinPlotPath, null, 1000, 600);
+
 
         peptidePlot = GenericPlots.Histogram(peptideMasses.Select(p => Math.Log(p, 10)).ToList(), "Peptide", "Neutral Mass (Da)", "Count");
         peptidoformPlot = GenericPlots.Histogram(peptidoformMasses.Select(p => Math.Log(p, 10)).ToList(), "Peptidoform", "Neutral Mass (Da)", "Count");
@@ -136,76 +143,45 @@ internal class DatabaseMassPlot
             .WithTitle("Mass Distribution of Peptides and Peptidoforms")
             .WithYAxisStyle(Title.init("Count"))
             .WithXAxisStyle(Title.init("Log Neutral Mass (Da)"))
-            .WithLayout(GenericPlots.DefaultLayoutWithLegend)
+            .WithLayout(PlotlyBase.DefaultLayoutWithLegend)
             .WithSize(1000, 600);
-        histCombinedPeptides.Show();
+        var logNeutralPeptidePlotPath = Path.Combine(OutputDirectory, "LogMassHistogram_Peptides");
+        histCombinedPeptides.SavePNG(logNeutralPeptidePlotPath, null, 1000, 600);
 
         histCombinedProteins = Chart.Combine(new[]
                 { proteoformPlot, proteinPlot })
             .WithTitle("Mass Distribution of Proteins and Proteoforms")
             .WithYAxisStyle(Title.init("Count"))
+            .WithXAxisStyle(Title.init("Log Neutral Mass (Da)"),
+                new FSharpOption<Tuple<IConvertible, IConvertible>>(new Tuple<IConvertible, IConvertible>(3, Math.Log(maxMass, 10))))
+            .WithLayout(PlotlyBase.DefaultLayoutWithLegend)
+            .WithSize(1000, 600);
+        var logNeutralProteinPlotPath = Path.Combine(OutputDirectory, "LogMassHistogram_Proteins");
+        histCombinedProteins.SavePNG(logNeutralProteinPlotPath, null, 1000, 600);
+
+
+        histCombinedPeptides = Chart.Combine(new[]
+                { peptidoformPlot, peptidePlot })
+            .WithTitle("Mass Distribution of Peptides and Peptidoforms")
+            .WithYAxisStyle(Title.init("Log Count"))
+            .WithYAxis(LinearAxis.init<double, double, double, double, double, double>(AxisType: StyleParam.AxisType.Log))
             .WithXAxisStyle(Title.init("Log Neutral Mass (Da)"))
-            .WithLayout(GenericPlots.DefaultLayoutWithLegend)
+            .WithLayout(PlotlyBase.DefaultLayoutWithLegend)
             .WithSize(1000, 600);
-        histCombinedProteins.Show();
-
-        peptidePlot = GenericPlots.Histogram(peptideMasses, "Peptide", "Neutral Mass (Da)", "Count", true);
-        peptidoformPlot = GenericPlots.Histogram(peptidoformMasses, "Peptidoform", "Neutral Mass (Da)", "Count", true);
-        proteinPlot = GenericPlots.Histogram(proteinMasses, "Protein", "Neutral Mass (Da)", "Count", true);
-        proteoformPlot = GenericPlots.Histogram(proteoformMasses, "Proteoform", "Neutral Mass (Da)", "Count", true);
-
-        histCombinedPeptides = Chart.Combine(new[]
-                { peptidoformPlot, peptidePlot })
-            .WithTitle("Mass Distribution of Peptides and Peptidoforms")
-            .WithYAxisStyle(Title.init("Percent of Category"))
-            .WithXAxisStyle(Title.init("Neutral Mass (Da)"))
-            .WithLayout(GenericPlots.DefaultLayoutWithLegend)
-            .WithSize(1000, 600);
-        histCombinedPeptides.Show();
+        logNeutralPeptidePlotPath = Path.Combine(OutputDirectory, "LogMassLogHistogram_Peptides");
+        histCombinedPeptides.SavePNG(logNeutralPeptidePlotPath, null, 1000, 600);
 
         histCombinedProteins = Chart.Combine(new[]
                 { proteoformPlot, proteinPlot })
             .WithTitle("Mass Distribution of Proteins and Proteoforms")
-            .WithYAxisStyle(Title.init("Percent of Category"))
-            .WithXAxisStyle(Title.init("Neutral Mass (Da)"))
-            .WithLayout(GenericPlots.DefaultLayoutWithLegend)
+            .WithYAxisStyle(Title.init("Log Count"))
+            .WithYAxis(LinearAxis.init<double, double, double, double, double, double>(AxisType: StyleParam.AxisType.Log))
+            .WithXAxisStyle(Title.init("Log Neutral Mass (Da)"),
+                new FSharpOption<Tuple<IConvertible, IConvertible>>(new Tuple<IConvertible, IConvertible>(3, Math.Log(maxMass, 10))))
+            .WithLayout(PlotlyBase.DefaultLayoutWithLegend)
             .WithSize(1000, 600);
-        histCombinedProteins.Show();
-
-        peptidePlot = Chart.Histogram<double, double, string>(peptideMasses, Name: "Peptide",
-            MarkerColor: "Peptide".ConvertConditionToColor(),
-            HistNorm: StyleParam.HistNorm.Density);
-        peptidoformPlot = Chart.Histogram<double, double, string>(peptidoformMasses, Name: "Peptidoform",
-            MarkerColor: "Peptidoform".ConvertConditionToColor(),
-            HistNorm: StyleParam.HistNorm.Density);
-        proteinPlot = Chart.Histogram<double, double, string>(proteinMasses, Name: "Protein",
-            MarkerColor: "Protein".ConvertConditionToColor(),
-            HistNorm: StyleParam.HistNorm.Density);
-        proteoformPlot = Chart.Histogram<double, double, string>(proteoformMasses, Name: "Proteoform",
-            MarkerColor: "Proteoform".ConvertConditionToColor(),
-            HistNorm: StyleParam.HistNorm.Density);
-
-        histCombinedPeptides = Chart.Combine(new[]
-                { peptidoformPlot, peptidePlot })
-            .WithTitle("Mass Distribution of Peptides and Peptidoforms")
-            .WithYAxisStyle(Title.init("Density"))
-            .WithLayout(GenericPlots.DefaultLayoutWithLegend)
-            .WithXAxisStyle(Title.init("Neutral Mass (Da)"))
-            .WithSize(1000, 600);
-        histCombinedPeptides.Show();
-
-        histCombinedProteins = Chart.Combine(new[]
-                { proteoformPlot, proteinPlot })
-            .WithTitle("Mass Distribution of Proteins and Proteoforms")
-            .WithYAxisStyle(Title.init("Density"))
-            .WithLayout(GenericPlots.DefaultLayoutWithLegend)
-            .WithXAxisStyle(Title.init("Neutral Mass (Da)"))
-            .WithSize(1000, 600);
-        histCombinedProteins.Show();
-
-
-
-
+        logNeutralProteinPlotPath = Path.Combine(OutputDirectory, "LogMassLogHistogram_Proteins");
+        histCombinedProteins.SavePNG(logNeutralProteinPlotPath, null, 1000, 600);
 
         return histCombinedProteins;
     }

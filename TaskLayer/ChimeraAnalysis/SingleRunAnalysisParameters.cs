@@ -1,5 +1,5 @@
-﻿using Analyzer.Plotting.Util;
-using Analyzer.SearchType;
+﻿using Analyzer.SearchType;
+using ResultAnalyzerUtil;
 
 namespace TaskLayer.ChimeraAnalysis;
 

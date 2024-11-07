@@ -2,13 +2,12 @@
 using Analyzer.FileTypes.External;
 using Analyzer.FileTypes.Internal;
 using Analyzer.Interfaces;
-using Analyzer.Plotting.Util;
 using Analyzer.Util;
 using Easy.Common.Extensions;
 using MassSpectrometry;
-using Proteomics;
+using Plotting.Util;
 using Readers;
-using UsefulProteomicsDatabases;
+using ResultAnalyzerUtil;
 
 namespace Analyzer.SearchType
 {
@@ -87,13 +86,13 @@ namespace Analyzer.SearchType
                 var psmCount = file.TargetResults.Results.Count;
                 var onePercentPsmCount = file.TargetResults.FilteredResults.Count;
                 var proteoformCount = file.TargetResults.GroupBy(p => p,
-                    CustomComparer<MsPathFinderTResult>.MsPathFinderTDistinctProteoformComparer).Count();
+                    CustomComparerExtensions.MsPathFinderTDistinctProteoformComparer).Count();
                 var onePercentProteoformCount = file.TargetResults.FilteredResults.GroupBy(p => p,
-                    CustomComparer<MsPathFinderTResult>.MsPathFinderTDistinctProteoformComparer).Count();
+                    CustomComparerExtensions.MsPathFinderTDistinctProteoformComparer).Count();
                 var proteinCount = file.TargetResults.GroupBy(p => p,
-                    CustomComparer<MsPathFinderTResult>.MsPathFinderTDistinctProteinComparer).Count();
+                    CustomComparerExtensions.MsPathFinderTDistinctProteinComparer).Count();
                 var onePercentProteinCount = file.TargetResults.FilteredResults.GroupBy(p => p,
-                    CustomComparer<MsPathFinderTResult>.MsPathFinderTDistinctProteinComparer).Count();
+                    CustomComparerExtensions.MsPathFinderTDistinctProteinComparer).Count();
 
                 results.Add(new BulkResultCountComparison()
                 {
@@ -122,9 +121,9 @@ namespace Analyzer.SearchType
             if (!Override && File.Exists(_chimeraPsmPath))
                 return new ChimeraCountingFile(_chimeraPsmPath);
 
-            var prsms = CombinedTargetResults.GroupBy(p => p, CustomComparer<MsPathFinderTResult>.MsPathFinderTChimeraComparer)
+            var prsms = CombinedTargetResults.GroupBy(p => p, CustomComparerExtensions.MsPathFinderTChimeraComparer)
                 .GroupBy(m => m.Count()).ToDictionary(p => p.Key, p => p.Count());
-            var filtered = CombinedTargetResults.FilteredResults.GroupBy(p => p, CustomComparer<MsPathFinderTResult>.MsPathFinderTChimeraComparer)
+            var filtered = CombinedTargetResults.FilteredResults.GroupBy(p => p, CustomComparerExtensions.MsPathFinderTChimeraComparer)
                 .GroupBy(m => m.Count()).ToDictionary(p => p.Key, p => p.Count());
 
             var results = prsms.Keys.Select(count => new ChimeraCountingResult(count, prsms[count],
@@ -146,11 +145,11 @@ namespace Analyzer.SearchType
             if (!_crossTabResultFilePath.IsNullOrEmpty()) // if ProMexAlign was ran
             {
                 proteoformCount = CrossTabResultFile.TargetResults.DistinctBy(p => p,
-                        CustomComparer<MsPathFinderTCrossTabResultRecord>
+                        CustomComparerExtensions
                             .MsPathFinderTCrossTabDistinctProteoformComparer)
                     .Count();
                 onePercentProteoformCount = CrossTabResultFile.FilteredTargetResults.DistinctBy(p => p,
-                        CustomComparer<MsPathFinderTCrossTabResultRecord>
+                        CustomComparerExtensions
                             .MsPathFinderTCrossTabDistinctProteoformComparer)
                     .Count();
 
@@ -245,7 +244,7 @@ namespace Analyzer.SearchType
 
                 // PrSMs
                 foreach (var chimeraGroup in individualFileResult.CombinedResults.FilteredResults.GroupBy(p => p,
-                             CustomComparer<MsPathFinderTResult>.MsPathFinderTChimeraComparer)
+                             CustomComparerExtensions.MsPathFinderTChimeraComparer)
                              .Select(p => p.ToArray()))
                 {
                     var record = new ChimeraBreakdownRecord()
@@ -254,7 +253,7 @@ namespace Analyzer.SearchType
                         FileName = chimeraGroup.First().FileNameWithoutExtension,
                         Condition = Condition,
                         Ms2ScanNumber = chimeraGroup.First().OneBasedScanNumber,
-                        Type = Util.ResultType.Psm,
+                        Type = ResultAnalyzerUtil.ResultType.Psm,
                         IdsPerSpectra = chimeraGroup.Length,
                         TargetCount = chimeraGroup.Count(p => !p.IsDecoy),
                         DecoyCount = chimeraGroup.Count(p => p.IsDecoy),
@@ -307,9 +306,9 @@ namespace Analyzer.SearchType
 
                 // unique proteoforms
                 foreach (var chimeraGroup in individualFileResult.CombinedResults.FilteredResults.GroupBy(p => p,
-                                 CustomComparer<MsPathFinderTResult>.MsPathFinderTDistinctProteoformComparer)
+                                 CustomComparerExtensions.MsPathFinderTDistinctProteoformComparer)
                              .Select(p => p.OrderBy(m => m.EValue).ThenByDescending(m => m.Probability).First())
-                             .GroupBy(p => p, CustomComparer<MsPathFinderTResult>.MsPathFinderTChimeraComparer)
+                             .GroupBy(p => p, CustomComparerExtensions.MsPathFinderTChimeraComparer)
                              .Select(p => p.ToArray()))
                 {
                     var record = new ChimeraBreakdownRecord()
@@ -318,7 +317,7 @@ namespace Analyzer.SearchType
                         FileName = chimeraGroup.First().FileNameWithoutExtension,
                         Condition = Condition,
                         Ms2ScanNumber = chimeraGroup.First().OneBasedScanNumber,
-                        Type = Util.ResultType.Peptide,
+                        Type = ResultAnalyzerUtil.ResultType.Peptide,
                         IdsPerSpectra = chimeraGroup.Length,
                         TargetCount = chimeraGroup.Count(p => !p.IsDecoy),
                         DecoyCount = chimeraGroup.Count(p => p.IsDecoy),
@@ -389,14 +388,14 @@ namespace Analyzer.SearchType
                 {
                     switch (record.Type)
                     {
-                        case Util.ResultType.Psm:
+                        case ResultAnalyzerUtil.ResultType.Psm:
                         {
                             var psm = fileSpecificPsms.Where(p => p.OneBasedScanNumber == record.Ms2ScanNumber).ToArray();
                             record.PsmCharges = psm.Select(p => p.Charge).ToArray();
                             record.PsmMasses = psm.Select(p => p.MonoisotopicMass).ToArray();
                             break;
                         }
-                        case Util.ResultType.Peptide:
+                        case ResultAnalyzerUtil.ResultType.Peptide:
                         {
                             var peptide = fileSpecificPeptides.Where(p => p.OneBasedScanNumber == record.Ms2ScanNumber).ToArray();
                             record.PeptideCharges = peptide.Select(p => p.Charge).ToArray();

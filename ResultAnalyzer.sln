@@ -22,9 +22,13 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RetentionTimePrediction", "
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MsPathFinderTRunner", "MsPathFinderTRunner\MsPathFinderTRunner.csproj", "{212F9336-1C2B-4C5C-A1FC-9DD8FA9B35AC}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GradientDevelopment", "GradientDevelopment\GradientDevelopment.csproj", "{2F0EB7AC-4D19-4376-AF20-02794F54809D}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "GradientDevelopment", "GradientDevelopment\GradientDevelopment.csproj", "{2F0EB7AC-4D19-4376-AF20-02794F54809D}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RadicalFragmentation", "RadicalFragmentaiton\RadicalFragmentation.csproj", "{8B826AF4-2262-4AAC-900A-6C999CB292AB}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RadicalFragmentation", "RadicalFragmentaiton\RadicalFragmentation.csproj", "{8B826AF4-2262-4AAC-900A-6C999CB292AB}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Plotting", "Plotting\Plotting.csproj", "{417DE48B-F41E-4BFB-9F86-03F0D10BCDB7}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ResultAnalyzerUtil", "ResultAnalyzerUtil\ResultAnalyzerUtil.csproj", "{7CF153FD-D451-4DD8-8033-E6E71D50C226}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -72,6 +76,14 @@ Global
 		{8B826AF4-2262-4AAC-900A-6C999CB292AB}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{8B826AF4-2262-4AAC-900A-6C999CB292AB}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{8B826AF4-2262-4AAC-900A-6C999CB292AB}.Release|Any CPU.Build.0 = Release|Any CPU
+		{417DE48B-F41E-4BFB-9F86-03F0D10BCDB7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{417DE48B-F41E-4BFB-9F86-03F0D10BCDB7}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{417DE48B-F41E-4BFB-9F86-03F0D10BCDB7}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{417DE48B-F41E-4BFB-9F86-03F0D10BCDB7}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7CF153FD-D451-4DD8-8033-E6E71D50C226}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7CF153FD-D451-4DD8-8033-E6E71D50C226}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7CF153FD-D451-4DD8-8033-E6E71D50C226}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7CF153FD-D451-4DD8-8033-E6E71D50C226}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

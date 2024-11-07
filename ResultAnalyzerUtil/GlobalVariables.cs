@@ -1,8 +1,7 @@
 ﻿using Omics.Modifications;
-using Proteomics.ProteolyticDigestion;
 using UsefulProteomicsDatabases;
 
-namespace Analyzer.Util
+namespace ResultAnalyzerUtil
 {
     public static class GlobalVariables
     {

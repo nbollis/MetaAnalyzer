@@ -1,13 +1,14 @@
-﻿using System.ComponentModel;
-using System.Runtime.CompilerServices;
-using Analyzer.FileTypes.Internal;
+﻿using Analyzer.FileTypes.Internal;
 using Analyzer.Plotting.Util;
 using Analyzer.SearchType;
 using Analyzer.Util;
 using Plotly.NET.LayoutObjects;
 using Proteomics.PSM;
 using Plotly.NET;
+using Plotting.Util;
+using ResultAnalyzerUtil;
 using Chart = Plotly.NET.CSharp.Chart;
+using Plotting;
 
 namespace Analyzer.Plotting.IndividualRunPlots
 {

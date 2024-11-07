@@ -1,7 +1,7 @@
 ﻿using Plotly.NET.LayoutObjects;
 using Plotly.NET;
 
-namespace Analyzer.Plotting.Util
+namespace Plotting.Util
 {
     public static class PlotlyBase
     {

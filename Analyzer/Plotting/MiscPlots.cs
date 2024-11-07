@@ -1,9 +1,11 @@
 ﻿using Analyzer.FileTypes.Internal;
 using Analyzer.Plotting.Util;
 using Analyzer.SearchType;
-using Analyzer.Util;
 using Easy.Common.Extensions;
 using Plotly.NET;
+using Plotting;
+using Plotting.Util;
+using ResultAnalyzerUtil;
 using Chart = Plotly.NET.CSharp.Chart;
 using GenericChartExtensions = Plotly.NET.CSharp.GenericChartExtensions;
 

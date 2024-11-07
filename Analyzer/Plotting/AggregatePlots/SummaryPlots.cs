@@ -1,26 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Analyzer.Plotting.IndividualRunPlots;
+﻿using Analyzer.Plotting.IndividualRunPlots;
 using Analyzer.Plotting.Util;
 using Analyzer.SearchType;
-using Analyzer.Util;
 using Plotly.NET;
-using Plotly.NET.ImageExport;
 using Plotly.NET.LayoutObjects;
-using Proteomics.PSM;
+using ResultAnalyzerUtil;
 using Chart = Plotly.NET.CSharp.Chart;
-using GenericChartExtensions = Plotly.NET.CSharp.GenericChartExtensions;
-namespace Analyzer.Util
-{
-    public static partial class FileIdentifiers
-    {
-        public static string PepTestingSummaryFigure => "RunSummary";
-        
-    }
-}
+
 namespace Analyzer.Plotting.AggregatePlots
 {
     public static class SummaryPlots

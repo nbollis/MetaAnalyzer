@@ -1,12 +1,5 @@
-﻿using Analyzer.Plotting.Util;
-using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Analyzer.SearchType;
-using Plotly.NET;
+﻿using System.Diagnostics;
+using Plotting.Util;
 
 namespace CMD
 {

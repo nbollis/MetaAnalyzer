@@ -1,15 +1,13 @@
-﻿using System.Diagnostics;
-using System.Numerics;
+﻿using System.Numerics;
 using Analyzer;
-using Analyzer.FileTypes.Internal;
 using Analyzer.Interfaces;
 using Analyzer.Plotting;
 using Analyzer.Plotting.IndividualRunPlots;
 using Analyzer.Plotting.Util;
 using Analyzer.SearchType;
-using Analyzer.Util;
 using Easy.Common.Extensions;
 using Plotly.NET;
+using ResultAnalyzerUtil;
 using UsefulProteomicsDatabases;
 
 namespace Test

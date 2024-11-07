@@ -1,7 +1,6 @@
 ﻿using System.Collections;
 using Analyzer.FileTypes.Internal;
-using Analyzer.Interfaces;
-using Analyzer.Util;
+using ResultAnalyzerUtil;
 
 namespace Analyzer.SearchType
 {

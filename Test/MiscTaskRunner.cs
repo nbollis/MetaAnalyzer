@@ -1,23 +1,17 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Security.Cryptography.X509Certificates;
-using System.Text;
-using System.Threading.Tasks;
-using Analyzer.FileTypes.Internal;
-using Analyzer.Interfaces;
+﻿using Analyzer.Interfaces;
 using Analyzer.Plotting;
 using Analyzer.Plotting.IndividualRunPlots;
 using Analyzer.Plotting.Util;
 using Analyzer.SearchType;
 using Analyzer.Util;
 using Calibrator;
-using Microsoft.ML.Calibrators;
 using Chart = Plotly.NET.CSharp.Chart;
 using Plotly.NET;
 using Plotly.NET.ImageExport;
-using Plotly.NET.TraceObjects;
+using Plotting;
+using Plotting.Util;
 using Readers;
+using ResultAnalyzerUtil;
 using RetentionTimePrediction;
 using TaskLayer.ChimeraAnalysis;
 

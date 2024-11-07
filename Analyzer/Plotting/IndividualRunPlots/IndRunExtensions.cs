@@ -1,15 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Analyzer.FileTypes.Internal;
-using Analyzer.Plotting.Util;
-using Analyzer.Util;
+﻿using Analyzer.FileTypes.Internal;
 using Chart = Plotly.NET.CSharp.Chart;
 using Plotly.NET;
 using Plotly.NET.CSharp;
-using Plotly.NET.TraceObjects;
+using Plotting.Util;
+using ResultAnalyzerUtil;
 
 namespace Analyzer.Plotting
 {
@@ -26,7 +20,7 @@ namespace Analyzer.Plotting
             {
                 var temp = result.Select(p => p.FileName.ConvertFileName()).ToArray();
                 var indChart = Chart.Column<int, string, string>(
-                    result.Select(GenericPlots.ResultSelector(resultType)),
+                    result.Select(AnalyzerGenericPlots.ResultSelector(resultType)),
                     new Optional<IEnumerable<string>>(result.Select(p => p.FileName.ConvertFileName()), true), // Fix the error here
                     MarkerColor: result.First().FileName.ConvertFileName().ConvertConditionToColor()
                 );

@@ -1,6 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations;
-using CommandLine;
-using Plotly.NET.CSharp;
+﻿using CommandLine;
 
 namespace RadicalFragmentation
 {

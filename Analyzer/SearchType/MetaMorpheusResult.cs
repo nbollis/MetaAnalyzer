@@ -1,25 +1,19 @@
-﻿using System;
-using System.Diagnostics;
-using System.IO;
-using System.IO.Enumeration;
-using System.Linq;
-using System.Reflection.Metadata.Ecma335;
-using System.Text;
+﻿using System.Diagnostics;
 using System.Text.RegularExpressions;
-using Analyzer.FileTypes.External;
 using Analyzer.FileTypes.Internal;
 using Analyzer.Interfaces;
-using Analyzer.Plotting.Util;
 using Analyzer.Util;
 using Chemistry;
 using Easy.Common.Extensions;
 using MassSpectrometry;
 using MathNet.Numerics;
+using Plotting.Util;
 using Proteomics;
 using Proteomics.ProteolyticDigestion;
 using Proteomics.PSM;
 using Proteomics.RetentionTimePrediction;
 using Readers;
+using ResultAnalyzerUtil;
 using RetentionTimePrediction;
 using UsefulProteomicsDatabases;
 using Ms1FeatureFile = Analyzer.FileTypes.External.Ms1FeatureFile;
@@ -353,7 +347,7 @@ namespace Analyzer.SearchType
                         FileName = chimeraGroup.First().FileNameWithoutExtension.Replace("-calib", "").Replace("-averaged", ""),
                         Condition = Condition,
                         Ms2ScanNumber = chimeraGroup.First().Ms2ScanNumber,
-                        Type = Util.ResultType.Psm,
+                        Type = ResultAnalyzerUtil.ResultType.Psm,
                         IdsPerSpectra = chimeraGroup.Length,
                         TargetCount = chimeraGroup.Count(p => p.DecoyContamTarget == "T"),
                         DecoyCount = chimeraGroup.Count(p => p.DecoyContamTarget == "D"),
@@ -439,7 +433,7 @@ namespace Analyzer.SearchType
                         FileName = chimeraGroup.First().FileNameWithoutExtension.Replace("-calib", "").Replace("-averaged", ""),
                         Condition = Condition,
                         Ms2ScanNumber = chimeraGroup.First().Ms2ScanNumber,
-                        Type = Util.ResultType.Peptide,
+                        Type = ResultAnalyzerUtil.ResultType.Peptide,
                         IdsPerSpectra = chimeraGroup.Length,
                         TargetCount = chimeraGroup.Count(p => p.DecoyContamTarget == "T"),
                         DecoyCount = chimeraGroup.Count(p => p.DecoyContamTarget == "D"),
@@ -515,14 +509,14 @@ namespace Analyzer.SearchType
                 {
                     switch (record.Type)
                     {
-                        case Util.ResultType.Psm:
+                        case ResultAnalyzerUtil.ResultType.Psm:
                         {
                             var psm = fileSpecificPsms.Where(p =>p.Ms2ScanNumber == record.Ms2ScanNumber).ToArray();
                             record.PsmCharges = psm.Select(p => p.PrecursorCharge).ToArray();
                             record.PsmMasses = psm.Select(p => p.PrecursorMass).ToArray();
                             break;
                         }
-                        case Util.ResultType.Peptide:
+                        case ResultAnalyzerUtil.ResultType.Peptide:
                         {
                             var peptide = fileSpecificPeptides.Where(p => p.Ms2ScanNumber == record.Ms2ScanNumber).ToArray();
                             record.PeptideCharges = peptide.Select(p => p.PrecursorCharge).ToArray();
@@ -1197,7 +1191,7 @@ namespace Analyzer.SearchType
                                 IsChimeric = isChimeric,
                                 PossibleFeatureCount = possibleFeatureCount,
                                 IdPerSpectrum = idPerSpectrum,
-                                Type = Util.ResultType.Psm.ToString(),
+                                Type = ResultAnalyzerUtil.ResultType.Psm.ToString(),
                                 Ms2ScanNumber = scan.OneBasedScanNumber,
                                 Ms1ScanNumber = scan.OneBasedPrecursorScanNumber!.Value,
                                 IsolationMz = scan.IsolationMz!.Value,
@@ -1273,7 +1267,7 @@ namespace Analyzer.SearchType
                                 IsChimeric = isChimeric,
                                 PossibleFeatureCount = possibleFeatureCount,
                                 IdPerSpectrum = idPerSpectrum,
-                                Type = Util.ResultType.Peptide.ToString(),
+                                Type = ResultAnalyzerUtil.ResultType.Peptide.ToString(),
                                 Ms2ScanNumber = scan.OneBasedScanNumber,
                                 Ms1ScanNumber = scan.OneBasedPrecursorScanNumber!.Value,
                                 IsolationMz = scan.IsolationMz!.Value,

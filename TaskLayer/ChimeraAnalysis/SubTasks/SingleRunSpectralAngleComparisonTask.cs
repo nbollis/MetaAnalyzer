@@ -1,10 +1,11 @@
 ﻿using Analyzer.Plotting;
 using Analyzer.Plotting.Util;
 using Analyzer.SearchType;
-using Analyzer.Util;
-using Easy.Common.Extensions;
 using Plotly.NET;
+using Plotting;
+using Plotting.Util;
 using Proteomics.PSM;
+using ResultAnalyzerUtil;
 
 namespace TaskLayer.ChimeraAnalysis
 {
@@ -75,7 +76,7 @@ namespace TaskLayer.ChimeraAnalysis
             switch (Parameters.PlotType)
             {
                 case DistributionPlotTypes.ViolinPlot:
-                    peptidePlot = GenericPlots.SpectralAngleChimeraComparisonViolinPlot(peptideChimericAngles.ToArray(), peptideNonChimericAngles.ToArray(),
+                    peptidePlot = AnalyzerGenericPlots.SpectralAngleChimeraComparisonViolinPlot(peptideChimericAngles.ToArray(), peptideNonChimericAngles.ToArray(),
                                                "", mm.IsTopDown, ResultType.Peptide);
                     outName = $"FdrAnalysis_{Labels.GetLabel(mm.IsTopDown, ResultType.Peptide)}_{FileIdentifiers.SpectralAngleFigure}_ViolinPlot";
                     break;
@@ -141,7 +142,7 @@ namespace TaskLayer.ChimeraAnalysis
             switch (Parameters.PlotType)
             {
                 case DistributionPlotTypes.ViolinPlot:
-                    psmPlot = GenericPlots.SpectralAngleChimeraComparisonViolinPlot(psmChimericAngles.ToArray(), psmNonChimericAngles.ToArray(),
+                    psmPlot = AnalyzerGenericPlots.SpectralAngleChimeraComparisonViolinPlot(psmChimericAngles.ToArray(), psmNonChimericAngles.ToArray(),
                         "", mm.IsTopDown, ResultType.Peptide);
                     outName = $"FdrAnalysis_{Labels.GetLabel(mm.IsTopDown, ResultType.Psm)}_{FileIdentifiers.SpectralAngleFigure}_ViolinPlot";
                     break;

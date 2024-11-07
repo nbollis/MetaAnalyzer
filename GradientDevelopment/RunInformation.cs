@@ -1,6 +1,6 @@
 ﻿using MathNet.Numerics;
 using Readers;
-using ThermoFisher.CommonCore.Data.Business;
+using Range = System.Range;
 using StreamReader = System.IO.StreamReader;
 
 namespace GradientDevelopment
@@ -12,20 +12,23 @@ namespace GradientDevelopment
         internal string DataFilePath { get; init; }
         internal string GradientPath { get; init; }
         internal string SearchResultPath { get; init; }
+        internal Range? MinMaxToDisplay { get; init; }
 
-        public RunInformation(string dataFilePath, string gradientPath, string searchResultPath, string mobilePhaseB)
+        public RunInformation(string dataFilePath, string gradientPath, string searchResultPath, string mobilePhaseB, Range? minMax = null)
         {
             DataFilePath = dataFilePath;
             GradientPath = gradientPath;
             SearchResultPath = searchResultPath;
             MobilePhaseB = mobilePhaseB;
             DataFileName = Path.GetFileNameWithoutExtension(dataFilePath);
+            MinMaxToDisplay = minMax;
         }
 
         public ExtractedInformation GetExtractedRunInformation()
         {
             var resultsTxtPath = Directory.GetParent(SearchResultPath)!.GetFiles( "results.txt").First();
             
+            // Result file lines
             var lines = File.ReadAllLines(resultsTxtPath.FullName);
             var relevant = lines.Where(p => p.Contains(DataFileName)).ToArray();
             var ms2Scans = relevant.First(p => p.Contains("MS2 spectra in"));
@@ -37,7 +40,7 @@ namespace GradientDevelopment
             var osmCount = int.Parse(osmLine.Split(':')[1].Trim());
             var oligoCount = int.Parse(oligLine.Split(':')[1].Trim());
 
-
+            // Gradient
             var grad = new Gradient(GradientPath).GetGradient();
             var dataFile = MsDataFileReader.GetDataFile(DataFilePath).LoadAllStaticData();
             var tic = dataFile.Scans
@@ -45,6 +48,8 @@ namespace GradientDevelopment
                 .Select(p => (p.RetentionTime, p.TotalIonCurrent))
                 .ToArray();
 
+
+            // Spectral Matches
             var osmInfo = new List<(double Rt, double Q)>();
             using (var sw = new StreamReader(File.OpenRead(SearchResultPath)))
             {

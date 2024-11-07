@@ -1,9 +1,10 @@
 ﻿using Analyzer.FileTypes.External;
 using Analyzer.FileTypes.Internal;
 using Analyzer.Interfaces;
-using Analyzer.Plotting.Util;
 using Analyzer.Util;
+using Plotting.Util;
 using Proteomics;
+using ResultAnalyzerUtil;
 using RetentionTimePrediction;
 using UsefulProteomicsDatabases;
 
@@ -122,12 +123,12 @@ namespace Analyzer.SearchType
                 return new ChimeraCountingFile(_chimeraPsmPath);
 
             var allPSms = CombinedPsms.Results
-                .GroupBy(p => p, CustomComparer<MsFraggerPsm>.MsFraggerChimeraComparer)
+                .GroupBy(p => p, CustomComparerExtensions.MsFraggerChimeraComparer)
                 .GroupBy(m => m.Count())
                 .ToDictionary(p => p.Key, p => p.Count());
             var filtered = CombinedPsms.Results
                 .Where(p => p.PeptideProphetProbability >= 0.99)
-                .GroupBy(p => p, CustomComparer<MsFraggerPsm>.MsFraggerChimeraComparer)
+                .GroupBy(p => p, CustomComparerExtensions.MsFraggerChimeraComparer)
                 .GroupBy(m => m.Count())
                 .ToDictionary(p => p.Key, p => p.Count());
 
@@ -218,7 +219,7 @@ namespace Analyzer.SearchType
                 .ToDictionary(p => p, p => ChronologerEstimator.PredictRetentionTime(p.BaseSequence, p.FullSequence));
 
             List<RetentionTimePredictionEntry> results = new();
-            foreach (var chimeraGroup in psms.GroupBy(p => p, CustomComparer<MsFraggerPsm>.MsFraggerChimeraComparer))
+            foreach (var chimeraGroup in psms.GroupBy(p => p, CustomComparerExtensions.MsFraggerChimeraComparer))
             {
                 bool isChimeric = chimeraGroup.Count() > 1;
                 results.AddRange(chimeraGroup.Select(psm => 

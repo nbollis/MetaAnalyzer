@@ -3,20 +3,18 @@ using CsvHelper.Configuration;
 using CsvHelper.TypeConversion;
 using MzLibUtil;
 
-namespace Analyzer.Util.TypeConverters
+namespace ResultAnalyzerUtil
 {
-    public class CommaDelimitedToIntegerArrayTypeConverter : DefaultTypeConverter
+    public class CommaDelimitedToStringListTypeConverter : DefaultTypeConverter
     {
         public override object ConvertFromString(string text, IReaderRow row, MemberMapData memberMapData)
         {
-            var splits = text.Split(',');
-            var toReturn = splits.Where(p => p != "");
-            return toReturn.Select(int.Parse).ToArray();
+            return text.Split(',').Where(p => p != "").ToList();
         }
 
         public override string ConvertToString(object value, IWriterRow row, MemberMapData memberMapData)
         {
-            var list = value as IEnumerable<int> ?? throw new MzLibException("Cannot convert input to IEnumerable<double>");
+            var list = value as IEnumerable<string> ?? throw new MzLibException("Cannot convert input to IEnumerable<string>");
             return string.Join(',', list);
         }
     }

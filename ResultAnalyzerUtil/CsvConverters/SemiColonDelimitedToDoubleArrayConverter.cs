@@ -1,9 +1,9 @@
-﻿using CsvHelper.TypeConversion;
-using CsvHelper;
+﻿using CsvHelper;
 using CsvHelper.Configuration;
+using CsvHelper.TypeConversion;
 using Easy.Common.Extensions;
 
-namespace Analyzer.Util.TypeConverters
+namespace ResultAnalyzerUtil
 {
     public class SemiColonDelimitedToDoubleArrayConverter : DefaultTypeConverter
     {

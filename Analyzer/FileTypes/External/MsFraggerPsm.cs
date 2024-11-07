@@ -1,5 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations.Schema;
-using System.Globalization;
+﻿using System.Globalization;
 using System.Text.RegularExpressions;
 using CsvHelper.Configuration;
 using CsvHelper.Configuration.Attributes;

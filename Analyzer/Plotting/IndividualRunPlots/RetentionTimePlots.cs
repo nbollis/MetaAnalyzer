@@ -10,33 +10,10 @@ using Analyzer.FileTypes.Internal;
 using Microsoft.FSharp.Core;
 using Plotly.NET.CSharp;
 using Readers;
-using GenericChartExtensions = Plotly.NET.CSharp.GenericChartExtensions;
-using System.Text.RegularExpressions;
 using Analyzer.Interfaces;
-
-namespace Analyzer.Util
-{
-    public static partial class FileIdentifiers
-    {
-        // Retention Time Predictions
-        public static string SSRCalcFigure => "RetentionTimeVsSSRCalc3";
-        public static string ChronologerFigure => "RetentionTimeVsChronologer";
-        public static string ChronologerFigureACN => "PercentACNVsChronologer";
-        public static string ChronologerDeltaKdeFigure => "ChronologerDeltaDistribution_KDE";
-        public static string ChronologerDeltaBoxAndWhiskers => "ChronologerDeltaDistribution_BoxAndWhisker";
-        public static string ChronologerDeltaRange => "ChronologerDeltaDistribution_Range";
-
-
-        // Feature Finding Plots
-        public static string RetentionTimeShift_MM => "RetentionTimeShift_MetaMorpheus";
-        public static string RetentionTimeShiftHistogram_MM => "RetentionTimeShiftHistogram_MetaMorpheus";
-        public static string RetentionTimeShift_Fragger => "RetentionTimeShift_Fragger";
-        public static string RetentionTimeShiftHistogram_Fragger => "RetentionTimeShiftHistogram_Fragger";
-        public static string RetentionTimeShift_Stacked => "RetentionTimeShift_Stacked";
-        public static string RetentionTimeShiftHistogram_Stacked => "RetentionTimeShiftHistogram_Stacked";
-        public static string RetentionTimeShiftFullGrid_Stacked => "RetentionTimeShiftFullGrid_Stacked";
-    }
-}
+using Plotting.Util;
+using ResultAnalyzerUtil;
+using Plotting;
 
 namespace Analyzer.Plotting.IndividualRunPlots
 {
@@ -385,7 +362,7 @@ namespace Analyzer.Plotting.IndividualRunPlots
             chimericSamples = chimericSamples.OrderBy(p => p).ToList();
             var chart = Chart.Combine(new[]
                 {
-                GenericPlots.KernelDensityPlot(chimericSamples, "Chimeric", "Delta RT", "Probability", 0.3),
+                    GenericPlots.KernelDensityPlot(chimericSamples, "Chimeric", "Delta RT", "Probability", 0.3),
                 GenericPlots.KernelDensityPlot(nonChimericSamples, "Non-Chimeric", "Delta RT", "Probability", 0.3),
                 //Chart.Line<double, double, string>(new [] {0.0, 0},
                 //    new [] {0.0, 0.35},
@@ -666,7 +643,7 @@ namespace Analyzer.Plotting.IndividualRunPlots
             chimeric = chimeric.Where(p => p >= min && p <= max).ToList();
             nonChimeric = nonChimeric.Where(p => p >= min && p <= max).ToList();
             var kernelPlot = Chart.Combine(new[]
-                {
+            {
                 GenericPlots.KernelDensityPlot(nonChimeric, nonChimericLabel, "RT Shift", "Density", 0.05, kernel),
                 GenericPlots.KernelDensityPlot(chimeric, chimericLabel, "RT Shift", "Density", 0.05, kernel),
                 Chart.Line<double, double, string>(new[] { 0.0, 0 }, new[] { 0.0, 0.35 },

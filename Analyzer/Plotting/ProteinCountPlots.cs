@@ -1,13 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Analyzer.FileTypes.Internal;
-using Analyzer.Plotting.Util;
+﻿using Analyzer.FileTypes.Internal;
 using Plotly.NET;
 using Plotly.NET.CSharp;
 using Plotly.NET.LayoutObjects;
+using Plotting;
+using Plotting.Util;
+using ResultAnalyzerUtil;
 using Chart = Plotly.NET.CSharp.Chart;
 
 namespace Analyzer.Plotting

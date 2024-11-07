@@ -1,8 +1,8 @@
-﻿using Analyzer.Util.TypeConverters;
-using CsvHelper;
+﻿using CsvHelper;
 using CsvHelper.Configuration;
 using CsvHelper.Configuration.Attributes;
 using Readers;
+using ResultAnalyzerUtil;
 
 namespace Analyzer.FileTypes.External
 {

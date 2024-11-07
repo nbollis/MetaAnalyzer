@@ -1,24 +1,14 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
-using System.Reflection.Metadata.Ecma335;
-using System.Text;
-using System.Threading.Tasks;
-using Analyzer.Interfaces;
+﻿using Analyzer.Interfaces;
 using Analyzer.Plotting;
-using Analyzer.Plotting.IndividualRunPlots;
 using Analyzer.Plotting.Util;
 using Analyzer.SearchType;
-using Analyzer.Util;
-using MathNet.Numerics;
 using Microsoft.FSharp.Core;
 using Plotly.NET;
-using Plotly.NET.CSharp;
-using GenericChartExtensions = Plotly.NET.CSharp.GenericChartExtensions;
+using Plotting.Util;
 using Chart = Plotly.NET.CSharp.Chart;
 using TaskLayer;
 using TaskLayer.ChimeraAnalysis;
+using Plotting;
 
 namespace Calibrator
 {

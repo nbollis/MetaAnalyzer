@@ -3,7 +3,7 @@ using CsvHelper.Configuration;
 using CsvHelper.TypeConversion;
 using MzLibUtil;
 
-namespace Analyzer.Util.TypeConverters;
+namespace ResultAnalyzerUtil;
 
 public class CommaDelimitedToStringArrayTypeConverter : DefaultTypeConverter
 {

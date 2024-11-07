@@ -1,6 +1,6 @@
 ﻿using Plotly.NET;
 
-namespace Analyzer.Plotting.Util;
+namespace Plotting.Util;
 
 public static class PlottingTranslators
 {
@@ -196,7 +196,13 @@ public static class PlottingTranslators
 
         // Gradient Development
         {"MeOH", Color.fromKeyword(ColorKeyword.Purple)},
-        {"ACN", Color.fromKeyword(ColorKeyword.FireBrick)}
+        {"ACN", Color.fromKeyword(ColorKeyword.FireBrick)},
+
+        // Radical Fragmentation
+        {"Peptide", Color.fromKeyword(ColorKeyword.LightCoral)},
+        {"Peptidoform", Color.fromKeyword(ColorKeyword.Crimson)},
+        {"Proteoform", Color.fromKeyword(ColorKeyword.CornflowerBlue)},
+        {"Protein", Color.fromKeyword(ColorKeyword.Navy)},
     };
 
     private static Dictionary<string, string> FileNameConversionDictionary = new()

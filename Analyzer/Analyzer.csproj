@@ -19,6 +19,8 @@
 	</ItemGroup>
 
 	<ItemGroup>
+	  <ProjectReference Include="..\Plotting\Plotting.csproj" />
+	  <ProjectReference Include="..\ResultAnalyzerUtil\ResultAnalyzerUtil.csproj" />
 	  <ProjectReference Include="..\RetentionTimePrediction\RetentionTimePrediction.csproj" />
 	</ItemGroup>
 

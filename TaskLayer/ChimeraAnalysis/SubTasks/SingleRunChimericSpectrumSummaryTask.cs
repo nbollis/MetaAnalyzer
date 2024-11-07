@@ -3,13 +3,11 @@ using Analyzer.SearchType;
 using Analyzer.FileTypes.Internal;
 using Analyzer.Plotting;
 using Analyzer.Plotting.Util;
-using Analyzer.Util;
-using Microsoft.FSharp.Core;
 using Chart = Plotly.NET.CSharp.Chart;
 using Plotly.NET;
-using Plotly.NET.CSharp;
-using Tuple = Tensorboard.Tuple;
-using static Plotly.NET.StyleParam.Range;
+using Plotting;
+using Plotting.Util;
+using ResultAnalyzerUtil;
 
 namespace TaskLayer.ChimeraAnalysis
 {

@@ -1,5 +1,4 @@
 ﻿using CsvHelper;
-using Proteomics.PSM;
 using Readers;
 
 namespace Analyzer.Util

@@ -2,11 +2,12 @@
 using Analyzer.Interfaces;
 using Analyzer.Plotting.Util;
 using Analyzer.SearchType;
-using Analyzer.Util;
 using Analyzer.Plotting.IndividualRunPlots;
 using Plotly.NET;
 using Plotly.NET.ImageExport;
+using Plotting.Util;
 using Proteomics.PSM;
+using ResultAnalyzerUtil;
 
 namespace Analyzer.Plotting.AggregatePlots
 {
@@ -52,7 +53,7 @@ namespace Analyzer.Plotting.AggregatePlots
                 nonChimeraAngles = angles.Where(p => !p.IsChimeric).Select(p => p.SpectralAngle).ToArray();
             }
 
-            return GenericPlots.SpectralAngleChimeraComparisonViolinPlot(chimeraAngles, nonChimeraAngles, cellLine.CellLine, isTopDown, ResultType.Peptide);
+            return AnalyzerGenericPlots.SpectralAngleChimeraComparisonViolinPlot(chimeraAngles, nonChimeraAngles, cellLine.CellLine, isTopDown, ResultType.Peptide);
         }
 
 

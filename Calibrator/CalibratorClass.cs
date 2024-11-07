@@ -1,7 +1,6 @@
 ﻿using Analyzer.FileTypes.External;
 using Proteomics.PSM;
 using Readers;
-using ThermoFisher.CommonCore.Data;
 
 namespace Calibrator;
 

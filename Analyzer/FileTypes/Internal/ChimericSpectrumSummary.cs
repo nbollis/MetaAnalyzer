@@ -1,12 +1,9 @@
-﻿using Analyzer.Util;
-using Analyzer.Util.TypeConverters;
-using CsvHelper.Configuration;
-using System;
-using System.Collections.Generic;
+﻿using CsvHelper.Configuration;
 using System.Globalization;
 using CsvHelper;
 using CsvHelper.Configuration.Attributes;
 using Readers;
+using ResultAnalyzerUtil;
 
 namespace Analyzer.FileTypes.Internal
 {

@@ -1,18 +1,17 @@
-﻿using System.Diagnostics;
-using System.Runtime.InteropServices.WindowsRuntime;
-using Analyzer.FileTypes.Internal;
+﻿using Analyzer.FileTypes.Internal;
 using Analyzer.Interfaces;
 using Analyzer.Plotting.AggregatePlots;
 using Analyzer.Plotting.IndividualRunPlots;
 using Analyzer.Plotting.Util;
 using Analyzer.SearchType;
-using Analyzer.Util;
 using MathNet.Numerics;
-using Easy.Common.Extensions;
 using Plotly.NET;
 using Plotly.NET.ImageExport;
 using Plotly.NET.LayoutObjects;
+using Plotting;
+using Plotting.Util;
 using Proteomics.PSM;
+using ResultAnalyzerUtil;
 using Chart = Plotly.NET.CSharp.Chart;
 using GenericChartExtensions = Plotly.NET.CSharp.GenericChartExtensions;
 
@@ -188,9 +187,9 @@ namespace Analyzer.Plotting.ComparativePlots
                 .OrderBy(p => p.Condition.ConvertConditionName())
                 .ToList();
 
-            var psmChart = GenericPlots.BulkResultBarChart(results, isTopDown, ResultType.Psm);
-            var peptideChart = GenericPlots.BulkResultBarChart(results, isTopDown, ResultType.Peptide);
-            var proteinChart = GenericPlots.BulkResultBarChart(results, isTopDown, ResultType.Protein);
+            var psmChart = AnalyzerGenericPlots.BulkResultBarChart(results, isTopDown, ResultType.Psm);
+            var peptideChart = AnalyzerGenericPlots.BulkResultBarChart(results, isTopDown, ResultType.Peptide);
+            var proteinChart = AnalyzerGenericPlots.BulkResultBarChart(results, isTopDown, ResultType.Protein);
 
             var psmPath = Path.Combine(outputDirectory, $"BulkResultComparison_{Labels.GetLabel(isTopDown, ResultType.Psm)}");
             var peptidePath = Path.Combine(outputDirectory, $"BulkResultComparison_{Labels.GetLabel(isTopDown, ResultType.Peptide)}");
@@ -304,7 +303,7 @@ namespace Analyzer.Plotting.ComparativePlots
 
             double[] chimeraAngles = results.Where(p => p.IsChimeric).Select(p => p.SpectralAngle).ToArray();
             double[] nonChimeraAngles = results.Where(p => !p.IsChimeric).Select(p => p.SpectralAngle).ToArray();
-            var violin = GenericPlots.SpectralAngleChimeraComparisonViolinPlot(chimeraAngles, nonChimeraAngles, "AllResults", isTopDown, ResultType.Peptide)
+            var violin = AnalyzerGenericPlots.SpectralAngleChimeraComparisonViolinPlot(chimeraAngles, nonChimeraAngles, "AllResults", isTopDown, ResultType.Peptide)
                 .WithTitle($"All Results Spectral Angle Distribution (1% {Labels.GetPeptideLabel(isTopDown)})")
                 .WithYAxisStyle(Title.init("Spectral Angle"))
                 .WithLayout(PlotlyBase.DefaultLayout)

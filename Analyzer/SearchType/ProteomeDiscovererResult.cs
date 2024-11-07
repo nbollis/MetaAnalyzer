@@ -1,14 +1,15 @@
 ﻿using Analyzer.FileTypes.External;
 using Analyzer.FileTypes.Internal;
-using Analyzer.Util;
 using MassSpectrometry;
 using Readers;
 using Analyzer.Interfaces;
-using Analyzer.Plotting.Util;
+using Analyzer.Util;
 using Chemistry;
 using Easy.Common.Extensions;
+using Plotting.Util;
 using Proteomics.ProteolyticDigestion;
 using Proteomics;
+using ResultAnalyzerUtil;
 using UsefulProteomicsDatabases;
 
 namespace Analyzer.SearchType
@@ -108,12 +109,12 @@ namespace Analyzer.SearchType
                 return new ChimeraCountingFile(_chimeraPsmPath);
 
             var allPsms = PrsmFile
-                .GroupBy(p => p, CustomComparer<ProteomeDiscovererPsmRecord>.PSPDPrSMChimeraComparer)
+                .GroupBy(p => p, CustomComparerExtensions.PSPDPrSMChimeraComparer)
                 .GroupBy(p => p.Count())
                 .ToDictionary(p => p.Key, p => p.Count());
             var filtered = PrsmFile
                 .Where(p => IsTopDown ? p.NegativeLogEValue >= 5 : p.QValue <= 0.01)
-                .GroupBy(p => p, CustomComparer<ProteomeDiscovererPsmRecord>.PSPDPrSMChimeraComparer)
+                .GroupBy(p => p, CustomComparerExtensions.PSPDPrSMChimeraComparer)
                 .GroupBy(p => p.Count())
                 .ToDictionary(p => p.Key, p => p.Count());
 
@@ -217,8 +218,8 @@ namespace Analyzer.SearchType
 
                 //TODO: Consider if this distinct comparer is necessary
                 foreach (var chimeraGroup in fileGroup
-                             .DistinctBy(p => p, CustomComparer<ProteomeDiscovererPsmRecord>.PSPDPrSMDistinctPsmComparer)
-                             .GroupBy(p => p, CustomComparer<ProteomeDiscovererPsmRecord>.PSPDPrSMChimeraComparer)
+                             .DistinctBy(p => p, CustomComparerExtensions.PSPDPrSMDistinctPsmComparer)
+                             .GroupBy(p => p, CustomComparerExtensions.PSPDPrSMChimeraComparer)
                              .Select(p => p.ToArray()))
                 {
                     var record = new ChimeraBreakdownRecord()
@@ -227,7 +228,7 @@ namespace Analyzer.SearchType
                         FileName = IdToFileNameDictionary[chimeraGroup.First().FileID],
                         Condition = Condition,
                         Ms2ScanNumber = int.Parse(chimeraGroup.First().Ms2ScanNumber.Split(';')[0].Trim()),
-                        Type = Util.ResultType.Psm,
+                        Type = ResultAnalyzerUtil.ResultType.Psm,
                         IdsPerSpectra = chimeraGroup.Length,
                         TargetCount = chimeraGroup.Count(),
                         DecoyCount = 0,
@@ -292,7 +293,7 @@ namespace Analyzer.SearchType
                 var fileSpecificPsms = psms[fileSpecificRecords.Key];
                 foreach (var record in fileSpecificRecords)
                 {
-                    if (record.Type == Util.ResultType.Psm)
+                    if (record.Type == ResultAnalyzerUtil.ResultType.Psm)
                     {
                         var psm = fileSpecificPsms.Where(p => p.FragmentationScans == record.Ms2ScanNumber).ToArray();
                         record.PsmCharges = psm.Select(p => p.Charge).ToArray();

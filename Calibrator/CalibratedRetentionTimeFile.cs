@@ -1,12 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Globalization;
-using System.Linq;
-using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
-using Analyzer.FileTypes.External;
-using CsvHelper;
+﻿using System.Globalization;
 using CsvHelper.Configuration;
 using Easy.Common.Extensions;
 using Readers;

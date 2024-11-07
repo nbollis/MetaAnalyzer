@@ -1,14 +1,8 @@
 ﻿using Analyzer.SearchType;
 using Analyzer.Util;
-using System;
-using System.Collections.Generic;
-using System.Drawing.Drawing2D;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Analyzer.Plotting.ComparativePlots;
 using Analyzer.Plotting.IndividualRunPlots;
-using Analyzer.Plotting.Util;
+using ResultAnalyzerUtil;
 using TaskLayer.JenkinsLikePEPTesting;
 
 namespace Test

@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Analyzer.FileTypes.External;
-using Readers;
+﻿using Analyzer.FileTypes.External;
 
 namespace Test
 {

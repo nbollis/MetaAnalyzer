@@ -2,6 +2,7 @@
 using Omics.Modifications;
 using Proteomics;
 using Proteomics.ProteolyticDigestion;
+using ResultAnalyzerUtil;
 using UsefulProteomicsDatabases;
 
 namespace RadicalFragmentation.Processing;
@@ -122,8 +123,8 @@ public abstract class RadicalFragmentationExplorer
 
         CustomComparer<PrecursorFragmentMassSet> comparer = AmbiguityLevel switch
         {
-            1 => CustomComparer<PrecursorFragmentMassSet>.LevelOneComparer,
-            2 => CustomComparer<PrecursorFragmentMassSet>.LevelTwoComparer,
+            1 => CustomComparerExtensions.LevelOneComparer,
+            2 => CustomComparerExtensions.LevelTwoComparer,
             _ => throw new Exception("Ambiguity level not supported")
         };
 
