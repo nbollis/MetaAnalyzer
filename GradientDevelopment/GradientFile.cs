@@ -18,17 +18,17 @@ namespace GradientDevelopment
         public GradientPoint(double time, double percentB)
         {
             Time = time;
-            PercentB = percentB;
+            PercentBSolvent = percentB;
         }
 
         public double Time { get; set; }
         [Name("%B", "PercentB")]
-        public double PercentB { get; set; }
+        public double PercentBSolvent { get; set; }
     }
 
     public class Gradient : ResultFile<GradientPoint>, IResultFile
     {
-        public (double, double)[] GetGradient() => Results.Select(p => (p.Time, p.PercentB)).ToArray();
+        public (double, double)[] GetGradient() => Results.Select(p => (p.Time, p.PercentBSolvent)).ToArray();
         public Gradient(string path) : base(path) { } // Add constructor to set FilePath
 
         public override void LoadResults()

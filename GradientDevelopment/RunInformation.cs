@@ -1,4 +1,5 @@
 ﻿using MathNet.Numerics;
+using MzLibUtil;
 using Readers;
 using Range = System.Range;
 using StreamReader = System.IO.StreamReader;
@@ -12,9 +13,9 @@ namespace GradientDevelopment
         internal string DataFilePath { get; init; }
         internal string GradientPath { get; init; }
         internal string SearchResultPath { get; init; }
-        internal Range? MinMaxToDisplay { get; init; }
+        internal DoubleRange? MinMaxToDisplay { get; init; }
 
-        public RunInformation(string dataFilePath, string gradientPath, string searchResultPath, string mobilePhaseB, Range? minMax = null)
+        public RunInformation(string dataFilePath, string gradientPath, string searchResultPath, string mobilePhaseB, DoubleRange? minMax = null)
         {
             DataFilePath = dataFilePath;
             GradientPath = gradientPath;
@@ -88,7 +89,9 @@ namespace GradientDevelopment
                 .ToArray();
 
             var gradName = Path.GetFileNameWithoutExtension(GradientPath);
-            var info = new ExtractedInformation(DataFileName, MobilePhaseB, gradName, tic, grad, allOsms, filteredOsms, ms2ScanCount, precursorCount, osmCount, oligoCount);
+            var info = new ExtractedInformation(DataFileName, MobilePhaseB, gradName, tic, grad, 
+                allOsms, filteredOsms, ms2ScanCount, precursorCount, osmCount, 
+                oligoCount, MinMaxToDisplay?.Minimum, MinMaxToDisplay?.Maximum);
             return info;
         }
 

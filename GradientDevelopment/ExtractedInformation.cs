@@ -22,7 +22,8 @@ namespace GradientDevelopment
         public int OSMCount { get; set; }
         public int OligoCount { get; set; }
 
-
+        [Optional] public double? MinRtToDisplay { get; set; }
+        [Optional] public double? MaxRtToDisplay { get; set; }
 
         [Name("DataFileName")]
         public string DataFileName { get; set; }
@@ -51,7 +52,7 @@ namespace GradientDevelopment
 
         public ExtractedInformation(string dataFileName, string mobilePhaseB, string gradientName,
             (double, double)[] tic, (double, double)[] gradient, (double, double)[] ids, (double, double)[] fivePercentIds,
-            int ms2ScansCollected, int precursorsFragmented, int osMCount, int oligoCount)
+            int ms2ScansCollected, int precursorsFragmented, int osMCount, int oligoCount, double? minRt = null, double? maxRt = null)
         {
             DataFileName = dataFileName;
             MobilePhaseB = mobilePhaseB;
@@ -64,6 +65,8 @@ namespace GradientDevelopment
             PrecursorsFragmented = precursorsFragmented;
             OSMCount = osMCount;
             OligoCount = oligoCount;
+            MinRtToDisplay = minRt;
+            MaxRtToDisplay = maxRt;
         }
 
         public ExtractedInformation()

@@ -1,4 +1,5 @@
 ﻿using GradientDevelopment;
+using Plotly.NET;
 using Plotly.NET.ImageExport;
 using Plotting.GradientDevelopment;
 using ResultAnalyzerUtil;
@@ -42,20 +43,64 @@ namespace Test
         public static void PlotOne()
         {
             var outPath = Path.Combine(GradientDevelopmentDirectory, $"{FileIdentifiers.ExtractedGradientInformation}.tsv");
+            var results = new ExtractedInformationFile(outPath).Results;
+            //results.UpdateTimesToDisplay();
 
-            foreach (var run in new ExtractedInformationFile(outPath).Results)
+            foreach (var run in results)
             {
                 var path = Path.Combine(GradientDevelopmentFigureDirectory,
                     $"{FileIdentifiers.GradientFigure}_{run.DataFileName}_{run.GradientName}");
                 var plot2 = run.GetPlotHist();
 
-                //GenericChartExtensions.Show(plot2);
+                //plot2.Show();
                 plot2.SavePNG(path, null, 1200, 700);
             } 
         }
 
         
     }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
