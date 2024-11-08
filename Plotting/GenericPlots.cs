@@ -124,7 +124,7 @@ namespace Plotting
         {
             var modDict = new Dictionary<string, double>();
             foreach (var mod in fullSequences.SelectMany(p =>
-                         SpectrumMatchFromTsv.ParseModifications(p).SelectMany(m => m.Value)
+                         Omics.SpectrumMatch.SpectrumMatchFromTsv.ParseModifications(p).SelectMany(m => m.Value)
                              .Select(mod => mod.Split(":")[1].Split(' ')[0].Trim()
                                  .Replace("Accetyl", "Acetyl"))))
             {

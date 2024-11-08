@@ -2,7 +2,9 @@
 using Plotly.NET;
 using Plotly.NET.ImageExport;
 using Plotting.GradientDevelopment;
+using Readers;
 using ResultAnalyzerUtil;
+using SpectrumMatchTsvReader = GradientDevelopment.Temporary.SpectrumMatchTsvReader;
 
 namespace Test
 {
@@ -28,6 +30,8 @@ namespace Test
             var results = new List<ExtractedInformation>();
             foreach (var runInformation in StoredInformation.RunInformationList)
             {
+                GetConsensusIds(runInformation.SearchResultPath);
+
                 var info = runInformation.GetExtractedRunInformation();
                 if (info.FivePercentIds.Any())
                     results.Add(info);
@@ -58,6 +62,9 @@ namespace Test
         }
 
         
+        
+
+
     }
 
 

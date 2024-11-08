@@ -12,7 +12,7 @@ namespace GradientDevelopment
         internal string DataFileName { get; init; }
         internal string DataFilePath { get; init; }
         internal string GradientPath { get; init; }
-        internal string SearchResultPath { get; init; }
+        public string SearchResultPath { get; init; }
         internal DoubleRange? MinMaxToDisplay { get; init; }
 
         public RunInformation(string dataFilePath, string gradientPath, string searchResultPath, string mobilePhaseB, DoubleRange? minMax = null)

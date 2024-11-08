@@ -1,4 +1,7 @@
-﻿using Omics.Modifications;
+﻿global using PsmFromTsv = Proteomics.PSM.PsmFromTsv;
+global using SpectrumMatchTsv = Omics.SpectrumMatch.SpectrumMatchFromTsv;
+global using SpectrumMatchTsvReader = Readers.SpectrumMatchTsvReader;
+using Omics.Modifications;
 using UsefulProteomicsDatabases;
 
 namespace ResultAnalyzerUtil
