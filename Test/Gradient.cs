@@ -30,8 +30,6 @@ namespace Test
             var results = new List<ExtractedInformation>();
             foreach (var runInformation in StoredInformation.RunInformationList)
             {
-                GetConsensusIds(runInformation.SearchResultPath);
-
                 var info = runInformation.GetExtractedRunInformation();
                 if (info.FivePercentIds.Any())
                     results.Add(info);
@@ -48,23 +46,37 @@ namespace Test
         {
             var outPath = Path.Combine(GradientDevelopmentDirectory, $"{FileIdentifiers.ExtractedGradientInformation}.tsv");
             var results = new ExtractedInformationFile(outPath).Results;
-            //results.UpdateTimesToDisplay();
+            var topFdPath = @"B:\Users\Nic\RNA\FLuc\GradientDevelopment\TopFD";
+            results.UpdateTimesToDisplay();
 
             foreach (var run in results)
             {
                 var path = Path.Combine(GradientDevelopmentFigureDirectory,
                     $"{FileIdentifiers.GradientFigure}_{run.DataFileName}_{run.GradientName}");
-                var plot2 = run.GetPlotHist();
+                var plot2 = run.GetPlotHist(topFdPath);
+                if (plot2 is null)
+                    continue;
 
                 //plot2.Show();
                 plot2.SavePNG(path, null, 1200, 700);
             } 
         }
 
-        
-        
+        [Test]
+        public static void WorkOnFeatureMapping()
+        {
+            var path = StoredInformation.RunInformationList[0].SearchResultPath;
+            var topFdPath = @"B:\Users\Nic\RNA\FLuc\GradientDevelopment\TopFD";
+            var toTestPath = Path.Combine(topFdPath, @"241031_FLuc_90dig_AAwash_80Met_std-grad2_ms1.feature");
 
 
+            var featureFile = new GradientDevelopment.Temporary.Ms1FeatureFile(toTestPath);
+            featureFile.LoadResults();
+            var consensus = ResultFileConsensus.GetConsensusIds(path);
+
+
+        }
+        
     }
 
 

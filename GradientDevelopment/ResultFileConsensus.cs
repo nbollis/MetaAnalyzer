@@ -22,7 +22,7 @@ namespace GradientDevelopment
                 .Distinct()
                 .ToArray();
 
-            // Find the Id's with the lowest q values represented in the highest portion of the file names
+            // Find the Id's with the lowest q values represented in at least 80% portion of the file names
             var lowestQValueIds = spectralMatches
                 .GroupBy(p => p.FullSequence)
                 .Select(g => new
@@ -32,7 +32,7 @@ namespace GradientDevelopment
                     FileCount = g.Select(p => p.FileNameWithoutExtension).Distinct().Count(),
                     OSMs = g.ToList()
                 })
-                .Where(p => p.FileCount == distinctFileNames.Length)
+                .Where(p => p.FileCount >= distinctFileNames.Length * 0.8)
                 .OrderBy(p => p.MinQValue)
                 .ThenByDescending(p => p.FileCount)
                 .ToList();
@@ -44,13 +44,22 @@ namespace GradientDevelopment
                 MinQValue = p.MinQValue,
                 FileCount = p.FileCount,
                 MaxFileCount = distinctFileNames.Length,
-                SpectralMatches = p.OSMs.Cast<SpectrumMatchFromTsv>().ToList()
+                AverageRT = p.OSMs.WeightedAverage(z => z.RetentionTime!.Value, z => 1 - z.QValue),
+                SpectralMatchesByFileName = p.OSMs.Cast<SpectrumMatchFromTsv>().GroupBy(p => p.FileNameWithoutExtension)
+                    .ToDictionary(q => q.Key, q => q.OrderBy(n => n.RetentionTime).ToList())
             }).ToList();
 
             // Add to dictionary
             ParsedConsensusDictionary[osmPath] = consensusRecordsList;
 
             return consensusRecordsList;
+        }
+
+        public static double WeightedAverage(this IEnumerable<OsmFromTsv> source, Func<OsmFromTsv, double> valueSelector, Func<OsmFromTsv, double> weightSelector)
+        {
+            double weightedValueSum = source.Sum(x => valueSelector(x) * weightSelector(x));
+            double weightSum = source.Sum(weightSelector);
+            return weightedValueSum / weightSum;
         }
     }
 
@@ -60,6 +69,10 @@ namespace GradientDevelopment
         public double MinQValue { get; set; }
         public int FileCount { get; set; }
         public int MaxFileCount { get; set; }
-        public List<SpectrumMatchFromTsv> SpectralMatches { get; set; }
+        public double AverageRT { get; set; }
+        public Dictionary<string, List<SpectrumMatchFromTsv>> SpectralMatchesByFileName { get; set; }
     }
+
+    
+    
 }
