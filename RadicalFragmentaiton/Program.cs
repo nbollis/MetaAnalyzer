@@ -3,6 +3,7 @@ using CommandLine.Text;
 using RadicalFragmentation.Processing;
 using System.Diagnostics;
 using Analyzer.Plotting.Util;
+using UsefulProteomicsDatabases;
 
 namespace RadicalFragmentation
 {
@@ -55,6 +56,9 @@ namespace RadicalFragmentation
                 int ambigLevel = CommandLineArguments.AmbiguityLevel;
                 string outDir = CommandLineArguments.OutputDirectory!;
 
+                if (!Directory.Exists(outDir))
+                    Directory.CreateDirectory(outDir);
+
                 switch (CommandLineArguments.FragmentExplorerType)
                 {
                     case FragmentExplorerType.Tryptophan:
@@ -67,6 +71,8 @@ namespace RadicalFragmentation
                     default:
                         throw new ArgumentOutOfRangeException();
                 }
+
+                Loaders.LoadElements();
                
             }
             catch (Exception e)

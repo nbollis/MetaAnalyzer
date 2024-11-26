@@ -121,6 +121,9 @@ public abstract class RadicalFragmentationExplorer
         if (!Override && File.Exists(_precursorFragmentMassFilePath))
             return PrecursorFragmentMassFile;
 
+        if (!Directory.Exists(IndexDirectoryPath))
+            Directory.CreateDirectory(IndexDirectoryPath);
+
         CustomComparer<PrecursorFragmentMassSet> comparer = AmbiguityLevel switch
         {
             1 => CustomComparerExtensions.LevelOneComparer,
@@ -262,6 +265,9 @@ public abstract class RadicalFragmentationExplorer
     {
         if (!Override && File.Exists(_fragmentHistogramFilePath))
             return FragmentHistogramFile;
+
+        if (!Directory.Exists(DirectoryPath))
+            Directory.CreateDirectory(DirectoryPath);
 
         var fragmentCounts = PrecursorFragmentMassFile.Results.GroupBy(p => p.FragmentCount)
             .OrderBy(p => p.Key)

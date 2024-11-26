@@ -11,7 +11,7 @@ namespace GradientDevelopment
             ParsedConsensusDictionary = new Dictionary<string, List<ResultFileConsensusRecord>>();
         }
 
-        public static List<ResultFileConsensusRecord> GetConsensusIds(string osmPath)
+        public static List<ResultFileConsensusRecord> GetConsensusIds(string osmPath, int toReturn)
         {
             if (ParsedConsensusDictionary.TryGetValue(osmPath, out var consensusRecords))
                 return consensusRecords;
@@ -33,8 +33,9 @@ namespace GradientDevelopment
                     OSMs = g.ToList()
                 })
                 .Where(p => p.FileCount >= distinctFileNames.Length * 0.8)
-                .OrderBy(p => p.MinQValue)
-                .ThenByDescending(p => p.FileCount)
+                .OrderByDescending(p => p.FileCount)
+                .ThenBy(p => p.OSMs.Average(m => m.QValue))
+                .Take(toReturn)
                 .ToList();
 
             // Create consensus records

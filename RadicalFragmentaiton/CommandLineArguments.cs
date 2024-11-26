@@ -31,7 +31,7 @@ namespace RadicalFragmentation
             else if (!File.Exists(DatabasePath))
                 throw new Exception($"Database at {DatabasePath} does not exist");
 
-            if (ModsToConsider <= 0)
+            if (ModsToConsider < 0)
                 throw new Exception("Mods to consider must be greater than zero");
 
             if (AmbiguityLevel < 1 || AmbiguityLevel > 2)

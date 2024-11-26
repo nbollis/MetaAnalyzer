@@ -53,7 +53,7 @@ namespace Test
             {
                 var path = Path.Combine(GradientDevelopmentFigureDirectory,
                     $"{FileIdentifiers.GradientFigure}_{run.DataFileName}_{run.GradientName}");
-                var plot2 = run.GetPlotHist(topFdPath);
+                var plot2 = run.GetPlotHist(topFdPath, 30);
                 if (plot2 is null)
                     continue;
 
@@ -72,7 +72,7 @@ namespace Test
 
             var featureFile = new GradientDevelopment.Temporary.Ms1FeatureFile(toTestPath);
             featureFile.LoadResults();
-            var consensus = ResultFileConsensus.GetConsensusIds(path);
+            var consensus = ResultFileConsensus.GetConsensusIds(path, 10);
 
 
         }

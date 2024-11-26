@@ -11,6 +11,7 @@ using Plotly.NET;
 using Plotly.NET.LayoutObjects;
 using Plotly.NET.TraceObjects;
 using Chart = Plotly.NET.CSharp.Chart;
+using GenericChartExtensions = Plotly.NET.CSharp.GenericChartExtensions;
 using Plotting.Util;
 using ResultAnalyzerUtil;
 using MathNet.Numerics.Distributions;
@@ -19,44 +20,51 @@ namespace Plotting.GradientDevelopment
 {
     public static class GradientDevelopmentPlotExtensions
     {
-        public static GenericChart.GenericChart GetPlotHist(this ExtractedInformation run, string? deconResultsDirectory = null)
+        public static GenericChart.GenericChart GetPlotHist(this ExtractedInformation run, string? deconResultsDirectory = null,
+            int featuresToMap = 5)
         {
-            int numBins = ((int)run.Tic.Max(p => p.Item1) + 1) * 10;
+            int multiplier = 10;
+            int osmDivisor = 4;
             var min = run.MinRtToDisplay ?? 0;
             var max = run.MaxRtToDisplay ?? run.Tic.Last().Item1;
             var mid = (min + max) / 2;
-            var ticMax = run.Tic.Where(p => p.Item1 > min && p.Item1 < max)
-                .Max(p => p.Item2);
+            int numBins = ((int)run.Tic
+                .Where(p => p.Item1 > min && p.Item1 < max)
+                .Max(p => p.Item1) + 1) * multiplier;
+            var ticMax = run.Tic
+                .Where(p => p.Item1 > min && p.Item1 < max)
+                .GroupBy(p => (p.Item1 / multiplier * osmDivisor).Round(1))
+                .Max(p => p.Average(m => m.Item2));
+            
 
             var allIdCount = Chart.Histogram<double, double, string>(
-                    run.Ids.Select(p => p.Item1).ToArray(),
-                    run.Ids.Select(p => p.Item2).ToArray(),
+                    run.Ids.Where(p => p.Item1 > min && p.Item1 < max).Select(p => p.Item1).ToArray(),
+                    run.Ids.Where(p => p.Item1 > min && p.Item1 < max).Select(p => p.Item2).ToArray(),
                     MarkerColor: Color.fromKeyword(ColorKeyword.MediumTurquoise),
                     Name: "All OSMs",
-                    Opacity: 0.7,
                     HistNorm: StyleParam.HistNorm.None, HistFunc: StyleParam.HistFunc.Count,
-                    NBinsX: numBins / 4)
+                    NBinsX: numBins / osmDivisor)
                 .WithAxisAnchor(Y: 1);
 
             var idCount = Chart.Histogram<double, double, string>(
-                    run.FivePercentIds.Select(p => p.Item1).ToArray(),
-                    run.FivePercentIds.Select(p => p.Item2).ToArray(),
+                    run.FivePercentIds.Where(p => p.Item1 > min && p.Item1 < max).Select(p => p.Item1).ToArray(),
+                    run.FivePercentIds.Where(p => p.Item1 > min && p.Item1 < max).Select(p => p.Item2).ToArray(),
                     MarkerColor: Color.fromKeyword(ColorKeyword.DarkGreen),
                     Name: "5% OSMs",
                     HistNorm: StyleParam.HistNorm.None, HistFunc: StyleParam.HistFunc.Count,
-                    NBinsX: numBins / 4)
+                    NBinsX: numBins / osmDivisor)
                 .WithAxisAnchor(Y: 1);
 
             var toPlot = run.Tic.Where(p => p.Item1 >= min && p.Item1 <= max).ToArray();
             var tic = Chart.Histogram<double, double, string>(
-                    toPlot.Select(p => p.Item1).ToArray(),
-                    toPlot.Select(p => p.Item2).ToArray(),
+                    toPlot.Where(p => p.Item1 > min && p.Item1 < max).Select(p => p.Item1).ToArray(),
+                    toPlot.Where(p => p.Item1 > min && p.Item1 < max).Select(p => p.Item2).ToArray(),
                     MarkerColor: Color.fromKeyword(ColorKeyword.Black),
                     Name: "TIC",
                     Opacity: 0.8,
                     HistNorm: StyleParam.HistNorm.None, HistFunc: StyleParam.HistFunc.Avg,
                     NBinsX: numBins)
-                .WithAxisAnchor(Y: 3)
+                .WithAxisAnchor(Y: 2)
                 .WithXAxisStyle(Title.init($"Retention Time"),
                     MinMax: new FSharpOption<Tuple<IConvertible, IConvertible>>(new Tuple<IConvertible, IConvertible>(min, max)));
 
@@ -77,7 +85,7 @@ namespace Plotting.GradientDevelopment
                 LineWidth: 2,
                 LineDash: new Optional<StyleParam.DrawingStyle>(StyleParam.DrawingStyle.LongDashDot, true),
                 Name: $"%{run.MobilePhaseB}")
-                .WithAxisAnchor(Y: 4);
+                .WithAxisAnchor(Y: 3);
 
             
             var annotations = new List<Annotation>()
@@ -107,16 +115,15 @@ namespace Plotting.GradientDevelopment
 
                 // Get feature file and OSMs that were found in a majority of samples
                 var featureFile = new Ms1FeatureFile(featurePath);
-                var consensus = ResultFileConsensus.GetConsensusIds(osmPath);
+                var consensus = ResultFileConsensus.GetConsensusIds(osmPath, featuresToMap);
                 var tolerance = new AbsoluteTolerance(20);
-                List<(GenericChart.GenericChart, Annotation)> curvesToAdd = new();
                 foreach (var consensusRecord in consensus)
                 {
                    
                     if (!consensusRecord.SpectralMatchesByFileName.TryGetValue(run.DataFileName, out var matches))
                         continue;
 
-                    var filteredMatches = matches.Where(p => p.QValue <= 0.1).ToArray();
+                    var filteredMatches = matches.Where(p => p.QValue <= 0.4).ToArray();
                     if (!filteredMatches.Any())
                         continue;
 
@@ -129,7 +136,7 @@ namespace Plotting.GradientDevelopment
                     var fullFiltered = featureFile.Where(p =>
                             p.RetentionTimeBegin != p.RetentionTimeApex && p.RetentionTimeEnd != p.RetentionTimeApex
                             && p.RetentionTimeBegin >= min && p.RetentionTimeEnd <= max
-                            && p.RetentionTimeBegin - 10 <= weightedAvgRt && p.RetentionTimeEnd + 10 >= weightedAvgRt
+                            && p.RetentionTimeBegin - 30 <= weightedAvgRt && p.RetentionTimeEnd + 30 >= weightedAvgRt
                             && p.ChargeStateMin - 1 <= avgCharge && p.ChargeStateMax + 1 >= avgCharge
                             && tolerance.Within(p.Mass, double.Parse(matches.First().MonoisotopicMass)))
                         .OrderByDescending(p => p.ChargeStateMax - p.ChargeStateMin)
@@ -150,7 +157,7 @@ namespace Plotting.GradientDevelopment
                     for (double rt = toUse.RetentionTimeBegin; rt <= toUse.RetentionTimeEnd; rt += 0.01)
                     {
                         var density = gaussian.Density(rt) * toUse.Intensity;
-                        if (density <= 10)
+                        if (density <= 10000)
                             continue;
 
                         rtValues.Add(rt);
@@ -164,7 +171,7 @@ namespace Plotting.GradientDevelopment
                         MarkerColor: fullSequence.ConvertConditionToColor(),
                         ShowLegend: false,
                         LineWidth: 2)
-                        .WithAxisAnchor(Y: 3);
+                        .WithAxisAnchor(Y: 2);
 
                     //var annotation =
                     //    Annotation.init<double, double, double, double, double, double, double, double, double, string>
@@ -186,20 +193,23 @@ namespace Plotting.GradientDevelopment
                 .WithXAxisStyle(Title.init($"Retention Time"),
                     Domain: new FSharpOption<Tuple<IConvertible, IConvertible>>(new Tuple<IConvertible, IConvertible>(0.15, 1)),
                     MinMax: new FSharpOption<Tuple<IConvertible, IConvertible>>(new Tuple<IConvertible, IConvertible>(min, max)))
-                .WithYAxisStyle(Title.init("OSM Count (30s bin)"), Side: StyleParam.Side.Left, Position: .05,
-                    Id: StyleParam.SubPlotId.NewYAxis(1),
-                    Domain: new FSharpOption<Tuple<IConvertible, IConvertible>>(new Tuple<IConvertible, IConvertible>(0.05, 1)))
-                .WithYAxisStyle(Title.init("TIC"), Side: StyleParam.Side.Right,
-                    Id: StyleParam.SubPlotId.NewYAxis(3), Overlaying: StyleParam.LinearAxisId.NewY(1),
-                    Domain: new FSharpOption<Tuple<IConvertible, IConvertible>>(new Tuple<IConvertible, IConvertible>(0.05, 1))
-                    ,
-                    MinMax: new FSharpOption<Tuple<IConvertible, IConvertible>>(
-                        new Tuple<IConvertible, IConvertible>(0, ticMax))
+                .WithYAxisStyle<double, double, string>($"OSM Count ({(int)(60.0 / (multiplier / (double)osmDivisor))}s bin)", 
+                    Side: StyleParam.Side.Left, 
+                    Id: StyleParam.SubPlotId.NewYAxis(1)
                     )
-                .WithYAxisStyle(Title.init($"%{run.MobilePhaseB}"), Side: StyleParam.Side.Left, 
-                    MinMax: new FSharpOption<Tuple<IConvertible, IConvertible>>(new Tuple<IConvertible, IConvertible>(0, 100)),
-                    Domain: new FSharpOption<Tuple<IConvertible, IConvertible>>(new Tuple<IConvertible, IConvertible>(0.05, 1)),
-                    Id: StyleParam.SubPlotId.NewYAxis(4), Overlaying: StyleParam.LinearAxisId.NewY(1))
+                .WithYAxisStyle<double, double, string>("TIC",
+                    Side: StyleParam.Side.Right,
+                    Id: StyleParam.SubPlotId.NewYAxis(2),
+                    MinMax: new Tuple<double, double>(0, ticMax),
+                    Overlaying: StyleParam.LinearAxisId.NewY(1)
+                )
+                .WithYAxisStyle<double, double, string>($"%{run.MobilePhaseB}", 
+                    Side: StyleParam.Side.Left, 
+                    Position: .05,
+                    Overlaying: StyleParam.LinearAxisId.NewY(1),
+                    Id: StyleParam.SubPlotId.NewYAxis(3),
+                    MinMax: new Tuple<double, double>(0, 100)
+                    )
                 .WithLayout(PlotlyBase.DefaultLayoutWithLegendLargerText)
                 .WithAnnotations(annotations)
                 .WithSize(1000, 600)
