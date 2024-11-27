@@ -42,19 +42,19 @@ internal class CysteineFragmentationExplorer : RadicalFragmentationExplorer
                         .IndexOf('C', random.Next(0, proteoform.BaseSequence.Length));
                 } while (cysIndex == -1);
 
-                // select MaxFragmentationEvents indices within +- 5 residues of the cysteine
-                var maxFrag = cysIndex == 0 ? 5 : MaximumFragmentationEvents;
-                maxFrag = Math.Min(maxFrag, proteoform.BaseSequence.Length - 1);
-                int[] indicesToFragment = new int[maxFrag];
-                for (int i = 0; i < maxFrag; i++)
+
+                // select all indices within +- 4 residues of the cysteine
+                var indicesToFragment = new List<int>();
+                for (int i = cysIndex - 4; i <= cysIndex + 4; i++)
                 {
-                    int index;
-                    do
+                    if (i >= 0 && i < proteoform.BaseSequence.Length && i != cysIndex)
                     {
-                        index = random.Next(cysIndex - 5, cysIndex + 6);
-                    } while (index < 0 || index >= proteoform.BaseSequence.Length || indicesToFragment.Contains(index));
-                    indicesToFragment[i] = index;
+                        indicesToFragment.Add(i);
+                    }
                 }
+                var maxFrag = indicesToFragment.Count;
+                maxFrag = Math.Min(maxFrag, proteoform.BaseSequence.Length - 1);
+                
 
                 // split the protein sequence and mods based upon indices to fragment
                 // foreach split there will be 2 masses, one the left side and one the right side
