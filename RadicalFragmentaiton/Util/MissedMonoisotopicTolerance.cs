@@ -11,9 +11,11 @@ namespace RadicalFragmentation.Util
     internal class MissedMonoisotopicTolerance : PpmTolerance
     {
         private readonly double[] AcceptableSortedMassShifts;
+        public int MissedMonoisotpics { get; }
 
         public MissedMonoisotopicTolerance(double value, int missedMonoisotopics = 0) : base(value)
         {
+            MissedMonoisotpics = missedMonoisotopics;
             AcceptableSortedMassShifts = GetMissedMonos(missedMonoisotopics);
         }
 

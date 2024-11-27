@@ -12,14 +12,33 @@ public abstract class RadicalFragmentationExplorer
 {
     public bool Override { get; set; } = false;
     protected string BaseDirectorPath { get; init; }
-    protected string DirectoryPath => Path.Combine(BaseDirectorPath, AnalysisType);
+
+    public abstract string AnalysisType { get; }
+
+    private string? _analysisLabel;
+    public string AnalysisLabel
+    {
+        get
+        {
+            if (_analysisLabel is not null) return _analysisLabel;
+            if (PrecursorMassTolerance is MissedMonoisotopicTolerance tol)
+            {
+                _analysisLabel = $"{AnalysisType}_{tol.MissedMonoisotpics}MissedMonos";
+            }
+            else
+            {
+                _analysisLabel = $"{AnalysisType}";
+            }
+            return _analysisLabel;
+        }
+    }
+    protected string DirectoryPath => Path.Combine(BaseDirectorPath, AnalysisLabel);
     public string FigureDirectory => Path.Combine(BaseDirectorPath, "Figure");
-    protected string IndexDirectoryPath => Path.Combine(BaseDirectorPath, "IndexedFragments", AnalysisType);
+    protected string IndexDirectoryPath => Path.Combine(BaseDirectorPath, "IndexedFragments", AnalysisLabel);
     public int AmbiguityLevel { get; set; }
     public string Species { get; set; }
     public int NumberOfMods { get; set; }
     public string DatabasePath { get; set; }
-    public abstract string AnalysisType { get; }
     protected int MaximumFragmentationEvents { get; set; }
     protected string MaxFragmentString => MaximumFragmentationEvents == int.MaxValue ? "All" : MaximumFragmentationEvents.ToString();
     protected Tolerance PrecursorMassTolerance { get; set; }
@@ -232,7 +251,7 @@ public abstract class RadicalFragmentationExplorer
                         Species = Species,
                         NumberOfMods = NumberOfMods,
                         MaxFragments = MaximumFragmentationEvents,
-                        AnalysisType = AnalysisType,
+                        AnalysisType = AnalysisLabel,
                         AmbiguityLevel = AmbiguityLevel,
                         Accession = result.Item1.Accession,
                         NumberInPrecursorGroup = result.Item2.Count,
@@ -279,7 +298,7 @@ public abstract class RadicalFragmentationExplorer
                 Species = Species,
                 NumberOfMods = NumberOfMods,
                 MaxFragments = MaximumFragmentationEvents,
-                AnalysisType = AnalysisType,
+                AnalysisType = AnalysisLabel,
                 AmbiguityLevel = AmbiguityLevel,
                 FragmentCount = p.Key,
                 ProteinCount = p.Count()
