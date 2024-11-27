@@ -24,6 +24,9 @@ namespace RadicalFragmentation
         [Option('l', HelpText="Label", Required = false, Default = "Human")]
         public string? Label { get; set; }
 
+        [Option('i', HelpText = "MissedMonoIsotopics", Required = false, Default = 0)]
+        public int MissedMonoIsoTopics { get; set; }
+
         public void ValidateCommandLineSettings()
         {
             if (string.IsNullOrEmpty(DatabasePath))

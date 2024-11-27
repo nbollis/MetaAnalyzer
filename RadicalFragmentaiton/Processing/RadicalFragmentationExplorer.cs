@@ -2,6 +2,7 @@
 using Omics.Modifications;
 using Proteomics;
 using Proteomics.ProteolyticDigestion;
+using RadicalFragmentation.Util;
 using ResultAnalyzerUtil;
 using UsefulProteomicsDatabases;
 
@@ -21,6 +22,7 @@ public abstract class RadicalFragmentationExplorer
     public abstract string AnalysisType { get; }
     protected int MaximumFragmentationEvents { get; set; }
     protected string MaxFragmentString => MaximumFragmentationEvents == int.MaxValue ? "All" : MaximumFragmentationEvents.ToString();
+    protected Tolerance PrecursorMassTolerance { get; set; }
 
     protected List<Modification> fixedMods;
     protected List<Modification> variableMods;
@@ -28,7 +30,7 @@ public abstract class RadicalFragmentationExplorer
     protected List<DisulfideBond> disulfideBonds;
 
     protected RadicalFragmentationExplorer(string databasePath, int numberOfMods, string species, int maximumFragmentationEvents = int.MaxValue,
-        int ambiguityLevel = 1, string? baseDirectory = null)
+        int ambiguityLevel = 1, string? baseDirectory = null, int allowedMissedMonos = 0)
     {
         DatabasePath = databasePath;
         NumberOfMods = numberOfMods;
@@ -36,6 +38,7 @@ public abstract class RadicalFragmentationExplorer
         MaximumFragmentationEvents = maximumFragmentationEvents;
         AmbiguityLevel = ambiguityLevel;
         BaseDirectorPath = baseDirectory ?? @"D:\Projects\RadicalFragmentation\FragmentAnalysis";
+        PrecursorMassTolerance = allowedMissedMonos == 0 ? new PpmTolerance(10) : new MissedMonoisotopicTolerance(allowedMissedMonos);
 
         fixedMods = new List<Modification>();
         variableMods = new List<Modification>();
@@ -168,7 +171,7 @@ public abstract class RadicalFragmentationExplorer
             return MinFragmentNeededFile;
 
         var dataSplits = 10;
-        var tolerance = new PpmTolerance(10);
+        var tolerance = PrecursorMassTolerance;
 
         string[] tempFilePaths = new string[dataSplits];
         for (int i = 0; i < dataSplits; i++)

@@ -9,8 +9,8 @@ internal class CysteineFragmentationExplorer : RadicalFragmentationExplorer
     public override string AnalysisType => "Cysteine";
     public double CysteineToSelect = 1;
 
-    public CysteineFragmentationExplorer(string databasePath, int numberOfMods, string species, int ambiguityLevel, int fragmentationEvents, string? baseDirectory = null)
-        : base(databasePath, numberOfMods, species, fragmentationEvents, ambiguityLevel, baseDirectory)
+    public CysteineFragmentationExplorer(string databasePath, int numberOfMods, string species, int ambiguityLevel, int fragmentationEvents, string? baseDirectory = null, int allowedMissedMonos = 0)
+        : base(databasePath, numberOfMods, species, fragmentationEvents, ambiguityLevel, baseDirectory, allowedMissedMonos)
     {
     }
 

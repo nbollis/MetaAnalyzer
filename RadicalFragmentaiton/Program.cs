@@ -55,6 +55,7 @@ namespace RadicalFragmentation
                 string label = CommandLineArguments.Label ?? "Human";
                 int ambigLevel = CommandLineArguments.AmbiguityLevel;
                 string outDir = CommandLineArguments.OutputDirectory!;
+                int missedMonos = CommandLineArguments.MissedMonoIsoTopics;
 
                 if (!Directory.Exists(outDir))
                     Directory.CreateDirectory(outDir);
@@ -62,10 +63,10 @@ namespace RadicalFragmentation
                 switch (CommandLineArguments.FragmentExplorerType)
                 {
                     case FragmentExplorerType.Tryptophan:
-                        explorer = new TryptophanFragmentationExplorer(dbPath, mods, label, ambigLevel, outDir);
+                        explorer = new TryptophanFragmentationExplorer(dbPath, mods, label, ambigLevel, outDir, missedMonos);
                         break;
                     case FragmentExplorerType.Cysteine:
-                        explorer = new CysteineFragmentationExplorer(dbPath, mods, label, ambigLevel, int.MaxValue, outDir);
+                        explorer = new CysteineFragmentationExplorer(dbPath, mods, label, ambigLevel, int.MaxValue, outDir, missedMonos);
                         break;
                     case FragmentExplorerType.ETD:
                     default:
