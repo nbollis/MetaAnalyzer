@@ -69,6 +69,8 @@ namespace RadicalFragmentation
                         explorer = new CysteineFragmentationExplorer(dbPath, mods, label, ambigLevel, int.MaxValue, outDir, missedMonos);
                         break;
                     case FragmentExplorerType.ETD:
+                        explorer = new EtdFragmentationExplorer(dbPath, mods, label, ambigLevel, outDir, missedMonos);
+                        break;
                     default:
                         throw new ArgumentOutOfRangeException();
                 }

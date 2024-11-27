@@ -6,8 +6,8 @@ namespace RadicalFragmentation.Processing;
 
 internal class EtdFragmentationExplorer : RadicalFragmentationExplorer
 {
-    public EtdFragmentationExplorer(string databasePath, int numberOfMods, string species, int maximumFragmentationEvents = Int32.MaxValue, int ambiguityLevel = 1, string? baseDirectory = null, int allowedMissedMonos = 0) 
-        : base(databasePath, numberOfMods, species, maximumFragmentationEvents, ambiguityLevel, baseDirectory, allowedMissedMonos)
+    public EtdFragmentationExplorer(string databasePath, int numberOfMods, string species,  int ambiguityLevel = 1, string? baseDirectory = null, int allowedMissedMonos = 0) 
+        : base(databasePath, numberOfMods, species, Int32.MaxValue, ambiguityLevel, baseDirectory, allowedMissedMonos)
     {
     }
 
