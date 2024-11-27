@@ -38,7 +38,7 @@ public abstract class RadicalFragmentationExplorer
         MaximumFragmentationEvents = maximumFragmentationEvents;
         AmbiguityLevel = ambiguityLevel;
         BaseDirectorPath = baseDirectory ?? @"D:\Projects\RadicalFragmentation\FragmentAnalysis";
-        PrecursorMassTolerance = allowedMissedMonos == 0 ? new PpmTolerance(10) : new MissedMonoisotopicTolerance(allowedMissedMonos);
+        PrecursorMassTolerance = allowedMissedMonos == 0 ? new PpmTolerance(StaticVariables.DefaultPpmTolerance) : new MissedMonoisotopicTolerance(allowedMissedMonos);
 
         fixedMods = new List<Modification>();
         variableMods = new List<Modification>();

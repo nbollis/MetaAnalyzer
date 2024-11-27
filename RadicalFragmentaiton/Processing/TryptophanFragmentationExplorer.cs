@@ -7,6 +7,7 @@ namespace RadicalFragmentation.Processing;
 
 internal class TryptophanFragmentationExplorer : RadicalFragmentationExplorer
 {
+    // TODO: I think i can delete this region as its all in teh base class now
     #region Bulk Results
     private string _bulkResultsFragmentHistogramFilepath => Path.Combine(DirectoryPath, $"Combined_{FileIdentifiers.FragmentCountHistogram}");
     private FragmentHistogramFile _bulkResultsFragmentHistogramFile;
@@ -63,7 +64,7 @@ internal class TryptophanFragmentationExplorer : RadicalFragmentationExplorer
     {
         // add the modifications to the protein
         foreach (var proteoform in protein.Digest(PrecursorDigestionParams, fixedMods, variableMods)
-                     .DistinctBy(p => p.FullSequence).Where(p => p.MonoisotopicMass < 60000))
+                     .DistinctBy(p => p.FullSequence).Where(p => p.MonoisotopicMass < StaticVariables.MaxPrecursorMass))
         {
             var mods = proteoform.AllModsOneIsNterminus
                 .ToDictionary(p => p.Key, p => new List<Modification>() { p.Value });

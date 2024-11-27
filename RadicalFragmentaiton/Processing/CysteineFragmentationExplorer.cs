@@ -20,7 +20,7 @@ internal class CysteineFragmentationExplorer : RadicalFragmentationExplorer
 
         // add on the modifications
         foreach (var proteoform in protein.Digest(PrecursorDigestionParams, fixedMods, variableMods)
-                     .DistinctBy(p => p.FullSequence).Where(p => p.MonoisotopicMass < 60000))
+                     .DistinctBy(p => p.FullSequence).Where(p => p.MonoisotopicMass < StaticVariables.MaxPrecursorMass))
         {
             var mods = proteoform.AllModsOneIsNterminus
                 .ToDictionary(p => p.Key, p => new List<Modification>() { p.Value });
