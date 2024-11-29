@@ -2,14 +2,14 @@
 using CommandLine.Text;
 using RadicalFragmentation.Processing;
 using System.Diagnostics;
-using Analyzer.Plotting.Util;
 using UsefulProteomicsDatabases;
+using ResultAnalyzerUtil.CommandLine;
 
 namespace RadicalFragmentation
 {
     internal class Program
     {
-        private static CommandLineArguments CommandLineArguments;
+        private static ICommandLineParameters CommandLineParameters;
         public static int Main(string[] args)
         {
             // an error code of 0 is returned if the program ran successfully.
@@ -27,7 +27,7 @@ namespace RadicalFragmentation
             return errorCode;
         }
 
-        public static int Run(CommandLineArguments settings)
+        public static int Run(ICommandLineParameters settings)
         {
             int errorCode = 0;
 
@@ -35,7 +35,7 @@ namespace RadicalFragmentation
             try
             {
                 settings.ValidateCommandLineSettings();
-                CommandLineArguments = settings;
+                CommandLineParameters = settings;
             }
             catch (Exception e)
             {
@@ -46,10 +46,31 @@ namespace RadicalFragmentation
                 return errorCode;
             }
 
+            try
+            {
+
+                Loaders.LoadElements();
+
+                CommandLineLogger.Initialize(settings);
+                RadicalFragmentationExplorer.LogHandler += CommandLineLogger.LogHandler;
+                RadicalFragmentationExplorer.WarnHandler += CommandLineLogger.WarnHandler;
+                RadicalFragmentationExplorer.FileWrittenHandler += CommandLineLogger.FinishedWritingFileHandler;
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine("Result Analyzer encountered the following error while initializing events:" + Environment.NewLine + e.Message);
+                errorCode = 3;
+
+                CrashHandler(e, errorCode);
+                return errorCode;
+            }
+
             // construct runner
             RadicalFragmentationExplorer explorer;
             try
             {
+
+                var CommandLineArguments = (CommandLineArguments)settings;
                 string dbPath = CommandLineArguments.DatabasePath;
                 int mods = CommandLineArguments.ModsToConsider;
                 string label = CommandLineArguments.Label ?? "Human";
@@ -75,13 +96,11 @@ namespace RadicalFragmentation
                         throw new ArgumentOutOfRangeException();
                 }
 
-                Loaders.LoadElements();
-               
             }
             catch (Exception e)
             {
-                Console.WriteLine("Result Analyzer encountered the following error:" + Environment.NewLine + e.Message);
-                errorCode = 3;
+                Console.WriteLine("Result Analyzer encountered the following error while initializing fragmentor:" + Environment.NewLine + e.Message);
+                errorCode = 4;
 
                 CrashHandler(e, errorCode);
                 return errorCode;
@@ -90,9 +109,11 @@ namespace RadicalFragmentation
             // run tasks
             try
             {
+                CommandLineLogger.StartingSubProcessHandler("", new SubProcessEventArgs(explorer.AnalysisLabel));
                 explorer.CreateIndexedFile();
                 explorer.CreateFragmentHistogramFile();
                 explorer.FindNumberOfFragmentsNeededToDifferentiate();
+                CommandLineLogger.FinishedSubProcessHandler("", new SubProcessEventArgs(explorer.AnalysisLabel));
             }
             catch (Exception e)
             {
@@ -133,24 +154,17 @@ namespace RadicalFragmentation
             return errorCode;
         }
 
-        private static void LogHandler(object? sender, StringEventArgs e)
-        {
-            Console.WriteLine($"{DateTime.Now:T}: {e.Message}");
-        }
-
-        private static void WarnHandler(object? sender, StringEventArgs e)
-        {
-            Console.WriteLine($"{DateTime.Now:T}: {e.Message}");
-        }
+      
 
         private static void CrashHandler(object? sender, StringEventArgs e)
         {
             Console.WriteLine($"{DateTime.Now:T}: {e.Message}");
         }
 
+        // TODO: incorportate this into the logger
         private static void CrashHandler(Exception e, int errorCode)
         {
-            string path = Path.Combine(CommandLineArguments.OutputDirectory, "ErrorLog.txt");
+            string path = Path.Combine(CommandLineParameters.OutputDirectory, "ErrorLog.txt");
             using (var sw = new StreamWriter(File.Create(path)))
             {
                 sw.WriteLine($"Exception was thrown with error code {errorCode}");

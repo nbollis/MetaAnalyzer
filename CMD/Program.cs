@@ -1,11 +1,11 @@
 ﻿using System.Diagnostics;
-using Analyzer.Plotting.Util;
 using Analyzer.SearchType;
 using Calibrator;
 using CMD;
 using CommandLine;
 using CommandLine.Text;
 using ResultAnalyzerUtil;
+using ResultAnalyzerUtil.CommandLine;
 using TaskLayer;
 using TaskLayer.ChimeraAnalysis;
 using TaskLayer.JenkinsLikePEPTesting;

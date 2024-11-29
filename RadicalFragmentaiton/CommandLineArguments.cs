@@ -2,8 +2,11 @@
 
 namespace RadicalFragmentation
 {
-    public class CommandLineArguments
+    public class CommandLineArguments : ICommandLineParameters
     {
+        public string ProgramName => "RadicalFragmentation";
+        public VerbosityType Verbosity { get; } = VerbosityType.Normal;
+
         [Option('d', HelpText = "The database path", Required = true)]
         public string DatabasePath { get; set; }
 
@@ -27,6 +30,7 @@ namespace RadicalFragmentation
         [Option('i', HelpText = "MissedMonoIsotopics", Required = false, Default = 0)]
         public int MissedMonoIsoTopics { get; set; }
 
+
         public void ValidateCommandLineSettings()
         {
             if (string.IsNullOrEmpty(DatabasePath))
@@ -40,10 +44,14 @@ namespace RadicalFragmentation
             if (AmbiguityLevel < 1 || AmbiguityLevel > 2)
                 throw new Exception("Ambiguity level must be 1 or 2");
 
+            if (MissedMonoIsoTopics < 0)
+                throw new Exception("Missed Mono Isotopics must be greater than or equal to zero");
+
             if (string.IsNullOrEmpty(DatabasePath))
                 OutputDirectory = Directory.GetDirectoryRoot(DatabasePath);
             else if (!Directory.Exists(OutputDirectory))
                 Directory.CreateDirectory(OutputDirectory);
         }
+
     }
 }

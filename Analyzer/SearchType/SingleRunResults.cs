@@ -1,7 +1,7 @@
 ﻿using Analyzer.FileTypes.Internal;
 using Analyzer.Interfaces;
-using Analyzer.Plotting.Util;
 using ResultAnalyzerUtil;
+using ResultAnalyzerUtil.CommandLine;
 
 namespace Analyzer.SearchType
 {

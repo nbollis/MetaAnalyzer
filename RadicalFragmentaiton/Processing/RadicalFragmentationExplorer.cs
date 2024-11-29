@@ -4,6 +4,7 @@ using Proteomics;
 using Proteomics.ProteolyticDigestion;
 using RadicalFragmentation.Util;
 using ResultAnalyzerUtil;
+using ResultAnalyzerUtil.CommandLine;
 using UsefulProteomicsDatabases;
 
 namespace RadicalFragmentation.Processing;
@@ -134,6 +135,29 @@ public abstract class RadicalFragmentationExplorer
 
     #endregion
 
+    #region
+
+    public static EventHandler<StringEventArgs> LogHandler = null!;
+    public static EventHandler<StringEventArgs> WarnHandler = null!;
+    public static EventHandler<SingleFileEventArgs> FileWrittenHandler = null!;
+
+    protected void Log(string message)
+    {
+        LogHandler?.Invoke(this, new StringEventArgs(message));
+    }
+
+    protected void Warn(string message)
+    {
+        WarnHandler?.Invoke(this, new StringEventArgs(message));
+    }
+
+    protected void FinishedWritingFile(string writtenFile)
+    {
+        FileWrittenHandler?.Invoke(this, new SingleFileEventArgs(writtenFile));
+    }
+
+    #endregion
+
     #region Methods
     protected DigestionParams PrecursorDigestionParams => new DigestionParams("top-down", 0, 2, int.MaxValue, 100000,
         InitiatorMethionineBehavior.Retain, NumberOfMods);
@@ -141,8 +165,12 @@ public abstract class RadicalFragmentationExplorer
     public PrecursorFragmentMassFile CreateIndexedFile()
     {
         if (!Override && File.Exists(_precursorFragmentMassFilePath))
+        {
+            Log($"File Found: loading in index file for {AnalysisLabel}");
             return PrecursorFragmentMassFile;
+        }
 
+        Log($"Creating Index File for {AnalysisLabel}");
         if (!Directory.Exists(IndexDirectoryPath))
             Directory.CreateDirectory(IndexDirectoryPath);
 
@@ -180,6 +208,8 @@ public abstract class RadicalFragmentationExplorer
             Results = uniqueSets
         };
         file.WriteResults(_precursorFragmentMassFilePath);
+
+        FinishedWritingFile(_precursorFragmentMassFilePath);
         return _precursorFragmentMassFile = file;
     }
     public abstract IEnumerable<PrecursorFragmentMassSet> GeneratePrecursorFragmentMasses(Protein protein);
@@ -187,8 +217,12 @@ public abstract class RadicalFragmentationExplorer
     public FragmentsToDistinguishFile FindNumberOfFragmentsNeededToDifferentiate()
     {
         if (!Override && File.Exists(_minFragmentNeededFilePath))
+        {
+            Log($"File Found: loading in fragments needed file for {AnalysisLabel}");
             return MinFragmentNeededFile;
+        }
 
+        Log($"Creating fragments needed file for {AnalysisLabel}");
         var dataSplits = 10;
         var tolerance = PrecursorMassTolerance;
 
@@ -267,6 +301,7 @@ public abstract class RadicalFragmentationExplorer
             // write that chunk
             var tempFile = new FragmentsToDistinguishFile(tempFilePaths[i]) { Results = results };
             tempFile.WriteResults(tempFilePaths[i]);
+            FinishedWritingFile(tempFilePaths[i]);
         }
 
         // combine all temporary files into a single file and delete the temp files
@@ -276,6 +311,7 @@ public abstract class RadicalFragmentationExplorer
 
         var fragmentsToDistinguishFile = new FragmentsToDistinguishFile(_minFragmentNeededFilePath) { Results = allResults };
         fragmentsToDistinguishFile.WriteResults(_minFragmentNeededFilePath);
+        FinishedWritingFile(_minFragmentNeededFilePath);
 
         foreach (var tempFile in tempFilePaths)
             File.Delete(tempFile);
@@ -286,8 +322,12 @@ public abstract class RadicalFragmentationExplorer
     public FragmentHistogramFile CreateFragmentHistogramFile()
     {
         if (!Override && File.Exists(_fragmentHistogramFilePath))
+        {
+            Log($"File Found: loading in fragment histogram file for {AnalysisLabel}");
             return FragmentHistogramFile;
+        }
 
+        Log($"Creating fragment histogram file for {AnalysisLabel}");
         if (!Directory.Exists(DirectoryPath))
             Directory.CreateDirectory(DirectoryPath);
 
@@ -305,6 +345,8 @@ public abstract class RadicalFragmentationExplorer
             }).ToList();
         var file = new FragmentHistogramFile(_fragmentHistogramFilePath) { Results = fragmentCounts };
         file.WriteResults(_fragmentHistogramFilePath);
+
+        FinishedWritingFile(_minFragmentNeededFilePath);
         return _fragmentHistogramFile = file;
     }
 
@@ -314,22 +356,26 @@ public abstract class RadicalFragmentationExplorer
         if (HasUniqueFragment(targetProteoform, otherProteoforms, tolerance))
             return 1;
 
-        if (otherProteoforms.All(p => p.FragmentMassesHashSet.SequenceEqual(targetProteoform)))
+        // Check if all other proteoforms are identical to the target proteoform
+        if (otherProteoforms.All(p => p.FragmentMassesHashSet.SetEquals(targetProteoform)))
             return -1;
 
         // Generate all combinations of fragment masses from the target otherProteoform
+        var targetProteoformList = targetProteoform.ToList();
+        var combinations = GenerateCombinations(targetProteoformList).Where(p => p.Count > 1).OrderBy(p => p.Count);
+
         // Order by count of fragment masses and check to see if they can differentiate the target
-        foreach (var combination in GenerateCombinations(targetProteoform.ToList())
-                     .Where(p => p.Count > 1)
-                     .OrderBy(p => p.Count))
+        foreach (var combination in combinations)
         {
-            // get those that can be explained by these fragments
-            var idkMan = otherProteoforms
+            // Get those that can be explained by these fragments
+            var matchingProteoforms = otherProteoforms
                 .Where(p => p.FragmentMassesHashSet.ListContainsWithin(combination, tolerance))
                 .ToList();
-            if (idkMan.Count == 0)
+
+            if (matchingProteoforms.Count == 0)
                 return combination.Count;
-            if (HasUniqueFragment(targetProteoform, idkMan, tolerance))
+
+            if (HasUniqueFragment(targetProteoform, matchingProteoforms, tolerance))
                 return combination.Count + 1;
         }
 
@@ -345,16 +391,11 @@ public abstract class RadicalFragmentationExplorer
             bool isUniqueFragment = true;
             foreach (var otherProteoform in otherProteoforms)
             {
-                foreach (var otherFragment in otherProteoform.FragmentMassesHashSet)
+                if (otherProteoform.FragmentMassesHashSet.Any(otherFragment => tolerance.Within(targetFragment, otherFragment)))
                 {
-                    if (tolerance.Within(targetFragment, otherFragment))
-                    {
-                        isUniqueFragment = false;
-                        break;
-                    }
-                }
-                if (!isUniqueFragment)
+                    isUniqueFragment = false;
                     break;
+                }
             }
             if (isUniqueFragment)
                 return true;

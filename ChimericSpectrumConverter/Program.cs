@@ -1,8 +1,8 @@
 ﻿using System.Diagnostics;
-using Analyzer.Plotting.Util;
 using CMD;
 using CommandLine;
 using CommandLine.Text;
+using ResultAnalyzerUtil.CommandLine;
 using TaskLayer;
 
 namespace ChimericSpectrumConverter;
