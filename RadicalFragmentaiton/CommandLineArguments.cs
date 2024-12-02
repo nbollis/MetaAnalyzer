@@ -30,6 +30,10 @@ namespace RadicalFragmentation
         [Option('i', HelpText = "MissedMonoIsotopics", Required = false, Default = 0)]
         public int MissedMonoIsoTopics { get; set; }
 
+        [Option('p', HelpText = "Maximum threads for RadicalFragmentor to use", Required = false, Default = 1)]
+        public int MaxThreads { get; set; }
+
+        // TODO: Change type to f and threads to t
 
         public void ValidateCommandLineSettings()
         {
@@ -47,11 +51,13 @@ namespace RadicalFragmentation
             if (MissedMonoIsoTopics < 0)
                 throw new Exception("Missed Mono Isotopics must be greater than or equal to zero");
 
+            if (MaxThreads < 1)
+                throw new Exception("Max threads must be greater than zero");
+
             if (string.IsNullOrEmpty(DatabasePath))
                 OutputDirectory = Directory.GetDirectoryRoot(DatabasePath);
             else if (!Directory.Exists(OutputDirectory))
                 Directory.CreateDirectory(OutputDirectory);
         }
-
     }
 }

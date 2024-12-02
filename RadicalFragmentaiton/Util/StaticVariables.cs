@@ -1,14 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿namespace RadicalFragmentation;
 
-namespace RadicalFragmentation
+internal static class StaticVariables
 {
-    internal static class StaticVariables
-    {
-        internal static double MaxPrecursorMass => 60000;
-        internal static double DefaultPpmTolerance => 10;
-    }
+    internal static double MaxPrecursorMass { get; private set; } = 60000;
+    internal static double DefaultPpmTolerance { get; private set; } = 10;
+    internal static int MaxThreads { get; set; } = 1;
 }

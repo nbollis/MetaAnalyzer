@@ -194,10 +194,14 @@ public abstract class RadicalFragmentationExplorer
             var modifications = NumberOfMods == 0 ? new List<Modification>() : GlobalVariables.AllModsKnown;
             var proteins = ProteinDbLoader.LoadProteinXML(DatabasePath, true, DecoyType.None, modifications, false, new List<string>(), out var um);
 
-            foreach (var protein in proteins)
+            Parallel.ForEach(proteins, new ParallelOptions() { MaxDegreeOfParallelism = StaticVariables.MaxThreads }, protein =>
             {
-                sets.AddRange(GeneratePrecursorFragmentMasses(protein));
-            }
+                var generatedSets = GeneratePrecursorFragmentMasses(protein);
+                lock (sets)
+                {
+                    sets.AddRange(generatedSets);
+                }
+            });
         }
 
 
@@ -233,13 +237,15 @@ public abstract class RadicalFragmentationExplorer
         // split processed data into n chuncks
         var toSplit = new List<(PrecursorFragmentMassSet, List<PrecursorFragmentMassSet>)>();
         var orderedResults = PrecursorFragmentMassFile.Results.OrderBy(p => p.PrecursorMass).ToList();
-        for (var index = 0; index < orderedResults.Count; index++)
+
+        int orderedResultsCount = orderedResults.Count;
+
+        for (var index = 0; index < orderedResultsCount; index++)
         {
             var outerResult = orderedResults[index];
 
-            var first = orderedResults.First(p =>
-                tolerance.Within(p.PrecursorMass, outerResult.PrecursorMass));
-            var firstIndex = orderedResults.IndexOf(first);
+            var firstIndex = orderedResults.FindIndex(p
+                => tolerance.Within(p.PrecursorMass, outerResult.PrecursorMass));
 
             // iterate through ordered until one does not fall within tolerance
             var innerResults = new List<PrecursorFragmentMassSet>();
@@ -247,7 +253,7 @@ public abstract class RadicalFragmentationExplorer
             {
                 if (orderedResults[i].Equals(outerResult))
                     continue;
-                if (tolerance.Within(orderedResults[i].PrecursorMass, first.PrecursorMass))
+                if (tolerance.Within(orderedResults[i].PrecursorMass, orderedResults[firstIndex].PrecursorMass))
                     innerResults.Add(orderedResults[i]);
                 else
                     break;
@@ -259,6 +265,7 @@ public abstract class RadicalFragmentationExplorer
             {
                 int toRemove = firstIndex;
                 orderedResults.RemoveRange(0, toRemove);
+                orderedResultsCount -= toRemove;
                 index -= toRemove;
             }
         }
@@ -271,7 +278,7 @@ public abstract class RadicalFragmentationExplorer
                 continue;
 
             var results = new List<FragmentsToDistinguishRecord>();
-            Parallel.ForEach(toProcess[i], new ParallelOptions() { MaxDegreeOfParallelism = 1 },
+            Parallel.ForEach(toProcess[i], new ParallelOptions() { MaxDegreeOfParallelism = StaticVariables.MaxThreads },
                 (result) =>
                 {
                     int minFragments;
@@ -331,7 +338,8 @@ public abstract class RadicalFragmentationExplorer
         if (!Directory.Exists(DirectoryPath))
             Directory.CreateDirectory(DirectoryPath);
 
-        var fragmentCounts = PrecursorFragmentMassFile.Results.GroupBy(p => p.FragmentCount)
+        var fragmentCounts = PrecursorFragmentMassFile.Results
+            .GroupBy(p => p.FragmentCount)
             .OrderBy(p => p.Key)
             .Select(p => new FragmentHistogramRecord
             {
@@ -362,7 +370,9 @@ public abstract class RadicalFragmentationExplorer
 
         // Generate all combinations of fragment masses from the target otherProteoform
         var targetProteoformList = targetProteoform.ToList();
-        var combinations = GenerateCombinations(targetProteoformList).Where(p => p.Count > 1).OrderBy(p => p.Count);
+        var combinations = GenerateCombinations(targetProteoformList)
+            .Where(p => p.Count > 1)
+            .OrderBy(p => p.Count);
 
         // Order by count of fragment masses and check to see if they can differentiate the target
         foreach (var combination in combinations)
