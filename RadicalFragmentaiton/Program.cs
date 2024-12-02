@@ -39,7 +39,7 @@ namespace RadicalFragmentation
             }
             catch (Exception e)
             {
-                Console.WriteLine("Result Analyzer encountered the following error:" + Environment.NewLine + e.Message);
+                Console.WriteLine("Radical Fragmentation encountered the following error:" + Environment.NewLine + e.Message);
                 errorCode = 2;
 
                 CrashHandler(e, errorCode);
@@ -60,7 +60,7 @@ namespace RadicalFragmentation
             }
             catch (Exception e)
             {
-                Console.WriteLine("Result Analyzer encountered the following error while initializing events:" + Environment.NewLine + e.Message);
+                Console.WriteLine("Radical Fragmentation encountered the following error while initializing events:" + Environment.NewLine + e.Message);
                 errorCode = 3;
 
                 CrashHandler(e, errorCode);
@@ -101,7 +101,7 @@ namespace RadicalFragmentation
             }
             catch (Exception e)
             {
-                Console.WriteLine("Result Analyzer encountered the following error while initializing fragmentor:" + Environment.NewLine + e.Message);
+                Console.WriteLine("Radical Fragmentation encountered the following error while initializing fragmentor:" + Environment.NewLine + e.Message);
                 errorCode = 4;
 
                 CrashHandler(e, errorCode);
@@ -127,7 +127,7 @@ namespace RadicalFragmentation
                 Debugger.Break();
 
                 var message = "Run failed, Exception: " + e.Message;
-                Console.WriteLine("Result Analyzer encountered the following error:" + message);
+                Console.WriteLine("Radical Fragmentation encountered the following error:" + message);
                 errorCode = 4;
                 CrashHandler(e, errorCode);
                 return errorCode;
@@ -138,7 +138,7 @@ namespace RadicalFragmentation
 
         public static int DisplayHelp<T>(ParserResult<T> result, IEnumerable<Error> errors)
         {
-            Console.WriteLine("Welcome to Result Analyzer");
+            Console.WriteLine("Welcome to Radical Fragmentation");
             int errorCode = 0;
 
             var helpText = HelpText.AutoBuild(result, h =>
