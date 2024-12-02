@@ -46,15 +46,17 @@ namespace RadicalFragmentation
                 return errorCode;
             }
 
+            // Initialize services etc. from command line parameters
             try
             {
-
                 Loaders.LoadElements();
 
                 CommandLineLogger.Initialize(settings);
                 RadicalFragmentationExplorer.LogHandler += CommandLineLogger.LogHandler;
                 RadicalFragmentationExplorer.WarnHandler += CommandLineLogger.WarnHandler;
                 RadicalFragmentationExplorer.FileWrittenHandler += CommandLineLogger.FinishedWritingFileHandler;
+
+                StaticVariables.MaxThreads = settings.MaxThreads;
             }
             catch (Exception e)
             {

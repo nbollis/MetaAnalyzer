@@ -51,6 +51,8 @@ namespace RadicalFragmentation
 
             if (MaxThreads < 1)
                 throw new Exception("Max threads must be greater than zero");
+            if (MaxThreads > Environment.ProcessorCount)
+                MaxThreads = Environment.ProcessorCount;
 
             if (string.IsNullOrEmpty(DatabasePath))
                 OutputDirectory = Directory.GetDirectoryRoot(DatabasePath);
