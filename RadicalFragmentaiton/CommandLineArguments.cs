@@ -16,7 +16,7 @@ namespace RadicalFragmentation
         [Option('a', HelpText = "Ambiguity Level\n1-> Proteoform Resolution\n2-> Protein Resolution", Required = true)]
         public int AmbiguityLevel { get; set; }
 
-        [Option('t', Required = true, Default = 1, HelpText = "Type of fragmentation to perform\n1 -> Tryptophan\n2 -> Cysteine\n3 -> ETD")]
+        [Option('f', Required = true, Default = 1, HelpText = "Type of fragmentation to perform\n1 -> Tryptophan\n2 -> Cysteine\n3 -> ETD")]
         public int FragmentAmbiguityType { get; set; }
 
         internal FragmentExplorerType FragmentExplorerType => (FragmentExplorerType)FragmentAmbiguityType;
@@ -30,10 +30,8 @@ namespace RadicalFragmentation
         [Option('i', HelpText = "MissedMonoIsotopics", Required = false, Default = 0)]
         public int MissedMonoIsoTopics { get; set; }
 
-        [Option('p', HelpText = "Maximum threads for RadicalFragmentor to use", Required = false, Default = 1)]
+        [Option('t', HelpText = "Maximum threads for RadicalFragmentor to use", Required = false, Default = 1)]
         public int MaxThreads { get; set; }
-
-        // TODO: Change type to f and threads to t
 
         public void ValidateCommandLineSettings()
         {

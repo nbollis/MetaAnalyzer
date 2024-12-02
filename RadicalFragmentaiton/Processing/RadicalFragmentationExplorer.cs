@@ -43,6 +43,7 @@ public abstract class RadicalFragmentationExplorer
     protected int MaximumFragmentationEvents { get; set; }
     protected string MaxFragmentString => MaximumFragmentationEvents == int.MaxValue ? "All" : MaximumFragmentationEvents.ToString();
     protected Tolerance PrecursorMassTolerance { get; set; }
+    protected Tolerance FragmentMassTolerance { get; set; }
 
     protected List<Modification> fixedMods;
     protected List<Modification> variableMods;
@@ -58,7 +59,10 @@ public abstract class RadicalFragmentationExplorer
         MaximumFragmentationEvents = maximumFragmentationEvents;
         AmbiguityLevel = ambiguityLevel;
         BaseDirectorPath = baseDirectory ?? @"D:\Projects\RadicalFragmentation\FragmentAnalysis";
-        PrecursorMassTolerance = allowedMissedMonos == 0 ? new PpmTolerance(StaticVariables.DefaultPpmTolerance) : new MissedMonoisotopicTolerance(allowedMissedMonos);
+        PrecursorMassTolerance = allowedMissedMonos == 0 
+            ? new PpmTolerance(StaticVariables.DefaultPpmTolerance) 
+            : new MissedMonoisotopicTolerance(StaticVariables.DefaultPpmTolerance ,allowedMissedMonos);
+        FragmentMassTolerance = new PpmTolerance(StaticVariables.DefaultPpmTolerance);
 
         fixedMods = new List<Modification>();
         variableMods = new List<Modification>();
@@ -283,7 +287,7 @@ public abstract class RadicalFragmentationExplorer
                 {
                     int minFragments;
                     if (result.Item2.Count > 1)
-                        minFragments = MinFragmentMassesToDifferentiate(result.Item1.FragmentMassesHashSet, result.Item2, tolerance);
+                        minFragments = MinFragmentMassesToDifferentiate(result.Item1.FragmentMassesHashSet, result.Item2, FragmentMassTolerance);
                     else
                         minFragments = 0;
 
@@ -379,6 +383,7 @@ public abstract class RadicalFragmentationExplorer
         {
             // Get those that can be explained by these fragments
             var matchingProteoforms = otherProteoforms
+                .AsParallel()
                 .Where(p => p.FragmentMassesHashSet.ListContainsWithin(combination, tolerance))
                 .ToList();
 
