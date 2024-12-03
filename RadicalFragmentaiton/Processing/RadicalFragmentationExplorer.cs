@@ -144,6 +144,8 @@ public abstract class RadicalFragmentationExplorer
     public static EventHandler<StringEventArgs> LogHandler = null!;
     public static EventHandler<StringEventArgs> WarnHandler = null!;
     public static EventHandler<SingleFileEventArgs> FileWrittenHandler = null!;
+    public static EventHandler<SubProcessEventArgs> StartingSubProcessHandler = null!;
+    public static EventHandler<SubProcessEventArgs> FinishedSubProcessHandler = null!;
 
     protected void Log(string message)
     {
@@ -153,6 +155,16 @@ public abstract class RadicalFragmentationExplorer
     protected void Warn(string message)
     {
         WarnHandler?.Invoke(this, new StringEventArgs(message));
+    }
+
+    protected void StartingSubProcess(string label)
+    {
+        StartingSubProcessHandler?.Invoke(this, new SubProcessEventArgs(label));
+    }
+
+    protected void FinishedSubProcess(string label)
+    {
+        FinishedSubProcessHandler?.Invoke(this, new SubProcessEventArgs(label));
     }
 
     protected void FinishedWritingFile(string writtenFile)
@@ -275,12 +287,14 @@ public abstract class RadicalFragmentationExplorer
         }
         var toProcess = toSplit.Split(dataSplits).ToList();
 
+        
         // Process a single chunk at a time
         for (int i = 0; i < dataSplits; i++)
         {
             if (File.Exists(tempFilePaths[i]))
                 continue;
 
+            StartingSubProcess($"Processing Precursor Chunk {i + 1} of {dataSplits}");
             var results = new List<FragmentsToDistinguishRecord>();
             Parallel.ForEach(toProcess[i], new ParallelOptions() { MaxDegreeOfParallelism = StaticVariables.MaxThreads },
                 (result) =>
@@ -313,6 +327,7 @@ public abstract class RadicalFragmentationExplorer
             var tempFile = new FragmentsToDistinguishFile(tempFilePaths[i]) { Results = results };
             tempFile.WriteResults(tempFilePaths[i]);
             FinishedWritingFile(tempFilePaths[i]);
+            FinishedSubProcess($"Finished Processing Precursor Chunk {i + 1} of {dataSplits}");
         }
 
         // combine all temporary files into a single file and delete the temp files
