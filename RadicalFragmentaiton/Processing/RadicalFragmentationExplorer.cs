@@ -40,6 +40,9 @@ public abstract class RadicalFragmentationExplorer
     public string Species { get; set; }
     public int NumberOfMods { get; set; }
     public string DatabasePath { get; set; }
+    public int MissedMonoIsotopics { get; set; }
+
+
     protected int MaximumFragmentationEvents { get; set; }
     protected string MaxFragmentString => MaximumFragmentationEvents == int.MaxValue ? "All" : MaximumFragmentationEvents.ToString();
     protected Tolerance PrecursorMassTolerance { get; set; }
@@ -59,9 +62,10 @@ public abstract class RadicalFragmentationExplorer
         MaximumFragmentationEvents = maximumFragmentationEvents;
         AmbiguityLevel = ambiguityLevel;
         BaseDirectorPath = baseDirectory ?? @"D:\Projects\RadicalFragmentation\FragmentAnalysis";
+        MissedMonoIsotopics = allowedMissedMonos;
         PrecursorMassTolerance = allowedMissedMonos == 0 
             ? new PpmTolerance(StaticVariables.DefaultPpmTolerance) 
-            : new MissedMonoisotopicTolerance(StaticVariables.DefaultPpmTolerance ,allowedMissedMonos);
+            : new MissedMonoisotopicTolerance(StaticVariables.DefaultPpmTolerance, allowedMissedMonos);
         FragmentMassTolerance = new PpmTolerance(StaticVariables.DefaultPpmTolerance);
 
         fixedMods = new List<Modification>();

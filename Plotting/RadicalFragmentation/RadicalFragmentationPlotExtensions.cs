@@ -90,7 +90,7 @@ namespace Plotting.RadicalFragmentation
 
         public static void CreatePlots(this List<RadicalFragmentationExplorer> explorers)
         {
-            var typeCollection = explorers.Select(p => p.AnalysisType).Distinct().ToArray();
+            var typeCollection = explorers.Select(p => p.AnalysisLabel).Distinct().ToArray();
             if (typeCollection.Count() > 1)
                 throw new ArgumentException("All explorers must be of the same type");
             var type = typeCollection.First();
@@ -163,14 +163,11 @@ namespace Plotting.RadicalFragmentation
                          .Where(p => p.AmbiguityLevel == ambiguityLevel)
                          .GroupBy(p => p.NumberOfMods))
             {
-
-
                 var temp = modGroup.GroupBy(p => p.FragmentCountNeededToDifferentiate)
                     .OrderBy(p => p.Key)
                     .Select(p => (p.Key, p.Count())).ToArray();
 
-                var xInt = temp.Select(p => p.Key).ToArray();
-                var x = xInt.Select(p => p.ToString()).ToArray();
+                var x = Enumerable.Range(-1, temp.Max(p => p.Key)+2).Select(p => p.ToString()).ToArray();
                 var y = temp.Select(p => p.Item2).ToArray();
                 for (int i = 0; i < x.Length; i++)
                 {
@@ -216,7 +213,7 @@ namespace Plotting.RadicalFragmentation
                     .Distinct().OrderBy(p => p)
                     .ToArray();
                 var y = xInt.Select(p => (modGroup.Count(m => m.FragmentCountNeededToDifferentiate <= p) - toSubtract) / total * 100).ToArray();
-                var x = xInt.Select(p => p.ToString()).ToArray();
+                var x = Enumerable.Range(-1, xInt.Max() + 2).Select(p => p.ToString()).ToArray();
                 x[0] = "No ID";
                 x[1] = "Precursor Only";
 
