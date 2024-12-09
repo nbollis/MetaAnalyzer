@@ -55,6 +55,8 @@ namespace RadicalFragmentation
                 RadicalFragmentationExplorer.LogHandler += CommandLineLogger.LogHandler;
                 RadicalFragmentationExplorer.WarnHandler += CommandLineLogger.WarnHandler;
                 RadicalFragmentationExplorer.FileWrittenHandler += CommandLineLogger.FinishedWritingFileHandler;
+                RadicalFragmentationExplorer.StartingSubProcessHandler += CommandLineLogger.StartingSubProcessHandler;
+                RadicalFragmentationExplorer.FinishedSubProcessHandler += CommandLineLogger.FinishedSubProcessHandler;
 
                 StaticVariables.MaxThreads = settings.MaxThreads;
             }
@@ -111,11 +113,11 @@ namespace RadicalFragmentation
             // run tasks
             try
             {
-                CommandLineLogger.StartingSubProcessHandler("", new SubProcessEventArgs(explorer.AnalysisLabel));
+                CommandLineLogger.StartingSubProcessHandler("", new SubProcessEventArgs(explorer.AnalysisLabel + explorer.NumberOfMods + explorer.AmbiguityLevel));
                 explorer.CreateIndexedFile();
                 explorer.CreateFragmentHistogramFile();
                 explorer.FindNumberOfFragmentsNeededToDifferentiate();
-                CommandLineLogger.FinishedSubProcessHandler("", new SubProcessEventArgs(explorer.AnalysisLabel));
+                CommandLineLogger.FinishedSubProcessHandler("", new SubProcessEventArgs(explorer.AnalysisLabel + explorer.NumberOfMods + explorer.AmbiguityLevel));
             }
             catch (Exception e)
             {
