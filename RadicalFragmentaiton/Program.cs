@@ -113,11 +113,12 @@ namespace RadicalFragmentation
             // run tasks
             try
             {
-                CommandLineLogger.StartingSubProcessHandler("", new SubProcessEventArgs(explorer.AnalysisLabel + explorer.NumberOfMods + explorer.AmbiguityLevel));
+                CommandLineLogger.StartingSubProcessHandler("", new SubProcessEventArgs(explorer.AnalysisLabel + " with " + explorer.NumberOfMods + " Mods and level " + explorer.AmbiguityLevel + " ambiguity"));
+                CommandLineLogger.LogHandler("", new StringEventArgs($"With output directory {explorer.DirectoryPath}"));
                 explorer.CreateIndexedFile();
                 explorer.CreateFragmentHistogramFile();
                 explorer.FindNumberOfFragmentsNeededToDifferentiate();
-                CommandLineLogger.FinishedSubProcessHandler("", new SubProcessEventArgs(explorer.AnalysisLabel + explorer.NumberOfMods + explorer.AmbiguityLevel));
+                CommandLineLogger.FinishedSubProcessHandler("", new SubProcessEventArgs(explorer.AnalysisLabel + " with " + explorer.NumberOfMods + " Mods and level " + explorer.AmbiguityLevel + " ambiguity"));
             }
             catch (Exception e)
             {

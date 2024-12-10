@@ -47,7 +47,7 @@ namespace RadicalFragmentation
         {
             if (CommandLineParameters?.Verbosity == VerbosityType.Normal)
             {
-                WriteMultiLineIndented("Finished writing file: " + e.WrittenFile);
+                WriteMultiLineIndented("Finished writing file: " + Path.GetFileNameWithoutExtension(e.WrittenFile));
             }
         }
 

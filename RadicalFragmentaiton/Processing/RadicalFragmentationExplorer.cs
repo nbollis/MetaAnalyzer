@@ -34,7 +34,7 @@ public abstract class RadicalFragmentationExplorer
             return _analysisLabel;
         }
     }
-    protected string DirectoryPath => Path.Combine(BaseDirectorPath, AnalysisLabel);
+    public string DirectoryPath => Path.Combine(BaseDirectorPath, AnalysisLabel);
     public string FigureDirectory => Path.Combine(BaseDirectorPath, "Figure");
     protected string IndexDirectoryPath => Path.Combine(BaseDirectorPath, "IndexedFragments", AnalysisLabel);
     public int AmbiguityLevel { get; set; }
