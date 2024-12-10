@@ -305,7 +305,13 @@ public abstract class RadicalFragmentationExplorer
                 {
                     int minFragments;
                     if (result.Item2.Count > 1)
-                        minFragments = MinFragmentMassesToDifferentiate(result.Item1.FragmentMassesHashSet, result.Item2, FragmentMassTolerance);
+                    {
+                        var toSearch = result.Item2;
+                        if (AmbiguityLevel == 2)
+                            toSearch = result.Item2.Where(p => p.Accession != result.Item1.Accession).ToList();
+
+                        minFragments = MinFragmentMassesToDifferentiate(result.Item1.FragmentMassesHashSet, toSearch, FragmentMassTolerance);
+                    }
                     else
                         minFragments = 0;
 
@@ -381,7 +387,7 @@ public abstract class RadicalFragmentationExplorer
         return _fragmentHistogramFile = file;
     }
 
-    protected static int MinFragmentMassesToDifferentiate(HashSet<double> targetProteoform, List<PrecursorFragmentMassSet> otherProteoforms, Tolerance tolerance)
+    public static int MinFragmentMassesToDifferentiate(HashSet<double> targetProteoform, List<PrecursorFragmentMassSet> otherProteoforms, Tolerance tolerance)
     {
         // check to see if target proteoform has a fragment that is unique to all other proteoform fragments within tolerance
         if (HasUniqueFragment(targetProteoform, otherProteoforms, tolerance))
@@ -398,19 +404,31 @@ public abstract class RadicalFragmentationExplorer
             .OrderBy(p => p.Count);
 
         // Order by count of fragment masses and check to see if they can differentiate the target
-        foreach (var combination in combinations)
+        foreach (var combinationGroup in combinations.GroupBy(p => p.Count))
         {
-            // Get those that can be explained by these fragments
-            var matchingProteoforms = otherProteoforms
-                .AsParallel()
-                .Where(p => p.FragmentMassesHashSet.ListContainsWithin(combination, tolerance))
-                .ToList();
+            
+            bool uniquePlusOneFound = false;
+            foreach (var combination in combinationGroup)
+            {
+                // Get those that can be explained by these fragments
+                var matchingProteoforms = otherProteoforms
+                    .AsParallel()
+                    .Where(p => p.FragmentMassesHashSet.ListContainsWithin(combination, tolerance))
+                    .ToList();
 
-            if (matchingProteoforms.Count == 0)
-                return combination.Count;
+                if (matchingProteoforms.Count == 0)
+                    return combination.Count;
 
-            if (HasUniqueFragment(targetProteoform, matchingProteoforms, tolerance))
-                return combination.Count + 1;
+                // if unique plus one has been found, no need to check again
+                // however, we do need to ensure that one of the current analyzed combinations is unique
+                if (uniquePlusOneFound) 
+                    continue;
+
+                if (HasUniqueFragment(targetProteoform, matchingProteoforms, tolerance))
+                    uniquePlusOneFound = true;
+            }
+            if (uniquePlusOneFound)
+                return combinationGroup.Key + 1;
         }
 
         return -1;
