@@ -52,7 +52,7 @@ public class PrecursorFragmentMassSet : IEquatable<PrecursorFragmentMassSet>
     {
     }
 
-    public bool Equals(PrecursorFragmentMassSet other)
+    public bool Equals(PrecursorFragmentMassSet? other)
     {
         if (ReferenceEquals(null, other)) return false;
         if (ReferenceEquals(this, other)) return true;
@@ -63,7 +63,7 @@ public class PrecursorFragmentMassSet : IEquatable<PrecursorFragmentMassSet>
         return toReturn;
     }
 
-    public override bool Equals(object obj)
+    public override bool Equals(object? obj)
     {
         if (ReferenceEquals(null, obj)) return false;
         if (ReferenceEquals(this, obj)) return true;

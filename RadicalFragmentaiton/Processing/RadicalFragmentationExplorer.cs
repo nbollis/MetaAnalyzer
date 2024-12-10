@@ -5,6 +5,7 @@ using Proteomics.ProteolyticDigestion;
 using RadicalFragmentation.Util;
 using ResultAnalyzerUtil;
 using ResultAnalyzerUtil.CommandLine;
+using System.Collections.Concurrent;
 using UsefulProteomicsDatabases;
 
 namespace RadicalFragmentation.Processing;
@@ -248,49 +249,14 @@ public abstract class RadicalFragmentationExplorer
 
         Log($"Creating fragments needed file for {AnalysisLabel}");
         var dataSplits = 10;
-        var tolerance = PrecursorMassTolerance;
 
         string[] tempFilePaths = new string[dataSplits];
         for (int i = 0; i < dataSplits; i++)
             tempFilePaths[i] = _minFragmentNeededFilePath.Replace(".csv", $"_{i}.csv");
 
         // split processed data into n chuncks
-        var toSplit = new List<(PrecursorFragmentMassSet, List<PrecursorFragmentMassSet>)>();
-        var orderedResults = PrecursorFragmentMassFile.Results.OrderBy(p => p.PrecursorMass).ToList();
-
-        int orderedResultsCount = orderedResults.Count;
-
-        for (var index = 0; index < orderedResultsCount; index++)
-        {
-            var outerResult = orderedResults[index];
-
-            var firstIndex = orderedResults.FindIndex(p
-                => tolerance.Within(p.PrecursorMass, outerResult.PrecursorMass));
-
-            // iterate through ordered until one does not fall within tolerance
-            var innerResults = new List<PrecursorFragmentMassSet>();
-            for (int i = firstIndex; i < orderedResults.Count; i++)
-            {
-                if (orderedResults[i].Equals(outerResult))
-                    continue;
-                if (tolerance.Within(orderedResults[i].PrecursorMass, orderedResults[firstIndex].PrecursorMass))
-                    innerResults.Add(orderedResults[i]);
-                else
-                    break;
-            }
-
-            toSplit.Add((outerResult, innerResults));
-
-            if (firstIndex != 0)
-            {
-                int toRemove = firstIndex;
-                orderedResults.RemoveRange(0, toRemove);
-                orderedResultsCount -= toRemove;
-                index -= toRemove;
-            }
-        }
+        var toSplit = GroupByPrecursorMass(PrecursorFragmentMassFile.Results, PrecursorMassTolerance, AmbiguityLevel);
         var toProcess = toSplit.Split(dataSplits).ToList();
-
         
         // Process a single chunk at a time
         for (int i = 0; i < dataSplits; i++)
@@ -300,36 +266,36 @@ public abstract class RadicalFragmentationExplorer
 
             StartingSubProcess($"Processing Precursor Chunk {i + 1} of {dataSplits}");
             var results = new List<FragmentsToDistinguishRecord>();
-            Parallel.ForEach(toProcess[i], new ParallelOptions() { MaxDegreeOfParallelism = StaticVariables.MaxThreads },
-                (result) =>
+            var currentIteration = i;
+            Parallel.ForEach(Partitioner.Create(0, toProcess[i].Count()), new ParallelOptions() { MaxDegreeOfParallelism = StaticVariables.MaxThreads },
+                (range, loopState) =>
                 {
-                    int minFragments;
-                    if (result.Item2.Count > 1)
+                    var innerResults = new List<FragmentsToDistinguishRecord>();
+                    for (int j = range.Item1; j < range.Item2; j++)
                     {
-                        var toSearch = result.Item2;
-                        if (AmbiguityLevel == 2)
-                            toSearch = result.Item2.Where(p => p.Accession != result.Item1.Accession).ToList();
+                        var result = toProcess[currentIteration][j];
+                        var minFragments = result.Item2.Count > 1
+                            ? MinFragmentMassesToDifferentiate(result.Item1.FragmentMassesHashSet, result.Item2, FragmentMassTolerance)
+                            : 0;
 
-                        minFragments = MinFragmentMassesToDifferentiate(result.Item1.FragmentMassesHashSet, toSearch, FragmentMassTolerance);
+                        var record = new FragmentsToDistinguishRecord
+                        {
+                            Species = Species,
+                            NumberOfMods = NumberOfMods,
+                            MaxFragments = MaximumFragmentationEvents,
+                            AnalysisType = AnalysisLabel,
+                            AmbiguityLevel = AmbiguityLevel,
+                            Accession = result.Item1.Accession,
+                            NumberInPrecursorGroup = result.Item2.Count,
+                            FragmentsAvailable = result.Item1.FragmentMasses.Count,
+                            FragmentCountNeededToDifferentiate = minFragments
+                        };
+                        innerResults.Add(record);
                     }
-                    else
-                        minFragments = 0;
 
-                    var record = new FragmentsToDistinguishRecord
-                    {
-                        Species = Species,
-                        NumberOfMods = NumberOfMods,
-                        MaxFragments = MaximumFragmentationEvents,
-                        AnalysisType = AnalysisLabel,
-                        AmbiguityLevel = AmbiguityLevel,
-                        Accession = result.Item1.Accession,
-                        NumberInPrecursorGroup = result.Item2.Count,
-                        FragmentsAvailable = result.Item1.FragmentMasses.Count,
-                        FragmentCountNeededToDifferentiate = minFragments
-                    };
                     lock (results)
                     {
-                        results.Add(record);
+                        results.AddRange(innerResults);
                     }
                 });
 
@@ -432,6 +398,54 @@ public abstract class RadicalFragmentationExplorer
         }
 
         return -1;
+    }
+
+    /// <summary>
+    /// Takes a large group of Precursor fragment mass sets and returns a list with an element for each allResultsToGroup
+    /// The element is a tuple with the first element being the PrecursorFragmentMassSet and the second element being a list of all other PrecursorFragmentMassSets whose precursor mass falls within the tolerance
+    /// </summary>
+    /// <param name="allResultsToGroup"></param>
+    /// <param name="tolerance"></param>
+    /// <param name="ambiguityLevel"></param>
+    /// <returns></returns>
+    public static List<(PrecursorFragmentMassSet, List<PrecursorFragmentMassSet>)> GroupByPrecursorMass(List<PrecursorFragmentMassSet> allResultsToGroup, Tolerance tolerance, int ambiguityLevel = 1)
+    {
+        var orderedResults = allResultsToGroup.OrderBy(p => p.PrecursorMass).ToList();
+
+        var groupedResults = new List<(PrecursorFragmentMassSet, List<PrecursorFragmentMassSet>)>();
+
+        for (var index = 0; index < orderedResults.Count; index++)
+        {
+            var outerResult = orderedResults[index];
+            var firstIndex = orderedResults.FindIndex(p=> tolerance.Within(p.PrecursorMass, outerResult.PrecursorMass));
+
+            if (firstIndex == -1) 
+                continue;
+
+            // iterate through ordered until one does not fall within tolerance
+            var innerResults = new List<PrecursorFragmentMassSet>();
+            for (int i = firstIndex; i < orderedResults.Count; i++)
+            {
+                if (orderedResults[i].Equals(outerResult))
+                    continue;
+                if (ambiguityLevel == 2 && orderedResults[i].Accession == outerResult.Accession)
+                    continue;
+                if (tolerance.Within(orderedResults[i].PrecursorMass, orderedResults[firstIndex].PrecursorMass))
+                    innerResults.Add(orderedResults[i]);
+                else
+                    break;
+            }
+
+            groupedResults.Add((outerResult, innerResults));
+            if (firstIndex != 0)
+            {
+                int toRemove = firstIndex;
+                orderedResults.RemoveRange(0, toRemove);
+                index -= toRemove;
+            }
+        }
+
+        return groupedResults;
     }
 
     protected static bool HasUniqueFragment(HashSet<double> targetProteoform, List<PrecursorFragmentMassSet> otherProteoforms,
