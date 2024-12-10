@@ -239,6 +239,39 @@ public abstract class RadicalFragmentationExplorer
     }
     public abstract IEnumerable<PrecursorFragmentMassSet> GeneratePrecursorFragmentMasses(Protein protein);
 
+    public FragmentHistogramFile CreateFragmentHistogramFile()
+    {
+        if (!Override && File.Exists(_fragmentHistogramFilePath))
+        {
+            Log($"File Found: loading in fragment histogram file for {AnalysisLabel}");
+            return FragmentHistogramFile;
+        }
+
+        Log($"Creating fragment histogram file for {AnalysisLabel}");
+        if (!Directory.Exists(DirectoryPath))
+            Directory.CreateDirectory(DirectoryPath);
+
+        var fragmentCounts = PrecursorFragmentMassFile.Results
+            .GroupBy(p => p.FragmentCount)
+            .OrderBy(p => p.Key)
+            .Select(p => new FragmentHistogramRecord
+            {
+                Species = Species,
+                NumberOfMods = NumberOfMods,
+                MaxFragments = MaximumFragmentationEvents,
+                AnalysisType = AnalysisLabel,
+                AmbiguityLevel = AmbiguityLevel,
+                FragmentCount = p.Key,
+                ProteinCount = p.Count()
+            }).ToList();
+        var file = new FragmentHistogramFile(_fragmentHistogramFilePath) { Results = fragmentCounts };
+        file.WriteResults(_fragmentHistogramFilePath);
+
+        FinishedWritingFile(_minFragmentNeededFilePath);
+        return _fragmentHistogramFile = file;
+    }
+
+
     public FragmentsToDistinguishFile FindNumberOfFragmentsNeededToDifferentiate()
     {
         if (!Override && File.Exists(_minFragmentNeededFilePath))
@@ -268,7 +301,7 @@ public abstract class RadicalFragmentationExplorer
             var results = new List<FragmentsToDistinguishRecord>();
             var currentIteration = i;
             Parallel.ForEach(Partitioner.Create(0, toProcess[i].Count()), new ParallelOptions() { MaxDegreeOfParallelism = StaticVariables.MaxThreads },
-                (range, loopState) =>
+                range =>
                 {
                     var innerResults = new List<FragmentsToDistinguishRecord>();
                     for (int j = range.Item1; j < range.Item2; j++)
@@ -321,37 +354,6 @@ public abstract class RadicalFragmentationExplorer
         return _minFragmentNeededFile = fragmentsToDistinguishFile;
     }
 
-    public FragmentHistogramFile CreateFragmentHistogramFile()
-    {
-        if (!Override && File.Exists(_fragmentHistogramFilePath))
-        {
-            Log($"File Found: loading in fragment histogram file for {AnalysisLabel}");
-            return FragmentHistogramFile;
-        }
-
-        Log($"Creating fragment histogram file for {AnalysisLabel}");
-        if (!Directory.Exists(DirectoryPath))
-            Directory.CreateDirectory(DirectoryPath);
-
-        var fragmentCounts = PrecursorFragmentMassFile.Results
-            .GroupBy(p => p.FragmentCount)
-            .OrderBy(p => p.Key)
-            .Select(p => new FragmentHistogramRecord
-            {
-                Species = Species,
-                NumberOfMods = NumberOfMods,
-                MaxFragments = MaximumFragmentationEvents,
-                AnalysisType = AnalysisLabel,
-                AmbiguityLevel = AmbiguityLevel,
-                FragmentCount = p.Key,
-                ProteinCount = p.Count()
-            }).ToList();
-        var file = new FragmentHistogramFile(_fragmentHistogramFilePath) { Results = fragmentCounts };
-        file.WriteResults(_fragmentHistogramFilePath);
-
-        FinishedWritingFile(_minFragmentNeededFilePath);
-        return _fragmentHistogramFile = file;
-    }
 
     public static int MinFragmentMassesToDifferentiate(HashSet<double> targetProteoform, List<PrecursorFragmentMassSet> otherProteoforms, Tolerance tolerance)
     {
@@ -378,7 +380,6 @@ public abstract class RadicalFragmentationExplorer
             {
                 // Get those that can be explained by these fragments
                 var matchingProteoforms = otherProteoforms
-                    .AsParallel()
                     .Where(p => p.FragmentMassesHashSet.ListContainsWithin(combination, tolerance))
                     .ToList();
 
@@ -411,41 +412,37 @@ public abstract class RadicalFragmentationExplorer
     public static List<(PrecursorFragmentMassSet, List<PrecursorFragmentMassSet>)> GroupByPrecursorMass(List<PrecursorFragmentMassSet> allResultsToGroup, Tolerance tolerance, int ambiguityLevel = 1)
     {
         var orderedResults = allResultsToGroup.OrderBy(p => p.PrecursorMass).ToList();
+        var groupedResults = new ConcurrentBag<(PrecursorFragmentMassSet, List<PrecursorFragmentMassSet>)>();
 
-        var groupedResults = new List<(PrecursorFragmentMassSet, List<PrecursorFragmentMassSet>)>();
-
-        for (var index = 0; index < orderedResults.Count; index++)
+        Parallel.ForEach(Partitioner.Create(0, orderedResults.Count), new ParallelOptions() { MaxDegreeOfParallelism = StaticVariables.MaxThreads },
+            range =>
         {
-            var outerResult = orderedResults[index];
-            var firstIndex = orderedResults.FindIndex(p=> tolerance.Within(p.PrecursorMass, outerResult.PrecursorMass));
-
-            if (firstIndex == -1) 
-                continue;
-
-            // iterate through ordered until one does not fall within tolerance
-            var innerResults = new List<PrecursorFragmentMassSet>();
-            for (int i = firstIndex; i < orderedResults.Count; i++)
+            for (int index = range.Item1; index < range.Item2; index++)
             {
-                if (orderedResults[i].Equals(outerResult))
-                    continue;
-                if (ambiguityLevel == 2 && orderedResults[i].Accession == outerResult.Accession)
-                    continue;
-                if (tolerance.Within(orderedResults[i].PrecursorMass, orderedResults[firstIndex].PrecursorMass))
-                    innerResults.Add(orderedResults[i]);
-                else
-                    break;
-            }
+                var outerResult = orderedResults[index];
+                var firstIndex = orderedResults.FindIndex(p => tolerance.Within(p.PrecursorMass, outerResult.PrecursorMass));
 
-            groupedResults.Add((outerResult, innerResults));
-            if (firstIndex != 0)
-            {
-                int toRemove = firstIndex;
-                orderedResults.RemoveRange(0, toRemove);
-                index -= toRemove;
-            }
-        }
+                if (firstIndex == -1)
+                    continue;
 
-        return groupedResults;
+                var innerResults = new List<PrecursorFragmentMassSet>();
+                for (int i = firstIndex; i < orderedResults.Count; i++)
+                {
+                    if (orderedResults[i].Equals(outerResult))
+                        continue;
+                    if (ambiguityLevel == 2 && orderedResults[i].Accession == outerResult.Accession)
+                        continue;
+                    if (tolerance.Within(orderedResults[i].PrecursorMass, orderedResults[firstIndex].PrecursorMass))
+                        innerResults.Add(orderedResults[i]);
+                    else
+                        break;
+                }
+
+                groupedResults.Add((outerResult, innerResults));
+            }
+        });
+
+        return groupedResults.ToList();
     }
 
     protected static bool HasUniqueFragment(HashSet<double> targetProteoform, List<PrecursorFragmentMassSet> otherProteoforms,

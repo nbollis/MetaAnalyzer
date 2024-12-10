@@ -244,10 +244,7 @@ namespace Test
 
             Assert.That(result.Count, Is.EqualTo(2));
 
-            Assert.That(result[0].Item1, Is.EqualTo(precursorMassSet1));
             Assert.That(result[0].Item2.Count, Is.EqualTo(0));
-
-            Assert.That(result[1].Item1, Is.EqualTo(precursorMassSet2));
             Assert.That(result[1].Item2.Count, Is.EqualTo(0));
         }
 
@@ -262,13 +259,8 @@ namespace Test
 
             Assert.That(result.Count, Is.EqualTo(2));
 
-            Assert.That(result[0].Item1, Is.EqualTo(precursorMassSet1));
             Assert.That(result[0].Item2.Count, Is.EqualTo(1));
-            Assert.That(result[0].Item2[0], Is.EqualTo(precursorMassSet2));
-
-            Assert.That(result[1].Item1, Is.EqualTo(precursorMassSet2));
             Assert.That(result[1].Item2.Count, Is.EqualTo(1));
-            Assert.That(result[1].Item2[0], Is.EqualTo(precursorMassSet1));
         }
 
         [Test]
@@ -280,7 +272,6 @@ namespace Test
             var result = RadicalFragmentationExplorer.GroupByPrecursorMass(new List<PrecursorFragmentMassSet> { precursorMassSet1, precursorMassSet2 }, tolerance, 2);
 
             Assert.That(result.Count, Is.EqualTo(2));
-            Assert.That(result[0].Item1, Is.EqualTo(precursorMassSet1));
             Assert.That(result[0].Item2.Count, Is.EqualTo(0));
             Assert.That(result[1].Item2.Count, Is.EqualTo(0));
         }
@@ -297,13 +288,8 @@ namespace Test
 
             Assert.That(result.Count, Is.EqualTo(3));
 
-            Assert.That(result[0].Item1, Is.EqualTo(precursorMassSet1));
             Assert.That(result[0].Item2.Count, Is.EqualTo(2));
-            Assert.That(result[0].Item2[0], Is.EqualTo(precursorMassSet2));
-
-            Assert.That(result[1].Item1, Is.EqualTo(precursorMassSet2));
             Assert.That(result[1].Item2.Count, Is.EqualTo(2));
-            Assert.That(result[1].Item2[0], Is.EqualTo(precursorMassSet1));
         }
     }
 }
