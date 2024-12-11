@@ -1,4 +1,5 @@
-﻿using Omics.Fragmentation;
+﻿using MathNet.Numerics;
+using Omics.Fragmentation;
 using Omics.Modifications;
 using Proteomics;
 
@@ -20,7 +21,7 @@ internal class EtdFragmentationExplorer : RadicalFragmentationExplorer
         {
             masses.Clear();
             proteoform.Fragment(MassSpectrometry.DissociationType.ETD, Omics.Fragmentation.FragmentationTerminus.Both, masses);
-            var fragments = masses.Select(p => p.MonoisotopicMass).ToList();
+            var fragments = masses.Select(p => p.MonoisotopicMass.Round(3)).ToList();
             
             yield return new PrecursorFragmentMassSet(proteoform.MonoisotopicMass, proteoform.Protein.Accession, fragments, proteoform.FullSequence);
         }

@@ -287,7 +287,7 @@ public abstract class RadicalFragmentationExplorer
         for (int i = 0; i < dataSplits; i++)
             tempFilePaths[i] = _minFragmentNeededFilePath.Replace(".csv", $"_{i}.csv");
 
-        // split processed data into n chuncks
+        // split processed data into n chunks
         var toSplit = GroupByPrecursorMass(PrecursorFragmentMassFile.Results, PrecursorMassTolerance, AmbiguityLevel);
         var toProcess = toSplit.Split(dataSplits).ToList();
         
@@ -300,14 +300,17 @@ public abstract class RadicalFragmentationExplorer
             StartingSubProcess($"Processing Precursor Chunk {i + 1} of {dataSplits}");
             var results = new List<FragmentsToDistinguishRecord>();
             var currentIteration = i;
-            Parallel.ForEach(Partitioner.Create(0, toProcess[i].Count()), new ParallelOptions() { MaxDegreeOfParallelism = StaticVariables.MaxThreads },
-                range =>
+            var partitioner = Partitioner.Create(toProcess[i], true);
+            var results = new FragmentsToDistinguishRecord[toProcess[i].Count];
+
+            Parallel.ForEach(partitioner, new ParallelOptions() { MaxDegreeOfParallelism = StaticVariables.MaxThreads },
+                (item, state, index) =>
                 {
-                    var innerResults = new List<FragmentsToDistinguishRecord>();
-                    for (int j = range.Item1; j < range.Item2; j++)
-                    {
-                        var result = toProcess[currentIteration][j];
-                        var minFragments = result.Item2.Count > 1
+                    //var innerResults = new List<FragmentsToDistinguishRecord>();
+                    //for (int j = range.Item1; j < range.Item2; j++)
+                    //{
+                    var result = item; //toProcess[currentIteration][j];
+                        var minFragments = result.Item2.Count != 0
                             ? MinFragmentMassesToDifferentiate(result.Item1.FragmentMassesHashSet, result.Item2, FragmentMassTolerance)
                             : 0;
 
@@ -323,17 +326,18 @@ public abstract class RadicalFragmentationExplorer
                             FragmentsAvailable = result.Item1.FragmentMasses.Count,
                             FragmentCountNeededToDifferentiate = minFragments
                         };
-                        innerResults.Add(record);
-                    }
+                        //innerResults.Add(record);
+                    //}
 
-                    lock (results)
-                    {
-                        results.AddRange(innerResults);
-                    }
+                    //lock (results)
+                    //{
+                    //    results.AddRange(innerResults);
+                    //}
+                    results[(int)index] = record;
                 });
 
             // write that chunk
-            var tempFile = new FragmentsToDistinguishFile(tempFilePaths[i]) { Results = results };
+            var tempFile = new FragmentsToDistinguishFile(tempFilePaths[i]) { Results = results.ToList() };
             tempFile.WriteResults(tempFilePaths[i]);
             FinishedWritingFile(tempFilePaths[i]);
             FinishedSubProcess($"Finished Processing Precursor Chunk {i + 1} of {dataSplits}");
@@ -430,8 +434,13 @@ public abstract class RadicalFragmentationExplorer
                 {
                     if (orderedResults[i].Equals(outerResult))
                         continue;
-                    if (ambiguityLevel == 2 && orderedResults[i].Accession == outerResult.Accession)
+                    switch (ambiguityLevel)
+                    {
+                        case 2 when orderedResults[i].Accession == outerResult.Accession:
+                        case 2 when orderedResults[i].FullSequence == outerResult.FullSequence:
                         continue;
+                    }
+
                     if (tolerance.Within(orderedResults[i].PrecursorMass, orderedResults[firstIndex].PrecursorMass))
                         innerResults.Add(orderedResults[i]);
                     else
@@ -448,13 +457,25 @@ public abstract class RadicalFragmentationExplorer
     protected static bool HasUniqueFragment(HashSet<double> targetProteoform, List<PrecursorFragmentMassSet> otherProteoforms,
         Tolerance tolerance)
     {
+        // Estimate the size of the HashSet to avoid resizing
+        int estimatedSize = otherProteoforms.Sum(p => p.FragmentMassesHashSet.Count);
+        var otherFragments = new HashSet<double>(estimatedSize);
+
+        foreach (var otherProteoform in otherProteoforms)
+        {
+            foreach (var fragment in otherProteoform.FragmentMassesHashSet)
+            {
+                otherFragments.Add(fragment);
+            }
+        }
+
         // check to see if target proteoform has a fragment that is unique to all other proteoform fragments within tolerance
         foreach (var targetFragment in targetProteoform)
         {
             bool isUniqueFragment = true;
-            foreach (var otherProteoform in otherProteoforms)
+            foreach (var otherFragment in otherFragments)
             {
-                if (otherProteoform.FragmentMassesHashSet.Any(otherFragment => tolerance.Within(targetFragment, otherFragment)))
+                if (tolerance.Within(targetFragment, otherFragment))
                 {
                     isUniqueFragment = false;
                     break;
@@ -467,23 +488,25 @@ public abstract class RadicalFragmentationExplorer
         return false;
     }
 
+
     // Function to generate all combinations of fragment masses from a given list
     protected static IEnumerable<List<double>> GenerateCombinations(List<double> fragmentMasses)
     {
         int n = fragmentMasses.Count;
+        var combinations = new List<List<double>>(1 << n);
         for (int i = 0; i < 1 << n; i++)
         {
             List<double> combination = new List<double>();
             for (int j = 0; j < n; j++)
             {
-                if ((i & 1 << j) > 0)
+                if ((i & 1 << j) != 0)
                 {
                     combination.Add(fragmentMasses[j]);
                 }
             }
-
-            yield return combination;
+            combinations.Add(combination);
         }
+        return combinations;
     }
 
     #endregion
