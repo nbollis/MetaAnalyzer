@@ -102,29 +102,35 @@ namespace Plotting.RadicalFragmentation
                 var hist = speciesGroup.Value.SelectMany(p => p.FragmentHistogramFile).ToList();
                 var frag = speciesGroup.Value.SelectMany(p => p.MinFragmentNeededFile.Results).ToList();
 
-                var level1 = hist.GetProteinByUniqueFragmentsLine(1, speciesGroup.Key);
-                outName = $"{type}_UniqueFragmentMasses_{speciesGroup.Key}_ProteoformLevel";
-                speciesGroup.Value.First().SaveToFigureDirectory(level1, outName, 1000, 600);
+                if (speciesGroup.Value.Any(p => p.AmbiguityLevel == 1))
+                {
+                    var level1 = hist.GetProteinByUniqueFragmentsLine(1, speciesGroup.Key);
+                    outName = $"{type}_UniqueFragmentMasses_{speciesGroup.Key}_ProteoformLevel";
+                    speciesGroup.Value.First().SaveToFigureDirectory(level1, outName, 1000, 600);
 
-                var level2 = hist.GetProteinByUniqueFragmentsLine(2, speciesGroup.Key);
-                outName = $"{type}_UniqueFragmentMasses_{speciesGroup.Key}_ProteinLevel";
-                speciesGroup.Value.First().SaveToFigureDirectory(level2, outName, 1000, 600);
+                    var hist1 = frag.GetFragmentsNeededHistogram(1, speciesGroup.Key);
+                    outName = $"{type}_FragmentsNeeded_{speciesGroup.Key}_ProteoformLevel";
+                    speciesGroup.Value.First().SaveToFigureDirectory(hist1, outName, 1000, 600);
 
-                var hist1 = frag.GetFragmentsNeededHistogram(1, speciesGroup.Key);
-                outName = $"{type}_FragmentsNeeded_{speciesGroup.Key}_ProteoformLevel";
-                speciesGroup.Value.First().SaveToFigureDirectory(hist1, outName, 1000, 600);
+                    var cumHist1 = frag.GetCumulativeFragmentsNeededChart(1, speciesGroup.Key);
+                    outName = $"{type}_CumulativeFragmentsNeeded_{speciesGroup.Key}_ProteoformLevel";
+                    speciesGroup.Value.First().SaveToFigureDirectory(cumHist1, outName, 1000, 600);
+                }
+                
+                if (speciesGroup.Value.Any(p => p.AmbiguityLevel == 2))
+                {
+                    var level2 = hist.GetProteinByUniqueFragmentsLine(2, speciesGroup.Key);
+                    outName = $"{type}_UniqueFragmentMasses_{speciesGroup.Key}_ProteinLevel";
+                    speciesGroup.Value.First().SaveToFigureDirectory(level2, outName, 1000, 600);
 
-                var hist2 = frag.GetFragmentsNeededHistogram(2, speciesGroup.Key);
-                outName = $"{type}_FragmentsNeeded_{speciesGroup.Key}_ProteinLevel";
-                speciesGroup.Value.First().SaveToFigureDirectory(hist2, outName, 1000, 600);
+                    var hist2 = frag.GetFragmentsNeededHistogram(2, speciesGroup.Key);
+                    outName = $"{type}_FragmentsNeeded_{speciesGroup.Key}_ProteinLevel";
+                    speciesGroup.Value.First().SaveToFigureDirectory(hist2, outName, 1000, 600);
 
-                var cumHist1 = frag.GetCumulativeFragmentsNeededChart(1, speciesGroup.Key);
-                outName = $"{type}_CumulativeFragmentsNeeded_{speciesGroup.Key}_ProteoformLevel";
-                speciesGroup.Value.First().SaveToFigureDirectory(cumHist1, outName, 1000, 600);
-
-                var cumHist2 = frag.GetCumulativeFragmentsNeededChart(2, speciesGroup.Key);
-                outName = $"{type}_CumulativeFragmentsNeeded_{speciesGroup.Key}_ProteinLevel";
-                speciesGroup.Value.First().SaveToFigureDirectory(cumHist2, outName, 1000, 600);
+                    var cumHist2 = frag.GetCumulativeFragmentsNeededChart(2, speciesGroup.Key);
+                    outName = $"{type}_CumulativeFragmentsNeeded_{speciesGroup.Key}_ProteinLevel";
+                    speciesGroup.Value.First().SaveToFigureDirectory(cumHist2, outName, 1000, 600);
+                }
             }
         }
 

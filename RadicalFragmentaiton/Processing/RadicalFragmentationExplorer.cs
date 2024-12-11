@@ -294,53 +294,40 @@ public abstract class RadicalFragmentationExplorer
         // Process a single chunk at a time
         for (int i = 0; i < dataSplits; i++)
         {
+            var currentIteration = i;
             if (File.Exists(tempFilePaths[i]))
                 continue;
-
-            StartingSubProcess($"Processing Precursor Chunk {i + 1} of {dataSplits}");
-            var results = new List<FragmentsToDistinguishRecord>();
-            var currentIteration = i;
-            var partitioner = Partitioner.Create(toProcess[i], true);
+            StartingSubProcess($"Processing Precursor Chunk {currentIteration + 1} of {dataSplits}");
             var results = new FragmentsToDistinguishRecord[toProcess[i].Count];
+            for (int j = 0; j < toProcess[i].Count; j++)
+            {
+                var result = toProcess[currentIteration][j];
+                var minFragments = result.Item2.Count != 0
+                    ? MinFragmentMassesToDifferentiate(result.Item1.FragmentMassesHashSet, result.Item2, FragmentMassTolerance)
+                    : 0;
 
-            Parallel.ForEach(partitioner, new ParallelOptions() { MaxDegreeOfParallelism = StaticVariables.MaxThreads },
-                (item, state, index) =>
+                var record = new FragmentsToDistinguishRecord
                 {
-                    //var innerResults = new List<FragmentsToDistinguishRecord>();
-                    //for (int j = range.Item1; j < range.Item2; j++)
-                    //{
-                    var result = item; //toProcess[currentIteration][j];
-                        var minFragments = result.Item2.Count != 0
-                            ? MinFragmentMassesToDifferentiate(result.Item1.FragmentMassesHashSet, result.Item2, FragmentMassTolerance)
-                            : 0;
+                    Species = Species,
+                    NumberOfMods = NumberOfMods,
+                    MaxFragments = MaximumFragmentationEvents,
+                    AnalysisType = AnalysisLabel,
+                    AmbiguityLevel = AmbiguityLevel,
+                    Accession = result.Item1.Accession,
+                    NumberInPrecursorGroup = result.Item2.Count,
+                    FragmentsAvailable = result.Item1.FragmentMasses.Count,
+                    FragmentCountNeededToDifferentiate = minFragments
+                };
 
-                        var record = new FragmentsToDistinguishRecord
-                        {
-                            Species = Species,
-                            NumberOfMods = NumberOfMods,
-                            MaxFragments = MaximumFragmentationEvents,
-                            AnalysisType = AnalysisLabel,
-                            AmbiguityLevel = AmbiguityLevel,
-                            Accession = result.Item1.Accession,
-                            NumberInPrecursorGroup = result.Item2.Count,
-                            FragmentsAvailable = result.Item1.FragmentMasses.Count,
-                            FragmentCountNeededToDifferentiate = minFragments
-                        };
-                        //innerResults.Add(record);
-                    //}
-
-                    //lock (results)
-                    //{
-                    //    results.AddRange(innerResults);
-                    //}
-                    results[(int)index] = record;
-                });
+                results[j] = record;
+            }
 
             // write that chunk
-            var tempFile = new FragmentsToDistinguishFile(tempFilePaths[i]) { Results = results.ToList() };
-            tempFile.WriteResults(tempFilePaths[i]);
-            FinishedWritingFile(tempFilePaths[i]);
-            FinishedSubProcess($"Finished Processing Precursor Chunk {i + 1} of {dataSplits}");
+            var tempFile = new FragmentsToDistinguishFile(tempFilePaths[currentIteration]) { Results = results.ToList() };
+            tempFile.WriteResults(tempFilePaths[currentIteration]);
+            FinishedWritingFile(tempFilePaths[currentIteration]);
+            FinishedSubProcess($"Finished Processing Precursor Chunk {currentIteration + 1} of {dataSplits}");
+            toProcess[i].Clear();
         }
 
         // combine all temporary files into a single file and delete the temp files
@@ -365,22 +352,32 @@ public abstract class RadicalFragmentationExplorer
         if (HasUniqueFragment(targetProteoform, otherProteoforms, tolerance))
             return 1;
 
-        // Check if all other proteoforms are identical to the target proteoform
-        if (otherProteoforms.All(p => p.FragmentMassesHashSet.SetEquals(targetProteoform)))
+        // remove all ions that are shared across every otherProteoform 
+        var uniqueTargetFragmentList = targetProteoform
+            .Where(frag => !otherProteoforms.All(p => p.FragmentMassesHashSet.Contains(frag)))
+            .ToList();
+
+
+        // If unique target list is empty, then all fragments are shared
+        if (uniqueTargetFragmentList.Count == 0)
             return -1;
 
         // Generate all combinations of fragment masses from the target otherProteoform
-        var targetProteoformList = targetProteoform.ToList();
-        var combinations = GenerateCombinations(targetProteoformList)
+        var combinations = GenerateCombinations(uniqueTargetFragmentList)
             .Where(p => p.Count > 1)
-            .OrderBy(p => p.Count);
+            .GroupBy(p => p.Count)
+            .Select(group => new
+            {
+                Count = group.Key,
+                Combinations = group.OrderBy(combination => combination.Sum(fragment =>
+                    otherProteoforms.Count(p => p.FragmentMassesHashSet.Contains(fragment))))
+            });
 
         // Order by count of fragment masses and check to see if they can differentiate the target
-        foreach (var combinationGroup in combinations.GroupBy(p => p.Count))
+        foreach (var combinationGroup in combinations)
         {
-            
             bool uniquePlusOneFound = false;
-            foreach (var combination in combinationGroup)
+            foreach (var combination in combinationGroup.Combinations)
             {
                 // Get those that can be explained by these fragments
                 var matchingProteoforms = otherProteoforms
@@ -392,14 +389,14 @@ public abstract class RadicalFragmentationExplorer
 
                 // if unique plus one has been found, no need to check again
                 // however, we do need to ensure that one of the current analyzed combinations is unique
-                if (uniquePlusOneFound) 
+                if (uniquePlusOneFound)
                     continue;
 
                 if (HasUniqueFragment(targetProteoform, matchingProteoforms, tolerance))
                     uniquePlusOneFound = true;
             }
             if (uniquePlusOneFound)
-                return combinationGroup.Key + 1;
+                return combinationGroup.Count + 1;
         }
 
         return -1;
