@@ -299,28 +299,33 @@ public abstract class RadicalFragmentationExplorer
                 continue;
             StartingSubProcess($"Processing Precursor Chunk {currentIteration + 1} of {dataSplits}");
             var results = new FragmentsToDistinguishRecord[toProcess[i].Count];
-            for (int j = 0; j < toProcess[i].Count; j++)
+
+            Parallel.ForEach(Partitioner.Create(0, toProcess[i].Count), new ParallelOptions() { MaxDegreeOfParallelism = StaticVariables.MaxThreads }, range =>
             {
-                var result = toProcess[currentIteration][j];
-                var minFragments = result.Item2.Count != 0
-                    ? MinFragmentMassesToDifferentiate(result.Item1.FragmentMassesHashSet, result.Item2, FragmentMassTolerance)
-                    : 0;
-
-                var record = new FragmentsToDistinguishRecord
+                for (int j = range.Item1; j < range.Item2; j++)
                 {
-                    Species = Species,
-                    NumberOfMods = NumberOfMods,
-                    MaxFragments = MaximumFragmentationEvents,
-                    AnalysisType = AnalysisLabel,
-                    AmbiguityLevel = AmbiguityLevel,
-                    Accession = result.Item1.Accession,
-                    NumberInPrecursorGroup = result.Item2.Count,
-                    FragmentsAvailable = result.Item1.FragmentMasses.Count,
-                    FragmentCountNeededToDifferentiate = minFragments
-                };
+                    var result = toProcess[currentIteration][j];
+                    var minFragments = result.Item2.Count != 0
+                        ? MinFragmentMassesToDifferentiate(result.Item1.FragmentMassesHashSet, result.Item2, FragmentMassTolerance)
+                        : 0;
 
-                results[j] = record;
-            }
+                    var record = new FragmentsToDistinguishRecord
+                    {
+                        Species = Species,
+                        NumberOfMods = NumberOfMods,
+                        MaxFragments = MaximumFragmentationEvents,
+                        AnalysisType = AnalysisLabel,
+                        AmbiguityLevel = AmbiguityLevel,
+                        Accession = result.Item1.Accession,
+                        NumberInPrecursorGroup = result.Item2.Count,
+                        FragmentsAvailable = result.Item1.FragmentMasses.Count,
+                        FragmentCountNeededToDifferentiate = minFragments
+                    };
+
+                    results[j] = record;
+                }
+            });
+            
 
             // write that chunk
             var tempFile = new FragmentsToDistinguishFile(tempFilePaths[currentIteration]) { Results = results.ToList() };
