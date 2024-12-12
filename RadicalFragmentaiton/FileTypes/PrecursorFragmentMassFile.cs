@@ -34,8 +34,7 @@ public class PrecursorFragmentMassSet : IEquatable<PrecursorFragmentMassSet>
     [Name("FragmentCount")]
     public int FragmentCount { get; set; }
 
-
-
+    [Ignore] public int? CysteineCount { get; set; }
     [NotMapped] private HashSet<double> _fragmentMassesHashSet;
     [NotMapped] public HashSet<double> FragmentMassesHashSet => _fragmentMassesHashSet ??= new HashSet<double>(FragmentMasses);
 

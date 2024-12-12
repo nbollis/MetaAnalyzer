@@ -281,7 +281,8 @@ public abstract class RadicalFragmentationExplorer
         }
 
         Log($"Creating fragments needed file for {AnalysisLabel}");
-        var dataSplits = 10;
+        var dataSplits = 20;
+        bool isCysteine = this is CysteineFragmentationExplorer;
 
         string[] tempFilePaths = new string[dataSplits];
         for (int i = 0; i < dataSplits; i++)
@@ -300,15 +301,22 @@ public abstract class RadicalFragmentationExplorer
             StartingSubProcess($"Processing Precursor Chunk {currentIteration + 1} of {dataSplits}");
             var results = new FragmentsToDistinguishRecord[toProcess[i].Count];
 
-            Parallel.ForEach(Partitioner.Create(0, toProcess[i].Count), new ParallelOptions() { MaxDegreeOfParallelism = StaticVariables.MaxThreads }, range =>
+            Parallel.ForEach(Partitioner.Create(0, toProcess[i].Count), new ParallelOptions() { MaxDegreeOfParallelism = 1 /*StaticVariables.MaxThreads*/ }, range =>
             {
                 for (int j = range.Item1; j < range.Item2; j++)
                 {
                     var result = toProcess[currentIteration][j];
-                    var minFragments = result.Item2.Count != 0
-                        ? MinFragmentMassesToDifferentiate(result.Item1.FragmentMassesHashSet, result.Item2, FragmentMassTolerance)
-                        : 0;
+                    int? minFragments = null;
 
+                    // short circuit conditions
+                    // no other proteoform with precursor mass in range
+                    if (result.Item2.Count == 0) 
+                        minFragments = 0;
+                    // all have no cysteines
+                    else if (isCysteine && result.Item1.CysteineCount == 0 && result.Item2.All(other => other.CysteineCount == result.Item1.CysteineCount))
+                        minFragments = -1;
+                   
+                    minFragments ??= MinFragmentMassesToDifferentiate(result.Item1.FragmentMassesHashSet, result.Item2, FragmentMassTolerance);
                     var record = new FragmentsToDistinguishRecord
                     {
                         Species = Species,
@@ -319,7 +327,7 @@ public abstract class RadicalFragmentationExplorer
                         Accession = result.Item1.Accession,
                         NumberInPrecursorGroup = result.Item2.Count,
                         FragmentsAvailable = result.Item1.FragmentMasses.Count,
-                        FragmentCountNeededToDifferentiate = minFragments
+                        FragmentCountNeededToDifferentiate = minFragments.Value
                     };
 
                     results[j] = record;
@@ -426,7 +434,8 @@ public abstract class RadicalFragmentationExplorer
             for (int index = range.Item1; index < range.Item2; index++)
             {
                 var outerResult = orderedResults[index];
-                var firstIndex = orderedResults.FindIndex(p => tolerance.Within(p.PrecursorMass, outerResult.PrecursorMass));
+                int lookupStart = Math.Max(0, index - 10000);
+                var firstIndex = orderedResults.FindIndex(lookupStart, p => tolerance.Within(p.PrecursorMass, outerResult.PrecursorMass));
 
                 if (firstIndex == -1)
                     continue;

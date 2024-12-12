@@ -19,7 +19,9 @@ namespace RadicalFragmentation
                     : 0;
 
                 var files = Directory.GetFiles(potentialResultDir);
-                var grouped = files.GroupBy(p => string.Join('_', Path.GetFileNameWithoutExtension(p).Split('_')[..4]))
+                var grouped = files
+                    .Where(p => !p.Contains("_0.csv"))
+                    .GroupBy(p => string.Join('_', Path.GetFileNameWithoutExtension(p).Split('_')[..4]))
                     .Where(p => p.Count() == 2)
                     .ToList();
 

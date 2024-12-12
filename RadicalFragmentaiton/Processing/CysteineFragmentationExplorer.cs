@@ -59,7 +59,7 @@ internal class CysteineFragmentationExplorer : RadicalFragmentationExplorer
                 // split the protein sequence and mods based upon indices to fragment
                 // foreach split there will be 2 masses, one the left side and one the right side
                 // the mass for each split will be the sum of the sequence and then the sum of mods
-                double[] fragmentMasses = new double[maxFrag * 2];
+                double[] fragmentMasses = new double[maxFrag * 2+1];
                 for (int i = 0; i < maxFrag; i++)
                 {
                     var leftSide = proteoform.BaseSequence.Substring(0, indicesToFragment[i]);
@@ -81,10 +81,25 @@ internal class CysteineFragmentationExplorer : RadicalFragmentationExplorer
                     fragmentMasses[i * 2] = leftMass;
                     fragmentMasses[i * 2 + 1] = rightMass;
                 }
-
+                
                 yield return new PrecursorFragmentMassSet(proteoform.MonoisotopicMass, proteoform.Protein.Accession,
-                    fragmentMasses.ToList(), proteoform.FullSequence);
+                    fragmentMasses.OrderBy(p => p).Append(proteoform.MonoisotopicMass).ToList(), proteoform.FullSequence);
             }
+        }
+    }
+
+    /// <summary>
+    /// Extracts base sequence from full sequence by ignoring anything found in square braackets and counts occurances of 'C'
+    /// </summary>
+    public void CountCysteines()
+    {
+        foreach(var proteoform in PrecursorFragmentMassFile)
+        {
+            var baseSequence = new string(proteoform.FullSequence
+                .Where(c => c != '[' && c != ']').ToArray());
+            var cleanedSequence = System.Text.RegularExpressions.Regex.Replace(baseSequence, @"\[.*?\]", string.Empty);
+            var cysteineCount = cleanedSequence.Count(c => c == 'C');
+            proteoform.CysteineCount = cysteineCount;
         }
     }
 }

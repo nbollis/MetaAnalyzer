@@ -37,7 +37,7 @@ internal class TryptophanFragmentationExplorer : RadicalFragmentationExplorer
 
             // split the protein at each W and record fragment masses
             var peps = proteinReconstruction.Digest(digestionParameters, fixedMods, variableMods);
-            var fragments = peps.Select(p => p.MonoisotopicMass).ToList();
+            var fragments = peps.Select(p => p.MonoisotopicMass).OrderBy(p => p).ToList();
             fragments.Add(proteoform.MonoisotopicMass);
 
             yield return new PrecursorFragmentMassSet(proteoform.MonoisotopicMass, proteoform.Protein.Accession, fragments, proteoform.FullSequence);
