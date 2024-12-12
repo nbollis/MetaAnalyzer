@@ -367,12 +367,15 @@ public abstract class RadicalFragmentationExplorer
 
         // remove all ions that are shared across every otherProteoform 
         var uniqueTargetFragmentList = targetProteoform
-            .Where(frag => !otherProteoforms.All(p => p.FragmentMassesHashSet.Contains(frag)))
-            .ToList();
-
+            .Where(frag => !otherProteoforms.All(p => p.FragmentMassesHashSet.ContainsWithin(frag, tolerance)))
+            .ToArray();
 
         // If unique target list is empty, then all fragments are shared
-        if (uniqueTargetFragmentList.Count == 0)
+        if (uniqueTargetFragmentList.Length == 0)
+            return -1;
+
+        // if any other proteoform contains all of the unique ions, then we cannot differentiate
+        if (otherProteoforms.Any(p => p.FragmentMassesHashSet.ListContainsWithin(uniqueTargetFragmentList, tolerance)))
             return -1;
 
         // Generate all combinations of fragment masses from the target otherProteoform
@@ -501,9 +504,9 @@ public abstract class RadicalFragmentationExplorer
 
 
     // Function to generate all combinations of fragment masses from a given list
-    protected static IEnumerable<List<double>> GenerateCombinations(List<double> fragmentMasses)
+    protected static IEnumerable<List<double>> GenerateCombinations(double[] fragmentMasses)
     {
-        int n = fragmentMasses.Count;
+        int n = fragmentMasses.Length;
         var combinations = new List<List<double>>(1 << n);
         for (int i = 0; i < 1 << n; i++)
         {

@@ -95,6 +95,9 @@ internal class CysteineFragmentationExplorer : RadicalFragmentationExplorer
     {
         foreach(var proteoform in PrecursorFragmentMassFile)
         {
+            if (proteoform.CysteineCount != 0)
+                continue;
+
             var baseSequence = new string(proteoform.FullSequence
                 .Where(c => c != '[' && c != ']').ToArray());
             var cleanedSequence = System.Text.RegularExpressions.Regex.Replace(baseSequence, @"\[.*?\]", string.Empty);
