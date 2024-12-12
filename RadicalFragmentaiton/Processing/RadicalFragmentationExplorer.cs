@@ -215,12 +215,18 @@ public abstract class RadicalFragmentationExplorer
             var modifications = NumberOfMods == 0 ? new List<Modification>() : GlobalVariables.AllModsKnown;
             var proteins = ProteinDbLoader.LoadProteinXML(DatabasePath, true, DecoyType.None, modifications, false, new List<string>(), out var um);
 
-            Parallel.ForEach(proteins, new ParallelOptions() { MaxDegreeOfParallelism = StaticVariables.MaxThreads }, protein =>
+            Parallel.ForEach(Partitioner.Create(0, proteins.Count), new ParallelOptions() { MaxDegreeOfParallelism = StaticVariables.MaxThreads }, range =>
             {
-                var generatedSets = GeneratePrecursorFragmentMasses(protein);
+                var localSets = new List<PrecursorFragmentMassSet>(100);
+                for (int i = range.Item1; i < range.Item2; i++)
+                {
+                    var generatedSets = GeneratePrecursorFragmentMasses(proteins[i]);
+                    localSets.AddRange(generatedSets);
+                }
+
                 lock (sets)
                 {
-                    sets.AddRange(generatedSets);
+                    sets.AddRange(localSets);
                 }
             });
         }
@@ -281,8 +287,8 @@ public abstract class RadicalFragmentationExplorer
         }
 
         Log($"Creating fragments needed file for {AnalysisLabel}");
-        var dataSplits = 20;
         bool isCysteine = this is CysteineFragmentationExplorer;
+        var dataSplits = 10;
 
         string[] tempFilePaths = new string[dataSplits];
         for (int i = 0; i < dataSplits; i++)
@@ -291,7 +297,9 @@ public abstract class RadicalFragmentationExplorer
         // split processed data into n chunks
         var toSplit = GroupByPrecursorMass(PrecursorFragmentMassFile.Results, PrecursorMassTolerance, AmbiguityLevel);
         var toProcess = toSplit.Split(dataSplits).ToList();
-        
+
+        var writeTasks = new List<Task>(dataSplits);
+
         // Process a single chunk at a time
         for (int i = 0; i < dataSplits; i++)
         {
@@ -301,7 +309,7 @@ public abstract class RadicalFragmentationExplorer
             StartingSubProcess($"Processing Precursor Chunk {currentIteration + 1} of {dataSplits}");
             var results = new FragmentsToDistinguishRecord[toProcess[i].Count];
 
-            Parallel.ForEach(Partitioner.Create(0, toProcess[i].Count), new ParallelOptions() { MaxDegreeOfParallelism = 1 /*StaticVariables.MaxThreads*/ }, range =>
+            Parallel.ForEach(Partitioner.Create(0, toProcess[i].Count), new ParallelOptions() { MaxDegreeOfParallelism = StaticVariables.MaxThreads }, range =>
             {
                 for (int j = range.Item1; j < range.Item2; j++)
                 {
@@ -310,12 +318,12 @@ public abstract class RadicalFragmentationExplorer
 
                     // short circuit conditions
                     // no other proteoform with precursor mass in range
-                    if (result.Item2.Count == 0) 
+                    if (result.Item2.Count == 0)
                         minFragments = 0;
                     // all have no cysteines
                     else if (isCysteine && result.Item1.CysteineCount == 0 && result.Item2.All(other => other.CysteineCount == result.Item1.CysteineCount))
                         minFragments = -1;
-                   
+
                     minFragments ??= MinFragmentMassesToDifferentiate(result.Item1.FragmentMassesHashSet, result.Item2, FragmentMassTolerance);
                     var record = new FragmentsToDistinguishRecord
                     {
@@ -333,15 +341,20 @@ public abstract class RadicalFragmentationExplorer
                     results[j] = record;
                 }
             });
-            
 
-            // write that chunk
+            // write that chunk asynchronously
             var tempFile = new FragmentsToDistinguishFile(tempFilePaths[currentIteration]) { Results = results.ToList() };
-            tempFile.WriteResults(tempFilePaths[currentIteration]);
-            FinishedWritingFile(tempFilePaths[currentIteration]);
+            writeTasks.Add(Task.Run(() =>
+            {
+                tempFile.WriteResults(tempFilePaths[currentIteration]);
+                FinishedWritingFile(tempFilePaths[currentIteration]);
+                toProcess[currentIteration].Clear();
+            }));
+
             FinishedSubProcess($"Finished Processing Precursor Chunk {currentIteration + 1} of {dataSplits}");
-            toProcess[i].Clear();
         }
+
+        Task.WaitAll(writeTasks.ToArray());
 
         // combine all temporary files into a single file and delete the temp files
         var allResults = new List<FragmentsToDistinguishRecord>();
@@ -374,11 +387,11 @@ public abstract class RadicalFragmentationExplorer
         if (uniqueTargetFragmentList.Length == 0)
             return -1;
 
-        // if any other proteoform contains all of the unique ions, then we cannot differentiate
+        // if any other proteoform contains all unique ions, then we cannot differentiate
         if (otherProteoforms.Any(p => p.FragmentMassesHashSet.ListContainsWithin(uniqueTargetFragmentList, tolerance)))
             return -1;
 
-        // Generate all combinations of fragment masses from the target otherProteoform
+        // Generate all combinations of fragment masses from the target otherProteoform in order of uniqueness
         var combinations = GenerateCombinations(uniqueTargetFragmentList)
             .Where(p => p.Count > 1)
             .GroupBy(p => p.Count)
