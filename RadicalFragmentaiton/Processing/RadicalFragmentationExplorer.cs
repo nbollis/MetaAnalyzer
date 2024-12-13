@@ -447,7 +447,7 @@ public abstract class RadicalFragmentationExplorer
         var orderedResults = allResultsToGroup.OrderBy(p => p.PrecursorMass).ToList();
         foreach (var outerResult in orderedResults)
         {
-            int lookupStart = Math.Max(0, orderedResults.IndexOf(outerResult) - 10000);
+            int lookupStart = Math.Max(0, orderedResults.IndexOf(outerResult) - 5000);
             var firstIndex = orderedResults.FindIndex(lookupStart, p => tolerance.Within(p.PrecursorMass, outerResult.PrecursorMass));
             
             if (firstIndex == -1)
