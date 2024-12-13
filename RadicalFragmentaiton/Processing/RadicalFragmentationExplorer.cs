@@ -120,6 +120,7 @@ public abstract class RadicalFragmentationExplorer
         }
     }
 
+    protected string _minFragmentNeededTempBasePath => _minFragmentNeededFilePath.Replace(".csv", "_temp.csv");
     protected string _minFragmentNeededFilePath => Path.Combine(DirectoryPath,
         $"{Species}_{NumberOfMods}Mods_{MaxFragmentString}_Level({AmbiguityLevel})Ambiguity_{FileIdentifiers.MinFragmentNeeded}");
     protected FragmentsToDistinguishFile _minFragmentNeededFile;
@@ -144,7 +145,7 @@ public abstract class RadicalFragmentationExplorer
 
     #endregion
 
-    #region
+    #region CMD
 
     public static EventHandler<StringEventArgs> LogHandler = null!;
     public static EventHandler<StringEventArgs> WarnHandler = null!;
@@ -288,84 +289,86 @@ public abstract class RadicalFragmentationExplorer
 
         Log($"Creating fragments needed file for {AnalysisLabel}");
         bool isCysteine = this is CysteineFragmentationExplorer;
-        var dataSplits = 10;
 
-        string[] tempFilePaths = new string[dataSplits];
-        for (int i = 0; i < dataSplits; i++)
-            tempFilePaths[i] = _minFragmentNeededFilePath.Replace(".csv", $"_{i}.csv");
 
-        // split processed data into n chunks
-        var toSplit = GroupByPrecursorMass(PrecursorFragmentMassFile.Results, PrecursorMassTolerance, AmbiguityLevel);
-        var toProcess = toSplit.Split(dataSplits).ToList();
+        var writeTasks = new List<Task>(16);
+        var results = new ConcurrentBag<FragmentsToDistinguishRecord>();
 
-        var writeTasks = new List<Task>(dataSplits);
-
-        // Process a single chunk at a time
-        for (int i = 0; i < dataSplits; i++)
-        {
-            var currentIteration = i;
-            if (File.Exists(tempFilePaths[i]))
-                continue;
-            StartingSubProcess($"Processing Precursor Chunk {currentIteration + 1} of {dataSplits}");
-            var results = new FragmentsToDistinguishRecord[toProcess[i].Count];
-
-            Parallel.ForEach(Partitioner.Create(0, toProcess[i].Count), new ParallelOptions() { MaxDegreeOfParallelism = StaticVariables.MaxThreads }, range =>
+        Parallel.ForEach(
+            GroupByPrecursorMass(PrecursorFragmentMassFile.Results, PrecursorMassTolerance, AmbiguityLevel),
+            new ParallelOptions() { MaxDegreeOfParallelism = StaticVariables.MaxThreads },
+            result =>
             {
-                for (int j = range.Item1; j < range.Item2; j++)
+                int? minFragments = null;
+
+                // short circuit conditions
+                // no other proteoform with precursor mass in range
+                if (result.Item2.Count == 0)
+                    minFragments = 0;
+
+                // all have no cysteines
+                else if (isCysteine && result.Item1.CysteineCount == 0
+                                    && result.Item2.All(other => other.CysteineCount == result.Item1.CysteineCount))
+                    minFragments = -1;
+
+                minFragments ??= MinFragmentMassesToDifferentiate(result.Item1.FragmentMassesHashSet, result.Item2,
+                    FragmentMassTolerance);
+                var record = new FragmentsToDistinguishRecord
                 {
-                    var result = toProcess[currentIteration][j];
-                    int? minFragments = null;
+                    Species = Species,
+                    NumberOfMods = NumberOfMods,
+                    MaxFragments = MaximumFragmentationEvents,
+                    AnalysisType = AnalysisLabel,
+                    AmbiguityLevel = AmbiguityLevel,
+                    Accession = result.Item1.Accession,
+                    NumberInPrecursorGroup = result.Item2.Count,
+                    FragmentsAvailable = result.Item1.FragmentMasses.Count,
+                    FragmentCountNeededToDifferentiate = minFragments.Value
+                };
+                results.Add(record);
 
-                    // short circuit conditions
-                    // no other proteoform with precursor mass in range
-                    if (result.Item2.Count == 0)
-                        minFragments = 0;
-                    // all have no cysteines
-                    else if (isCysteine && result.Item1.CysteineCount == 0 && result.Item2.All(other => other.CysteineCount == result.Item1.CysteineCount))
-                        minFragments = -1;
-
-                    minFragments ??= MinFragmentMassesToDifferentiate(result.Item1.FragmentMassesHashSet, result.Item2, FragmentMassTolerance);
-                    var record = new FragmentsToDistinguishRecord
+                // Write intermediate results to temporary file
+                if (results.Count >= 50000)
+                {
+                    lock (results)
                     {
-                        Species = Species,
-                        NumberOfMods = NumberOfMods,
-                        MaxFragments = MaximumFragmentationEvents,
-                        AnalysisType = AnalysisLabel,
-                        AmbiguityLevel = AmbiguityLevel,
-                        Accession = result.Item1.Accession,
-                        NumberInPrecursorGroup = result.Item2.Count,
-                        FragmentsAvailable = result.Item1.FragmentMasses.Count,
-                        FragmentCountNeededToDifferentiate = minFragments.Value
-                    };
+                        var toWrite = results.ToList();
+                        writeTasks.Add(Task.Run(() =>
+                        {
+                            var path = _minFragmentNeededTempBasePath.GetUniqueFilePath();
+                            var tempFile = new FragmentsToDistinguishFile(path)
+                            {
+                                Results = toWrite
+                            };
+                            tempFile.WriteResults(path);
+                            FinishedWritingFile(path);
+                        }));
+                    }
 
-                    results[j] = record;
+                    results.Clear();
                 }
             });
-
-            // write that chunk asynchronously
-            var tempFile = new FragmentsToDistinguishFile(tempFilePaths[currentIteration]) { Results = results.ToList() };
-            writeTasks.Add(Task.Run(() =>
-            {
-                tempFile.WriteResults(tempFilePaths[currentIteration]);
-                FinishedWritingFile(tempFilePaths[currentIteration]);
-                toProcess[currentIteration].Clear();
-            }));
-
-            FinishedSubProcess($"Finished Processing Precursor Chunk {currentIteration + 1} of {dataSplits}");
-        }
+        
 
         Task.WaitAll(writeTasks.ToArray());
 
-        // combine all temporary files into a single file and delete the temp files
+        // combine all temporary temporaryFiles into a single file and delete the temp temporaryFiles
         var allResults = new List<FragmentsToDistinguishRecord>();
-        foreach (var tempFile in tempFilePaths)
-            allResults.AddRange(new FragmentsToDistinguishFile(tempFile).Results);
+        allResults.AddRange(results); // add those that did not go to a temp file
+
+        var temporaryFiles = Directory.GetFiles(DirectoryPath)
+            .Where(p => p.Contains(FileIdentifiers.MinFragmentNeeded) && p.Contains("temp"))
+            .ToArray();
+        foreach (var file in temporaryFiles)
+        {
+            allResults.AddRange(new FragmentsToDistinguishFile(file).Results);
+        }
 
         var fragmentsToDistinguishFile = new FragmentsToDistinguishFile(_minFragmentNeededFilePath) { Results = allResults };
         fragmentsToDistinguishFile.WriteResults(_minFragmentNeededFilePath);
         FinishedWritingFile(_minFragmentNeededFilePath);
 
-        foreach (var tempFile in tempFilePaths)
+        foreach (var tempFile in temporaryFiles)
             File.Delete(tempFile);
 
         return _minFragmentNeededFile = fragmentsToDistinguishFile;
@@ -439,46 +442,37 @@ public abstract class RadicalFragmentationExplorer
     /// <param name="tolerance"></param>
     /// <param name="ambiguityLevel"></param>
     /// <returns></returns>
-    public static List<(PrecursorFragmentMassSet, List<PrecursorFragmentMassSet>)> GroupByPrecursorMass(List<PrecursorFragmentMassSet> allResultsToGroup, Tolerance tolerance, int ambiguityLevel = 1)
+    public static IEnumerable<(PrecursorFragmentMassSet, List<PrecursorFragmentMassSet>)> GroupByPrecursorMass(List<PrecursorFragmentMassSet> allResultsToGroup, Tolerance tolerance, int ambiguityLevel = 1)
     {
         var orderedResults = allResultsToGroup.OrderBy(p => p.PrecursorMass).ToList();
-        var groupedResults = new ConcurrentBag<(PrecursorFragmentMassSet, List<PrecursorFragmentMassSet>)>();
-
-        Parallel.ForEach(Partitioner.Create(0, orderedResults.Count), new ParallelOptions() { MaxDegreeOfParallelism = StaticVariables.MaxThreads },
-            range =>
+        foreach (var outerResult in orderedResults)
         {
-            for (int index = range.Item1; index < range.Item2; index++)
+            int lookupStart = Math.Max(0, orderedResults.IndexOf(outerResult) - 10000);
+            var firstIndex = orderedResults.FindIndex(lookupStart, p => tolerance.Within(p.PrecursorMass, outerResult.PrecursorMass));
+            
+            if (firstIndex == -1)
+                continue;
+
+            var innerResults = new List<PrecursorFragmentMassSet>();
+            for (int i = firstIndex; i < orderedResults.Count; i++)
             {
-                var outerResult = orderedResults[index];
-                int lookupStart = Math.Max(0, index - 10000);
-                var firstIndex = orderedResults.FindIndex(lookupStart, p => tolerance.Within(p.PrecursorMass, outerResult.PrecursorMass));
-
-                if (firstIndex == -1)
+                if (orderedResults[i].Equals(outerResult))
                     continue;
-
-                var innerResults = new List<PrecursorFragmentMassSet>();
-                for (int i = firstIndex; i < orderedResults.Count; i++)
+                switch (ambiguityLevel)
                 {
-                    if (orderedResults[i].Equals(outerResult))
+                    case 2 when orderedResults[i].Accession == outerResult.Accession:
+                    case 2 when orderedResults[i].FullSequence == outerResult.FullSequence:
                         continue;
-                    switch (ambiguityLevel)
-                    {
-                        case 2 when orderedResults[i].Accession == outerResult.Accession:
-                        case 2 when orderedResults[i].FullSequence == outerResult.FullSequence:
-                        continue;
-                    }
-
-                    if (tolerance.Within(orderedResults[i].PrecursorMass, orderedResults[firstIndex].PrecursorMass))
-                        innerResults.Add(orderedResults[i]);
-                    else
-                        break;
                 }
 
-                groupedResults.Add((outerResult, innerResults));
+                if (tolerance.Within(orderedResults[i].PrecursorMass, orderedResults[firstIndex].PrecursorMass))
+                    innerResults.Add(orderedResults[i]);
+                else
+                    break;
             }
-        });
 
-        return groupedResults.ToList();
+            yield return (outerResult, innerResults);
+        }
     }
 
     protected static bool HasUniqueFragment(HashSet<double> targetProteoform, List<PrecursorFragmentMassSet> otherProteoforms,

@@ -49,4 +49,24 @@ public static class ClassExtensions
 
         return true;
     }
+
+    public static string GetUniqueFilePath(this string filePath)
+    {
+        var extension = System.IO.Path.GetExtension(filePath);
+        int index = 1;
+
+        while (File.Exists(filePath))
+        {
+            int indexToInsert = filePath.IndexOf(extension, StringComparison.InvariantCulture);
+
+            // if first time needing to add an integer to filename
+            filePath = index == 1
+                ? filePath.Insert(indexToInsert, $"({index})")
+                : filePath.Replace($"({index - 1})", $"({index})");
+
+            index++;
+        }
+
+        return filePath;
+    }
 }
