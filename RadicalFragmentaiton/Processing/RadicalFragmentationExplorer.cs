@@ -399,29 +399,26 @@ public abstract class RadicalFragmentationExplorer
 
         // remove all ions that are shared across every otherProteoform 
         var uniqueTargetFragmentList = targetProteoform
-            .Where(frag => !otherProteoforms.All(p => p.FragmentMassesHashSet.ContainsWithin(frag, tolerance)))
-            .ToArray();
+            .Where(frag => !otherProteoforms.All(p => p.ContainsWithin(frag, tolerance)))
+            .ToList();
 
         // If unique target list is empty, then all fragments are shared
-        if (uniqueTargetFragmentList.Length == 0)
+        if (uniqueTargetFragmentList.Count == 0)
             return -1;
 
         // if any other proteoform contains all unique ions, then we cannot differentiate
         if (otherProteoforms.Any(p => p.FragmentMassesHashSet.ListContainsWithin(uniqueTargetFragmentList, tolerance)))
             return -1;
 
-        // Generate all combinations of fragment masses from the target otherProteoform in order of uniqueness
-        var combinations = GenerateCombinations(uniqueTargetFragmentList)
-            .Where(p => p.Count > 1)
-            .GroupBy(p => p.Count)
-            .OrderBy(group => group.Key);
+        // reorder unique target list to be have those shared by the least other proteoforms first
+        uniqueTargetFragmentList.Sort((a, b) => otherProteoforms.Count(p => p.ContainsWithin(a, tolerance))
+            .CompareTo(otherProteoforms.Count(p => p.ContainsWithin(b, tolerance))));
 
         // Order by count of fragment masses and check to see if they can differentiate the target
-        foreach (var combinationGroup in combinations)
+        for (int count = 2; count <= uniqueTargetFragmentList.Count; count++)
         {
             bool uniquePlusOneFound = false;
-            foreach (var combination in combinationGroup.OrderBy(combination => combination.Sum(fragment =>
-                         otherProteoforms.Count(p => p.FragmentMassesHashSet.Contains(fragment)))))
+            foreach (var combination in GenerateCombinationsWithCount(uniqueTargetFragmentList, count))
             {
                 // Get those that can be explained by these fragments
                 var matchingProteoforms = otherProteoforms
@@ -440,7 +437,7 @@ public abstract class RadicalFragmentationExplorer
                     uniquePlusOneFound = true;
             }
             if (uniquePlusOneFound)
-                return combinationGroup.Key + 1;
+                return count + 1;
         }
 
         return -1;
@@ -539,10 +536,36 @@ public abstract class RadicalFragmentationExplorer
         }
     }
 
-    // Function to generate all combinations of fragment masses from a given list
-    protected static IEnumerable<List<double>> GenerateCombinations(double[] fragmentMasses)
+    // Function to generate combinations of a specific count from a given list
+    protected static IEnumerable<List<double>> GenerateCombinationsWithCount(List<double> fragmentMasses, int count)
     {
-        int n = fragmentMasses.Length;
+        int n = fragmentMasses.Count;
+        var indices = new int[count];
+        for (int i = 0; i < count; i++)
+            indices[i] = i;
+
+        while (indices[0] < n - count + 1)
+        {
+            var combination = new List<double>(count);
+            for (int i = 0; i < count; i++)
+                combination.Add(fragmentMasses[indices[i]]);
+            yield return combination;
+
+            int t = count - 1;
+            while (t != 0 && indices[t] == n - count + t)
+                t--;
+
+            indices[t]++;
+            for (int i = t + 1; i < count; i++)
+                indices[i] = indices[i - 1] + 1;
+        }
+    }
+
+
+    // Function to generate all combinations of fragment masses from a given list
+    protected static IEnumerable<List<double>> GenerateCombinations(List<double> fragmentMasses)
+    {
+        int n = fragmentMasses.Count;
         for (int i = 1; i < 1 << n; i++)// Start from 1 to avoid empty combination
         {
             var combination = new List<double>();
@@ -556,8 +579,6 @@ public abstract class RadicalFragmentationExplorer
             yield return combination;
         }
     }
-
-
 
     #endregion
 

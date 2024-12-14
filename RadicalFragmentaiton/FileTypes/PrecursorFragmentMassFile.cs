@@ -4,6 +4,7 @@ using Readers;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Globalization;
 using CsvHelper;
+using MzLibUtil;
 
 namespace RadicalFragmentation;
 
@@ -49,6 +50,22 @@ public class PrecursorFragmentMassSet : IEquatable<PrecursorFragmentMassSet>
 
     public PrecursorFragmentMassSet()
     {
+    }
+
+    public bool Contains(double mass)
+    {
+        return FragmentMassesHashSet.Contains(mass);
+    }
+
+    public bool ContainsWithin(double mass, Tolerance tolerance)
+    {
+        for (var index = 0; index < FragmentMasses.Count; index++)
+        {
+            if (tolerance.Within(mass, FragmentMasses[index]))
+                return true;
+        }
+
+        return false;
     }
 
     public bool Equals(PrecursorFragmentMassSet? other)
