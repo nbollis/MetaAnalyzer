@@ -19,7 +19,6 @@ public class ProgressBar : IDisposable, IProgress<double>
     private string currentText = string.Empty;
     private string identifier;
     private bool disposed = false;
-    private bool hasReported = false;
     private int animationIndex = 0;
 
     public ProgressBar(string identifier = "")
@@ -40,12 +39,6 @@ public class ProgressBar : IDisposable, IProgress<double>
     {
         // Make sure value is in [0..1] range
         value = Math.Max(0, Math.Min(1, value));
-        if (!hasReported)
-        {
-            Console.Write(identifier + '\t');
-            hasReported = true;
-        }
-
         Interlocked.Exchange(ref currentProgress, value);
     }
 
