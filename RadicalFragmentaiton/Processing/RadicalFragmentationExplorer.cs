@@ -1,4 +1,5 @@
-﻿using MzLibUtil;
+﻿using Easy.Common.Extensions;
+using MzLibUtil;
 using Omics.Modifications;
 using Proteomics;
 using Proteomics.ProteolyticDigestion;
@@ -291,14 +292,15 @@ public abstract class RadicalFragmentationExplorer
         Log($"Creating fragments needed file for {AnalysisLabel}");
         bool isCysteine = this is CysteineFragmentationExplorer;
 
-
+        var writeLock = new object();
         var writeTasks = new List<Task>(16);
-        var results = new ConcurrentBag<FragmentsToDistinguishRecord>();
+        var results = new ConcurrentQueue<FragmentsToDistinguishRecord>();
 
-        Parallel.ForEach(
-            Partitioner.Create(
+        Parallel.ForEach(Partitioner.Create
+            (
                 GroupByPrecursorMass(PrecursorFragmentMassFile.Results, PrecursorMassTolerance, AmbiguityLevel),
-                EnumerablePartitionerOptions.NoBuffering),
+                EnumerablePartitionerOptions.NoBuffering
+            ),
             new ParallelOptions() { MaxDegreeOfParallelism = StaticVariables.MaxThreads },
             result =>
             {
@@ -328,27 +330,38 @@ public abstract class RadicalFragmentationExplorer
                     FragmentsAvailable = result.Item1.FragmentMasses.Count,
                     FragmentCountNeededToDifferentiate = minFragments.Value
                 };
-                results.Add(record);
+                results.Enqueue(record);
 
                 // Write intermediate results to temporary file
                 if (results.Count >= 100000)
                 {
-                    lock (results)
+                    List<FragmentsToDistinguishRecord>? toWrite;
+
+                    lock (writeLock)
                     {
-                        var toWrite = results.ToList();
-                        writeTasks.Add(Task.Run(() =>
+                        // after lock is released, all other threads will flood in here
+                        // this check ensures they don't dequeue the empty queue
+                        if (results.Count < 100000) return;
+
+                        toWrite = new List<FragmentsToDistinguishRecord>(101000);
+                        while (results.TryDequeue(out var item))
                         {
-                            var path = _minFragmentNeededTempBasePath.GetUniqueFilePath();
-                            var tempFile = new FragmentsToDistinguishFile(path)
-                            {
-                                Results = toWrite
-                            };
-                            tempFile.WriteResults(path);
-                            FinishedWritingFile(path);
-                        }));
+                            toWrite.Add(item);
+                        }
                     }
 
-                    results.Clear();
+                    writeTasks.Add(Task.Run(() =>
+                    {
+                        var tempFile = new FragmentsToDistinguishFile()
+                        {
+                            Results = toWrite
+                        };
+                        var path = _minFragmentNeededTempBasePath.GetUniqueFilePath();
+                        tempFile.WriteResults(path);
+                        FinishedWritingFile(path);
+
+                        toWrite = null;
+                    }));
                 }
             });
         
@@ -444,34 +457,48 @@ public abstract class RadicalFragmentationExplorer
     public static IEnumerable<(PrecursorFragmentMassSet, List<PrecursorFragmentMassSet>)> GroupByPrecursorMass(List<PrecursorFragmentMassSet> allResultsToGroup, Tolerance tolerance, int ambiguityLevel = 1)
     {
         var orderedResults = allResultsToGroup.OrderBy(p => p.PrecursorMass).ToList();
-        foreach (var outerResult in orderedResults)
+        var results = new BlockingCollection<(PrecursorFragmentMassSet, List<PrecursorFragmentMassSet>)>();
+        var producerTask = Task.Run(() =>
         {
-            int lookupStart = Math.Max(0, orderedResults.IndexOf(outerResult) - 5000);
-            var firstIndex = orderedResults.FindIndex(lookupStart, p => tolerance.Within(p.PrecursorMass, outerResult.PrecursorMass));
-            
-            if (firstIndex == -1)
-                continue;
-
-            var innerResults = new List<PrecursorFragmentMassSet>();
-            for (int i = firstIndex; i < orderedResults.Count; i++)
+            Parallel.ForEach(Partitioner.Create(0, orderedResults.Count), new ParallelOptions { MaxDegreeOfParallelism = StaticVariables.MaxThreads }, range =>
             {
-                if (orderedResults[i].Equals(outerResult))
-                    continue;
-                switch (ambiguityLevel)
+                for (int index = range.Item1; index < range.Item2; index++)
                 {
-                    case 2 when orderedResults[i].Accession == outerResult.Accession:
-                    case 2 when orderedResults[i].FullSequence == outerResult.FullSequence:
-                        continue;
+                    var outerResult = orderedResults[index];
+                    int lookupStart = BinarySearch(orderedResults, outerResult.PrecursorMass, tolerance, true);
+                    var innerResults = new List<PrecursorFragmentMassSet>(4);
+
+                    for (int i = lookupStart; i < orderedResults.Count; i++)
+                    {
+                        var innerResult = orderedResults[i];
+                        if (innerResult.Equals(outerResult))
+                            continue;
+                        switch (ambiguityLevel)
+                        {
+                            case 2 when innerResult.Accession == outerResult.Accession:
+                            case 2 when innerResult.FullSequence == outerResult.FullSequence:
+                                continue;
+                        }
+
+                        if (tolerance.Within(innerResult.PrecursorMass, outerResult.PrecursorMass))
+                            innerResults.Add(innerResult);
+                        else
+                            break;
+                    }
+
+                    results.Add((outerResult, innerResults));
                 }
+            });
 
-                if (tolerance.Within(orderedResults[i].PrecursorMass, orderedResults[firstIndex].PrecursorMass))
-                    innerResults.Add(orderedResults[i]);
-                else
-                    break;
-            }
+            results.CompleteAdding();
+        });
 
-            yield return (outerResult, innerResults);
+        foreach (var result in results.GetConsumingEnumerable())
+        {
+            yield return result;
         }
+
+        producerTask.Wait();
     }
 
     protected static bool HasUniqueFragment(HashSet<double> targetProteoform, List<PrecursorFragmentMassSet> otherProteoforms,
@@ -516,7 +543,7 @@ public abstract class RadicalFragmentationExplorer
     protected static IEnumerable<List<double>> GenerateCombinations(double[] fragmentMasses)
     {
         int n = fragmentMasses.Length;
-        for (int i = 0; i < 1 << n; i++)
+        for (int i = 1; i < 1 << n; i++)// Start from 1 to avoid empty combination
         {
             var combination = new List<double>();
             for (int j = 0; j < n; j++)
@@ -530,6 +557,37 @@ public abstract class RadicalFragmentationExplorer
         }
     }
 
+
+
     #endregion
 
+    public static int BinarySearch(List<PrecursorFragmentMassSet> orderedResults, double targetMass, Tolerance tolerance, bool findFirst)
+    {
+        int left = 0;
+        int right = orderedResults.Count - 1;
+        int result = -1;
+
+        while (left <= right)
+        {
+            int mid = left + (right - left) / 2;
+            if (tolerance.Within(orderedResults[mid].PrecursorMass, targetMass))
+            {
+                result = mid;
+                if (findFirst)
+                    right = mid - 1;
+                else
+                    left = mid + 1;
+            }
+            else if (orderedResults[mid].PrecursorMass < targetMass)
+            {
+                left = mid + 1;
+            }
+            else
+            {
+                right = mid - 1;
+            }
+        }
+
+        return result;
+    }
 }
