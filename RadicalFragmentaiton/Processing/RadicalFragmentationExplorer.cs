@@ -12,6 +12,7 @@ namespace RadicalFragmentation.Processing;
 
 public abstract class RadicalFragmentationExplorer
 {
+    protected static readonly HashSetPool<double> HashSetPool = new(128);
     public bool Override { get; set; } = false;
     protected string BaseDirectorPath { get; init; }
 
@@ -295,7 +296,9 @@ public abstract class RadicalFragmentationExplorer
         var results = new ConcurrentBag<FragmentsToDistinguishRecord>();
 
         Parallel.ForEach(
-            GroupByPrecursorMass(PrecursorFragmentMassFile.Results, PrecursorMassTolerance, AmbiguityLevel),
+            Partitioner.Create(
+                GroupByPrecursorMass(PrecursorFragmentMassFile.Results, PrecursorMassTolerance, AmbiguityLevel),
+                EnumerablePartitionerOptions.NoBuffering),
             new ParallelOptions() { MaxDegreeOfParallelism = StaticVariables.MaxThreads },
             result =>
             {
@@ -398,18 +401,14 @@ public abstract class RadicalFragmentationExplorer
         var combinations = GenerateCombinations(uniqueTargetFragmentList)
             .Where(p => p.Count > 1)
             .GroupBy(p => p.Count)
-            .Select(group => new
-            {
-                Count = group.Key,
-                Combinations = group.OrderBy(combination => combination.Sum(fragment =>
-                    otherProteoforms.Count(p => p.FragmentMassesHashSet.Contains(fragment))))
-            });
+            .OrderBy(group => group.Key);
 
         // Order by count of fragment masses and check to see if they can differentiate the target
         foreach (var combinationGroup in combinations)
         {
             bool uniquePlusOneFound = false;
-            foreach (var combination in combinationGroup.Combinations)
+            foreach (var combination in combinationGroup.OrderBy(combination => combination.Sum(fragment =>
+                         otherProteoforms.Count(p => p.FragmentMassesHashSet.Contains(fragment)))))
             {
                 // Get those that can be explained by these fragments
                 var matchingProteoforms = otherProteoforms
@@ -428,7 +427,7 @@ public abstract class RadicalFragmentationExplorer
                     uniquePlusOneFound = true;
             }
             if (uniquePlusOneFound)
-                return combinationGroup.Count + 1;
+                return combinationGroup.Key + 1;
         }
 
         return -1;
@@ -478,46 +477,48 @@ public abstract class RadicalFragmentationExplorer
     protected static bool HasUniqueFragment(HashSet<double> targetProteoform, List<PrecursorFragmentMassSet> otherProteoforms,
         Tolerance tolerance)
     {
-        // Estimate the size of the HashSet to avoid resizing
-        int estimatedSize = otherProteoforms.Sum(p => p.FragmentMassesHashSet.Count);
-        var otherFragments = new HashSet<double>(estimatedSize);
-
-        foreach (var otherProteoform in otherProteoforms)
+        var otherFragments = HashSetPool.Get();
+        try
         {
-            foreach (var fragment in otherProteoform.FragmentMassesHashSet)
+            foreach (var otherProteoform in otherProteoforms)
             {
-                otherFragments.Add(fragment);
-            }
-        }
-
-        // check to see if target proteoform has a fragment that is unique to all other proteoform fragments within tolerance
-        foreach (var targetFragment in targetProteoform)
-        {
-            bool isUniqueFragment = true;
-            foreach (var otherFragment in otherFragments)
-            {
-                if (tolerance.Within(targetFragment, otherFragment))
+                foreach (var fragment in otherProteoform.FragmentMassesHashSet)
                 {
-                    isUniqueFragment = false;
-                    break;
+                    otherFragments.Add(fragment);
                 }
             }
-            if (isUniqueFragment)
-                return true;
+
+            // check to see if target proteoform has a fragment that is unique to all other proteoform fragments within tolerance
+            foreach (var targetFragment in targetProteoform)
+            {
+                bool isUniqueFragment = true;
+                foreach (var otherFragment in otherFragments)
+                {
+                    if (tolerance.Within(targetFragment, otherFragment))
+                    {
+                        isUniqueFragment = false;
+                        break;
+                    }
+                }
+                if (isUniqueFragment)
+                    return true;
+            }
+
+            return false;
         }
-
-        return false;
+        finally
+        {
+            HashSetPool.Return(otherFragments);
+        }
     }
-
 
     // Function to generate all combinations of fragment masses from a given list
     protected static IEnumerable<List<double>> GenerateCombinations(double[] fragmentMasses)
     {
         int n = fragmentMasses.Length;
-        var combinations = new List<List<double>>(1 << n);
         for (int i = 0; i < 1 << n; i++)
         {
-            List<double> combination = new List<double>();
+            var combination = new List<double>();
             for (int j = 0; j < n; j++)
             {
                 if ((i & 1 << j) != 0)
@@ -525,9 +526,8 @@ public abstract class RadicalFragmentationExplorer
                     combination.Add(fragmentMasses[j]);
                 }
             }
-            combinations.Add(combination);
+            yield return combination;
         }
-        return combinations;
     }
 
     #endregion
