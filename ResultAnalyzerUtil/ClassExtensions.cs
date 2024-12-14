@@ -5,6 +5,12 @@ namespace ResultAnalyzerUtil;
 
 public static class ClassExtensions
 {
+    static ClassExtensions()
+    {
+        FilePathLock = new object();
+        ClaimedFilePaths = new List<string>(64);
+    }
+
     public static IEnumerable<List<T>> Split<T>(this IEnumerable<T> list, int parts)
     {
         int i = 0;
@@ -50,7 +56,32 @@ public static class ClassExtensions
         return true;
     }
 
-    public static string GetUniqueFilePath(this string filePath)
+    private static readonly object FilePathLock;
+    private static readonly List<string> ClaimedFilePaths;
+    public static string GenerateUniqueFilePathThreadSafe(this string filePath)
+    {
+        var extension = System.IO.Path.GetExtension(filePath);
+        int index = 1;
+
+        lock (FilePathLock)
+        {
+            while (File.Exists(filePath) || ClaimedFilePaths.Contains(filePath))
+            {
+                int indexToInsert = filePath.IndexOf(extension, StringComparison.InvariantCulture);
+
+                // if first time needing to add an integer to filename
+                filePath = index == 1
+                    ? filePath.Insert(indexToInsert, $"({index})")
+                    : filePath.Replace($"({index - 1})", $"({index})");
+
+                index++;
+            }
+            ClaimedFilePaths.Add(filePath);
+        }
+        return filePath;
+    }
+
+    public static string GenerateUniqueFilePath(this string filePath)
     {
         var extension = System.IO.Path.GetExtension(filePath);
         int index = 1;

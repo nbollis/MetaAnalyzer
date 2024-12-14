@@ -30,7 +30,10 @@ internal class CysteineFragmentationExplorer : RadicalFragmentationExplorer
             if (cysCount == 0)
             {
                 yield return new PrecursorFragmentMassSet(proteoform.MonoisotopicMass, proteoform.Protein.Accession,
-                    new List<double> { proteoform.MonoisotopicMass }, proteoform.FullSequence);
+                    new List<double> { proteoform.MonoisotopicMass }, proteoform.FullSequence)
+                { 
+                    CysteineCount = cysCount
+                };
             }
             else
             {
@@ -83,9 +86,45 @@ internal class CysteineFragmentationExplorer : RadicalFragmentationExplorer
                 }
                 
                 yield return new PrecursorFragmentMassSet(proteoform.MonoisotopicMass, proteoform.Protein.Accession,
-                    fragmentMasses.OrderBy(p => p).Append(proteoform.MonoisotopicMass).ToList(), proteoform.FullSequence);
+                    fragmentMasses.OrderBy(p => p).Append(proteoform.MonoisotopicMass).ToList(), proteoform.FullSequence)
+                {
+                    CysteineCount = cysCount
+                };
             }
         }
+    }
+
+    public static int GetCysteineCountFromFullSequence(string fullSequence)
+    {
+        // Use a StringBuilder to build the cleaned sequence
+        var baseSequenceBuilder = new System.Text.StringBuilder(fullSequence.Length);
+        int bracketCount = 0;
+        foreach (var c in fullSequence)
+        {
+            switch (c)
+            {
+                case '[':
+                    bracketCount++;
+                    continue;
+                case ']':
+                    bracketCount--;
+                    continue;
+                default:
+                {
+                    if (bracketCount == 0)
+                        baseSequenceBuilder.Append(c);
+                    break;
+                }
+            }
+        }
+
+        // Use Span<T> to process the sequence in-place
+        var span = baseSequenceBuilder.ToString().AsSpan();
+        int cysteineCount = 0;
+        foreach (var character in span)
+            if (character == 'C')
+                cysteineCount++;
+        return cysteineCount;
     }
 
     /// <summary>
@@ -95,38 +134,7 @@ internal class CysteineFragmentationExplorer : RadicalFragmentationExplorer
     {
         foreach(var proteoform in PrecursorFragmentMassFile)
         {
-            if (proteoform.CysteineCount is not null)
-                continue;
-
-            // Use a StringBuilder to build the cleaned sequence
-            var baseSequenceBuilder = new System.Text.StringBuilder(proteoform.FullSequence.Length);
-            int bracketCount = 0;
-            foreach (var c in proteoform.FullSequence)
-            {
-                switch (c)
-                {
-                    case '[':
-                        bracketCount++;
-                        continue;
-                    case ']':
-                        bracketCount--;
-                        continue;
-                    default:
-                    {
-                        if (bracketCount == 0)
-                            baseSequenceBuilder.Append(c);
-                        break;
-                    }
-                }
-            }
-
-            // Use Span<T> to process the sequence in-place
-            var span = baseSequenceBuilder.ToString().AsSpan();
-            int cysteineCount = 0;
-            foreach (var character in span)
-                if (character == 'C')
-                    cysteineCount++;
-            proteoform.CysteineCount = cysteineCount;
+            proteoform.CysteineCount ??= GetCysteineCountFromFullSequence(proteoform.FullSequence);
         }
     }
 }

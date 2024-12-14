@@ -13,7 +13,16 @@ namespace RadicalFragmentation.Processing;
 
 public abstract class RadicalFragmentationExplorer
 {
-    protected static readonly HashSetPool<double> HashSetPool = new(128);
+    static RadicalFragmentationExplorer()
+    {
+        HashSetPool = new HashSetPool<double>(128);
+        ListPool = new ListPool<double>(8);
+        WriteLock = new object();
+    }
+
+    protected static readonly object WriteLock;
+    protected static readonly HashSetPool<double> HashSetPool;
+    protected static readonly ListPool<double> ListPool;
     public bool Override { get; set; } = false;
     protected string BaseDirectorPath { get; init; }
 
@@ -154,7 +163,7 @@ public abstract class RadicalFragmentationExplorer
     public static EventHandler<SingleFileEventArgs> FileWrittenHandler = null!;
     public static EventHandler<SubProcessEventArgs> StartingSubProcessHandler = null!;
     public static EventHandler<SubProcessEventArgs> FinishedSubProcessHandler = null!;
-
+    public static EventHandler<ProgressBarEventArgs> ProgressBarHandler = null!;
     protected void Log(string message)
     {
         LogHandler?.Invoke(this, new StringEventArgs(message));
@@ -180,6 +189,14 @@ public abstract class RadicalFragmentationExplorer
         FileWrittenHandler?.Invoke(this, new SingleFileEventArgs(writtenFile));
     }
 
+    protected void UpdateProgressBar(string progressBarName, double progress)
+    {
+        if (progress > 1 || progress < 0)
+            throw new ArgumentOutOfRangeException(nameof(progress), "Progress must be between 0 and 1");
+
+        ProgressBarHandler?.Invoke(this, new ProgressBarEventArgs(progressBarName, progress));
+    }
+
     #endregion
 
     #region Methods
@@ -194,10 +211,12 @@ public abstract class RadicalFragmentationExplorer
             return PrecursorFragmentMassFile;
         }
 
-        Log($"Creating Index File for {AnalysisLabel}");
         if (!Directory.Exists(IndexDirectoryPath))
             Directory.CreateDirectory(IndexDirectoryPath);
 
+        int toProcess;
+        int currentCount = 0;
+        UpdateProgressBar($"Creating Index File for {AnalysisLabel}", 0);
         CustomComparer<PrecursorFragmentMassSet> comparer = AmbiguityLevel switch
         {
             1 => CustomComparerExtensions.LevelOneComparer,
@@ -218,6 +237,7 @@ public abstract class RadicalFragmentationExplorer
             var modifications = NumberOfMods == 0 ? new List<Modification>() : GlobalVariables.AllModsKnown;
             var proteins = ProteinDbLoader.LoadProteinXML(DatabasePath, true, DecoyType.None, modifications, false, new List<string>(), out var um);
 
+            toProcess = proteins.Count;
             Parallel.ForEach(Partitioner.Create(0, proteins.Count), new ParallelOptions() { MaxDegreeOfParallelism = StaticVariables.MaxThreads }, range =>
             {
                 var localSets = new List<PrecursorFragmentMassSet>(100);
@@ -225,11 +245,18 @@ public abstract class RadicalFragmentationExplorer
                 {
                     var generatedSets = GeneratePrecursorFragmentMasses(proteins[i]);
                     localSets.AddRange(generatedSets);
+
                 }
 
                 lock (sets)
                 {
                     sets.AddRange(localSets);
+                }
+
+                // report progress every 1% of data
+                if (Interlocked.Add(ref currentCount, range.Item2 - range.Item1) % (toProcess / 100) == 0)
+                {
+                    UpdateProgressBar($"Creating Index File for {AnalysisLabel}", (double)currentCount / toProcess);
                 }
             });
         }
@@ -289,12 +316,13 @@ public abstract class RadicalFragmentationExplorer
             return MinFragmentNeededFile;
         }
 
-        Log($"Creating fragments needed file for {AnalysisLabel}");
+        UpdateProgressBar($"Finding Fragments Needed for {AnalysisLabel}", 0.00001);
         bool isCysteine = this is CysteineFragmentationExplorer;
-
-        var writeLock = new object();
         var writeTasks = new List<Task>(16);
         var results = new ConcurrentQueue<FragmentsToDistinguishRecord>();
+        int toProcess = PrecursorFragmentMassFile.Results.Count;
+        int current = 0;
+
 
         Parallel.ForEach(Partitioner.Create
             (
@@ -337,32 +365,44 @@ public abstract class RadicalFragmentationExplorer
                 {
                     List<FragmentsToDistinguishRecord>? toWrite;
 
-                    lock (writeLock)
+                    if (Monitor.TryEnter(WriteLock))
                     {
-                        // after lock is released, all other threads will flood in here
-                        // this check ensures they don't dequeue the empty queue
-                        if (results.Count < 100000) return;
-
-                        toWrite = new List<FragmentsToDistinguishRecord>(101000);
-                        while (results.TryDequeue(out var item))
+                        try
                         {
-                            toWrite.Add(item);
+                            // after lock is released, all other threads will flood in here
+                            // this check ensures they don't dequeue the empty queue
+                            if (results.Count < 100000) return;
+
+                            toWrite = new List<FragmentsToDistinguishRecord>(128000);
+                            while (results.TryDequeue(out var item))
+                            {
+                                toWrite.Add(item);
+                            }
+
+                            writeTasks.Add(Task.Run(() =>
+                            {
+                                var tempFile = new FragmentsToDistinguishFile()
+                                {
+                                    Results = toWrite
+                                };
+                                var path = _minFragmentNeededTempBasePath.GenerateUniqueFilePathThreadSafe();
+                                tempFile.WriteResults(path);
+                                //FinishedWritingFile(path);
+                            }));
+                        }
+                        finally
+                        {
+                            Monitor.Exit(WriteLock);
                         }
                     }
-
-                    writeTasks.Add(Task.Run(() =>
-                    {
-                        var tempFile = new FragmentsToDistinguishFile()
-                        {
-                            Results = toWrite
-                        };
-                        var path = _minFragmentNeededTempBasePath.GetUniqueFilePath();
-                        tempFile.WriteResults(path);
-                        FinishedWritingFile(path);
-
-                        toWrite = null;
-                    }));
                 }
+
+                // report progress every 1% of data
+                if (Interlocked.Increment(ref current) % (toProcess / 100) == 0)
+                {
+                    UpdateProgressBar($"Finding Fragments Needed for {AnalysisLabel}", (double)current / toProcess);
+                }
+
             });
         
 
@@ -397,50 +437,71 @@ public abstract class RadicalFragmentationExplorer
         if (HasUniqueFragment(targetProteoform, otherProteoforms, tolerance))
             return 1;
 
-        // remove all ions that are shared across every otherProteoform 
-        var uniqueTargetFragmentList = targetProteoform
-            .Where(frag => !otherProteoforms.All(p => p.ContainsWithin(frag, tolerance)))
-            .ToList();
-
-        // If unique target list is empty, then all fragments are shared
-        if (uniqueTargetFragmentList.Count == 0)
-            return -1;
-
-        // if any other proteoform contains all unique ions, then we cannot differentiate
-        if (otherProteoforms.Any(p => p.FragmentMassesHashSet.ListContainsWithin(uniqueTargetFragmentList, tolerance)))
-            return -1;
-
-        // reorder unique target list to be have those shared by the least other proteoforms first
-        uniqueTargetFragmentList.Sort((a, b) => otherProteoforms.Count(p => p.ContainsWithin(a, tolerance))
-            .CompareTo(otherProteoforms.Count(p => p.ContainsWithin(b, tolerance))));
-
-        // Order by count of fragment masses and check to see if they can differentiate the target
-        for (int count = 2; count <= uniqueTargetFragmentList.Count; count++)
+        var uniqueTargetFragmentList = ListPool.Get();
+        try
         {
-            bool uniquePlusOneFound = false;
-            foreach (var combination in GenerateCombinationsWithCount(uniqueTargetFragmentList, count))
+            // collect all target fragments that are shared across all proteoforms
+            foreach (var frag in targetProteoform)
             {
-                // Get those that can be explained by these fragments
-                var matchingProteoforms = otherProteoforms
-                    .Where(p => p.FragmentMassesHashSet.ListContainsWithin(combination, tolerance))
-                    .ToList();
-
-                if (matchingProteoforms.Count == 0)
-                    return combination.Count;
-
-                // if unique plus one has been found, no need to check again
-                // however, we do need to ensure that one of the current analyzed combinations is unique
-                if (uniquePlusOneFound)
-                    continue;
-
-                if (HasUniqueFragment(targetProteoform, matchingProteoforms, tolerance))
-                    uniquePlusOneFound = true;
+                bool isUnique = true;
+                foreach (var p in otherProteoforms)
+                {
+                    if (p.ContainsWithin(frag, tolerance))
+                    {
+                        isUnique = false;
+                        break;
+                    }
+                }
+                if (isUnique)
+                {
+                    uniqueTargetFragmentList.Add(frag);
+                }
             }
-            if (uniquePlusOneFound)
-                return count + 1;
-        }
 
-        return -1;
+            // If unique target list is empty, then all fragments are shared
+            if (uniqueTargetFragmentList.Count == 0)
+                return -1;
+
+            // if any other proteoform contains all unique ions, then we cannot differentiate
+            if (otherProteoforms.Any(p => p.FragmentMassesHashSet.ListContainsWithin(uniqueTargetFragmentList, tolerance)))
+                return -1;
+
+            // reorder unique target list to be have those shared by the least other proteoforms first
+            uniqueTargetFragmentList.Sort((a, b) => otherProteoforms.Count(p => p.ContainsWithin(a, tolerance))
+                .CompareTo(otherProteoforms.Count(p => p.ContainsWithin(b, tolerance))));
+
+            // Order by count of fragment masses and check to see if they can differentiate the target
+            for (int count = 2; count <= uniqueTargetFragmentList.Count; count++)
+            {
+                bool uniquePlusOneFound = false;
+                foreach (var combination in GenerateCombinationsWithCount(uniqueTargetFragmentList, count))
+                {
+                    // Get those that can be explained by these fragments
+                    var matchingProteoforms = otherProteoforms
+                        .Where(p => p.FragmentMassesHashSet.ListContainsWithin(combination, tolerance))
+                        .ToList();
+
+                    if (matchingProteoforms.Count == 0)
+                        return combination.Count;
+
+                    // if unique plus one has been found, no need to check again
+                    // however, we do need to ensure that one of the current analyzed combinations is unique
+                    if (uniquePlusOneFound)
+                        continue;
+
+                    if (HasUniqueFragment(targetProteoform, matchingProteoforms, tolerance))
+                        uniquePlusOneFound = true;
+                }
+                if (uniquePlusOneFound)
+                    return count + 1;
+            }
+
+            return -1;
+        }
+        finally
+        {
+            ListPool.Return(uniqueTargetFragmentList);
+        }
     }
 
     /// <summary>
@@ -457,13 +518,13 @@ public abstract class RadicalFragmentationExplorer
         var results = new BlockingCollection<(PrecursorFragmentMassSet, List<PrecursorFragmentMassSet>)>();
         var producerTask = Task.Run(() =>
         {
-            Parallel.ForEach(Partitioner.Create(0, orderedResults.Count), new ParallelOptions { MaxDegreeOfParallelism = StaticVariables.MaxThreads }, range =>
+            Parallel.ForEach(Partitioner.Create(0, orderedResults.Count), new ParallelOptions { MaxDegreeOfParallelism = Math.Max(StaticVariables.MaxThreads / 2, 1) }, range =>
             {
                 for (int index = range.Item1; index < range.Item2; index++)
                 {
                     var outerResult = orderedResults[index];
                     int lookupStart = BinarySearch(orderedResults, outerResult.PrecursorMass, tolerance, true);
-                    var innerResults = new List<PrecursorFragmentMassSet>(4);
+                    var innerResults = new List<PrecursorFragmentMassSet>(64);
 
                     for (int i = lookupStart; i < orderedResults.Count; i++)
                     {
@@ -539,7 +600,8 @@ public abstract class RadicalFragmentationExplorer
     // Function to generate combinations of a specific count from a given list
     protected static IEnumerable<List<double>> GenerateCombinationsWithCount(List<double> fragmentMasses, int count)
     {
-        int n = fragmentMasses.Count;
+        var fragmentMassesList = fragmentMasses.ToList();
+        int n = fragmentMassesList.Count;
         var indices = new int[count];
         for (int i = 0; i < count; i++)
             indices[i] = i;
@@ -548,7 +610,7 @@ public abstract class RadicalFragmentationExplorer
         {
             var combination = new List<double>(count);
             for (int i = 0; i < count; i++)
-                combination.Add(fragmentMasses[indices[i]]);
+                combination.Add(fragmentMassesList[indices[i]]);
             yield return combination;
 
             int t = count - 1;

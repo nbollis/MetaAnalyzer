@@ -1,7 +1,6 @@
-﻿using ResultAnalyzerUtil.CommandLine;
-using System.Text.RegularExpressions;
+﻿using System.Text.RegularExpressions;
 
-namespace RadicalFragmentation
+namespace ResultAnalyzerUtil.CommandLine
 {
     public static class CommandLineLogger
     {
@@ -10,11 +9,14 @@ namespace RadicalFragmentation
             = new System.CodeDom.Compiler.IndentedTextWriter(Console.Out, "\t");
 
         public static ICommandLineParameters? CommandLineParameters { get; private set; } = null!;
+        public static Dictionary<string, ProgressBar> ProgressBars;
+
 
         public static void Initialize(ICommandLineParameters commandLineParameters)
         {
             CommandLineParameters = commandLineParameters;
             MyWriter.Indent = 0;
+            ProgressBars = new Dictionary<string, ProgressBar>();
         }
 
         private static void WriteMultiLineIndented(string toWrite)
@@ -39,7 +41,7 @@ namespace RadicalFragmentation
         {
             if (CommandLineParameters?.Verbosity == VerbosityType.Normal)
             {
-                WriteMultiLineIndented("Log: " + e.Message);
+                WriteMultiLineIndented(e.Message);
             }
         }
 
@@ -47,7 +49,9 @@ namespace RadicalFragmentation
         {
             if (CommandLineParameters?.Verbosity == VerbosityType.Normal)
             {
+                MyWriter.Indent++;
                 WriteMultiLineIndented("Finished writing file: " + Path.GetFileNameWithoutExtension(e.WrittenFile));
+                MyWriter.Indent--;
             }
         }
 
@@ -55,7 +59,7 @@ namespace RadicalFragmentation
         {
             if (CommandLineParameters?.Verbosity == VerbosityType.Normal)
             {
-                WriteMultiLineIndented(e.SubProcessIdentifier);
+                WriteMultiLineIndented("Started: " + e.SubProcessIdentifier);
                 MyWriter.Indent++;
             }
         }
@@ -65,7 +69,25 @@ namespace RadicalFragmentation
             if (CommandLineParameters?.Verbosity != VerbosityType.None)
             {
                 MyWriter.Indent--;
-                WriteMultiLineIndented(e.SubProcessIdentifier);
+                WriteMultiLineIndented("Finished:" + e.SubProcessIdentifier);
+            }
+        }
+
+        public static void ReportProgressHandler(object? sender, ProgressBarEventArgs e)
+        {
+            if (CommandLineParameters?.Verbosity == VerbosityType.Normal)
+            {
+                if (!ProgressBars.ContainsKey(e.ProgressBarName))
+                {
+                    ProgressBars[e.ProgressBarName] = new ProgressBar(e.ProgressBarName);
+                }
+                ProgressBars[e.ProgressBarName].Report(e.Progress);
+
+                if (Math.Abs(e.Progress - 1) < 0.0000000001)
+                {
+                    ProgressBars[e.ProgressBarName].Dispose();
+                    ProgressBars.Remove(e.ProgressBarName);
+                }
             }
         }
     }

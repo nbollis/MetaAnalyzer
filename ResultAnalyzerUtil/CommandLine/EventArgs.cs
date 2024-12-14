@@ -29,4 +29,15 @@
         }
         public string SubProcessIdentifier { get; }
     }
+
+    public class ProgressBarEventArgs : EventArgs
+    {
+        public ProgressBarEventArgs(string progressBarName, double progress)
+        {
+            ProgressBarName = progressBarName;
+            Progress = progress;
+        }
+        public string ProgressBarName { get; }
+        public double Progress { get; }
+    }
 }

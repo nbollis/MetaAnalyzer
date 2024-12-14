@@ -43,6 +43,7 @@ namespace RadicalFragmentation
                 errorCode = 2;
 
                 CrashHandler(e, errorCode);
+                Debugger.Break();
                 return errorCode;
             }
 
@@ -57,6 +58,7 @@ namespace RadicalFragmentation
                 RadicalFragmentationExplorer.FileWrittenHandler += CommandLineLogger.FinishedWritingFileHandler;
                 RadicalFragmentationExplorer.StartingSubProcessHandler += CommandLineLogger.StartingSubProcessHandler;
                 RadicalFragmentationExplorer.FinishedSubProcessHandler += CommandLineLogger.FinishedSubProcessHandler;
+                RadicalFragmentationExplorer.ProgressBarHandler += CommandLineLogger.ReportProgressHandler;
 
                 StaticVariables.MaxThreads = settings.MaxThreads;
             }
@@ -66,6 +68,7 @@ namespace RadicalFragmentation
                 errorCode = 3;
 
                 CrashHandler(e, errorCode);
+                Debugger.Break();
                 return errorCode;
             }
 
@@ -107,20 +110,22 @@ namespace RadicalFragmentation
                 errorCode = 4;
 
                 CrashHandler(e, errorCode);
+                Debugger.Break();
                 return errorCode;
             }
 
             // run tasks
             try
             {
-                CommandLineLogger.StartingSubProcessHandler("", new SubProcessEventArgs("Started" + explorer.AnalysisLabel + " with " + explorer.NumberOfMods + " Mods and level " + explorer.AmbiguityLevel + " ambiguity"));
+                string explorerLabel = explorer.AnalysisLabel + " with " + explorer.NumberOfMods + " Mods and level " + explorer.AmbiguityLevel + " ambiguity";
+                CommandLineLogger.StartingSubProcessHandler("", new SubProcessEventArgs(explorerLabel));
                 CommandLineLogger.LogHandler("", new StringEventArgs($"With output directory {explorer.DirectoryPath}"));
                 explorer.CreateIndexedFile();
                 explorer.CreateFragmentHistogramFile();
                 if (explorer is CysteineFragmentationExplorer cys)
                     cys.CountCysteines();
                 explorer.FindNumberOfFragmentsNeededToDifferentiate();
-                CommandLineLogger.FinishedSubProcessHandler("", new SubProcessEventArgs("Finished" + explorer.AnalysisLabel + " with " + explorer.NumberOfMods + " Mods and level " + explorer.AmbiguityLevel + " ambiguity"));
+                CommandLineLogger.FinishedSubProcessHandler("", new SubProcessEventArgs(explorerLabel));
             }
             catch (Exception e)
             {
@@ -135,6 +140,7 @@ namespace RadicalFragmentation
                 Console.WriteLine("Radical Fragmentation encountered the following error:" + message);
                 errorCode = 4;
                 CrashHandler(e, errorCode);
+                Debugger.Break();
                 return errorCode;
             }
 

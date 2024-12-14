@@ -1,4 +1,5 @@
 ﻿using CommandLine;
+using ResultAnalyzerUtil.CommandLine;
 
 namespace RadicalFragmentation
 {
