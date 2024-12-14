@@ -89,19 +89,43 @@ internal class CysteineFragmentationExplorer : RadicalFragmentationExplorer
     }
 
     /// <summary>
-    /// Extracts base sequence from full sequence by ignoring anything found in square braackets and counts occurances of 'C'
+    /// Extracts base sequence from full sequence by ignoring anything found in square brackets and counts occurrences of 'C'
     /// </summary>
     public void CountCysteines()
     {
         foreach(var proteoform in PrecursorFragmentMassFile)
         {
-            if (proteoform.CysteineCount != 0)
+            if (proteoform.CysteineCount is not null)
                 continue;
 
-            var baseSequence = new string(proteoform.FullSequence
-                .Where(c => c != '[' && c != ']').ToArray());
-            var cleanedSequence = System.Text.RegularExpressions.Regex.Replace(baseSequence, @"\[.*?\]", string.Empty);
-            var cysteineCount = cleanedSequence.Count(c => c == 'C');
+            // Use a StringBuilder to build the cleaned sequence
+            var baseSequenceBuilder = new System.Text.StringBuilder(proteoform.FullSequence.Length);
+            int bracketCount = 0;
+            foreach (var c in proteoform.FullSequence)
+            {
+                switch (c)
+                {
+                    case '[':
+                        bracketCount++;
+                        continue;
+                    case ']':
+                        bracketCount--;
+                        continue;
+                    default:
+                    {
+                        if (bracketCount == 0)
+                            baseSequenceBuilder.Append(c);
+                        break;
+                    }
+                }
+            }
+
+            // Use Span<T> to process the sequence in-place
+            var span = baseSequenceBuilder.ToString().AsSpan();
+            int cysteineCount = 0;
+            foreach (var character in span)
+                if (character == 'C')
+                    cysteineCount++;
             proteoform.CysteineCount = cysteineCount;
         }
     }

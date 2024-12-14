@@ -303,13 +303,13 @@ public abstract class RadicalFragmentationExplorer
             result =>
             {
                 int? minFragments = null;
+                int numberInGroup = result.Item2.Count;
 
-                // short circuit conditions
                 // no other proteoform with precursor mass in range
                 if (result.Item2.Count == 0)
                     minFragments = 0;
 
-                // all have no cysteines
+                // all same mass and have no cysteines
                 else if (isCysteine && result.Item1.CysteineCount == 0
                                     && result.Item2.All(other => other.CysteineCount == result.Item1.CysteineCount))
                     minFragments = -1;
@@ -324,14 +324,14 @@ public abstract class RadicalFragmentationExplorer
                     AnalysisType = AnalysisLabel,
                     AmbiguityLevel = AmbiguityLevel,
                     Accession = result.Item1.Accession,
-                    NumberInPrecursorGroup = result.Item2.Count,
+                    NumberInPrecursorGroup = numberInGroup,
                     FragmentsAvailable = result.Item1.FragmentMasses.Count,
                     FragmentCountNeededToDifferentiate = minFragments.Value
                 };
                 results.Add(record);
 
                 // Write intermediate results to temporary file
-                if (results.Count >= 50000)
+                if (results.Count >= 100000)
                 {
                     lock (results)
                     {
