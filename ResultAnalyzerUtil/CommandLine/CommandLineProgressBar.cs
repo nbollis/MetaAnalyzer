@@ -21,6 +21,7 @@ public class ProgressBar : IDisposable, IProgress<double>
     private bool disposed = false;
     private int animationIndex = 0;
 
+    // TODO: Sync progress bar indent with CommandLineLoggerIndent
     public ProgressBar(string identifier = "")
     {
         timer = new Timer(TimerHandler);

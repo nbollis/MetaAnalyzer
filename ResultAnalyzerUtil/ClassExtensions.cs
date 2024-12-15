@@ -67,12 +67,21 @@ public static class ClassExtensions
         {
             while (File.Exists(filePath) || ClaimedFilePaths.Contains(filePath))
             {
+                var toInsert = $"({index})";
                 int indexToInsert = filePath.IndexOf(extension, StringComparison.InvariantCulture);
 
                 // if first time needing to add an integer to filename
-                filePath = index == 1
-                    ? filePath.Insert(indexToInsert, $"({index})")
-                    : filePath.Replace($"({index - 1})", $"({index})");
+                if (index == 1)
+                {
+                    filePath = filePath.Insert(indexToInsert, toInsert);
+                }
+                else
+                {
+                    var lastInsertIndex = filePath.LastIndexOf($"({index - 1})", StringComparison.Ordinal);
+                    filePath = filePath.Remove(lastInsertIndex, $"({index - 1})".Length)
+                        .Insert(indexToInsert - toInsert.Length, toInsert);
+                }
+
 
                 index++;
             }
@@ -88,13 +97,20 @@ public static class ClassExtensions
 
         while (File.Exists(filePath))
         {
+            var toInsert = $"({index})";
             int indexToInsert = filePath.IndexOf(extension, StringComparison.InvariantCulture);
 
             // if first time needing to add an integer to filename
-            filePath = index == 1
-                ? filePath.Insert(indexToInsert, $"({index})")
-                : filePath.Replace($"({index - 1})", $"({index})");
-
+            if (index == 1)
+            {
+                filePath = filePath.Insert(indexToInsert, toInsert);
+            }
+            else
+            {
+                var lastInsertIndex = filePath.LastIndexOf($"({index - 1})", StringComparison.Ordinal);
+                filePath = filePath.Remove(lastInsertIndex, $"({index - 1})".Length)
+                    .Insert(indexToInsert - toInsert.Length, toInsert);
+            }
             index++;
         }
 
