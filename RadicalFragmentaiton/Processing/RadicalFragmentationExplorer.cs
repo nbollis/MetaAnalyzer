@@ -133,7 +133,7 @@ public abstract class RadicalFragmentationExplorer
 
     protected string _minFragmentNeededTempBasePath => _minFragmentNeededFilePath.Replace(".csv", "_temp.csv");
     protected string _minFragmentNeededFilePath => Path.Combine(DirectoryPath,
-        $"{Species}_{NumberOfMods}Mods_{MaxFragmentString}_Level({AmbiguityLevel})Ambiguity_{FileIdentifiers.MinFragmentNeeded}");
+        $"{Species}_{NumberOfMods}Mods_{MaxFragmentString}_Level({AmbiguityLevel})Ambiguity_{FileIdentifiers.MinFragmentNeeded}.csv");
     protected FragmentsToDistinguishFile _minFragmentNeededFile;
     public FragmentsToDistinguishFile MinFragmentNeededFile
     {
@@ -404,14 +404,16 @@ public abstract class RadicalFragmentationExplorer
                 }
 
             });
-        
 
+        Thread.Sleep(2000);
         Task.WaitAll(writeTasks.ToArray());
 
         // combine all temporary temporaryFiles into a single file and delete the temp temporaryFiles
         var allResults = new List<FragmentsToDistinguishRecord>();
         allResults.AddRange(results); // add those that did not go to a temp file
 
+
+        Task.WaitAll(writeTasks.ToArray());
         var temporaryFiles = Directory.GetFiles(DirectoryPath)
             .Where(p => p.Contains(FileIdentifiers.MinFragmentNeeded) && p.Contains("temp"))
             .ToArray();
