@@ -47,7 +47,7 @@ public abstract class RadicalFragmentationExplorer
     }
     public string DirectoryPath => Path.Combine(BaseDirectorPath, AnalysisLabel);
     public string FigureDirectory => Path.Combine(BaseDirectorPath, "Figure");
-    protected string IndexDirectoryPath => Path.Combine(BaseDirectorPath, "IndexedFragments", AnalysisLabel);
+    protected string IndexDirectoryPath => Path.Combine(BaseDirectorPath, "IndexedFragments", AnalysisType);
     public int AmbiguityLevel { get; set; }
     public string Species { get; set; }
     public int NumberOfMods { get; set; }
