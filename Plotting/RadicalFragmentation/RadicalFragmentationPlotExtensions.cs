@@ -4,11 +4,13 @@ using Plotly.NET.LayoutObjects;
 using RadicalFragmentation.Processing;
 using RadicalFragmentation;
 using System.Globalization;
+using Microsoft.FSharp.Core;
 using UsefulProteomicsDatabases;
 using Chart = Plotly.NET.CSharp.Chart;
 using Plotly.NET.ImageExport;
 using Plotting.Util;
 using ResultAnalyzerUtil;
+using static Plotly.NET.StyleParam.LinearAxisId;
 
 namespace Plotting.RadicalFragmentation
 {
@@ -208,6 +210,8 @@ namespace Plotting.RadicalFragmentation
             this List<FragmentsToDistinguishRecord> records,
             int ambiguityLevel = 1, string species = "")
         {
+            int maxToDifferentiate = records.Max(p => p.FragmentCountNeededToDifferentiate);
+
             List<GenericChart.GenericChart> toCombine = new();
             foreach (var modGroup in records
                          .Where(p => p.AmbiguityLevel == ambiguityLevel)
@@ -215,18 +219,39 @@ namespace Plotting.RadicalFragmentation
             {
                 double total = modGroup.Count();
                 var toSubtract = modGroup.Count(p => p.FragmentCountNeededToDifferentiate == -1);
-                var xInt = modGroup.Select(p => p.FragmentCountNeededToDifferentiate)
-                    .Distinct().OrderBy(p => p)
-                    .ToArray();
-                var y = xInt.Select(p => (modGroup.Count(m => m.FragmentCountNeededToDifferentiate <= p) - toSubtract) / total * 100).ToArray();
-                var x = Enumerable.Range(-1, xInt.Max() + 2).Select(p => p.ToString()).ToArray();
-                x[0] = "No ID";
-                x[1] = "Precursor Only";
 
-                var chart = Chart.Spline<string, double, string>(x, y, true, 0.2,
-                    Name: $"{modGroup.Key} mods", MultiText: y.Select(p => $"{p.Round(2)}%").ToArray());
+                var xInteger = Enumerable.Range(-1, maxToDifferentiate + 2).ToList();
+
+                var yVal = xInteger.Select(p => (modGroup.Count(m => m.FragmentCountNeededToDifferentiate <= p) - toSubtract) / total * 100)
+                    .ToArray();
+                var xVal = xInteger.Select(p => p.ToString()).ToArray();
+                xVal[0] = "No ID";
+                xVal[1] = "Precursor Only";
+                var chart = Chart.Spline<string, double, string>(xVal, yVal, true, 0.2,
+                    Name: $"{modGroup.Key} mods", MultiText: yVal.Select(p => $"{p.Round(2)}%").ToArray());
                 toCombine.Add(chart);
             }
+
+
+
+            //foreach (var modGroup in records
+            //             .Where(p => p.AmbiguityLevel == ambiguityLevel)
+            //             .GroupBy(p => p.NumberOfMods))
+            //{
+            //    double total = modGroup.Count();
+            //    var toSubtract = modGroup.Count(p => p.FragmentCountNeededToDifferentiate == -1);
+            //    var xInt = modGroup.Select(p => p.FragmentCountNeededToDifferentiate)
+            //        .Distinct().OrderBy(p => p)
+            //        .ToArray();
+            //    var y = xInt.Select(p => (modGroup.Count(m => m.FragmentCountNeededToDifferentiate <= p) - toSubtract) / total * 100).ToArray();
+            //    var x = Enumerable.Range(-1, xInt.Max() + 2).Select(p => p.ToString()).ToArray();
+            //    x[0] = "No ID";
+            //    x[1] = "Precursor Only";
+
+            //    var chart = Chart.Spline<string, double, string>(x, y, true, 0.2,
+            //        Name: $"{modGroup.Key} mods", MultiText: y.Select(p => $"{p.Round(2)}%").ToArray());
+            //    toCombine.Add(chart);
+            //}
 
             string typeText = ambiguityLevel == 1
                 ? "Proteoform"
@@ -237,7 +262,7 @@ namespace Plotting.RadicalFragmentation
                 .WithXAxisStyle(Title.init($"Fragment Ions Required"))
                 .WithXAxis(LinearAxis.init<int, int, int, int, int, int>(Tick0: 0, DTick: 1))
                 .WithLayout(PlotlyBase.DefaultLayoutWithLegend)
-                .WithYAxisStyle(Title.init($"Percent of {typeText}s Identified"));
+                .WithYAxisStyle(Title.init($"Percent of {typeText}s Identified"), MinMax: new FSharpOption<Tuple<IConvertible, IConvertible>>(new(0,100)));
             return combined;
         }
     }
