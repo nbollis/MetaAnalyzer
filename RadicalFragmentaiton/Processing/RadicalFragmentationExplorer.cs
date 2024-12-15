@@ -89,7 +89,7 @@ public abstract class RadicalFragmentationExplorer
     #region Result Files
 
     protected string _precursorFragmentMassFilePath => Path.Combine(IndexDirectoryPath,
-        $"{Species}_{NumberOfMods}Mods_{MaxFragmentString}_Level({AmbiguityLevel})Ambiguity_{FileIdentifiers.FragmentIndex}");
+        $"{Species}_{NumberOfMods}Mods_{MaxFragmentString}_{FileIdentifiers.FragmentIndex}.csv");
     protected PrecursorFragmentMassFile _precursorFragmentMassFile;
     public PrecursorFragmentMassFile PrecursorFragmentMassFile
     {
@@ -110,7 +110,7 @@ public abstract class RadicalFragmentationExplorer
     }
 
     protected string _fragmentHistogramFilePath => Path.Combine(DirectoryPath,
-        $"{Species}_{NumberOfMods}Mods_{MaxFragmentString}_Level({AmbiguityLevel})Ambiguity_{FileIdentifiers.FragmentCountHistogram}");
+        $"{Species}_{NumberOfMods}Mods_{MaxFragmentString}_Level({AmbiguityLevel})Ambiguity_{FileIdentifiers.FragmentCountHistogram}.csv");
     protected FragmentHistogramFile _fragmentHistogramFile;
     public FragmentHistogramFile FragmentHistogramFile
     {
@@ -217,52 +217,35 @@ public abstract class RadicalFragmentationExplorer
         int toProcess;
         int currentCount = 0;
         UpdateProgressBar($"Creating Index File for {AnalysisLabel}", 0);
-        CustomComparer<PrecursorFragmentMassSet> comparer = AmbiguityLevel switch
-        {
-            1 => CustomComparerExtensions.LevelOneComparer,
-            2 => CustomComparerExtensions.LevelTwoComparer,
-            _ => throw new Exception("Ambiguity level not supported")
-        };
 
         var sets = new List<PrecursorFragmentMassSet>();
-        var level1Path = Path.Combine(IndexDirectoryPath,
-            $"{Species}_{NumberOfMods}Mods_{MaxFragmentString}_Level(1)Ambiguity_{FileIdentifiers.FragmentIndex}");
-        if (AmbiguityLevel == 2 && File.Exists(level1Path))
-        {
-            sets = new PrecursorFragmentMassFile(level1Path).Results.DistinctBy(p => p, comparer)
-                    .ToList();
-        }
-        else
-        {
-            var modifications = NumberOfMods == 0 ? new List<Modification>() : GlobalVariables.AllModsKnown;
-            var proteins = ProteinDbLoader.LoadProteinXML(DatabasePath, true, DecoyType.None, modifications, false, new List<string>(), out var um);
+        var modifications = NumberOfMods == 0 ? new List<Modification>() : GlobalVariables.AllModsKnown;
+        var proteins = ProteinDbLoader.LoadProteinXML(DatabasePath, true, DecoyType.None, modifications,
+            false, new List<string>(), out var um);
 
-            toProcess = proteins.Count;
-            Parallel.ForEach(Partitioner.Create(0, proteins.Count), new ParallelOptions() { MaxDegreeOfParallelism = StaticVariables.MaxThreads }, range =>
+        toProcess = proteins.Count;
+        Parallel.ForEach(Partitioner.Create(0, proteins.Count), new ParallelOptions() { MaxDegreeOfParallelism = StaticVariables.MaxThreads }, range =>
+        {
+            var localSets = new List<PrecursorFragmentMassSet>(100);
+            for (int i = range.Item1; i < range.Item2; i++)
             {
-                var localSets = new List<PrecursorFragmentMassSet>(100);
-                for (int i = range.Item1; i < range.Item2; i++)
-                {
-                    var generatedSets = GeneratePrecursorFragmentMasses(proteins[i]);
-                    localSets.AddRange(generatedSets);
+                var generatedSets = GeneratePrecursorFragmentMasses(proteins[i]);
+                localSets.AddRange(generatedSets);
+            }
 
-                }
+            lock (sets)
+            {
+                sets.AddRange(localSets);
+            }
 
-                lock (sets)
-                {
-                    sets.AddRange(localSets);
-                }
-
-                // report progress every 1% of data
-                if (Interlocked.Add(ref currentCount, range.Item2 - range.Item1) % (toProcess / 100) == 0)
-                {
-                    UpdateProgressBar($"Creating Index File for {AnalysisLabel}", (double)currentCount / toProcess);
-                }
-            });
-        }
-
-
-        var uniqueSets = sets.DistinctBy(p => p, comparer).ToList();
+            // report progress every 1% of data
+            if (Interlocked.Add(ref currentCount, range.Item2 - range.Item1) % (toProcess / 100) == 0)
+            {
+                UpdateProgressBar($"Creating Index File for {AnalysisLabel}", (double)currentCount / toProcess);
+            }
+        });
+        
+        var uniqueSets = sets.DistinctBy(p => p, CustomComparerExtensions.LevelOneComparer).ToList();
         var file = new PrecursorFragmentMassFile()
         {
             FilePath = _precursorFragmentMassFilePath,
@@ -288,6 +271,9 @@ public abstract class RadicalFragmentationExplorer
             Directory.CreateDirectory(DirectoryPath);
 
         var fragmentCounts = PrecursorFragmentMassFile.Results
+            .DistinctBy(p => p, AmbiguityLevel == 1 
+                ? CustomComparerExtensions.LevelOneComparer 
+                : CustomComparerExtensions.LevelTwoComparer)
             .GroupBy(p => p.FragmentCount)
             .OrderBy(p => p.Key)
             .Select(p => new FragmentHistogramRecord
@@ -337,6 +323,11 @@ public abstract class RadicalFragmentationExplorer
 
                 // no other proteoform with precursor mass in range
                 if (result.Item2.Count == 0)
+                    minFragments = 0;
+
+                // Protein level analysis and all other proteoforms are of the same protein
+                // Theoretically already handled in GroupByPrecursorMass, but this is a just in case check
+                else if (AmbiguityLevel == 2 && result.Item2.All(other => other.Accession == result.Item1.Accession))
                     minFragments = 0;
 
                 // all same mass and have no cysteines

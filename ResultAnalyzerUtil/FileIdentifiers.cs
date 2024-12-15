@@ -3,8 +3,8 @@
     public static partial class FileIdentifiers
     {
         // Radical Fragmentation
-        public static string FragmentIndex => "FragmentIndexFile.csv";
-        public static string FragmentCountHistogram => "FragmentCountHistogram.csv";
+        public static string FragmentIndex => "FragmentIndexFile";
+        public static string FragmentCountHistogram => "FragmentCountHistogram";
         public static string MinFragmentNeeded => "MinFragmentsNeededHistogram";
 
         // Gradient Analysis
