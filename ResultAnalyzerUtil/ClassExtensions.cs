@@ -92,22 +92,21 @@ public static class ClassExtensions
         var extension = System.IO.Path.GetExtension(filePath);
         int index = 1;
 
+        var toInsert = $"({index})";
         while (File.Exists(filePath))
         {
-            var toInsert = $"({index})";
-            int indexToInsert = filePath.IndexOf(extension, StringComparison.InvariantCulture);
+            var previous = toInsert;
+            toInsert = $"({index})";
 
             // if first time needing to add an integer to filename
-            if (index == 1)
+            if (index != 1)
             {
-                filePath = filePath.Insert(indexToInsert, toInsert);
+                var lastInsertIndex = filePath.LastIndexOf(previous, StringComparison.Ordinal);
+                filePath = filePath.Remove(lastInsertIndex, previous.Length);
             }
-            else
-            {
-                var lastInsertIndex = filePath.LastIndexOf($"({index - 1})", StringComparison.Ordinal);
-                filePath = filePath.Remove(lastInsertIndex, $"({index - 1})".Length)
-                    .Insert(indexToInsert - toInsert.Length, toInsert);
-            }
+
+            int indexToInsert = filePath.IndexOf(extension, StringComparison.InvariantCulture);
+            filePath = filePath.Insert(indexToInsert, toInsert);
             index++;
         }
 

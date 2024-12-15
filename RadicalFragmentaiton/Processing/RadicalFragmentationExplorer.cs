@@ -442,22 +442,23 @@ public abstract class RadicalFragmentationExplorer
         var uniqueTargetFragmentList = ListPool.Get();
         try
         {
-            // collect all target fragments that are shared across all proteoforms
+            // add all peaks from targetProteoform that are not found in every otherProteoform
             foreach (var frag in targetProteoform)
             {
-                bool isUnique = true;
-                foreach (var p in otherProteoforms)
+                bool all = true;
+                
+                foreach (var otherFrag in otherProteoforms)
                 {
-                    if (p.ContainsWithin(frag, tolerance))
-                    {
-                        isUnique = false;
-                        break;
-                    }
+                    if (otherFrag.ContainsWithin(frag, tolerance)) 
+                        continue;
+
+                    all = false;
+                    break;
                 }
-                if (isUnique)
-                {
-                    uniqueTargetFragmentList.Add(frag);
-                }
+
+                if (all)
+                    continue;
+                uniqueTargetFragmentList.Add(frag);
             }
 
             // If unique target list is empty, then all fragments are shared

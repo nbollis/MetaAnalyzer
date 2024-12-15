@@ -59,9 +59,9 @@ public class PrecursorFragmentMassSet : IEquatable<PrecursorFragmentMassSet>
 
     public bool ContainsWithin(double mass, Tolerance tolerance)
     {
-        for (var index = 0; index < FragmentMasses.Count; index++)
+        foreach (var myMass in FragmentMasses)
         {
-            if (tolerance.Within(mass, FragmentMasses[index]))
+            if (tolerance.Within(mass, myMass))
                 return true;
         }
 

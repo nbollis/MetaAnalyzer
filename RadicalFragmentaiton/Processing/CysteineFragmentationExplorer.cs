@@ -86,7 +86,7 @@ internal class CysteineFragmentationExplorer : RadicalFragmentationExplorer
                 }
                 
                 yield return new PrecursorFragmentMassSet(proteoform.MonoisotopicMass, proteoform.Protein.Accession,
-                    fragmentMasses.OrderBy(p => p).Append(proteoform.MonoisotopicMass).ToList(), proteoform.FullSequence)
+                    fragmentMasses.OrderBy(p => p).ToList(), proteoform.FullSequence)
                 {
                     CysteineCount = cysCount
                 };
