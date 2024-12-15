@@ -1,6 +1,7 @@
 ﻿using Omics.Modifications;
 using Proteomics;
 using Proteomics.AminoAcidPolymer;
+using System.Collections.Concurrent;
 
 namespace RadicalFragmentation.Processing;
 
@@ -8,16 +9,21 @@ internal class CysteineFragmentationExplorer : RadicalFragmentationExplorer
 {
     public override string AnalysisType => "Cysteine";
     public double CysteineToSelect = 1;
+    public ConcurrentDictionary<string, int> BaseSequenceToIndexDictionary;
 
     public CysteineFragmentationExplorer(string databasePath, int numberOfMods, string species, int ambiguityLevel, int fragmentationEvents, string? baseDirectory = null, int allowedMissedMonos = 0)
         : base(databasePath, numberOfMods, species, fragmentationEvents, ambiguityLevel, baseDirectory, allowedMissedMonos)
     {
+        BaseSequenceToIndexDictionary = new ConcurrentDictionary<string, int>();
     }
 
     public override IEnumerable<PrecursorFragmentMassSet> GeneratePrecursorFragmentMasses(Protein protein)
     {
         var random = new Random();
 
+        // ensure that when we split the same sequence, we split in the same region
+        // this assumption is made due to labeling chemistry. 
+        // If it only labels one site, I assume it will label the same site for the same sequence
         // add on the modifications
         foreach (var proteoform in protein.Digest(PrecursorDigestionParams, fixedMods, variableMods)
                      .DistinctBy(p => p.FullSequence).Where(p => p.MonoisotopicMass < StaticVariables.MaxPrecursorMass))
@@ -37,15 +43,18 @@ internal class CysteineFragmentationExplorer : RadicalFragmentationExplorer
             }
             else
             {
-                // select a cysteine at random 
-                int cysIndex;
-                do
+                if (!BaseSequenceToIndexDictionary.TryGetValue(proteoform.BaseSequence, out var cysIndex))
                 {
-                    cysIndex = proteoform.BaseSequence
-                        .IndexOf('C', random.Next(0, proteoform.BaseSequence.Length));
-                } while (cysIndex == -1);
+                    // select a cysteine at random 
+                    do
+                    {
+                        cysIndex = proteoform.BaseSequence
+                            .IndexOf('C', random.Next(0, proteoform.BaseSequence.Length));
+                    } while (cysIndex == -1);
 
-
+                    BaseSequenceToIndexDictionary.TryAdd(proteoform.BaseSequence, cysIndex);
+                }
+                
                 // select all indices within +- 4 residues of the cysteine
                 var indicesToFragment = new List<int>();
                 for (int i = cysIndex - 4; i <= cysIndex + 4; i++)
@@ -58,7 +67,6 @@ internal class CysteineFragmentationExplorer : RadicalFragmentationExplorer
                 var maxFrag = indicesToFragment.Count;
                 maxFrag = Math.Min(maxFrag, proteoform.BaseSequence.Length - 1);
                 
-
                 // split the protein sequence and mods based upon indices to fragment
                 // foreach split there will be 2 masses, one the left side and one the right side
                 // the mass for each split will be the sum of the sequence and then the sum of mods
@@ -86,7 +94,7 @@ internal class CysteineFragmentationExplorer : RadicalFragmentationExplorer
                 }
                 
                 yield return new PrecursorFragmentMassSet(proteoform.MonoisotopicMass, proteoform.Protein.Accession,
-                    fragmentMasses.OrderBy(p => p).ToList(), proteoform.FullSequence)
+                    fragmentMasses.Where(p => p != 0).OrderBy(p => p).ToList(), proteoform.FullSequence)
                 {
                     CysteineCount = cysCount
                 };

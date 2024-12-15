@@ -231,17 +231,17 @@ public abstract class RadicalFragmentationExplorer
             {
                 var generatedSets = GeneratePrecursorFragmentMasses(proteins[i]);
                 localSets.AddRange(generatedSets);
+
+                // report progress every 1% of data
+                if (Interlocked.Increment(ref currentCount) % (toProcess / 100) == 0)
+                {
+                    UpdateProgressBar($"Creating Index File for {AnalysisLabel}", (double)currentCount / toProcess);
+                }
             }
 
             lock (sets)
             {
                 sets.AddRange(localSets);
-            }
-
-            // report progress every 1% of data
-            if (Interlocked.Add(ref currentCount, range.Item2 - range.Item1) % (toProcess / 100) == 0)
-            {
-                UpdateProgressBar($"Creating Index File for {AnalysisLabel}", (double)currentCount / toProcess);
             }
         });
         
@@ -329,7 +329,9 @@ public abstract class RadicalFragmentationExplorer
                 // Theoretically already handled in GroupByPrecursorMass, but this is a just in case check
                 else if (AmbiguityLevel == 2 && result.Item2.All(other => other.Accession == result.Item1.Accession))
                     minFragments = 0;
-
+                // if the only peak is the precursor, it cannot be differentiated
+                else if (result.Item1.FragmentMassesHashSet.Count == 1 && result.Item1.FragmentMassesHashSet.ContainsWithin(result.Item1.PrecursorMass, FragmentMassTolerance))
+                    minFragments = -1;
                 // all same mass and have no cysteines
                 else if (isCysteine && result.Item1.CysteineCount == 0
                                     && result.Item2.All(other => other.CysteineCount == result.Item1.CysteineCount))
@@ -614,25 +616,6 @@ public abstract class RadicalFragmentationExplorer
             indices[t]++;
             for (int i = t + 1; i < count; i++)
                 indices[i] = indices[i - 1] + 1;
-        }
-    }
-
-
-    // Function to generate all combinations of fragment masses from a given list
-    protected static IEnumerable<List<double>> GenerateCombinations(List<double> fragmentMasses)
-    {
-        int n = fragmentMasses.Count;
-        for (int i = 1; i < 1 << n; i++)// Start from 1 to avoid empty combination
-        {
-            var combination = new List<double>();
-            for (int j = 0; j < n; j++)
-            {
-                if ((i & 1 << j) != 0)
-                {
-                    combination.Add(fragmentMasses[j]);
-                }
-            }
-            yield return combination;
         }
     }
 
