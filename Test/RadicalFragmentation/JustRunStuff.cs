@@ -13,7 +13,9 @@ namespace Test
             var explorers = DirectoryToFragmentExplorers.GetFragmentExplorersFromDirectory(dbPath, dirPath);
 
 
-            foreach (var groupedExplorers in explorers.GroupBy(p => (p.AnalysisType, p.MissedMonoIsotopics)))
+            foreach (var groupedExplorers in explorers
+                .Where(p => p.AnalysisType.Equals("ETD"))
+                .GroupBy(p => (p.AnalysisType, p.MissedMonoIsotopics)))
             {
                 groupedExplorers.ToList().CreatePlots();
             }

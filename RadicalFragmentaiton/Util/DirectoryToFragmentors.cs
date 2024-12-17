@@ -5,9 +5,8 @@ namespace RadicalFragmentation
 {
     public static class DirectoryToFragmentExplorers
     {
-        public static List<RadicalFragmentationExplorer> GetFragmentExplorersFromDirectory(string databasePath, string directoryPath)
+        public static IEnumerable<RadicalFragmentationExplorer> GetFragmentExplorersFromDirectory(string databasePath, string directoryPath)
         {
-            List<RadicalFragmentationExplorer> explorers = new();
             foreach (var potentialResultDir in Directory.GetDirectories(directoryPath))
             {
                 if (potentialResultDir.Contains("IndexedFragments") || potentialResultDir.Contains("Figure"))
@@ -31,13 +30,13 @@ namespace RadicalFragmentation
                     switch (explorerType)
                     {
                         case FragmentExplorerType.Tryptophan:
-                            explorers.Add(new TryptophanFragmentationExplorer(databasePath, info.Mods, info.Label, info.AmbigLevel, directoryPath, missedMonoCount));
+                            yield return new TryptophanFragmentationExplorer(databasePath, info.Mods, info.Label, info.AmbigLevel, directoryPath, missedMonoCount);
                             break;
                         case FragmentExplorerType.Cysteine:
-                            explorers.Add(new CysteineFragmentationExplorer(databasePath, info.Mods, info.Label, info.AmbigLevel, int.MaxValue, directoryPath, missedMonoCount));
+                            yield return new CysteineFragmentationExplorer(databasePath, info.Mods, info.Label, info.AmbigLevel, int.MaxValue, directoryPath, missedMonoCount);
                             break;
                         case FragmentExplorerType.ETD:
-                            explorers.Add(new EtdFragmentationExplorer(databasePath, info.Mods, info.Label, info.AmbigLevel, directoryPath, missedMonoCount));
+                            yield return new EtdFragmentationExplorer(databasePath, info.Mods, info.Label, info.AmbigLevel, directoryPath, missedMonoCount);
                             break;
                         default:
                             Debugger.Break();
@@ -45,8 +44,6 @@ namespace RadicalFragmentation
                     }
                 }
             }
-
-            return explorers;
         }
 
         private static RadFragInfo ParseFileName(string fileName)

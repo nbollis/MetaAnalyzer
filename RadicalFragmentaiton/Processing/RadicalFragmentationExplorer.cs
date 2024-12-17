@@ -330,14 +330,14 @@ public abstract class RadicalFragmentationExplorer
                 else if (AmbiguityLevel == 2 && result.Item2.All(other => other.Accession == result.Item1.Accession))
                     minFragments = 0;
                 // if the only peak is the precursor, it cannot be differentiated
-                else if (result.Item1.FragmentMassesHashSet.Count == 1 && result.Item1.FragmentMassesHashSet.ContainsWithin(result.Item1.PrecursorMass, FragmentMassTolerance))
+                else if (result.Item1.FragmentMasses.Count == 1 && result.Item1.FragmentMasses.ContainsWithin(result.Item1.PrecursorMass, FragmentMassTolerance))
                     minFragments = -1;
                 // all same mass and have no cysteines
                 else if (isCysteine && result.Item1.CysteineCount == 0
                                     && result.Item2.All(other => other.CysteineCount == result.Item1.CysteineCount))
                     minFragments = -1;
 
-                minFragments ??= MinFragmentMassesToDifferentiate(result.Item1.FragmentMassesHashSet, result.Item2,
+                minFragments ??= MinFragmentMassesToDifferentiate(result.Item1.FragmentMasses, result.Item2,
                     FragmentMassTolerance);
                 var record = new FragmentsToDistinguishRecord
                 {
@@ -426,7 +426,7 @@ public abstract class RadicalFragmentationExplorer
     }
 
 
-    public static int MinFragmentMassesToDifferentiate(HashSet<double> targetProteoform, List<PrecursorFragmentMassSet> otherProteoforms, Tolerance tolerance)
+    public static int MinFragmentMassesToDifferentiate(List<double> targetProteoform, List<PrecursorFragmentMassSet> otherProteoforms, Tolerance tolerance)
     {
         // check to see if target proteoform has a fragment that is unique to all other proteoform fragments within tolerance
         if (HasUniqueFragment(targetProteoform, otherProteoforms, tolerance))
@@ -442,7 +442,7 @@ public abstract class RadicalFragmentationExplorer
                 
                 foreach (var otherFrag in otherProteoforms)
                 {
-                    if (otherFrag.ContainsWithin(frag, tolerance)) 
+                    if (otherFrag.FragmentMasses.ContainsWithin(frag, tolerance)) 
                         continue;
 
                     all = false;
@@ -459,12 +459,8 @@ public abstract class RadicalFragmentationExplorer
                 return -1;
 
             // if any other proteoform contains all unique ions, then we cannot differentiate
-            if (otherProteoforms.Any(p => p.FragmentMassesHashSet.ListContainsWithin(uniqueTargetFragmentList, tolerance)))
+            if (otherProteoforms.Any(p => p.FragmentMasses.ListContainsWithin(uniqueTargetFragmentList, tolerance)))
                 return -1;
-
-            // reorder unique target list to be have those shared by the least other proteoforms first
-            uniqueTargetFragmentList.Sort((a, b) => otherProteoforms.Count(p => p.ContainsWithin(a, tolerance))
-                .CompareTo(otherProteoforms.Count(p => p.ContainsWithin(b, tolerance))));
 
             // Order by count of fragment masses and check to see if they can differentiate the target
             for (int count = 2; count <= uniqueTargetFragmentList.Count; count++)
@@ -474,7 +470,7 @@ public abstract class RadicalFragmentationExplorer
                 {
                     // Get those that can be explained by these fragments
                     var matchingProteoforms = otherProteoforms
-                        .Where(p => p.FragmentMassesHashSet.ListContainsWithin(combination, tolerance))
+                        .Where(p => p.FragmentMasses.ListContainsWithin(combination, tolerance))
                         .ToList();
 
                     if (matchingProteoforms.Count == 0)
@@ -555,7 +551,7 @@ public abstract class RadicalFragmentationExplorer
         producerTask.Wait();
     }
 
-    protected static bool HasUniqueFragment(HashSet<double> targetProteoform, List<PrecursorFragmentMassSet> otherProteoforms,
+    protected static bool HasUniqueFragment(List<double> targetProteoform, List<PrecursorFragmentMassSet> otherProteoforms,
         Tolerance tolerance)
     {
         var otherFragments = HashSetPool.Get();
@@ -596,8 +592,7 @@ public abstract class RadicalFragmentationExplorer
     // Function to generate combinations of a specific count from a given list
     protected static IEnumerable<List<double>> GenerateCombinationsWithCount(List<double> fragmentMasses, int count)
     {
-        var fragmentMassesList = fragmentMasses.ToList();
-        int n = fragmentMassesList.Count;
+        int n = fragmentMasses.Count;
         var indices = new int[count];
         for (int i = 0; i < count; i++)
             indices[i] = i;
@@ -606,7 +601,7 @@ public abstract class RadicalFragmentationExplorer
         {
             var combination = new List<double>(count);
             for (int i = 0; i < count; i++)
-                combination.Add(fragmentMassesList[indices[i]]);
+                combination.Add(fragmentMasses[indices[i]]);
             yield return combination;
 
             int t = count - 1;

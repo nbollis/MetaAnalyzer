@@ -5,6 +5,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 using System.Globalization;
 using CsvHelper;
 using MzLibUtil;
+using ResultAnalyzerUtil.CsvConverters;
 
 namespace RadicalFragmentation;
 
@@ -29,7 +30,7 @@ public class PrecursorFragmentMassSet : IEquatable<PrecursorFragmentMassSet>
     public double PrecursorMass { get; set; }
 
     [Name("FragmentMasses")]
-    [TypeConverter(typeof(SemicolonDelimitedToDoubleListConverter))]
+    [TypeConverter(typeof(SemiColonDelimitedToDoubleSortedListConverter))]
     public List<double> FragmentMasses { get; set; }
 
     [Name("FragmentCount")]
@@ -43,29 +44,13 @@ public class PrecursorFragmentMassSet : IEquatable<PrecursorFragmentMassSet>
     {
         PrecursorMass = precursorMass;
         Accession = accession;
-        FragmentMasses = fragmentMasses;
+        FragmentMasses = fragmentMasses.OrderBy(p => p).ToList();
         FragmentCount = fragmentMasses.Count;
         FullSequence = fullSequence;
     }
 
     public PrecursorFragmentMassSet()
     {
-    }
-
-    public bool Contains(double mass)
-    {
-        return FragmentMassesHashSet.Contains(mass);
-    }
-
-    public bool ContainsWithin(double mass, Tolerance tolerance)
-    {
-        foreach (var myMass in FragmentMasses)
-        {
-            if (tolerance.Within(mass, myMass))
-                return true;
-        }
-
-        return false;
     }
 
     public bool Equals(PrecursorFragmentMassSet? other)

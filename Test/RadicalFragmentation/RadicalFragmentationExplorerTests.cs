@@ -12,7 +12,7 @@ namespace Test
         [Test]
         public void MinFragmentMassesToDifferentiate_IdenticalProteoforms_ReturnsNegativeOne()
         {
-            var targetProteoform = new HashSet<double> { 100.0, 200.0, 300.0 };
+            var targetProteoform = new List<double> { 100.0, 200.0, 300.0 };
             var otherProteoforms = new List<PrecursorFragmentMassSet>
             {
                 new PrecursorFragmentMassSet(500.0, "P1", new List<double> { 100.0, 200.0, 300.0 }, "SEQ1")
@@ -27,7 +27,7 @@ namespace Test
         [Test] // Peak at 200 is enough to distinguish it from both of the below
         public void MinFragmentMassesToDifferentiate_MultipleProteoforms_ReturnsCorrectCount()
         {
-            var targetProteoform = new HashSet<double> { 100.0, 200.0, 300.0 };
+            var targetProteoform = new List<double> { 100.0, 200.0, 300.0 };
             var otherProteoforms = new List<PrecursorFragmentMassSet>
             {
                 new PrecursorFragmentMassSet(500.0, "P1", new List<double> { 150.0, 250.0, 350.0 }, "SEQ1"),
@@ -43,7 +43,7 @@ namespace Test
         [Test]
         public void MinFragmentMassesToDifferentiate_UniqueFragment_ReturnsOne()
         {
-            var targetProteoform = new HashSet<double> { 100.0, 200.0, 300.0 };
+            var targetProteoform = new List<double> { 100.0, 200.0, 300.0 };
             var otherProteoforms = new List<PrecursorFragmentMassSet>
             {
                 new PrecursorFragmentMassSet(500.0, "P1", new List<double> { 100.0, 200.0, 350.0 }, "SEQ1")
@@ -58,7 +58,7 @@ namespace Test
         [Test]
         public void MinFragmentMassesToDifferentiate_NoUniqueFragment_NoGoodCombo_ReturnsNegativeOne()
         {
-            var targetProteoform = new HashSet<double> { 100.0, 200.0, 300.0 };
+            var targetProteoform = new List<double> { 100.0, 200.0, 300.0 };
             var otherProteoforms = new List<PrecursorFragmentMassSet>
             {
                 new PrecursorFragmentMassSet(500.0, "P1", new List<double> { 100.0, 200.0, 300.0 }, "SEQ1"),
@@ -74,7 +74,7 @@ namespace Test
         [Test]
         public void MinFragmentMassesToDifferentiate_NoUniqueFragment_OneGoodComboOfTwo_ReturnsTwo()
         {
-            var targetProteoform = new HashSet<double> { 100.0, 200.0, 300.0 };
+            var targetProteoform = new List<double> { 100.0, 200.0, 300.0 };
             var otherProteoforms = new List<PrecursorFragmentMassSet>
             {
                 new PrecursorFragmentMassSet(500.0, "P1", new List<double> { 100.0, 200.0, 350.0 }, "SEQ1"),
@@ -90,7 +90,7 @@ namespace Test
         [Test]
         public void MinFragmentMassesToDifferentiate_NoUniqueFragment_OneGoodComboOfThree_ReturnsThree()
         {
-            var targetProteoform = new HashSet<double> { 100.0, 200.0, 300.0 };
+            var targetProteoform = new List<double> { 100.0, 200.0, 300.0 };
             var otherProteoforms = new List<PrecursorFragmentMassSet>
             {
                 new PrecursorFragmentMassSet(500.0, "P1", new List<double> { 100.0, 200.0, 350.0 }, "SEQ1"),
@@ -107,7 +107,7 @@ namespace Test
         [Test]
         public void MinFragmentMassesToDifferentiate_ComplexMixtureWithNoUniqueFragment_ReturnsMinusOne()
         {
-            var targetProteoform = new HashSet<double> { 150.0, 250.0, 350.0, 450.0, 550.0 };
+            var targetProteoform = new List<double> { 150.0, 250.0, 350.0, 450.0, 550.0 };
             var otherProteoforms = new List<PrecursorFragmentMassSet>
             {
                 new PrecursorFragmentMassSet(500.0, "P1", new List<double> { 150.0, 250.0, 350.0, 450.0, 550.0 }, "SEQ1"),
@@ -126,7 +126,7 @@ namespace Test
         [Test]
         public void MinFragmentMassesToDifferentiate_ComplexMixtureWithUniqueFragment_ReturnsOne()
         {
-            var targetProteoform = new HashSet<double> { 100.0, 200.0, 300.0, 400.0, 500.0 };
+            var targetProteoform = new List<double> { 100.0, 200.0, 300.0, 400.0, 500.0 };
             var otherProteoforms = new List<PrecursorFragmentMassSet>
             {
                 new PrecursorFragmentMassSet(500.0, "P1", new List<double> { 150.0, 200.0, 350.0, 450.0, 550.0 }, "SEQ1"),
@@ -145,7 +145,7 @@ namespace Test
         [Test]
         public void MinFragmentMassesToDifferentiate_ComplexMixtureWithNoUniqueFragment_FrontModified_ReturnsTwo()
         {
-            var targetProteoform = new HashSet<double> { 150.0, 250.0, 350.0, 450.0, 550.0 };
+            var targetProteoform = new List<double> { 150.0, 250.0, 350.0, 450.0, 550.0 };
             var otherProteoforms = new List<PrecursorFragmentMassSet>
             {
                 new PrecursorFragmentMassSet(500.0, "P1", new List<double> { 100.0, 250.0, 350.0, 450.0, 550.0 }, "SEQ1"),
@@ -164,7 +164,7 @@ namespace Test
         [Test]
         public void MinFragmentMassesToDifferentiate_ComplexMixtureWithNoUniqueFragment_ReturnsTwo()
         {
-            var targetProteoform = new HashSet<double> { 150.0, 250.0, 350.0, 450.0, 550.0 };
+            var targetProteoform = new List<double> { 150.0, 250.0, 350.0, 450.0, 550.0 };
             var otherProteoforms = new List<PrecursorFragmentMassSet>
             {
                 new PrecursorFragmentMassSet(500.0, "P1", new List<double> { 150.0, 250.0, 350.0, 450.0, 500.0 }, "SEQ1"),
@@ -183,7 +183,7 @@ namespace Test
         [Test]
         public void MinFragmentMassesToDifferentiate_ComplexMixtureWithNoUniqueFragment_FrontModified_ReturnsThree()
         {
-            var targetProteoform = new HashSet<double> { 150.0, 250.0, 350.0, 450.0, 550.0 };
+            var targetProteoform = new List<double> { 150.0, 250.0, 350.0, 450.0, 550.0 };
             var otherProteoforms = new List<PrecursorFragmentMassSet>
             {
                 new PrecursorFragmentMassSet(500.0, "P1", new List<double> { 100.0, 250.0, 350.0, 450.0, 550.0 }, "SEQ1"),
@@ -202,7 +202,7 @@ namespace Test
         [Test]
         public void MinFragmentMassesToDifferentiate_ComplexMixtureWithNoUniqueFragment_ReturnsThree()
         {
-            var targetProteoform = new HashSet<double> { 150.0, 250.0, 350.0, 450.0, 550.0 };
+            var targetProteoform = new List<double> { 150.0, 250.0, 350.0, 450.0, 550.0 };
             var otherProteoforms = new List<PrecursorFragmentMassSet>
             {
                 new PrecursorFragmentMassSet(500.0, "P1", new List<double> { 150.0, 250.0, 350.0, 400.0, 550.0 }, "SEQ1"),

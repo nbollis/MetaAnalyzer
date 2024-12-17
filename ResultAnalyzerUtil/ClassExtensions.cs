@@ -20,7 +20,7 @@ public static class ClassExtensions
         return splits;
     }
 
-    public static bool ContainsWithin(this IEnumerable<double> list, double value, Tolerance tolerance)
+    public static bool ContainsWithin(this IList<double> list, double value, Tolerance tolerance)
     {
         foreach (var item in list)
         {
@@ -33,8 +33,13 @@ public static class ClassExtensions
     }
 
     // returns if list contains all values within tolerance
-    public static bool ListContainsWithin(this IEnumerable<double> list, List<double> values, Tolerance tolerance)
+    public static bool ListContainsWithin(this IList<double> list, IList<double> values, Tolerance tolerance)
     {
+        if (values.Count > list.Count)
+            return false;
+        if (values.Count > 6)
+            return list.IsSuperSetSorted(values, tolerance);
+
         for (var index = 0; index < values.Count; index++)
         {
             if (!list.ContainsWithin(values[index], tolerance))
@@ -44,16 +49,29 @@ public static class ClassExtensions
         return true;
     }
 
-    // returns if list contains all values within tolerance
-    public static bool ListContainsWithin(this IEnumerable<double> list, double[] values, Tolerance tolerance)
+    public static bool IsSuperSetSorted(this IList<double> superset, IList<double> subset, Tolerance tolerance)
     {
-        for (var index = 0; index < values.Length; index++)
+        int i = 0, j = 0;
+        while (i < superset.Count && j < subset.Count)
         {
-            if (!list.ContainsWithin(values[index], tolerance))
+            if (tolerance.Within(superset[i], subset[j]))
+            {
+                // Match found within tolerance, move to the next subset element
+                j++;
+            }
+            else if (superset[i] <= tolerance.GetMinimumValue(subset[j]))
+            {
+                // Superset value is too small, move to the next superset element
+                i++;
+            }
+            else
+            {
+                // Subset element not found within current superset range
                 return false;
+            }
         }
 
-        return true;
+        return j == subset.Count; // If we matched all subset elements, return true
     }
 
     private static readonly object FilePathLock;
