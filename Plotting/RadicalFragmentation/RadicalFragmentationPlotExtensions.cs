@@ -11,11 +11,58 @@ using Plotly.NET.ImageExport;
 using Plotting.Util;
 using ResultAnalyzerUtil;
 using static Plotly.NET.StyleParam.LinearAxisId;
+using Plotly.NET.CSharp;
+using PuppeteerSharp.Input;
 
 namespace Plotting.RadicalFragmentation
 {
     public static class RadicalFragmentationPlotExtensions
     {
+        #region Plot Base
+
+        private static Dictionary<string, Color> ConditionToColorDictionary = new()
+        {
+            {"0", Color.fromKeyword(ColorKeyword.Red) },
+            {"1", Color.fromKeyword(ColorKeyword.Blue) },
+            {"2", Color.fromKeyword(ColorKeyword.Green) },
+            {"3", Color.fromKeyword(ColorKeyword.Purple) },
+            {"4", Color.fromKeyword(ColorKeyword.GoldenRod) },
+            {"5", Color.fromKeyword(ColorKeyword.SteelBlue) },
+        };
+
+        private static Dictionary<string, string> ConditionNameConversionDictionary = new()
+        {
+
+        };
+
+        private static Color ConvertConditionToColor(this string condition)
+        {
+            if (ConditionToColorDictionary.TryGetValue(condition, out var color))
+                return color;
+            else if (ConditionToColorDictionary.TryGetValue(condition.Trim(), out color))
+                return color;
+            else
+            {
+                if (ConditionNameConversionDictionary.ContainsValue(condition))
+                {
+                    var key = ConditionNameConversionDictionary.FirstOrDefault(x => x.Value == condition).Key;
+                    if (key is null)
+                        return Color.fromKeyword(ColorKeyword.Black);
+                    if (ConditionToColorDictionary.TryGetValue(key, out color))
+                        return color;
+                }
+                else
+                {
+                    ConditionToColorDictionary.Add(condition, PlottingTranslators.ColorQueue.Dequeue());
+                    return ConditionToColorDictionary[condition];
+                }
+            }
+
+            return Color.fromKeyword(ColorKeyword.Black);
+        }
+
+        #endregion
+
         public static void SaveToFigureDirectory(this RadicalFragmentationExplorer explorer,
             GenericChart.GenericChart chart, string outName, int? width = null, int? height = null)
         {
@@ -110,13 +157,30 @@ namespace Plotting.RadicalFragmentation
                     outName = $"{type}_UniqueFragmentMasses_{speciesGroup.Key}_ProteoformLevel";
                     speciesGroup.Value.First().SaveToFigureDirectory(level1, outName, 1000, 600);
 
-                    var hist1 = frag.GetFragmentsNeededHistogram(1, speciesGroup.Key);
+                    var hist1 = frag.GetFragmentsNeededHistogram(out int maxVal, 1, speciesGroup.Key)
+                        .WithAxisAnchor(Y: 1);
                     outName = $"{type}_FragmentsNeeded_{speciesGroup.Key}_ProteoformLevel";
                     speciesGroup.Value.First().SaveToFigureDirectory(hist1, outName, 1000, 600);
 
-                    var cumHist1 = frag.GetCumulativeFragmentsNeededChart(1, speciesGroup.Key);
+                    var cumHist1 = frag.GetCumulativeFragmentsNeededChart(1, speciesGroup.Key)
+                        .WithAxisAnchor(Y:2);
                     outName = $"{type}_CumulativeFragmentsNeeded_{speciesGroup.Key}_ProteoformLevel";
                     speciesGroup.Value.First().SaveToFigureDirectory(cumHist1, outName, 1000, 600);
+
+                    var combined = Chart.Combine(new[] {  hist1, cumHist1 })
+                        .WithTitle($"{speciesGroup.Key} Proteoform Fragments")
+                        .WithYAxisStyle(Title.init("Log Count"), 
+                            Side: StyleParam.Side.Left,
+                            Id: StyleParam.SubPlotId.NewYAxis(1),
+                            MinMax: new FSharpOption<Tuple<IConvertible, IConvertible>>(new(0, maxVal)))
+                        .WithYAxisStyle(Title.init("Percent Identified"), 
+                            Side: StyleParam.Side.Right,
+                            Id: StyleParam.SubPlotId.NewYAxis(2),
+                            Overlaying: StyleParam.LinearAxisId.NewY(1),
+                            MinMax: new FSharpOption<Tuple<IConvertible, IConvertible>>(new(0, 100)))
+                        .WithLayout(PlotlyBase.DefaultLayoutNoLegend);
+                    outName = $"{type}_CombinedFragmentsNeeded_{speciesGroup.Key}_ProteoformLevel";
+                    speciesGroup.Value.First().SaveToFigureDirectory(combined, outName, 1000, 600);
                 }
                 
                 if (speciesGroup.Value.Any(p => p.AmbiguityLevel == 2))
@@ -125,7 +189,7 @@ namespace Plotting.RadicalFragmentation
                     outName = $"{type}_UniqueFragmentMasses_{speciesGroup.Key}_ProteinLevel";
                     speciesGroup.Value.First().SaveToFigureDirectory(level2, outName, 1000, 600);
 
-                    var hist2 = frag.GetFragmentsNeededHistogram(2, speciesGroup.Key);
+                    var hist2 = frag.GetFragmentsNeededHistogram(out int maxVal, 2, speciesGroup.Key);
                     outName = $"{type}_FragmentsNeeded_{speciesGroup.Key}_ProteinLevel";
                     speciesGroup.Value.First().SaveToFigureDirectory(hist2, outName, 1000, 600);
 
@@ -143,11 +207,16 @@ namespace Plotting.RadicalFragmentation
 
             foreach (var modGroup in records
                          .Where(p => p.AmbiguityLevel == ambiguityLevel)
-                         .GroupBy(p => p.NumberOfMods))
+                         .GroupBy(p => p.NumberOfMods)
+                         .OrderBy(p => p.Key))
             {
+                var color = modGroup.Key.ToString().ConvertConditionToColor();
                 var x = modGroup.Select(p => p.FragmentCount);
                 var y = modGroup.Select(p => p.ProteinCount);
-                var chart = Chart.Spline<int, int, string>(x, y, true, 2, $"{modGroup.Key} mods");
+                var chart = Chart.Spline<int, int, string>(x, y, true, 2, $"{modGroup.Key} mods", MarkerColor: color);
+
+                //var chart = Chart.Histogram<int, int, string>(x.ToArray(), y.ToArray(), ShowLegend: true, Name: $"{modGroup.Key} mods", 
+                   // HistNorm: StyleParam.HistNorm.None, HistFunc: StyleParam.HistFunc.Sum);
                 toCombine.Add(chart);
             }
 
@@ -163,14 +232,16 @@ namespace Plotting.RadicalFragmentation
             return combined;
         }
 
-        public static GenericChart.GenericChart GetFragmentsNeededHistogram(this List<FragmentsToDistinguishRecord> records,
+        public static GenericChart.GenericChart GetFragmentsNeededHistogram(this List<FragmentsToDistinguishRecord> records, out int maxVal,
             int ambiguityLevel = 1, string species = "")
         {
+            maxVal = 0;
             List<GenericChart.GenericChart> toCombine = new();
             foreach (var modGroup in records
                          .Where(p => p.AmbiguityLevel == ambiguityLevel)
                          .GroupBy(p => p.NumberOfMods))
             {
+                var color = modGroup.Key.ToString().ConvertConditionToColor();
                 var temp = modGroup.GroupBy(p => p.FragmentCountNeededToDifferentiate)
                     .OrderBy(p => p.Key)
                     .Select(p => (p.Key, p.Count())).ToArray();
@@ -187,9 +258,13 @@ namespace Plotting.RadicalFragmentation
                     };
                 }
 
+                var max = y.Max();
+                if (max > maxVal)
+                    maxVal = max;
+
 
                 var chart = Chart.Column<int, string, string>(y, x,
-                    Name: $"{modGroup.Key} mods");
+                    Name: $"{modGroup.Key} mods", MarkerColor: color);
                 toCombine.Add(chart);
             }
 
@@ -218,6 +293,7 @@ namespace Plotting.RadicalFragmentation
                          .GroupBy(p => p.NumberOfMods))
             {
                 double total = modGroup.Count();
+                var color = modGroup.Key.ToString().ConvertConditionToColor();
                 var toSubtract = modGroup.Count(p => p.FragmentCountNeededToDifferentiate == -1);
 
                 var xInteger = Enumerable.Range(-1, maxToDifferentiate + 2).ToList();
@@ -228,30 +304,9 @@ namespace Plotting.RadicalFragmentation
                 xVal[0] = "No ID";
                 xVal[1] = "Precursor Only";
                 var chart = Chart.Spline<string, double, string>(xVal, yVal, true, 0.2,
-                    Name: $"{modGroup.Key} mods", MultiText: yVal.Select(p => $"{p.Round(2)}%").ToArray());
+                    Name: $"{modGroup.Key} mods", MultiText: yVal.Select(p => $"{p.Round(2)}%").ToArray(), MarkerColor: color);
                 toCombine.Add(chart);
             }
-
-
-
-            //foreach (var modGroup in records
-            //             .Where(p => p.AmbiguityLevel == ambiguityLevel)
-            //             .GroupBy(p => p.NumberOfMods))
-            //{
-            //    double total = modGroup.Count();
-            //    var toSubtract = modGroup.Count(p => p.FragmentCountNeededToDifferentiate == -1);
-            //    var xInt = modGroup.Select(p => p.FragmentCountNeededToDifferentiate)
-            //        .Distinct().OrderBy(p => p)
-            //        .ToArray();
-            //    var y = xInt.Select(p => (modGroup.Count(m => m.FragmentCountNeededToDifferentiate <= p) - toSubtract) / total * 100).ToArray();
-            //    var x = Enumerable.Range(-1, xInt.Max() + 2).Select(p => p.ToString()).ToArray();
-            //    x[0] = "No ID";
-            //    x[1] = "Precursor Only";
-
-            //    var chart = Chart.Spline<string, double, string>(x, y, true, 0.2,
-            //        Name: $"{modGroup.Key} mods", MultiText: y.Select(p => $"{p.Round(2)}%").ToArray());
-            //    toCombine.Add(chart);
-            //}
 
             string typeText = ambiguityLevel == 1
                 ? "Proteoform"
