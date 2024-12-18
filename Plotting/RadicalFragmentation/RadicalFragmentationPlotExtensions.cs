@@ -22,12 +22,12 @@ namespace Plotting.RadicalFragmentation
 
         private static Dictionary<string, Color> ConditionToColorDictionary = new()
         {
-            {"0", Color.fromKeyword(ColorKeyword.Red) },
-            {"1", Color.fromKeyword(ColorKeyword.Blue) },
-            {"2", Color.fromKeyword(ColorKeyword.Green) },
-            {"3", Color.fromKeyword(ColorKeyword.Purple) },
+            {"0", Color.fromKeyword(ColorKeyword.RoyalBlue) },
+            {"1", Color.fromKeyword(ColorKeyword.IndianRed) },
+            {"2", Color.fromKeyword(ColorKeyword.MediumSpringGreen) },
+            {"3", Color.fromKeyword(ColorKeyword.Orchid) },
             {"4", Color.fromKeyword(ColorKeyword.GoldenRod) },
-            {"5", Color.fromKeyword(ColorKeyword.SteelBlue) },
+            {"5", Color.fromKeyword(ColorKeyword.DarkOrange) },
         };
 
         private static Dictionary<string, string> ConditionNameConversionDictionary = new()
@@ -169,7 +169,7 @@ namespace Plotting.RadicalFragmentation
 
                     var combined = Chart.Combine(new[] {  hist1, cumHist1 })
                         .WithTitle($"{speciesGroup.Key} Proteoform Fragments")
-                        //.WithYAxis(LinearAxis.init<int, int, int, int, int, int>(AxisType: StyleParam.AxisType.Log, Anchor: NewY(1)))
+                        .WithYAxis(LinearAxis.init<int, int, int, int, int, int>(AxisType: StyleParam.AxisType.Log, Anchor: NewY(1)))
                         .WithYAxisStyle<double, double, string>("Log Count", 
                             Side: StyleParam.Side.Left,
                             Id: StyleParam.SubPlotId.NewYAxis(1), AxisType: StyleParam.AxisType.Log)

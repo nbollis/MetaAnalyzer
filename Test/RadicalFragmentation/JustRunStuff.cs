@@ -14,7 +14,8 @@ namespace Test
 
 
             foreach (var groupedExplorers in explorers
-                .Where(p => p.AnalysisType.Equals("ETD"))
+                //.Where(p => p.AnalysisType.Equals("ETD"))
+                .Where(p => p.NumberOfMods < 3)
                 .GroupBy(p => (p.AnalysisType, p.MissedMonoIsotopics)))
             {
                 groupedExplorers.ToList().CreatePlots();

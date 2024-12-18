@@ -9,7 +9,7 @@ namespace RadicalFragmentation
         {
             foreach (var potentialResultDir in Directory.GetDirectories(directoryPath))
             {
-                if (potentialResultDir.Contains("IndexedFragments") || potentialResultDir.Contains("Figure"))
+                if (potentialResultDir.Contains("IndexedFragments") || potentialResultDir.Contains("Figure") || Path.GetFileNameWithoutExtension(potentialResultDir).StartsWith('_'))
                     continue;
 
                 var explorerType = ParseTypeFromDirName(potentialResultDir);

@@ -20,8 +20,12 @@ internal class TryptophanFragmentationExplorer : RadicalFragmentationExplorer
     public override IEnumerable<PrecursorFragmentMassSet> GeneratePrecursorFragmentMasses(Protein protein)
     {
         // add the modifications to the protein
-        foreach (var proteoform in protein.Digest(PrecursorDigestionParams, fixedMods, variableMods)
-                     .DistinctBy(p => p.FullSequence).Where(p => p.MonoisotopicMass < StaticVariables.MaxPrecursorMass))
+        var proteoforms = protein.Digest(PrecursorDigestionParams, fixedMods, variableMods)
+            .DistinctBy(p => p.FullSequence)
+            .Where(p => p.MonoisotopicMass < StaticVariables.MaxPrecursorMass)
+            .ToList();
+
+        foreach (var proteoform in proteoforms)
         {
             var mods = proteoform.AllModsOneIsNterminus
                 .ToDictionary(p => p.Key, p => new List<Modification>() { p.Value });

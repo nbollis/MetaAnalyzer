@@ -25,8 +25,11 @@ internal class CysteineFragmentationExplorer : RadicalFragmentationExplorer
         // this assumption is made due to labeling chemistry. 
         // If it only labels one site, I assume it will label the same site for the same sequence
         // add on the modifications
-        foreach (var proteoform in protein.Digest(PrecursorDigestionParams, fixedMods, variableMods)
-                     .DistinctBy(p => p.FullSequence).Where(p => p.MonoisotopicMass < StaticVariables.MaxPrecursorMass))
+        var proteoforms = protein.Digest(PrecursorDigestionParams, fixedMods, variableMods)
+            .DistinctBy(p => p.FullSequence)
+            .Where(p => p.MonoisotopicMass < StaticVariables.MaxPrecursorMass)
+            .ToList();
+        foreach (var proteoform in proteoforms)
         {
             var mods = proteoform.AllModsOneIsNterminus
                 .ToDictionary(p => p.Key, p => new List<Modification>() { p.Value });

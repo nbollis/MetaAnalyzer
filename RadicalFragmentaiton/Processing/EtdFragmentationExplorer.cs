@@ -16,8 +16,12 @@ internal class EtdFragmentationExplorer : RadicalFragmentationExplorer
     public override IEnumerable<PrecursorFragmentMassSet> GeneratePrecursorFragmentMasses(Protein protein)
     {
         List<Product> masses = new();
-        foreach (var proteoform in protein.Digest(PrecursorDigestionParams, fixedMods, variableMods)
-                     .DistinctBy(p => p.FullSequence).Where(p => p.MonoisotopicMass < StaticVariables.MaxPrecursorMass))
+        var proteoforms = protein.Digest(PrecursorDigestionParams, fixedMods, variableMods)
+            .DistinctBy(p => p.FullSequence)
+            .Where(p => p.MonoisotopicMass < StaticVariables.MaxPrecursorMass)
+            .ToList();
+
+        foreach (var proteoform in proteoforms)
         {
             masses.Clear();
             proteoform.Fragment(MassSpectrometry.DissociationType.ETD, Omics.Fragmentation.FragmentationTerminus.Both, masses);
