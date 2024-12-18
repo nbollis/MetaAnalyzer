@@ -330,7 +330,7 @@ public abstract class RadicalFragmentationExplorer
                 else if (AmbiguityLevel == 2 && result.Item2.All(other => other.Accession == result.Item1.Accession))
                     minFragments = 0;
                 // if the only peak is the precursor, it cannot be differentiated
-                else if (result.Item1.FragmentMasses.Count == 1 && result.Item1.FragmentMasses.ContainsWithin(result.Item1.PrecursorMass, FragmentMassTolerance))
+                else if (result.Item1.FragmentMasses.Count == 1 && result.Item1.FragmentMasses.BinaryContainsWithin(result.Item1.PrecursorMass, FragmentMassTolerance))
                     minFragments = -1;
                 // all same mass and have no cysteines
                 else if (isCysteine && result.Item1.CysteineCount == 0
@@ -442,7 +442,7 @@ public abstract class RadicalFragmentationExplorer
                 
                 foreach (var otherFrag in otherProteoforms)
                 {
-                    if (otherFrag.FragmentMasses.ContainsWithin(frag, tolerance)) 
+                    if (otherFrag.FragmentMasses.BinaryContainsWithin(frag, tolerance)) 
                         continue;
 
                     all = false;
@@ -530,7 +530,7 @@ public abstract class RadicalFragmentationExplorer
                                 continue;
                         }
 
-                        if (tolerance.Within(innerResult.PrecursorMass, outerResult.PrecursorMass))
+                        if (tolerance.Within( outerResult.PrecursorMass, innerResult.PrecursorMass))
                             innerResults.Add(innerResult);
                         else
                             break;
@@ -554,38 +554,29 @@ public abstract class RadicalFragmentationExplorer
     protected static bool HasUniqueFragment(List<double> targetProteoform, List<PrecursorFragmentMassSet> otherProteoforms,
         Tolerance tolerance)
     {
-        var otherFragments = HashSetPool.Get();
+        var sortedOtherFragments = ListPool.Get();
         try
         {
             foreach (var otherProteoform in otherProteoforms)
             {
-                foreach (var fragment in otherProteoform.FragmentMassesHashSet)
-                {
-                    otherFragments.Add(fragment);
-                }
+                sortedOtherFragments.AddRange(otherProteoform.FragmentMasses); // Assuming these are sorted
             }
+            sortedOtherFragments.Sort(); // Sort once if not already sorted
 
-            // check to see if target proteoform has a fragment that is unique to all other proteoform fragments within tolerance
+            // Step 2: Check for unique fragments using binary search
             foreach (var targetFragment in targetProteoform)
             {
-                bool isUniqueFragment = true;
-                foreach (var otherFragment in otherFragments)
+                if (!sortedOtherFragments.BinaryContainsWithin(targetFragment, tolerance))
                 {
-                    if (tolerance.Within(targetFragment, otherFragment))
-                    {
-                        isUniqueFragment = false;
-                        break;
-                    }
+                    return true; // Found a unique fragment
                 }
-                if (isUniqueFragment)
-                    return true;
             }
 
-            return false;
+            return false; // No unique fragment found
         }
         finally
         {
-            HashSetPool.Return(otherFragments);
+            ListPool.Return(sortedOtherFragments);
         }
     }
 
@@ -625,7 +616,7 @@ public abstract class RadicalFragmentationExplorer
         while (left <= right)
         {
             int mid = left + (right - left) / 2;
-            if (tolerance.Within(orderedResults[mid].PrecursorMass, targetMass))
+            if (tolerance.Within(targetMass, orderedResults[mid].PrecursorMass))
             {
                 result = mid;
                 if (findFirst)

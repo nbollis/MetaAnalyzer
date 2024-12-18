@@ -38,8 +38,7 @@ namespace RadicalFragmentation.Util
         {
             for (int i = 0; i < AcceptableSortedMassShifts.Length; i++)
             {
-                var val = (experimental - theoretical + AcceptableSortedMassShifts[i]) / theoretical * 1000000.0;
-                if (Math.Abs(val) <= Value)
+                if (Math.Abs(experimental - theoretical + AcceptableSortedMassShifts[i]) / theoretical * 1e6 <= Value)
                 {
                     return true;
                 }

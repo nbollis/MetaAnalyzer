@@ -14,143 +14,106 @@ namespace Profiling
     public class ContainsWithinBenchmark
     {
         private List<double> list;
-        private HashSet<double> list_h;
         private List<double> values;
-        private HashSet<double> values_h;
         private Tolerance tolerance;
-        private static readonly HashSetPool<(double Min, double Max)> RangeSetPool = new (64);
-        private static readonly int NumberOfValues = 4;
 
+        private static readonly HashSetPool<(double Min, double Max)> RangeSetPool = new (64);
+
+        [Params(4, 16, 400, 2000)]
+        public int NumberOfValues;
 
         [GlobalSetup]
         public void Setup()
         {
             tolerance = new PpmTolerance(10);
             Random rand = new(42);
-            list = new List<double>(NumberOfValues);
 
-            var valueCount = rand.Next(NumberOfValues / 2, NumberOfValues * 2);
-            values = new List<double>(valueCount);
 
-            Console.WriteLine($"Number of values: {valueCount}");
 
             // populate lists
+            list = new List<double>(NumberOfValues);
             for (int i = 0; i < NumberOfValues; i++)
             {
                 list.Add(rand.Next(0, 30000) * 0.01);
             }
+            list = list.OrderBy(p => p).ToList();
 
+            var valueCount = rand.Next(NumberOfValues / 2, NumberOfValues * 2);
+            values = new List<double>(valueCount);
             for (int i = 0; i < valueCount; i++)
             {
                 values.Add(rand.Next(0, 30000) * 0.01);
             }
-            list = list.OrderBy(p => p).ToList();
             values = values.OrderBy(p => p).ToList();
-            values_h = values.ToHashSet();
-            list_h = list.ToHashSet();
         }
+
+
+        #region ContainsWithin
 
         [Benchmark]
-        public bool List_OriginalContainsWithin()
+        public bool Each_OriginalContainsWithin()
         {
-            for (var index = 0; index < values.Count; index++)
+            foreach (var value in values)
             {
-                if (!OriginalContainsWithin(list, values[index], tolerance))
-                    return false;
-            }
-
-            return true;
-        }
-
-        [Benchmark]
-        public bool List_OriginalContainsWithin_WithBinary()
-        {
-            for (var index = 0; index < values.Count; index++)
-            {
-                if (!BinaryContainsWithin(list, values[index], tolerance))
-                    return false;
-            }
-
-            return true;
-        }
-
-        [Benchmark]
-        public bool IsSuperSetSorted()
-        {
-            int i = 0, j = 0;
-
-            while (i < list.Count && j < values.Count)
-            {
-                if (tolerance.Within(list[i], values[j]))
-                {
-                    // Match found within tolerance, move to the next subset element
-                    j++;
-                }
-                else if (list[i] < tolerance.GetMinimumValue(values[j]))
-                {
-                    // Superset value is too small, move to the next superset element
-                    i++;
-                }
-                else
-                {
-                    // Subset element not found within current superset range
-                    return false;
-                }
-            }
-
-            return j == values.Count; // If we matched all subset elements, return true
-        }
-
-        public static bool OriginalContainsWithin(List<double> list, double value, Tolerance tolerance)
-        {
-            foreach (var item in list)
-            {
-                if (tolerance.Within(item, value))
-                {
-                    return true;
-                }
+                return list.ContainsWithin(value, tolerance);
             }
             return false;
         }
 
-        public static bool BinaryContainsWithin(List<double> list, double value, Tolerance tolerance)
+        [Benchmark]
+        public bool Each_BinaryContainsWithin()
         {
-            int index = list.BinarySearch(value);
-
-            if (index >= 0) return true; // Exact match found
-
-            // Check neighboring elements within tolerance
-            index = ~index; // Insertion point
-            return (index > 0 && Math.Abs(list[index - 1] - value) <= tolerance.Value) ||
-                   (index < list.Count && Math.Abs(list[index] - value) <= tolerance.Value);
+            foreach (var value in values)
+            {
+                return list.BinaryContainsWithin(value, tolerance);
+            }
+            return false;
         }
 
-        //[Benchmark]
-        //public void OriginalContainsWithin()
-        //{
-        //    foreach (var value in values)
-        //    {
-        //        OriginalContainsWithin(list, value, tolerance);
-        //    }
-        //}
 
-        //[Benchmark]
-        //public void RangeContainsWithin()
-        //{
-        //    foreach (var value in values)
-        //    {
-        //        RangeContainsWithin(list, value, tolerance);
-        //    }
-        //}
+        #endregion
 
-        //[Benchmark]
-        //public void BinaryContainsWithin()
-        //{
-        //    foreach (var value in values)
-        //    {
-        //        BinaryContainsWithin(list, value, tolerance);
-        //    }
-        //}
+
+        #region list contains within
+
+        [Benchmark]
+        public bool List_Iterate()
+        {
+            for (var index = 0; index < values.Count; index++)
+            {
+                if (!list.ContainsWithin(values[index], tolerance))
+                    return false;
+            }
+
+            return true;
+        }
+
+        [Benchmark]
+        public bool List_Iterate_WithBinary()
+        {
+            for (var index = 0; index < values.Count; index++)
+            {
+                if (!list.BinaryContainsWithin(values[index], tolerance))
+                    return false;
+            }
+
+            return true;
+        }
+
+        [Benchmark]
+        public bool List_TwoPointer()
+        {
+            return list.IsSuperSetSorted(values, tolerance);
+        }
+        
+        [Benchmark]
+        public bool List_TwoPointer_Hybrid()
+        {
+            return list.ListContainsWithin(values, tolerance);
+        }
+
+        #endregion
+
 
 
 

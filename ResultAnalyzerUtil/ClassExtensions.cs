@@ -1,5 +1,6 @@
 ﻿using MzLibUtil;
 using Omics.SpectrumMatch;
+using System.Collections.Generic;
 
 namespace ResultAnalyzerUtil;
 
@@ -24,12 +25,38 @@ public static class ClassExtensions
     {
         foreach (var item in list)
         {
-            if (tolerance.Within(item, value))
+            if (tolerance.Within(value, item))
             {
                 return true;
             }
         }
         return false;
+    }
+
+    public static bool BinaryContainsWithin(this IList<double> sortedList, double value, Tolerance tolerance)
+    {
+        int low = 0, high = sortedList.Count - 1;
+
+        while (low <= high)
+        {
+            int mid = low + (high - low) / 2;
+            double midValue = sortedList[mid];
+
+            if (tolerance.Within( value, midValue))
+            {
+                return true; // Found a match within tolerance
+            }
+            else if (midValue < value)
+            {
+                low = mid + 1; // Search right
+            }
+            else
+            {
+                high = mid - 1; // Search left
+            }
+        }
+
+        return false; // No match found within tolerance
     }
 
     // returns if list contains all values within tolerance
@@ -42,7 +69,7 @@ public static class ClassExtensions
 
         for (var index = 0; index < values.Count; index++)
         {
-            if (!list.ContainsWithin(values[index], tolerance))
+            if (!list.BinaryContainsWithin(values[index], tolerance))
                 return false;
         }
 
@@ -51,6 +78,9 @@ public static class ClassExtensions
 
     public static bool IsSuperSetSorted(this IList<double> superset, IList<double> subset, Tolerance tolerance)
     {
+        if (superset.Count > subset.Count)
+            return false;
+
         int i = 0, j = 0;
         while (i < superset.Count && j < subset.Count)
         {

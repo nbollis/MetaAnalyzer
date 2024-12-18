@@ -32,8 +32,21 @@ namespace Test
         [Test]
         public void Within_WithMissedMonoisotopics_ReturnsTrue()
         {
-            var tolerance = new MissedMonoisotopicTolerance(10, 1);
-            Assert.IsTrue(tolerance.Within(100 + Constants.C13MinusC12, 101.0033));
+            var tolerance = new MissedMonoisotopicTolerance(10, 3);
+
+            var value = 100;
+            var missedMons = 3;
+            var missedMonValues = new double[missedMons + 1];
+            for (int i = 0; i < missedMons + 1; i++)
+            {
+                missedMonValues[i] = value + i * Constants.C13MinusC12;
+            }
+
+            for (int i = 0; i < missedMons + 1; i++)
+            {
+                Assert.IsTrue(tolerance.Within(value, missedMonValues[i]));
+            }
+
         }
 
         [Test]
