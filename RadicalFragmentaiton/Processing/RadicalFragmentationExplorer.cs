@@ -27,6 +27,7 @@ public abstract class RadicalFragmentationExplorer
     protected string BaseDirectorPath { get; init; }
 
     public abstract string AnalysisType { get; }
+    public abstract bool ResortNeeded { get; }
 
     private string? _analysisLabel;
     public string AnalysisLabel
@@ -338,7 +339,7 @@ public abstract class RadicalFragmentationExplorer
                     minFragments = -1;
 
                 minFragments ??= MinFragmentMassesToDifferentiate(result.Item1.FragmentMasses, result.Item2,
-                    FragmentMassTolerance);
+                    FragmentMassTolerance, ResortNeeded);
                 var record = new FragmentsToDistinguishRecord
                 {
                     Species = Species,
@@ -425,7 +426,7 @@ public abstract class RadicalFragmentationExplorer
     }
 
 
-    public static int MinFragmentMassesToDifferentiate(List<double> targetProteoform, List<PrecursorFragmentMassSet> otherProteoforms, Tolerance tolerance)
+    public static int MinFragmentMassesToDifferentiate(List<double> targetProteoform, List<PrecursorFragmentMassSet> otherProteoforms, Tolerance tolerance, bool sortByUniqueness = false)
     {
         // check to see if target proteoform has a fragment that is unique to all other proteoform fragments within tolerance
         if (HasUniqueFragment(targetProteoform, otherProteoforms, tolerance))
@@ -461,6 +462,11 @@ public abstract class RadicalFragmentationExplorer
             if (otherProteoforms.Any(p => p.FragmentMasses.ListContainsWithin(uniqueTargetFragmentList, tolerance)))
                 return -1;
 
+            // reorder unique target list to be have those shared by the least other proteoforms first
+            if (sortByUniqueness)
+                uniqueTargetFragmentList.Sort((a, b) => otherProteoforms.Count(p => p.FragmentMasses.BinaryContainsWithin(a, tolerance))
+                    .CompareTo(otherProteoforms.Count(p => p.FragmentMasses.BinaryContainsWithin(b, tolerance))));
+
             // Order by count of fragment masses and check to see if they can differentiate the target
             for (int count = 2; count <= uniqueTargetFragmentList.Count; count++)
             {
@@ -469,18 +475,18 @@ public abstract class RadicalFragmentationExplorer
                 {
                     // Get those that can be explained by these fragments
                     var matchingProteoforms = otherProteoforms
-                        .Where(p => p.FragmentMasses.ListContainsWithin(combination, tolerance))
+                        .Where(p => p.FragmentMasses.ListContainsWithin(combination, tolerance, !sortByUniqueness))
                         .ToList();
 
                     if (matchingProteoforms.Count == 0)
                         return combination.Count;
 
                     // if unique plus one has been found, no need to check again
-                    // however, we do need to ensure that one of the current analyzed combinations is unique
+                    // however, we do need to ensure that one of the current number analyzed combinations is unique
                     if (uniquePlusOneFound)
                         continue;
 
-                    if (HasUniqueFragment(targetProteoform, matchingProteoforms, tolerance))
+                    if (HasUniqueFragment(uniqueTargetFragmentList, matchingProteoforms, tolerance))
                         uniquePlusOneFound = true;
                 }
                 if (uniquePlusOneFound)
@@ -580,6 +586,7 @@ public abstract class RadicalFragmentationExplorer
     }
 
     // Function to generate combinations of a specific count from a given list
+    // retains the order of the imput fragmentMasses
     protected static IEnumerable<List<double>> GenerateCombinationsWithCount(List<double> fragmentMasses, int count)
     {
         int n = fragmentMasses.Count;

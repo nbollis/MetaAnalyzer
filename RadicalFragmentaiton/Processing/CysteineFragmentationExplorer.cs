@@ -8,6 +8,7 @@ namespace RadicalFragmentation.Processing;
 internal class CysteineFragmentationExplorer : RadicalFragmentationExplorer
 {
     public override string AnalysisType => "Cysteine";
+    public override bool ResortNeeded => false;
     public double CysteineToSelect = 1;
     public ConcurrentDictionary<string, int> BaseSequenceToIndexDictionary;
 

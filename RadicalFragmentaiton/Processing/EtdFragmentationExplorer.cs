@@ -7,12 +7,14 @@ namespace RadicalFragmentation.Processing;
 
 internal class EtdFragmentationExplorer : RadicalFragmentationExplorer
 {
+    public override string AnalysisType { get; } = "ETD";
+    public override bool ResortNeeded => true;
     public EtdFragmentationExplorer(string databasePath, int numberOfMods, string species,  int ambiguityLevel = 1, string? baseDirectory = null, int allowedMissedMonos = 0) 
         : base(databasePath, numberOfMods, species, Int32.MaxValue, ambiguityLevel, baseDirectory, allowedMissedMonos)
     {
     }
 
-    public override string AnalysisType { get; } = "ETD";
+    
     public override IEnumerable<PrecursorFragmentMassSet> GeneratePrecursorFragmentMasses(Protein protein)
     {
         List<Product> masses = new();

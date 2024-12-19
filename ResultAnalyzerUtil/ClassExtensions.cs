@@ -65,12 +65,12 @@ public static class ClassExtensions
         if (values.Count > list.Count)
             return false;
 
-        if (values.Count > 6)
-            if (valuesAreSored)
-                return list.IsSuperSetSorted(values, tolerance);
-            else 
-                return list.IsSuperSet_SubsetNotSorted(values, tolerance);
+        if (values.Count > 6) 
+            return valuesAreSored 
+                ? list.IsSuperSetSorted(values, tolerance) 
+                : list.IsSuperSet_SubsetNotSorted(values, tolerance);
 
+        // if values are not sorted, we canuse binary search on list as list will always be sorted for this application
         for (var index = 0; index < values.Count; index++)
         {
             if (!list.BinaryContainsWithin(values[index], tolerance))
