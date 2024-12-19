@@ -60,12 +60,16 @@ public static class ClassExtensions
     }
 
     // returns if list contains all values within tolerance
-    public static bool ListContainsWithin(this IList<double> list, IList<double> values, Tolerance tolerance)
+    public static bool ListContainsWithin(this IList<double> list, IList<double> values, Tolerance tolerance, bool valuesAreSored = true)
     {
         if (values.Count > list.Count)
             return false;
+
         if (values.Count > 6)
-            return list.IsSuperSetSorted(values, tolerance);
+            if (valuesAreSored)
+                return list.IsSuperSetSorted(values, tolerance);
+            else 
+                return list.IsSuperSet_SubsetNotSorted(values, tolerance);
 
         for (var index = 0; index < values.Count; index++)
         {
@@ -76,9 +80,10 @@ public static class ClassExtensions
         return true;
     }
 
+    // assumes both are ordred
     public static bool IsSuperSetSorted(this IList<double> superset, IList<double> subset, Tolerance tolerance)
     {
-        if (superset.Count > subset.Count)
+        if (superset.Count < subset.Count)
             return false;
 
         int i = 0, j = 0;
@@ -103,6 +108,38 @@ public static class ClassExtensions
 
         return j == subset.Count; // If we matched all subset elements, return true
     }
+
+    public static bool IsSuperSet_SubsetNotSorted(this IList<double> superset, IList<double> subset, Tolerance tolerance)
+    {
+        if (superset.Count < subset.Count)
+            return false;
+
+        var matchedIndices = new HashSet<int>();
+        foreach (var subsetValue in subset)
+        {
+            bool matchFound = false;
+            for (int i = 0; i < superset.Count; i++)
+            {
+                if (!matchedIndices.Contains(i) && tolerance.Within(superset[i], subsetValue))
+                {
+                    matchedIndices.Add(i);
+                    matchFound = true;
+                    break;
+                }
+            }
+            if (!matchFound)
+            {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+
+
+
+
 
     private static readonly object FilePathLock;
     private static readonly List<string> ClaimedFilePaths;

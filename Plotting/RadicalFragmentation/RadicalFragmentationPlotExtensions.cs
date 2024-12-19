@@ -170,12 +170,14 @@ namespace Plotting.RadicalFragmentation
                     var combined = Chart.Combine(new[] {  hist1, cumHist1 })
                         .WithTitle($"{speciesGroup.Key} Proteoform Fragments")
                         .WithYAxis(LinearAxis.init<int, int, int, int, int, int>(AxisType: StyleParam.AxisType.Log, Anchor: NewY(1)))
-                        .WithYAxisStyle<double, double, string>("Log Count", 
+                        .WithYAxisStyle(Title.init("Log Count"), 
                             Side: StyleParam.Side.Left,
-                            Id: StyleParam.SubPlotId.NewYAxis(1), AxisType: StyleParam.AxisType.Log)
+                            Anchor: NewY(1),
+                            Id: StyleParam.SubPlotId.NewYAxis(1))
                         .WithYAxisStyle(Title.init("Percent Identified"), 
                             Side: StyleParam.Side.Right,
                             Id: StyleParam.SubPlotId.NewYAxis(2),
+                            Anchor: NewY(2),
                             Overlaying: StyleParam.LinearAxisId.NewY(1),
                             MinMax: new FSharpOption<Tuple<IConvertible, IConvertible>>(new(0, 100)))
                         .WithLayout(PlotlyBase.DefaultLayoutNoLegend);

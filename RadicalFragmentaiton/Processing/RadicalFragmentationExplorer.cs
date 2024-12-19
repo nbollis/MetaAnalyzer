@@ -395,7 +395,6 @@ public abstract class RadicalFragmentationExplorer
                 {
                     UpdateProgressBar($"Finding Fragments Needed for {AnalysisLabel}", (double)current / toProcess);
                 }
-
             });
 
         Thread.Sleep(2000);

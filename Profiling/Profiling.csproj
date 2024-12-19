@@ -12,6 +12,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\mzLib\mzLib\MzLibUtil\MzLibUtil.csproj" />
     <ProjectReference Include="..\ResultAnalyzerUtil\ResultAnalyzerUtil.csproj" />
   </ItemGroup>
 
