@@ -35,15 +35,14 @@ public abstract class RadicalFragmentationExplorer
         get
         {
             if (_analysisLabel is not null) return _analysisLabel;
+
+            string suffix = "";
             if (PrecursorMassTolerance is MissedMonoisotopicTolerance tol)
-            {
-                _analysisLabel = $"{AnalysisType}_{tol.MissedMonoisotpics}MissedMonos";
-            }
-            else
-            {
-                _analysisLabel = $"{AnalysisType}";
-            }
-            return _analysisLabel;
+                suffix = $"_{tol.MissedMonoisotpics}MissedMonos";
+            if (Math.Abs(PrecursorMassTolerance.Value - 10) > 0.0000001)
+                suffix += $"_{PrecursorMassTolerance.Value}ppm";
+
+            return _analysisLabel = $"{AnalysisType}{suffix}";
         }
     }
     public string DirectoryPath => Path.Combine(BaseDirectorPath, AnalysisLabel);
