@@ -12,8 +12,8 @@ internal class CysteineFragmentationExplorer : RadicalFragmentationExplorer
     public double CysteineToSelect = 1;
     public ConcurrentDictionary<string, int> BaseSequenceToIndexDictionary;
 
-    public CysteineFragmentationExplorer(string databasePath, int numberOfMods, string species, int ambiguityLevel, int fragmentationEvents, string? baseDirectory = null, int allowedMissedMonos = 0)
-        : base(databasePath, numberOfMods, species, fragmentationEvents, ambiguityLevel, baseDirectory, allowedMissedMonos)
+    public CysteineFragmentationExplorer(string databasePath, int numberOfMods, string species, int ambiguityLevel, int fragmentationEvents, string? baseDirectory = null, int allowedMissedMonos = 0, double? ppmTolerance = null)
+        : base(databasePath, numberOfMods, species, fragmentationEvents, ambiguityLevel, baseDirectory, allowedMissedMonos, ppmTolerance)
     {
         BaseSequenceToIndexDictionary = new ConcurrentDictionary<string, int>();
     }

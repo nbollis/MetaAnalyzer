@@ -31,6 +31,9 @@ namespace RadicalFragmentation
         [Option('i', HelpText = "MissedMonoIsotopics", Required = false, Default = 0)]
         public int MissedMonoIsoTopics { get; set; }
 
+        [Option('p', HelpText = "PPM Tolerance", Required = false, Default = 10.0)]
+        public double PpmTolerance { get; set; }
+
         [Option('t', HelpText = "Maximum threads for RadicalFragmentor to use", Required = false, Default = 1)]
         public int MaxThreads { get; set; }
 
@@ -54,6 +57,9 @@ namespace RadicalFragmentation
                 throw new Exception("Max threads must be greater than zero");
             if (MaxThreads > Environment.ProcessorCount)
                 MaxThreads = Environment.ProcessorCount;
+
+            if (PpmTolerance < 0)
+                throw new Exception("PPM Tolerance must be greater than zero");
 
             if (string.IsNullOrEmpty(DatabasePath))
                 OutputDirectory = Directory.GetDirectoryRoot(DatabasePath);

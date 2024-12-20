@@ -67,8 +67,9 @@ public abstract class RadicalFragmentationExplorer
     protected List<DisulfideBond> disulfideBonds;
 
     protected RadicalFragmentationExplorer(string databasePath, int numberOfMods, string species, int maximumFragmentationEvents = int.MaxValue,
-        int ambiguityLevel = 1, string? baseDirectory = null, int allowedMissedMonos = 0)
+        int ambiguityLevel = 1, string? baseDirectory = null, int allowedMissedMonos = 0, double? ppmTolerance = null)
     {
+        var ppm = ppmTolerance ?? StaticVariables.DefaultPpmTolerance;
         DatabasePath = databasePath;
         NumberOfMods = numberOfMods;
         Species = species;
@@ -77,9 +78,9 @@ public abstract class RadicalFragmentationExplorer
         BaseDirectorPath = baseDirectory ?? @"D:\Projects\RadicalFragmentation\FragmentAnalysis";
         MissedMonoIsotopics = allowedMissedMonos;
         PrecursorMassTolerance = allowedMissedMonos == 0 
-            ? new PpmTolerance(StaticVariables.DefaultPpmTolerance) 
-            : new MissedMonoisotopicTolerance(StaticVariables.DefaultPpmTolerance, allowedMissedMonos);
-        FragmentMassTolerance = new PpmTolerance(StaticVariables.DefaultPpmTolerance);
+            ? new PpmTolerance(ppm) 
+            : new MissedMonoisotopicTolerance(ppm, allowedMissedMonos);
+        FragmentMassTolerance = new PpmTolerance(ppm);
 
         fixedMods = new List<Modification>();
         variableMods = new List<Modification>();
@@ -399,7 +400,6 @@ public abstract class RadicalFragmentationExplorer
             });
 
         UpdateProgressBar($"Finding Fragments Needed for {AnalysisLabel}", 1);
-        Console.WriteLine();
 
         Task.WaitAll(writeTasks.ToArray());
 

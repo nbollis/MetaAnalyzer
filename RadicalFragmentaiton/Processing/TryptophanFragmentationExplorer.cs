@@ -10,8 +10,8 @@ internal class TryptophanFragmentationExplorer : RadicalFragmentationExplorer
     public override string AnalysisType => "Tryptophan";
     public override bool ResortNeeded => false;
 
-    public TryptophanFragmentationExplorer(string databasePath, int numberOfMods, string species, int ambiguityLevel = 1, string? baseDirectory = null, int allowedMissedMonos = 0)
-        : base(databasePath, numberOfMods, species, int.MaxValue, ambiguityLevel, baseDirectory, allowedMissedMonos)
+    public TryptophanFragmentationExplorer(string databasePath, int numberOfMods, string species, int ambiguityLevel = 1, string? baseDirectory = null, int allowedMissedMonos = 0, double? ppmTolerance = null)
+        : base(databasePath, numberOfMods, species, int.MaxValue, ambiguityLevel, baseDirectory, allowedMissedMonos, ppmTolerance)
     {
         digestionParameters = new DigestionParams("tryptophan oxidation", 0, 7, int.MaxValue, 100000,
             InitiatorMethionineBehavior.Retain, NumberOfMods);
