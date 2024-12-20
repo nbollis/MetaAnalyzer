@@ -398,7 +398,9 @@ public abstract class RadicalFragmentationExplorer
                 }
             });
 
-        Thread.Sleep(2000);
+        UpdateProgressBar($"Finding Fragments Needed for {AnalysisLabel}", 1);
+        Console.WriteLine();
+
         Task.WaitAll(writeTasks.ToArray());
 
         // combine all temporary temporaryFiles into a single file and delete the temp temporaryFiles

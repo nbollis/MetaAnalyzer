@@ -10,9 +10,6 @@ using Chart = Plotly.NET.CSharp.Chart;
 using Plotly.NET.ImageExport;
 using Plotting.Util;
 using ResultAnalyzerUtil;
-using static Plotly.NET.StyleParam.LinearAxisId;
-using Plotly.NET.CSharp;
-using PuppeteerSharp.Input;
 
 namespace Plotting.RadicalFragmentation
 {
@@ -28,6 +25,16 @@ namespace Plotting.RadicalFragmentation
             {"3", Color.fromKeyword(ColorKeyword.Orchid) },
             {"4", Color.fromKeyword(ColorKeyword.GoldenRod) },
             {"5", Color.fromKeyword(ColorKeyword.DarkOrange) },
+        };
+
+        private static Dictionary<string, (Color, Color)> MissedMonoHybridDict = new()
+        {
+            {"0", (Color.fromKeyword(ColorKeyword.RoyalBlue), Color.fromKeyword(ColorKeyword.RoyalBlue)) },
+            {"1", (Color.fromKeyword(ColorKeyword.IndianRed), Color.fromKeyword(ColorKeyword.RoyalBlue)) },
+            {"2", (Color.fromKeyword(ColorKeyword.MediumSpringGreen), Color.fromKeyword(ColorKeyword.RoyalBlue)) },
+            {"3", (Color.fromKeyword(ColorKeyword.Orchid), Color.fromKeyword(ColorKeyword.RoyalBlue)) },
+            {"4", (Color.fromKeyword(ColorKeyword.GoldenRod), Color.fromKeyword(ColorKeyword.RoyalBlue)) },
+            {"5", (Color.fromKeyword(ColorKeyword.DarkOrange), Color.fromKeyword(ColorKeyword.RoyalBlue)) },
         };
 
         private static Dictionary<string, string> ConditionNameConversionDictionary = new()
@@ -139,7 +146,7 @@ namespace Plotting.RadicalFragmentation
 
         public static void CreatePlots(this List<RadicalFragmentationExplorer> explorers)
         {
-            var typeCollection = explorers.Select(p => p.AnalysisLabel).Distinct().ToArray();
+            var typeCollection = explorers.Select(p => p.AnalysisType).Distinct().ToArray();
             if (typeCollection.Count() > 1)
                 throw new ArgumentException("All explorers must be of the same type");
             var type = typeCollection.First();
@@ -163,24 +170,22 @@ namespace Plotting.RadicalFragmentation
                     speciesGroup.Value.First().SaveToFigureDirectory(hist1, outName, 1000, 600);
 
                     var cumHist1 = frag.GetCumulativeFragmentsNeededChart(1, speciesGroup.Key)
-                        .WithAxisAnchor(Y:2);
+                        .WithAxisAnchor(Y: 2);
                     outName = $"{type}_CumulativeFragmentsNeeded_{speciesGroup.Key}_ProteoformLevel";
                     speciesGroup.Value.First().SaveToFigureDirectory(cumHist1, outName, 1000, 600);
 
                     var combined = Chart.Combine(new[] {  hist1, cumHist1 })
-                        .WithTitle($"{speciesGroup.Key} Proteoform Fragments")
-                        .WithYAxis(LinearAxis.init<int, int, int, int, int, int>(AxisType: StyleParam.AxisType.Log, Anchor: NewY(1)))
+                        .WithTitle($"{speciesGroup.Value.First().AnalysisLabel} Fragments to distinguish from other Proteoforms")
                         .WithYAxisStyle(Title.init("Log Count"), 
                             Side: StyleParam.Side.Left,
-                            Anchor: NewY(1),
-                            Id: StyleParam.SubPlotId.NewYAxis(1))
+                            Id: StyleParam.SubPlotId.NewYAxis(1),
+                            MinMax: new FSharpOption<Tuple<IConvertible, IConvertible>>(new(0, Math.Log10(maxVal))))
                         .WithYAxisStyle(Title.init("Percent Identified"), 
                             Side: StyleParam.Side.Right,
                             Id: StyleParam.SubPlotId.NewYAxis(2),
-                            Anchor: NewY(2),
                             Overlaying: StyleParam.LinearAxisId.NewY(1),
                             MinMax: new FSharpOption<Tuple<IConvertible, IConvertible>>(new(0, 100)))
-                        .WithLayout(PlotlyBase.DefaultLayoutNoLegend);
+                        .WithLayout(PlotlyBase.DefaultLayoutWithLegend);
                     outName = $"{type}_CombinedFragmentsNeeded_{speciesGroup.Key}_ProteoformLevel";
                     speciesGroup.Value.First().SaveToFigureDirectory(combined, outName, 1000, 600);
                 }
@@ -191,16 +196,45 @@ namespace Plotting.RadicalFragmentation
                     outName = $"{type}_UniqueFragmentMasses_{speciesGroup.Key}_ProteinLevel";
                     speciesGroup.Value.First().SaveToFigureDirectory(level2, outName, 1000, 600);
 
-                    var hist2 = frag.GetFragmentsNeededHistogram(out int maxVal, 2, speciesGroup.Key);
+                    var hist2 = frag.GetFragmentsNeededHistogram(out int maxVal, 2, speciesGroup.Key)
+                        .WithAxisAnchor(Y: 3);
                     outName = $"{type}_FragmentsNeeded_{speciesGroup.Key}_ProteinLevel";
                     speciesGroup.Value.First().SaveToFigureDirectory(hist2, outName, 1000, 600);
 
-                    var cumHist2 = frag.GetCumulativeFragmentsNeededChart(2, speciesGroup.Key);
+                    var cumHist2 = frag.GetCumulativeFragmentsNeededChart(2, speciesGroup.Key)
+                        .WithAxisAnchor(Y: 4);
                     outName = $"{type}_CumulativeFragmentsNeeded_{speciesGroup.Key}_ProteinLevel";
                     speciesGroup.Value.First().SaveToFigureDirectory(cumHist2, outName, 1000, 600);
+
+                    var combined = Chart.Combine(new[] { hist2, cumHist2 })
+                        .WithTitle($"{speciesGroup.Value.First().AnalysisLabel} Fragments to distinguish from other Proteins")
+                        .WithYAxisStyle(Title.init("Log Count"),
+                            Side: StyleParam.Side.Left,
+                            Id: StyleParam.SubPlotId.NewYAxis(3),
+                            MinMax: new FSharpOption<Tuple<IConvertible, IConvertible>>(new(0, Math.Log10(maxVal))))
+                        .WithYAxisStyle(Title.init("Percent Identified"),
+                            Side: StyleParam.Side.Right,
+                            Id: StyleParam.SubPlotId.NewYAxis(4),
+                            Overlaying: StyleParam.LinearAxisId.NewY(3),
+                            MinMax: new FSharpOption<Tuple<IConvertible, IConvertible>>(new(0, 100)))
+                        .WithLayout(PlotlyBase.DefaultLayoutWithLegend);
+                    outName = $"{type}_CombinedFragmentsNeeded_{speciesGroup.Key}_ProteinLevel";
+                    speciesGroup.Value.First().SaveToFigureDirectory(combined, outName, 1000, 600);
                 }
             }
         }
+
+
+
+        public static void GetMissedMonoCombinedPlots(this List<RadicalFragmentationExplorer> explorers)
+        {
+
+
+
+
+        }
+
+
 
         public static GenericChart.GenericChart GetProteinByUniqueFragmentsLine(this List<FragmentHistogramRecord> records,
             int ambiguityLevel = 1, string species = "")
@@ -280,6 +314,7 @@ namespace Plotting.RadicalFragmentation
                 .WithYAxisStyle(Title.init($"Log(Count of {typeText}s)"))
                 .WithLayout(PlotlyBase.DefaultLayoutWithLegend)
                 .WithYAxis(LinearAxis.init<int, int, int, int, int, int>(AxisType: StyleParam.AxisType.Log));
+            
             return combined;
         }
 
@@ -305,7 +340,7 @@ namespace Plotting.RadicalFragmentation
                 var xVal = xInteger.Select(p => p.ToString()).ToArray();
                 xVal[0] = "No ID";
                 xVal[1] = "Precursor Only";
-                var chart = Chart.Spline<string, double, string>(xVal, yVal, true, 0.2,
+                var chart = Chart.Spline<string, double, string>(xVal, yVal, true, 0.0,
                     Name: $"{modGroup.Key} mods", MultiText: yVal.Select(p => $"{p.Round(2)}%").ToArray(), MarkerColor: color);
                 toCombine.Add(chart);
             }
