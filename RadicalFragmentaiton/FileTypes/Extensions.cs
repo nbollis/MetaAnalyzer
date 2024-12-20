@@ -11,16 +11,14 @@ namespace RadicalFragmentation
     {
         public static IEnumerable<FragmentsNeededSummary> ToFragmentsNeededSummaryRecords(this RadicalFragmentationExplorer explorer)
         {
-            var records = explorer.MinFragmentNeededFile.Results;
-            var first = records.First();
-            var type = first.AnalysisType;
-            var species = first.Species;
-            var ambiguityLevel = first.AmbiguityLevel;
+            var type = explorer.AnalysisType;
+            var species = explorer.Species;
+            var ambiguityLevel = explorer.AmbiguityLevel;
             var missedMonos = explorer.MissedMonoIsotopics;
             var ppmTolerance = explorer.Tolerance;
             var modCount = explorer.NumberOfMods;
 
-            var groupedRecords = records.GroupBy(r => r.FragmentCountNeededToDifferentiate)
+            var groupedRecords = explorer.MinFragmentNeededFile.Results.GroupBy(r => r.FragmentCountNeededToDifferentiate)
                 .ToDictionary(g => g.Key, g => g.Count());
 
             var minFragmentsNeeded = groupedRecords.Keys.Min();
@@ -46,17 +44,15 @@ namespace RadicalFragmentation
 
         public static IEnumerable<PrecursorCompetitionSummary> ToPrecursorCompetitionSummaryRecords(this RadicalFragmentationExplorer explorer)
         {
-            var records = explorer.MinFragmentNeededFile.Results;
-
-            var first = records.First();
-            var type = first.AnalysisType;
-            var species = first.Species;
-            var ambiguityLevel = first.AmbiguityLevel;
+     
+            var type = explorer.AnalysisType;
+            var species = explorer.Species;
+            var ambiguityLevel = explorer.AmbiguityLevel;
             var missedMonos = explorer.MissedMonoIsotopics;
             var ppmTolerance = explorer.Tolerance;
             var modCount = explorer.NumberOfMods;
 
-            var groupedRecords = records.GroupBy(r => r.NumberInPrecursorGroup)
+            var groupedRecords = explorer.MinFragmentNeededFile.Results.GroupBy(r => r.NumberInPrecursorGroup)
                 .ToDictionary(g => g.Key, g => g.Count());
 
             var minPrecursorsInGroup = groupedRecords.Keys.Min();

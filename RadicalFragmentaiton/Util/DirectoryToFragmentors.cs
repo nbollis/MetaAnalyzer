@@ -13,9 +13,16 @@ namespace RadicalFragmentation
                     continue;
 
                 var explorerType = ParseTypeFromDirName(potentialResultDir);
-                var missedMonoCount = potentialResultDir.Contains("MissedMono")
-                    ? int.Parse(Path.GetFileNameWithoutExtension(potentialResultDir).Split('_')[1].Replace("MissedMonos", ""))
+                var splits = Path.GetFileNameWithoutExtension(potentialResultDir).Split('_');
+                var monoSplit = splits.FirstOrDefault(p => p.Contains("MissedMonos"));
+                var ppmSplit = splits.FirstOrDefault(p => p.Contains("ppm"));
+                
+                var missedMonoCount = monoSplit != null
+                    ? int.Parse(monoSplit.Replace("MissedMonos", ""))
                     : 0;
+                var ppmTolerance = ppmSplit != null
+                    ? double.Parse(ppmSplit.Replace("ppm", ""))
+                    : (double?)null;
 
                 var files = Directory.GetFiles(potentialResultDir);
                 var grouped = files
@@ -30,13 +37,13 @@ namespace RadicalFragmentation
                     switch (explorerType)
                     {
                         case FragmentExplorerType.Tryptophan:
-                            yield return new TryptophanFragmentationExplorer(databasePath, info.Mods, info.Label, info.AmbigLevel, directoryPath, missedMonoCount);
+                            yield return new TryptophanFragmentationExplorer(databasePath, info.Mods, info.Label, info.AmbigLevel, directoryPath, missedMonoCount, ppmTolerance);
                             break;
                         case FragmentExplorerType.Cysteine:
-                            yield return new CysteineFragmentationExplorer(databasePath, info.Mods, info.Label, info.AmbigLevel, int.MaxValue, directoryPath, missedMonoCount);
+                            yield return new CysteineFragmentationExplorer(databasePath, info.Mods, info.Label, info.AmbigLevel, int.MaxValue, directoryPath, missedMonoCount, ppmTolerance);
                             break;
                         case FragmentExplorerType.ETD:
-                            yield return new EtdFragmentationExplorer(databasePath, info.Mods, info.Label, info.AmbigLevel, directoryPath, missedMonoCount);
+                            yield return new EtdFragmentationExplorer(databasePath, info.Mods, info.Label, info.AmbigLevel, directoryPath, missedMonoCount, ppmTolerance);
                             break;
                         default:
                             Debugger.Break();
