@@ -45,12 +45,6 @@ public abstract class RadicalFragmentationExplorer
         }
     }
 
-    // paths
-    public readonly string DirectoryPath;
-    public readonly string FigureDirectory;
-    protected readonly string BaseDirectorPath;
-    protected readonly string IndexDirectoryPath;
-
     // params
     public abstract bool ResortNeeded { get; }
     public bool Override { get; set; } = false;
@@ -64,6 +58,13 @@ public abstract class RadicalFragmentationExplorer
     protected string MaxFragmentString => MaximumFragmentationEvents == int.MaxValue ? "All" : MaximumFragmentationEvents.ToString();
     protected readonly Tolerance PrecursorMassTolerance;
     protected readonly Tolerance FragmentMassTolerance;
+
+    // paths
+    public readonly string DirectoryPath;
+    public readonly string FigureDirectory;
+    protected readonly string BaseDirectorPath;
+    protected readonly string IndexDirectoryPath;
+
 
     // empty and used in digestion
     protected readonly List<Modification> fixedMods;
@@ -97,21 +98,30 @@ public abstract class RadicalFragmentationExplorer
         DirectoryPath = Path.Combine(BaseDirectorPath, AnalysisLabel);
         FigureDirectory = Path.Combine(BaseDirectorPath, "Figure");
         IndexDirectoryPath = Path.Combine(BaseDirectorPath, "IndexedFragments", AnalysisType);
+        PrecursorFragmentMassFilePath = Path.Combine(IndexDirectoryPath, $"{Species}_{NumberOfMods}Mods_{MaxFragmentString}_{FileIdentifiers.FragmentIndex}.csv");
+        FragmentHistogramFilePath = Path.Combine(DirectoryPath, $"{Species}_{NumberOfMods}Mods_{MaxFragmentString}_Level({AmbiguityLevel})Ambiguity_{FileIdentifiers.FragmentCountHistogram}.csv");
+        MinFragmentNeededFilePath = Path.Combine(DirectoryPath,
+            $"{Species}_{NumberOfMods}Mods_{MaxFragmentString}_Level({AmbiguityLevel})Ambiguity_{FileIdentifiers.MinFragmentNeeded}.csv");
+        MinFragmentNeededTempBasePath = MinFragmentNeededFilePath.Replace(".csv", "_temp.csv");
+
     }
 
     #region Result Files
 
-    protected string _precursorFragmentMassFilePath => Path.Combine(IndexDirectoryPath,
-        $"{Species}_{NumberOfMods}Mods_{MaxFragmentString}_{FileIdentifiers.FragmentIndex}.csv");
-    protected PrecursorFragmentMassFile _precursorFragmentMassFile;
+    protected readonly string PrecursorFragmentMassFilePath;
+    protected readonly string FragmentHistogramFilePath;
+    protected readonly string MinFragmentNeededTempBasePath;
+    protected readonly string MinFragmentNeededFilePath;
+
+    protected PrecursorFragmentMassFile? _precursorFragmentMassFile;
     public PrecursorFragmentMassFile PrecursorFragmentMassFile
     {
         get
         {
             if (_precursorFragmentMassFile != null) return _precursorFragmentMassFile;
-            if (File.Exists(_precursorFragmentMassFilePath))
+            if (File.Exists(PrecursorFragmentMassFilePath))
             {
-                _precursorFragmentMassFile = new PrecursorFragmentMassFile(_precursorFragmentMassFilePath);
+                _precursorFragmentMassFile = new PrecursorFragmentMassFile(PrecursorFragmentMassFilePath);
             }
             else
             {
@@ -122,45 +132,40 @@ public abstract class RadicalFragmentationExplorer
         }
     }
 
-    protected string _fragmentHistogramFilePath => Path.Combine(DirectoryPath,
-        $"{Species}_{NumberOfMods}Mods_{MaxFragmentString}_Level({AmbiguityLevel})Ambiguity_{FileIdentifiers.FragmentCountHistogram}.csv");
-    protected FragmentHistogramFile _fragmentHistogramFile;
+    protected FragmentHistogramFile? _fragmentHistogramFile;
     public FragmentHistogramFile FragmentHistogramFile
     {
         get
         {
             if (_fragmentHistogramFile != null) return _fragmentHistogramFile;
-            if (File.Exists(_fragmentHistogramFilePath))
+            if (File.Exists(FragmentHistogramFilePath))
             {
-                _fragmentHistogramFile = new FragmentHistogramFile(_fragmentHistogramFilePath);
+                _fragmentHistogramFile = new FragmentHistogramFile(FragmentHistogramFilePath);
             }
             else
             {
                 CreateFragmentHistogramFile();
-                _fragmentHistogramFile = new FragmentHistogramFile(_fragmentHistogramFilePath);
+                _fragmentHistogramFile = new FragmentHistogramFile(FragmentHistogramFilePath);
             }
 
             return _fragmentHistogramFile;
         }
     }
 
-    protected string _minFragmentNeededTempBasePath => _minFragmentNeededFilePath.Replace(".csv", "_temp.csv");
-    protected string _minFragmentNeededFilePath => Path.Combine(DirectoryPath,
-        $"{Species}_{NumberOfMods}Mods_{MaxFragmentString}_Level({AmbiguityLevel})Ambiguity_{FileIdentifiers.MinFragmentNeeded}.csv");
-    protected FragmentsToDistinguishFile _minFragmentNeededFile;
+    protected FragmentsToDistinguishFile? _minFragmentNeededFile;
     public FragmentsToDistinguishFile MinFragmentNeededFile
     {
         get
         {
             if (_minFragmentNeededFile != null) return _minFragmentNeededFile;
-            if (File.Exists(_minFragmentNeededFilePath))
+            if (File.Exists(MinFragmentNeededFilePath))
             {
-                _minFragmentNeededFile = new FragmentsToDistinguishFile(_minFragmentNeededFilePath);
+                _minFragmentNeededFile = new FragmentsToDistinguishFile(MinFragmentNeededFilePath);
             }
             else
             {
                 FindNumberOfFragmentsNeededToDifferentiate();
-                _minFragmentNeededFile = new FragmentsToDistinguishFile(_minFragmentNeededFilePath);
+                _minFragmentNeededFile = new FragmentsToDistinguishFile(MinFragmentNeededFilePath);
             }
 
             return _minFragmentNeededFile;
@@ -218,7 +223,7 @@ public abstract class RadicalFragmentationExplorer
 
     public PrecursorFragmentMassFile CreateIndexedFile()
     {
-        if (!Override && File.Exists(_precursorFragmentMassFilePath))
+        if (!Override && File.Exists(PrecursorFragmentMassFilePath))
         {
             Log($"File Found: loading in index file for {AnalysisLabel}");
             return PrecursorFragmentMassFile;
@@ -261,19 +266,19 @@ public abstract class RadicalFragmentationExplorer
         var uniqueSets = sets.DistinctBy(p => p, CustomComparerExtensions.LevelOneComparer).ToList();
         var file = new PrecursorFragmentMassFile()
         {
-            FilePath = _precursorFragmentMassFilePath,
+            FilePath = PrecursorFragmentMassFilePath,
             Results = uniqueSets
         };
-        file.WriteResults(_precursorFragmentMassFilePath);
+        file.WriteResults(PrecursorFragmentMassFilePath);
 
-        FinishedWritingFile(_precursorFragmentMassFilePath);
+        FinishedWritingFile(PrecursorFragmentMassFilePath);
         return _precursorFragmentMassFile = file;
     }
     public abstract IEnumerable<PrecursorFragmentMassSet> GeneratePrecursorFragmentMasses(Protein protein);
 
     public FragmentHistogramFile CreateFragmentHistogramFile()
     {
-        if (!Override && File.Exists(_fragmentHistogramFilePath))
+        if (!Override && File.Exists(FragmentHistogramFilePath))
         {
             Log($"File Found: loading in fragment histogram file for {AnalysisLabel}");
             return FragmentHistogramFile;
@@ -299,17 +304,17 @@ public abstract class RadicalFragmentationExplorer
                 FragmentCount = p.Key,
                 ProteinCount = p.Count()
             }).ToList();
-        var file = new FragmentHistogramFile(_fragmentHistogramFilePath) { Results = fragmentCounts };
-        file.WriteResults(_fragmentHistogramFilePath);
+        var file = new FragmentHistogramFile(FragmentHistogramFilePath) { Results = fragmentCounts };
+        file.WriteResults(FragmentHistogramFilePath);
 
-        FinishedWritingFile(_minFragmentNeededFilePath);
+        FinishedWritingFile(MinFragmentNeededFilePath);
         return _fragmentHistogramFile = file;
     }
 
 
     public FragmentsToDistinguishFile FindNumberOfFragmentsNeededToDifferentiate()
     {
-        if (!Override && File.Exists(_minFragmentNeededFilePath))
+        if (!Override && File.Exists(MinFragmentNeededFilePath))
         {
             Log($"File Found: loading in fragments needed file for {AnalysisLabel}");
             return MinFragmentNeededFile;
@@ -391,7 +396,7 @@ public abstract class RadicalFragmentationExplorer
                                 {
                                     Results = toWrite
                                 };
-                                var path = _minFragmentNeededTempBasePath.GenerateUniqueFilePathThreadSafe();
+                                var path = MinFragmentNeededTempBasePath.GenerateUniqueFilePathThreadSafe();
                                 tempFile.WriteResults(path);
                                 //FinishedWritingFile(path);
                             }));
@@ -428,9 +433,9 @@ public abstract class RadicalFragmentationExplorer
             allResults.AddRange(new FragmentsToDistinguishFile(file).Results);
         }
 
-        var fragmentsToDistinguishFile = new FragmentsToDistinguishFile(_minFragmentNeededFilePath) { Results = allResults };
-        fragmentsToDistinguishFile.WriteResults(_minFragmentNeededFilePath);
-        FinishedWritingFile(_minFragmentNeededFilePath);
+        var fragmentsToDistinguishFile = new FragmentsToDistinguishFile(MinFragmentNeededFilePath) { Results = allResults };
+        fragmentsToDistinguishFile.WriteResults(MinFragmentNeededFilePath);
+        FinishedWritingFile(MinFragmentNeededFilePath);
 
         foreach (var tempFile in temporaryFiles)
             File.Delete(tempFile);

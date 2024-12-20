@@ -6,6 +6,8 @@
         public static string FragmentIndex => "FragmentIndexFile";
         public static string FragmentCountHistogram => "FragmentCountHistogram";
         public static string MinFragmentNeeded => "MinFragmentsNeededHistogram";
+        public static string FragNeededSummary => "FragmentsNeeded_Summary";
+        public static string PrecursorCompetitionSummary => "PrecursorCompetition_Summary";
 
         // Gradient Analysis
 
