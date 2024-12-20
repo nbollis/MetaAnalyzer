@@ -7,12 +7,17 @@ using RadicalFragmentation.Util;
 using ResultAnalyzerUtil;
 using ResultAnalyzerUtil.CommandLine;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
 using UsefulProteomicsDatabases;
 
 namespace RadicalFragmentation.Processing;
 
 public abstract class RadicalFragmentationExplorer
 {
+    // thread safety
+    protected static readonly object WriteLock;
+    protected static readonly HashSetPool<double> HashSetPool;
+    protected static readonly ListPool<double> ListPool;
     static RadicalFragmentationExplorer()
     {
         HashSetPool = new HashSetPool<double>(128);
@@ -20,14 +25,8 @@ public abstract class RadicalFragmentationExplorer
         WriteLock = new object();
     }
 
-    protected static readonly object WriteLock;
-    protected static readonly HashSetPool<double> HashSetPool;
-    protected static readonly ListPool<double> ListPool;
-    public bool Override { get; set; } = false;
-    protected string BaseDirectorPath { get; init; }
-
+    // Identifiers
     public abstract string AnalysisType { get; }
-    public abstract bool ResortNeeded { get; }
 
     private string? _analysisLabel;
     public string AnalysisLabel
@@ -45,46 +44,59 @@ public abstract class RadicalFragmentationExplorer
             return _analysisLabel = $"{AnalysisType}{suffix}";
         }
     }
-    public string DirectoryPath => Path.Combine(BaseDirectorPath, AnalysisLabel);
-    public string FigureDirectory => Path.Combine(BaseDirectorPath, "Figure");
-    protected string IndexDirectoryPath => Path.Combine(BaseDirectorPath, "IndexedFragments", AnalysisType);
-    public int AmbiguityLevel { get; set; }
-    public string Species { get; set; }
-    public int NumberOfMods { get; set; }
-    public string DatabasePath { get; set; }
-    public int MissedMonoIsotopics { get; set; }
 
+    // paths
+    public readonly string DirectoryPath;
+    public readonly string FigureDirectory;
+    protected readonly string BaseDirectorPath;
+    protected readonly string IndexDirectoryPath;
 
+    // params
+    public abstract bool ResortNeeded { get; }
+    public bool Override { get; set; } = false;
+    public readonly int NumberOfMods;
+    public readonly int AmbiguityLevel;
+    public readonly string Species;
+    public readonly string DatabasePath;
+    public readonly int MissedMonoIsotopics;
+    public readonly double Tolerance;
     protected int MaximumFragmentationEvents { get; set; }
     protected string MaxFragmentString => MaximumFragmentationEvents == int.MaxValue ? "All" : MaximumFragmentationEvents.ToString();
-    protected Tolerance PrecursorMassTolerance { get; set; }
-    protected Tolerance FragmentMassTolerance { get; set; }
+    protected readonly Tolerance PrecursorMassTolerance;
+    protected readonly Tolerance FragmentMassTolerance;
 
-    protected List<Modification> fixedMods;
-    protected List<Modification> variableMods;
-    protected List<ProteolysisProduct> proteolysisProducts;
-    protected List<DisulfideBond> disulfideBonds;
+    // empty and used in digestion
+    protected readonly List<Modification> fixedMods;
+    protected readonly List<Modification> variableMods;
+    protected readonly List<ProteolysisProduct> proteolysisProducts;
+    protected readonly List<DisulfideBond> disulfideBonds;
 
     protected RadicalFragmentationExplorer(string databasePath, int numberOfMods, string species, int maximumFragmentationEvents = int.MaxValue,
         int ambiguityLevel = 1, string? baseDirectory = null, int allowedMissedMonos = 0, double? ppmTolerance = null)
     {
-        var ppm = ppmTolerance ?? StaticVariables.DefaultPpmTolerance;
+        Tolerance = ppmTolerance ?? StaticVariables.DefaultPpmTolerance;
         DatabasePath = databasePath;
         NumberOfMods = numberOfMods;
         Species = species;
         MaximumFragmentationEvents = maximumFragmentationEvents;
         AmbiguityLevel = ambiguityLevel;
-        BaseDirectorPath = baseDirectory ?? @"D:\Projects\RadicalFragmentation\FragmentAnalysis";
         MissedMonoIsotopics = allowedMissedMonos;
         PrecursorMassTolerance = allowedMissedMonos == 0 
-            ? new PpmTolerance(ppm) 
-            : new MissedMonoisotopicTolerance(ppm, allowedMissedMonos);
-        FragmentMassTolerance = new PpmTolerance(Math.Max(ppm, 20));
+            ? new PpmTolerance(Tolerance) 
+            : new MissedMonoisotopicTolerance(Tolerance, allowedMissedMonos);
+        FragmentMassTolerance = new PpmTolerance(Math.Min(Tolerance, 20));
 
         fixedMods = new List<Modification>();
         variableMods = new List<Modification>();
         proteolysisProducts = new List<ProteolysisProduct>();
         disulfideBonds = new List<DisulfideBond>();
+
+
+        // Set readonly properties
+        BaseDirectorPath = baseDirectory ?? @"D:\Projects\RadicalFragmentation\FragmentAnalysis";
+        DirectoryPath = Path.Combine(BaseDirectorPath, AnalysisLabel);
+        FigureDirectory = Path.Combine(BaseDirectorPath, "Figure");
+        IndexDirectoryPath = Path.Combine(BaseDirectorPath, "IndexedFragments", AnalysisType);
     }
 
     #region Result Files

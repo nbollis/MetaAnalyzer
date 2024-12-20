@@ -12,6 +12,7 @@ namespace Test
             string dirPath = @"D:\Projects\RadicalFragmentation\FragmentAnalysis\SeventhIteration";
             var explorers = DirectoryToFragmentExplorers.GetFragmentExplorersFromDirectory(dbPath, dirPath);
 
+            //var mainExplorers = explorers.Where(p => p.Ppm)
 
             foreach (var groupedExplorers in explorers
                 //.Where(p => p.AnalysisType.Equals("ETD"))
