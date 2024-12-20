@@ -70,6 +70,9 @@ namespace Plotting.RadicalFragmentation
 
         #endregion
 
+        public static int StandardWidth = 800;
+        public static int StandardHeight = 500;
+
         public static void SaveToFigureDirectory(this RadicalFragmentationExplorer explorer,
             GenericChart.GenericChart chart, string outName, int? width = null, int? height = null)
         {
@@ -176,31 +179,31 @@ namespace Plotting.RadicalFragmentation
 
 
             var uniqueFragmentsPlot = hist.GetProteinByUniqueFragmentsLine(ambigLevel, speciesGroup.Key);
-
             string outName = $"{type}_UniqueFragmentMasses_{speciesGroup.Key}_{typeText}Level";
-            speciesGroup.Value.First().SaveToFigureDirectory(uniqueFragmentsPlot, outName, 1000, 600);
+            speciesGroup.Value.First().SaveToFigureDirectory(uniqueFragmentsPlot, outName, StandardWidth, StandardHeight);
 
 
-            var fragmentsNeededHist = records.GetFragmentsNeededHistogram(out int maxVal, ambigLevel, speciesGroup.Key)
-                .WithAxisAnchor(Y: 1);
-
+            var fragmentsNeededHist = records.GetFragmentsNeededHistogram(out int maxVal, ambigLevel, speciesGroup.Key);
             outName = $"{type}_FragmentsNeeded_{speciesGroup.Key}_{typeText}Level";
-            speciesGroup.Value.First().SaveToFigureDirectory(fragmentsNeededHist, outName, 1000, 600);
+            speciesGroup.Value.First().SaveToFigureDirectory(fragmentsNeededHist, outName, StandardWidth, StandardHeight);
 
 
-            var cumulativeFragmentsHist = records.GetCumulativeFragmentsNeededChart(ambigLevel, speciesGroup.Key)
-                .WithAxisAnchor(Y: 2);
-
+            var cumulativeFragmentsLine = records.GetCumulativeFragmentsNeededChart(ambigLevel, speciesGroup.Key);
             outName = $"{type}_CumulativeFragmentsNeeded_{speciesGroup.Key}_{typeText}Level";
-            speciesGroup.Value.First().SaveToFigureDirectory(cumulativeFragmentsHist, outName, 1000, 600);
+            speciesGroup.Value.First().SaveToFigureDirectory(cumulativeFragmentsLine, outName, StandardWidth, StandardHeight);
 
 
-            var combined = Chart.Combine(new[] {  fragmentsNeededHist, cumulativeFragmentsHist })
+            var combined = Chart.Combine(new[] 
+            {  
+                fragmentsNeededHist.WithAxisAnchor(Y: 1), 
+                records.GetCumulativeFragmentsNeededChart(ambigLevel, speciesGroup.Key, true)
+                       .WithAxisAnchor(Y: 2) 
+            })
                 .WithTitle($"{speciesGroup.Value.First().AnalysisLabel} Fragments to distinguish from other Proteoforms")
                 .WithYAxisStyle(Title.init("Log Count"), 
                     Side: StyleParam.Side.Left,
                     Id: StyleParam.SubPlotId.NewYAxis(1),
-                    MinMax: new FSharpOption<Tuple<IConvertible, IConvertible>>(new(0, maxVal)))
+                    MinMax: new FSharpOption<Tuple<IConvertible, IConvertible>>(new(0, Math.Log10(maxVal))))
                 .WithYAxisStyle(Title.init("Percent Identified"), 
                     Side: StyleParam.Side.Right,
                     Id: StyleParam.SubPlotId.NewYAxis(2),
@@ -209,7 +212,7 @@ namespace Plotting.RadicalFragmentation
                 .WithLayout(PlotlyBase.DefaultLayoutWithLegend);
 
             outName = $"{type}_CombinedFragmentsNeeded_{speciesGroup.Key}_{typeText}Level";
-            speciesGroup.Value.First().SaveToFigureDirectory(combined, outName, 1000, 600);
+            speciesGroup.Value.First().SaveToFigureDirectory(combined, outName, StandardWidth, StandardHeight);
         }
 
 
@@ -287,7 +290,7 @@ namespace Plotting.RadicalFragmentation
                     .WithYAxisStyle(Title.init($"Percent of {typeText}s Identified"), MinMax: new FSharpOption<Tuple<IConvertible, IConvertible>>(new(0, 100)));
 
                 var outName = $"{type}_HybridMono_CumulativeFragmentsNeeded_{speciesGroup}_{typeText}Level";
-                analysisTypeSet.Value.First().SaveToFigureDirectory(combined, outName, 1000, 600);
+                analysisTypeSet.Value.First().SaveToFigureDirectory(combined, outName, StandardWidth, StandardHeight);
             }
         }
 
@@ -377,7 +380,7 @@ namespace Plotting.RadicalFragmentation
 
         public static GenericChart.GenericChart GetCumulativeFragmentsNeededChart(
             this List<FragmentsToDistinguishRecord> records,
-            int ambiguityLevel = 1, string species = "")
+            int ambiguityLevel = 1, string species = "", bool outlinedMarkers = false)
         {
             int maxToDifferentiate = records.Max(p => p.FragmentCountNeededToDifferentiate);
 
@@ -399,6 +402,9 @@ namespace Plotting.RadicalFragmentation
                 xVal[1] = "Precursor Only";
                 var chart = Chart.Spline<string, double, string>(xVal, yVal, true, 0.0,
                     Name: $"{modGroup.Key} mods", MultiText: yVal.Select(p => $"{p.Round(2)}%").ToArray(), MarkerColor: color);
+                if (outlinedMarkers)
+                    chart = chart.WithMarkerStyle(Color: color, Size: 8, Outline: Line.init(Color: Color.fromKeyword(ColorKeyword.Black), Width: 1), 
+                    Symbol: StyleParam.MarkerSymbol.NewModified(StyleParam.MarkerSymbol.Circle, StyleParam.SymbolStyle.Dot));
                 toCombine.Add(chart);
             }
 
