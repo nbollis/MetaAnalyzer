@@ -84,6 +84,7 @@ namespace RadicalFragmentation
                 int ambigLevel = CommandLineArguments.AmbiguityLevel;
                 string outDir = CommandLineArguments.OutputDirectory!;
                 int missedMonos = CommandLineArguments.MissedMonoIsoTopics;
+                double tolerance = CommandLineArguments.PpmTolerance;
 
                 if (!Directory.Exists(outDir))
                     Directory.CreateDirectory(outDir);
@@ -91,13 +92,13 @@ namespace RadicalFragmentation
                 switch (CommandLineArguments.FragmentExplorerType)
                 {
                     case FragmentExplorerType.Tryptophan:
-                        explorer = new TryptophanFragmentationExplorer(dbPath, mods, label, ambigLevel, outDir, missedMonos);
+                        explorer = new TryptophanFragmentationExplorer(dbPath, mods, label, ambigLevel, outDir, missedMonos, tolerance);
                         break;
                     case FragmentExplorerType.Cysteine:
-                        explorer = new CysteineFragmentationExplorer(dbPath, mods, label, ambigLevel, int.MaxValue, outDir, missedMonos);
+                        explorer = new CysteineFragmentationExplorer(dbPath, mods, label, ambigLevel, int.MaxValue, outDir, missedMonos, tolerance);
                         break;
                     case FragmentExplorerType.ETD:
-                        explorer = new EtdFragmentationExplorer(dbPath, mods, label, ambigLevel, outDir, missedMonos);
+                        explorer = new EtdFragmentationExplorer(dbPath, mods, label, ambigLevel, outDir, missedMonos, tolerance);
                         break;
                     default:
                         throw new ArgumentOutOfRangeException();
