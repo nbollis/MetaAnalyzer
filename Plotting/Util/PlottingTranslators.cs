@@ -536,7 +536,7 @@ public static class PlottingTranslators
         {"ProsightPD_15", "ProsightPD\u280015 Chimeras"},
     };
 
-    public static ColorQueue<Color> ColorQueue { get; }
+    public static PlotlyColorQueue ColorQueue { get; }
 
     #endregion
 

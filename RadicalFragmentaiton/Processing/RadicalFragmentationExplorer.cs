@@ -85,7 +85,7 @@ public abstract class RadicalFragmentationExplorer
         PrecursorMassTolerance = allowedMissedMonos == 0 
             ? new PpmTolerance(Tolerance) 
             : new MissedMonoisotopicTolerance(Tolerance, allowedMissedMonos);
-        FragmentMassTolerance = new PpmTolerance(Math.Min(Tolerance, 20));
+        FragmentMassTolerance = new PpmTolerance(StaticVariables.DefaultPpmTolerance);
 
         fixedMods = new List<Modification>();
         variableMods = new List<Modification>();
