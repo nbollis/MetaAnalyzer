@@ -144,12 +144,13 @@ public abstract class ColorQueue<T>
 
     protected static Color[] SetBaseArray = new[]
     {
-        Color.Blue,
-        Color.Green,
-        Color.Purple,
+        Color.RoyalBlue,
+        Color.IndianRed,
+        Color.MediumSpringGreen,
+        Color.Orchid,
         Color.Orange,
-        Color.Yellow,
         Color.Cyan,
+        Color.Yellow,
         Color.Magenta,
         Color.Lime,
         Color.Pink,
@@ -185,7 +186,7 @@ public abstract class ColorQueue<T>
         var colorSet = new List<Color> { baseColor };
         for (int i = 1; i <= _setQueueCapacity; i++)
         {
-            colorSet.Add(DarkenColor(baseColor, i * 0.1));
+            colorSet.Add(DarkenColor(baseColor, i * 0.2));
         }
         return colorSet;
     }
@@ -195,7 +196,7 @@ public abstract class ColorQueue<T>
         var r = (int)(color.R * (1 - factor));
         var g = (int)(color.G * (1 - factor));
         var b = (int)(color.B * (1 - factor));
-        return Color.FromArgb(r, g, b);
+        return Color.FromArgb(color.A, Math.Max(r, 0), Math.Max(g, 0), Math.Max(b, 0));
     }
 
     private void BuildQueues()
