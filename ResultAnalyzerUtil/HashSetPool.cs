@@ -2,15 +2,16 @@
 
 namespace ResultAnalyzerUtil;
 
-// Example Usage:
-// var pool = new HashSetPool<int>();
-// var hashSet = pool.Get();
-// hashSet.Add(1);
-// Do Work
-// pool.Return(hashSet);
 
-// Used to pool HashSet instances to reduce memory allocations
-public class HashSetPool<T>
+    // Example Usage:
+    // var pool = new HashSetPool<int>();
+    // var hashSet = pool.Get();
+    // hashSet.Add(1);
+    // Do Work
+    // pool.Return(hashSet);
+
+    // Used to pool HashSet instances to reduce memory allocations
+    public class HashSetPool<T>
 {
     private readonly ObjectPool<HashSet<T>> _pool;
 
@@ -63,4 +64,3 @@ public class HashSetPool<T>
         }
     }
 }
-

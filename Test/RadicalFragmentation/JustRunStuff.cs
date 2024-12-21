@@ -8,7 +8,7 @@ namespace Test
     internal class JustRunStuff
     {
         static string DatabasePath = @"D:\Projects\RadicalFragmentation\FragmentAnalysis\Databases\uniprotkb_human_proteome_AND_reviewed_t_2024_03_22.xml";
-        static string DirectoryPath = @"D:\Projects\RadicalFragmentation\FragmentAnalysis\SeventhIteration";
+        static string DirectoryPath = @"D:\Projects\RadicalFragmentation\FragmentAnalysis\Greedy";
 
         [Test]
         public static void GeneratePlotsOnSecondIteration()
@@ -19,13 +19,13 @@ namespace Test
             var mainExplorers = explorers.Where(p => p is { Tolerance: 10, MissedMonoIsotopics: 1 or 0 })
                 .ToList();
 
-            //foreach (var groupedExplorers in mainExplorers
-            //    //.Where(p => p.AnalysisType.Equals("ETD"))
-            //   // .Where(p => p.NumberOfMods < 2)
-            //    .GroupBy(p => (p.AnalysisType, p.MissedMonoIsotopics)))
-            //{
-            //    groupedExplorers.ToList().CreatePlots();
-            //}
+            foreach (var groupedExplorers in mainExplorers
+                //.Where(p => p.AnalysisType.Equals("ETD"))
+                // .Where(p => p.NumberOfMods < 2)
+                .GroupBy(p => (p.AnalysisType, p.MissedMonoIsotopics)))
+            {
+                groupedExplorers.ToList().CreatePlots();
+            }
 
             foreach (var groupedExplorers in mainExplorers
                          //.Where(p => p.AnalysisType.Equals("ETD"))
@@ -43,19 +43,56 @@ namespace Test
               //  .Where(p => p.NumberOfMods < 2)
                 .ToList();
 
-
             var fragNeededOutPath = Path.Combine(DirectoryPath, $"{FileIdentifiers.FragNeededSummary}.csv");
-            var fragNeededSummary = new FragmentsNeededFile()
-            {
-                Results = explorers.SelectMany(p => p.ToFragmentsNeededSummaryRecords()).ToList()
-            };
-            fragNeededSummary.WriteResults(fragNeededOutPath);
+            var fragNeededSummary = new FragmentsNeededFile(fragNeededOutPath);
+            fragNeededSummary.LoadResults();
 
             var precursorCompetitionOutPath = Path.Combine(DirectoryPath, $"{FileIdentifiers.PrecursorCompetitionSummary}.csv");
-            var precursorCompetitionSummary = new PrecursorCompetitionFile()
+            var precursorCompetitionSummary = new PrecursorCompetitionFile(precursorCompetitionOutPath);
+            precursorCompetitionSummary.LoadResults();
+
+            var currentResults = fragNeededSummary.Results;
+            var precursorCurrentResults = precursorCompetitionSummary.Results;
+
+            foreach (var explorer in explorers)
             {
-                Results = explorers.SelectMany(p => p.ToPrecursorCompetitionSummaryRecords()).ToList()
-            };
+                if (!currentResults.Any(p => p.FragmentationType == explorer.AnalysisType
+                                             && p.AmbiguityLevel == explorer.AmbiguityLevel
+                                             && p.MissedMonoisotopics == explorer.MissedMonoIsotopics
+                                             && p.NumberOfMods == explorer.NumberOfMods
+                                             && p.PpmTolerance == explorer.Tolerance))
+                {
+                    var summary = explorer.ToFragmentsNeededSummaryRecords();
+                    currentResults.AddRange(summary);
+                }
+
+                if (!precursorCurrentResults.Any(p => p.FragmentationType == explorer.AnalysisType
+                                                      && p.AmbiguityLevel == explorer.AmbiguityLevel
+                                                      && p.MissedMonoisotopics == explorer.MissedMonoIsotopics
+                                                      && p.NumberOfMods == explorer.NumberOfMods
+                                                      && p.PpmTolerance == explorer.Tolerance))
+                {
+                    var summary = explorer.ToPrecursorCompetitionSummaryRecords();
+                    precursorCurrentResults.AddRange(summary);
+                }
+            }
+
+            currentResults = currentResults.OrderBy(p => p.FragmentationType)
+                .ThenBy(p => p.AmbiguityLevel)
+                .ThenBy(p => p.MissedMonoisotopics)
+                .ThenBy(p => p.NumberOfMods)
+                .ThenBy(p => p.PpmTolerance)
+                .ToList();
+            fragNeededSummary.Results = currentResults;
+            fragNeededSummary.WriteResults(fragNeededOutPath);
+
+            precursorCurrentResults = precursorCurrentResults.OrderBy(p => p.FragmentationType)
+                .ThenBy(p => p.AmbiguityLevel)
+                .ThenBy(p => p.MissedMonoisotopics)
+                .ThenBy(p => p.NumberOfMods)
+                .ThenBy(p => p.PpmTolerance)
+                .ToList();
+            precursorCompetitionSummary.Results = precursorCurrentResults;
             precursorCompetitionSummary.WriteResults(precursorCompetitionOutPath);
         }
 

@@ -18,11 +18,13 @@ public abstract class RadicalFragmentationExplorer
     protected static readonly object WriteLock;
     protected static readonly HashSetPool<double> HashSetPool;
     protected static readonly ListPool<double> ListPool;
+    protected static readonly DictionaryPool<int, int> FragmentCacheDictionaryPool;
     static RadicalFragmentationExplorer()
     {
         HashSetPool = new HashSetPool<double>(128);
         ListPool = new ListPool<double>(8);
         WriteLock = new object();
+        FragmentCacheDictionaryPool = new DictionaryPool<int, int>(128);
     }
 
     // Identifiers
@@ -444,13 +446,15 @@ public abstract class RadicalFragmentationExplorer
     }
 
 
-    public static int MinFragmentMassesToDifferentiate(List<double> targetProteoform, List<PrecursorFragmentMassSet> otherProteoforms, Tolerance tolerance, bool sortByUniqueness = false)
+    public static int MinFragmentMassesToDifferentiate(List<double> targetProteoform, List<PrecursorFragmentMassSet> otherProteoforms, Tolerance tolerance, bool sortByUniqueness = false, bool useGreed = true)
     {
         // check to see if target proteoform has a fragment that is unique to all other proteoform fragments within tolerance
         if (HasUniqueFragment(targetProteoform, otherProteoforms, tolerance))
             return 1;
 
         var uniqueTargetFragmentList = ListPool.Get();
+        var usedFragments = HashSetPool.Get();
+        var greedyCache = useGreed ? FragmentCacheDictionaryPool.Get() : null;
         try
         {
             // add all peaks from targetProteoform that are not found in every otherProteoform
@@ -460,7 +464,7 @@ public abstract class RadicalFragmentationExplorer
                 
                 foreach (var otherFrag in otherProteoforms)
                 {
-                    if (otherFrag.FragmentMasses.BinaryContainsWithin(frag, tolerance)) 
+                    if (otherFrag.FragmentMasses.BinaryContainsWithin(frag, tolerance))
                         continue;
 
                     all = false;
@@ -485,16 +489,36 @@ public abstract class RadicalFragmentationExplorer
                 uniqueTargetFragmentList.Sort((a, b) => otherProteoforms.Count(p => p.FragmentMasses.BinaryContainsWithin(a, tolerance))
                     .CompareTo(otherProteoforms.Count(p => p.FragmentMasses.BinaryContainsWithin(b, tolerance))));
 
+
+            if (useGreed)
+            {
+                int alpha = int.MinValue;
+                int beta = int.MaxValue;
+                // Use a greedy approach with backtracking to find the minimum number of fragments needed
+                return FindMinFragmentsWithBacktrackingAlphaBeta(uniqueTargetFragmentList, otherProteoforms, tolerance, usedFragments, 0, greedyCache!, alpha, beta);
+            }
+
             // Order by count of fragment masses and check to see if they can differentiate the target
             for (int count = 2; count <= uniqueTargetFragmentList.Count; count++)
             {
                 bool uniquePlusOneFound = false;
                 foreach (var combination in GenerateCombinationsWithCount(uniqueTargetFragmentList, count))
                 {
+                    var matchingProteoforms = new List<PrecursorFragmentMassSet>();
+
                     // Get those that can be explained by these fragments
-                    var matchingProteoforms = otherProteoforms
-                        .Where(p => p.FragmentMasses.ListContainsWithin(combination, tolerance, !sortByUniqueness))
-                        .ToList();
+                    // Check within each protein group
+                    foreach (var group in otherProteoforms
+                        .GroupBy(p => p.Accession)
+                        .OrderBy(g => g.Count()))
+                    {
+                        var groupProteoforms = group.ToList();
+                        var groupMatchingProteoforms = groupProteoforms
+                            .Where(p => p.FragmentMasses.ListContainsWithin(combination, tolerance, !sortByUniqueness))
+                            .ToList();
+
+                        matchingProteoforms.AddRange(groupMatchingProteoforms);
+                    }
 
                     if (matchingProteoforms.Count == 0)
                         return combination.Count;
@@ -515,8 +539,106 @@ public abstract class RadicalFragmentationExplorer
         }
         finally
         {
+            HashSetPool.Return(usedFragments);
             ListPool.Return(uniqueTargetFragmentList);
+            if (greedyCache is not null)
+                FragmentCacheDictionaryPool.Return(greedyCache);
         }
+    }
+
+    private static int FindMinFragmentsWithBacktracking(List<double> uniqueTargetFragmentList, 
+        List<PrecursorFragmentMassSet> otherProteoforms, Tolerance tolerance, HashSet<double> usedFragments, int depth, 
+        Dictionary<int, int> memoizationCache)
+    {
+        // Create a cache key based on the current state of used fragments
+        int cacheKey = GetHashCodeForSet(usedFragments);
+        if (memoizationCache.TryGetValue(cacheKey, out int cachedResult))
+            return cachedResult;
+        // If all other proteoforms have fragments that overlap with the used fragments, return the current depth
+        if (otherProteoforms.All(p => usedFragments.Overlaps(p.FragmentMasses)))
+            return depth;
+
+        int minFragments = int.MaxValue;
+
+        // Iterate through each fragment in the unique target fragment list
+        foreach (var fragment in uniqueTargetFragmentList)
+        {
+            // Skip if the fragment is already used
+            if (!usedFragments.Add(fragment))
+                continue;
+
+            // Filter out the proteoforms that do not contain the current fragment within the tolerance
+            var remainingProteoforms = otherProteoforms
+                .Where(p => !p.FragmentMasses.BinaryContainsWithin(fragment, tolerance))
+                .ToList();
+
+            // Recursively find the minimum number of fragments needed with the updated used fragments and increased depth
+            int result = FindMinFragmentsWithBacktracking(uniqueTargetFragmentList, remainingProteoforms, tolerance, usedFragments, depth + 1, memoizationCache);
+            if (result != -1)
+                minFragments = Math.Min(minFragments, result);
+
+            // Remove the fragment from the used fragments set to backtrack
+            usedFragments.Remove(fragment);
+        }
+
+        // Cache the result for the current state of used fragments
+        memoizationCache[cacheKey] = minFragments == int.MaxValue ? -1 : minFragments;
+        return memoizationCache[cacheKey];
+    }
+    private static int GetHashCodeForSet(HashSet<double> set)
+    {
+        int hash = 17;
+        foreach (var item in set)
+        {
+            hash = hash * 31 + item.GetHashCode();
+        }
+        return hash;
+    }
+
+    public static int FindMinFragmentsWithBacktrackingAlphaBeta(List<double> uniqueTargetFragmentList,
+        List<PrecursorFragmentMassSet> otherProteoforms, Tolerance tolerance, HashSet<double> usedFragments, int depth,
+        Dictionary<int, int> memoizationCache, int alpha, int beta)
+    {
+        // Create a cache key based on the current state of used fragments
+        int cacheKey = GetHashCodeForSet(usedFragments);
+        if (memoizationCache.TryGetValue(cacheKey, out int cachedResult))
+            return cachedResult;
+
+        // If all other proteoforms have fragments that overlap with the used fragments, return the current depth
+        if (otherProteoforms.All(p => usedFragments.Overlaps(p.FragmentMasses)))
+            return depth;
+
+        int minFragments = int.MaxValue;
+
+        // Iterate through each fragment in the unique target fragment list
+        foreach (var fragment in uniqueTargetFragmentList)
+        {
+            // Skip if the fragment is already used
+            if (!usedFragments.Add(fragment))
+                continue;
+
+            // Filter out the proteoforms that do not contain the current fragment within the tolerance
+            var remainingProteoforms = otherProteoforms
+                .Where(p => !p.FragmentMasses.BinaryContainsWithin(fragment, tolerance))
+                .ToList();
+
+            // Recursively find the minimum number of fragments needed with the updated used fragments and increased depth
+            int result = FindMinFragmentsWithBacktrackingAlphaBeta(uniqueTargetFragmentList, remainingProteoforms, tolerance, usedFragments, depth + 1, memoizationCache, alpha, beta);
+            if (result != -1)
+                minFragments = Math.Min(minFragments, result);
+
+            // Remove the fragment from the used fragments set to backtrack
+            usedFragments.Remove(fragment);
+
+            // Alpha-beta pruning
+            beta = Math.Min(beta, minFragments);
+            if (beta <= alpha)
+                break;
+        }
+
+        // Cache the result for the current state of used fragments
+        memoizationCache[cacheKey] = minFragments == int.MaxValue ? -1 : minFragments;
+        return memoizationCache[cacheKey];
     }
 
     /// <summary>
@@ -577,19 +699,25 @@ public abstract class RadicalFragmentationExplorer
     protected static bool HasUniqueFragment(List<double> targetProteoform, List<PrecursorFragmentMassSet> otherProteoforms,
         Tolerance tolerance)
     {
-        var sortedOtherFragments = ListPool.Get();
+        var uniqueFragments = HashSetPool.Get();
+        var sortedUniqueFragments = ListPool.Get();
         try
         {
             foreach (var otherProteoform in otherProteoforms)
             {
-                sortedOtherFragments.AddRange(otherProteoform.FragmentMasses); // Assuming these are sorted
+                foreach (var fragment in otherProteoform.FragmentMasses)
+                {
+                    uniqueFragments.Add(fragment); // Add fragments to HashSet to ensure uniqueness
+                }
             }
-            sortedOtherFragments.Sort(); // Sort once if not already sorted
+
+            sortedUniqueFragments.AddRange(uniqueFragments);
+            sortedUniqueFragments.Sort(); // Sort the unique fragments
 
             // Step 2: Check for unique fragments using binary search
             foreach (var targetFragment in targetProteoform)
             {
-                if (!sortedOtherFragments.BinaryContainsWithin(targetFragment, tolerance))
+                if (!sortedUniqueFragments.BinaryContainsWithin(targetFragment, tolerance))
                 {
                     return true; // Found a unique fragment
                 }
@@ -599,7 +727,8 @@ public abstract class RadicalFragmentationExplorer
         }
         finally
         {
-            ListPool.Return(sortedOtherFragments);
+            HashSetPool.Return(uniqueFragments);
+            ListPool.Return(sortedUniqueFragments);
         }
     }
 
