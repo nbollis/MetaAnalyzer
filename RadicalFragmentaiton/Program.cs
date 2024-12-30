@@ -123,8 +123,6 @@ namespace RadicalFragmentation
                 CommandLineLogger.LogHandler("", new StringEventArgs($"With output directory {explorer.DirectoryPath}"));
                 explorer.CreateIndexedFile();
                 explorer.CreateFragmentHistogramFile();
-                if (explorer is CysteineFragmentationExplorer cys)
-                    cys.CountCysteines();
                 explorer.FindNumberOfFragmentsNeededToDifferentiate();
                 CommandLineLogger.FinishedSubProcessHandler("", new SubProcessEventArgs(explorerLabel));
             }

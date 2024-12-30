@@ -130,7 +130,7 @@ namespace Plotting.RadicalFragmentation
                     Directory.CreateDirectory(outDir);
                 var chart = summaryRecords.GetMissedMonoFragmentsNeededHist(type, ambigLevel, tolerance);
 
-                string variableLabel = doLog ? "Log" : "Absolute";
+                string variableLabel = doLog ? "" : "Absolute";
                 var outPath = Path.Combine(outDir, $"{GetLabel(type, 0, tolerance)}_{GetAmbigLabel(ambigLevel)}_MinFragmentsNeededByMissedMono_{variableLabel}Hist");
                 chart.SavePNG(outPath, null, width, height);
             }
@@ -169,7 +169,7 @@ namespace Plotting.RadicalFragmentation
                 if (!Directory.Exists(outDir))
                     Directory.CreateDirectory(outDir);
                 var chart = summaryRecords.GetToleranceFragmentsNeededHist(type, ambigLevel, missedMono, doLog);
-                string variableLabel = doLog ? "Log" : "Absolute";
+                string variableLabel = doLog ? "" : "Absolute";
                 var outPath = Path.Combine(outDir, $"{GetLabel(type, 0, 10)}_{GetAmbigLabel(ambigLevel)}_MinFragmentsNeededByTolerance_{variableLabel}Hist");
                 chart.SavePNG(outPath, null, width, height);
             }

@@ -330,6 +330,8 @@ public abstract class RadicalFragmentationExplorer
         int current = 0;
         int maxBeforeTempFile = 250000;
 
+        if (this is CysteineFragmentationExplorer cys)
+            cys.CountCysteines();
 
         Parallel.ForEach(Partitioner.Create
             (
