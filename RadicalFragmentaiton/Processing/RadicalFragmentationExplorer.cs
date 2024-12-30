@@ -328,6 +328,7 @@ public abstract class RadicalFragmentationExplorer
         var results = new ConcurrentQueue<FragmentsToDistinguishRecord>();
         int toProcess = PrecursorFragmentMassFile.Results.Count;
         int current = 0;
+        int maxBeforeTempFile = 250000;
 
 
         Parallel.ForEach(Partitioner.Create
@@ -374,7 +375,7 @@ public abstract class RadicalFragmentationExplorer
                 results.Enqueue(record);
 
                 // Write intermediate results to temporary file
-                if (results.Count >= 100000)
+                if (results.Count >= maxBeforeTempFile)
                 {
                     List<FragmentsToDistinguishRecord>? toWrite;
 
@@ -384,9 +385,9 @@ public abstract class RadicalFragmentationExplorer
                         {
                             // after lock is released, all other threads will flood in here
                             // this check ensures they don't dequeue the empty queue
-                            if (results.Count < 100000) return;
+                            if (results.Count < maxBeforeTempFile) return;
 
-                            toWrite = new List<FragmentsToDistinguishRecord>(128000);
+                            toWrite = new List<FragmentsToDistinguishRecord>((int)(maxBeforeTempFile * 1.1));
                             while (results.TryDequeue(out var item))
                             {
                                 toWrite.Add(item);
@@ -446,7 +447,9 @@ public abstract class RadicalFragmentationExplorer
     }
 
 
-    public static int MinFragmentMassesToDifferentiate(List<double> targetProteoform, List<PrecursorFragmentMassSet> otherProteoforms, Tolerance tolerance, bool sortByUniqueness = false, bool useGreed = true)
+    public static int MinFragmentMassesToDifferentiate(List<double> targetProteoform,
+        List<PrecursorFragmentMassSet> otherProteoforms, Tolerance tolerance, bool sortByUniqueness = false,
+        bool useGreed = false)
     {
         // check to see if target proteoform has a fragment that is unique to all other proteoform fragments within tolerance
         if (HasUniqueFragment(targetProteoform, otherProteoforms, tolerance))

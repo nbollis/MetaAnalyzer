@@ -8,7 +8,7 @@ namespace Test
     internal class JustRunStuff
     {
         static string DatabasePath = @"D:\Projects\RadicalFragmentation\FragmentAnalysis\Databases\uniprotkb_human_proteome_AND_reviewed_t_2024_03_22.xml";
-        static string DirectoryPath = @"D:\Projects\RadicalFragmentation\FragmentAnalysis\Greedy";
+        static string DirectoryPath = @"D:\Projects\RadicalFragmentation\FragmentAnalysis\SeventhIteration";
 
         [Test]
         public static void GeneratePlotsOnSecondIteration()
@@ -45,14 +45,22 @@ namespace Test
 
             var fragNeededOutPath = Path.Combine(DirectoryPath, $"{FileIdentifiers.FragNeededSummary}.csv");
             var fragNeededSummary = new FragmentsNeededFile(fragNeededOutPath);
-            fragNeededSummary.LoadResults();
+            List<FragmentsNeededSummary> currentResults = new();
+            if (File.Exists(fragNeededOutPath))
+            {
+                fragNeededSummary.LoadResults();
+                currentResults = fragNeededSummary.Results;
+            }
 
             var precursorCompetitionOutPath = Path.Combine(DirectoryPath, $"{FileIdentifiers.PrecursorCompetitionSummary}.csv");
             var precursorCompetitionSummary = new PrecursorCompetitionFile(precursorCompetitionOutPath);
-            precursorCompetitionSummary.LoadResults();
+            List<PrecursorCompetitionSummary> precursorCurrentResults = new();
+            if (File.Exists(precursorCompetitionOutPath))
+            {
+                precursorCompetitionSummary.LoadResults();
+                precursorCurrentResults = precursorCompetitionSummary.Results;
+            }
 
-            var currentResults = fragNeededSummary.Results;
-            var precursorCurrentResults = precursorCompetitionSummary.Results;
 
             foreach (var explorer in explorers)
             {
@@ -99,42 +107,44 @@ namespace Test
         [Test]
         public static void UseSummaryRecordsForAllFigures()
         {
-            var directoryPath = @"D:\Projects\RadicalFragmentation\FragmentAnalysis\SeventhIteration\ATestFigures";
-            var fragNeededOutPath = Path.Combine(DirectoryPath, $"{FileIdentifiers.FragNeededSummary}.csv");
+            var baseDirPath = @"D:\Projects\RadicalFragmentation\FragmentAnalysis\SeventhIteration";
+            var directoryPath = @"D:\Projects\RadicalFragmentation\FragmentAnalysis\SeventhIteration\Figures_All";
+            //baseDirPath = DirectoryPath;
+            var fragNeededOutPath = Path.Combine(baseDirPath, $"{FileIdentifiers.FragNeededSummary}.csv");
             var fragNeededSummary = new FragmentsNeededFile(fragNeededOutPath);
             fragNeededSummary.LoadResults();
 
+            int maxMods = 6;
             int[] missedMonos = new[] { 0, 1, 2, 3 };
             double[] tolerances = new[] { 10.0, 20, 50, 100 };
             string[] types = new[] { "ETD", "Tryptophan", "Cysteine" };
             int[] ambig = new[] { 1, 2 };
 
+            var resultsToUse = fragNeededSummary.Results
+                .Where(p => p.NumberOfMods <= maxMods)
+                .ToList();
 
             foreach (var type in types)
                 foreach (var amb in ambig)
                 {
-                    var summary = fragNeededSummary.Results
+                    var summary = resultsToUse
                         .Where(p => p.FragmentationType == type)
                         .Where(p => p.AmbiguityLevel == amb)
                         .ToList();
 
                     summary.WriteToleranceFragmentsNeededHistogram(directoryPath, type, amb, 0);
-                    summary.WriteToleranceFragmentsNeededHistogram(directoryPath, type, amb, 0, false);
+                    //summary.WriteToleranceFragmentsNeededHistogram(directoryPath, type, amb, 0, false);
                     summary.WriteToleranceCumulativeLine(directoryPath, type, amb, 0);
 
                     summary.WriteMissedMonoFragmentsNeededHistogram(directoryPath, type, amb, 10);
-                    summary.WriteMissedMonoFragmentsNeededHistogram(directoryPath, type, amb, 10, false);
+                    //summary.WriteMissedMonoFragmentsNeededHistogram(directoryPath, type, amb, 10, false);
                     summary.WriteMissedMonoCumulativeLine(directoryPath, type, amb, 10);
                     foreach (var missedMono in missedMonos)
                     {
-                        if (missedMono == 0)
-                            continue;
-
                         var innerPath = Path.Combine(directoryPath, $"{missedMono} Missed Mono");
                         var innerSummary = summary.Where(p => p.MissedMonoisotopics == missedMono)
                             .ToList();
 
-                        var label = SummaryPlots.GetLabel(type, missedMono, 10);
                         innerSummary.WriteFragmentsNeededHistogram(innerPath, type, amb, 10, missedMono);
                         innerSummary.WriteCumulativeFragmentsNeededLine(innerPath, type, amb, 10, missedMono, true);
                         innerSummary.WriteHybridFragmentNeeded(innerPath, type, amb, 10, missedMono);
@@ -149,7 +159,6 @@ namespace Test
                         var innerSummary = summary.Where(p => p.PpmTolerance == tolerance)
                             .ToList();
 
-                        var label = SummaryPlots.GetLabel(type, 0, tolerance);
                         innerSummary.WriteFragmentsNeededHistogram(innerPath, type, amb, tolerance);
                         innerSummary.WriteCumulativeFragmentsNeededLine(innerPath, type, amb, tolerance, 0, true);
                         innerSummary.WriteHybridFragmentNeeded(innerPath, type, amb, tolerance, 0);

@@ -444,7 +444,9 @@ namespace Plotting.RadicalFragmentation
                     // missed mono plot differences
                     var color = RadicalFragmentationPlotHelpers.ModToColorSetDict[modCount][i];
                     var lineDash = RadicalFragmentationPlotHelpers.IntegerToLineDict[tolerance];
-                    var name =  $"{modCount} mods ({tolerance})";
+                    var name = tolerance == 100 
+                        ? $"{modCount} mods\u00a0({tolerance})"
+                        : $"{modCount} mods ({tolerance})";
 
                     var chart = Chart.Spline<string, double, string>(xVal, yVal, true, 0.0, LineDash: lineDash,
                         Name: name, MultiText: yVal.Select(p => $"{p.Round(2)}%").ToArray(), MarkerColor: color);
@@ -494,10 +496,13 @@ namespace Plotting.RadicalFragmentation
                             _ => x[i]
                         };
                     }
+                    var name = tolerance == 100
+                        ? $"{modCount} mods\u00a0({tolerance})"
+                        : $"{modCount} mods ({tolerance})";
 
                     var color = RadicalFragmentationPlotHelpers.ModToColorSetDict[modCount][index];
                     var chart = Chart.Column<int, string, string>(y, x,
-                        Name: $"{modCount} mods ({tolerance})", MarkerColor: color);
+                        Name: name, MarkerColor: color);
                     toCombine.Add(chart);
                 }
             }
