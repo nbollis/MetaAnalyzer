@@ -101,6 +101,44 @@ namespace Plotting.RadicalFragmentation
             }
         }
 
+        public static void WriteUniqueFragmentPlot(this List<FragmentHistogramRecord> summaryRecords, string outDir, string type, int? width = null, int? height = null)
+        {
+            try
+            {
+                width ??= StandardWidth;
+                height ??= StandardHeight;
+                if (!Directory.Exists(outDir))
+                    Directory.CreateDirectory(outDir);
+                var chart = summaryRecords.GetUniqueFragmentHist(type);
+                var outPath = Path.Combine(outDir, $"{type}_UniqueFragmentsHistogram");
+                chart.SavePNG(outPath, null, width, height);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error in WriteUniqueFragmentPlot: {ex.Message}\nType: {type}\n{ex.StackTrace}");
+                System.Diagnostics.Debugger.Break();
+            }
+        }
+
+        public static void WritePrecursorCompetitionPlot(this List<PrecursorCompetitionSummary> summaryRecords, string outDir, string type, int ambigLevel = 1, double tolerance = 10, int missedMono = 1, int? width = null, int? height = null)
+        {
+            try
+            {
+                width ??= StandardWidth;
+                height ??= StandardHeight;
+                if (!Directory.Exists(outDir))
+                    Directory.CreateDirectory(outDir);
+                var chart = summaryRecords.GetPrecursorCompetitionHistogram(type, ambigLevel, tolerance, missedMono);
+                var outPath = Path.Combine(outDir, $"{GetLabel(type, missedMono, tolerance)}_{GetAmbigLabel(ambigLevel)}_PrecursorCompetition");
+                chart.SavePNG(outPath, null, width, height);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error in WritePrecusorCompetitonPlot: {ex.Message}\nType: {type}, AmbigLevel: {ambigLevel}, MissedMono: {missedMono}, Tolerance: {tolerance}\n{ex.StackTrace}");
+                System.Diagnostics.Debugger.Break();
+            }
+        }
+
         public static void WriteMissedMonoCumulativeLine(this List<FragmentsNeededSummary> summaryRecords, string outDir, string type, int ambigLevel = 1, double tolerance = 10, int? width = null, int? height = null)
         {
             try
@@ -189,7 +227,11 @@ namespace Plotting.RadicalFragmentation
             maxVal = 0;
             List<GenericChart.GenericChart> toCombine = new();
             foreach (var modGroup in summaryRecords
-                         .Where(p => p.AmbiguityLevel == ambigLevel && p.PpmTolerance == tolerance && p.MissedMonoisotopics == missedMono && p.FragmentationType == type)
+                         .Where(p => 
+                         p.AmbiguityLevel == ambigLevel 
+                         && p.PpmTolerance == tolerance 
+                         && p.MissedMonoisotopics == missedMono
+                         && p.FragmentationType == type)
                          .GroupBy(p => p.NumberOfMods))
             {
                 var color = RadicalFragmentationPlotHelpers.ModAndMissedMonoToColorDict[modGroup.Key][missedMono];
@@ -311,6 +353,87 @@ namespace Plotting.RadicalFragmentation
                     Id: StyleParam.SubPlotId.NewYAxis(2),
                     Overlaying: StyleParam.LinearAxisId.NewY(1),
                     MinMax: new FSharpOption<Tuple<IConvertible, IConvertible>>(new(0, 100)))
+                .WithLayout(PlotlyBase.JustLegend)
+                .WithSize(StandardWidth, StandardHeight);
+            return combined;
+        }
+
+        public static GenericChart.GenericChart GetUniqueFragmentHist(this List<FragmentHistogramRecord> summaryRecords, 
+            string type)
+        {
+            List<GenericChart.GenericChart> toCombine = new();
+
+            foreach (var modGroup in summaryRecords
+                         .Where(p => p.AmbiguityLevel == 1)
+                         .GroupBy(p => p.NumberOfMods)
+                         .OrderBy(p => p.Key))
+            {
+                var color = RadicalFragmentationPlotHelpers.ModToColorDict[modGroup.Key];
+                var x = modGroup.Select(p => p.FragmentCount);
+                var y = modGroup.Select(p => p.ProteinCount);
+                //var chart = Chart.Spline<int, int, string>(x, y, true, 2, $"{modGroup.Key} mods", MarkerColor: color);
+
+                var chart = Chart.Histogram<int, int, string>(x.ToArray(), y.ToArray(), ShowLegend: true, 
+                    Name: $"{modGroup.Key} mods", MarkerColor: color,
+                 HistNorm: StyleParam.HistNorm.None, HistFunc: StyleParam.HistFunc.Sum);
+                toCombine.Add(chart);
+            }
+
+            var combined = Chart.Combine(toCombine)
+                .WithXAxisStyle(Title.init("Fragment Count"))
+                .WithYAxisStyle(Title.init($"Count of {GetAmbigLabel(1)}s"))
+                .WithTitle($"{GetLabel(type, 0, 10)}: Unique Fragments per {GetAmbigLabel(1)} ")
+                .WithLayout(PlotlyBase.JustLegend)
+                .WithSize(StandardWidth, StandardHeight);
+
+            return combined;
+        }
+
+        public static GenericChart.GenericChart GetPrecursorCompetitionHistogram(this List<PrecursorCompetitionSummary> summaryRecords, string type, int ambigLevel = 1, double tolerance = 10, int missedMono = 1)
+        {
+
+            List<GenericChart.GenericChart> toCombine = new();
+            foreach (var modGroup in summaryRecords
+                .Where(p => 
+                    p.AmbiguityLevel == ambigLevel && p.PpmTolerance == tolerance 
+                    && p.MissedMonoisotopics == missedMono && p.FragmentationType == type)
+                .GroupBy(p => p.NumberOfMods))
+            {
+                var color = RadicalFragmentationPlotHelpers.ModAndMissedMonoToColorDict[modGroup.Key][missedMono];
+                var temp = modGroup.OrderBy(p => p.PrecursorsInGroup)
+                    .ToList();
+
+                var x = temp.Select(p => p.PrecursorsInGroup).ToArray();
+                var y = temp.Select(p => p.Count).ToArray();
+                //var chart = Chart.Column<int, int, string>(y, x,
+                //    Name: $"{modGroup.Key} mods", MarkerColor: color);
+
+                List<double> values = new();
+                for (int i = 0; i < x.Length; i++)
+                {
+                    for (int j = 0; j < y[i]; j++)
+                    {
+                        values.Add(x[i]);
+                    }
+                }
+
+                var chart = GenericPlots.KernelDensityPlot(values, $"{modGroup.Key} mods", "Precursors in group", "Count of Proteoforms", 0.5, color: color);
+
+                //var chart = Chart.Histogram<int, int, string>(x.ToArray(), y.ToArray(), 
+                //    MarkerColor: color,
+                //    ShowLegend: true,
+                //    Name: $"{modGroup.Key} mods",
+                //    HistNorm: StyleParam.HistNorm.None, 
+                //    HistFunc: StyleParam.HistFunc.Sum);
+
+                toCombine.Add(chart);
+            }
+
+            var combined = Chart.Combine(toCombine)
+                .WithTitle($"{GetLabel(type, missedMono, tolerance)}: Precursors within {tolerance} ppm and {missedMono} Missed Monos")
+                .WithXAxisStyle(Title.init("Precursors in group"))
+                .WithYAxisStyle(Title.init($"Count of {GetAmbigLabel(ambigLevel)}"))
+                .WithYAxis(LinearAxis.init<int, int, int, int, int, int>(AxisType: StyleParam.AxisType.Log))
                 .WithLayout(PlotlyBase.JustLegend)
                 .WithSize(StandardWidth, StandardHeight);
             return combined;

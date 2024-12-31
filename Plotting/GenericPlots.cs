@@ -13,7 +13,7 @@ namespace Plotting
     public static class GenericPlots
     {
         public static GenericChart.GenericChart KernelDensityPlot(List<double> values, string title,
-            string xTitle = "", string yTitle = "", double bandwidth = 0.2, Kernels kernel = Kernels.Gaussian)
+            string xTitle = "", string yTitle = "", double bandwidth = 0.2, Kernels kernel = Kernels.Gaussian, Color? color = null)
         {
             List<(double, double)> data = new List<(double, double)>();
 
@@ -30,9 +30,10 @@ namespace Plotting
                 data.Add((sample, pdf));
             }
 
+            color ??= title.ConvertConditionToColor();
             var chart =
                 Chart.Line<double, double, string>(data.Select(p => p.Item1), data.Select(p => p.Item2), Name: title,
-                        LineColor: title.ConvertConditionToColor())
+                        LineColor: color)
                     .WithSize(400, 400)
                     .WithXAxisStyle(Title.init(xTitle)/*, new FSharpOption<Tuple<IConvertible, IConvertible>>(new Tuple<IConvertible, IConvertible>(-15, 15))*/)
                     .WithYAxisStyle(Title.init(yTitle))
