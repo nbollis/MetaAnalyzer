@@ -13,6 +13,7 @@ using Plotting.Util;
 using ResultAnalyzerUtil;
 using System.Security.Cryptography;
 using static Plotly.NET.StyleParam.LinearAxisId;
+using MzLibUtil;
 
 namespace Plotting.RadicalFragmentation
 {
@@ -25,9 +26,9 @@ namespace Plotting.RadicalFragmentation
         {
             var sb = new StringBuilder(16);
             sb.Append(type);
-            if (missedMonos != 0)
+            if (missedMonos is not (0 or -1))
                 sb.Append($" {missedMonos} Missed Mono");
-            if (tolerance != 10)
+            if (tolerance is not (10 or -1))
                 sb.Append($" {tolerance} ppm");
             return sb.ToString();
         }
@@ -389,17 +390,28 @@ namespace Plotting.RadicalFragmentation
             return combined;
         }
 
-        public static GenericChart.GenericChart GetPrecursorCompetitionHistogram(this List<PrecursorCompetitionSummary> summaryRecords, string type, int ambigLevel = 1, double tolerance = 10, int missedMono = 1)
+        public static GenericChart.GenericChart GetPrecursorCompetitionHistogram(this List<PrecursorCompetitionSummary> summaryRecords, string type,
+            int ambigLevel = 1, double tolerance = -1, int missedMono = -1)
         {
+            if (tolerance == -1 && missedMono == -1)
+                throw new ArgumentException("Cannot do both")
+                    ;
+
+            var modIndexDict = summaryRecords.Select(p => p.NumberOfMods).Distinct()
+                .ToDictionary(p => p, p => 0);
             List<GenericChart.GenericChart> toCombine = new();
             List<GenericChart.GenericChart> toCombine2 = new();
             foreach (var modGroup in summaryRecords
                 .Where(p =>
-                    p.AmbiguityLevel == ambigLevel && p.PpmTolerance == tolerance
-                    && p.MissedMonoisotopics == missedMono && p.FragmentationType == type)
-                .GroupBy(p => p.NumberOfMods))
+                    p.AmbiguityLevel == ambigLevel && p.FragmentationType == type
+                    && (missedMono == -1 || p.MissedMonoisotopics == missedMono)
+                    && (tolerance == -1 || p.PpmTolerance == tolerance))
+                .GroupBy(p => (p.NumberOfMods, p.MissedMonoisotopics, p.PpmTolerance)))
             {
-                var color = RadicalFragmentationPlotHelpers.ModAndMissedMonoToColorDict[modGroup.Key][missedMono];
+                int mods = modGroup.Key.NumberOfMods;
+                var color = RadicalFragmentationPlotHelpers.ModToColorSetDict[mods][modIndexDict[mods]];
+                modIndexDict[mods]++;
+
                 var temp = modGroup.OrderBy(p => p.PrecursorsInGroup)
                     .ToList();
 
@@ -452,11 +464,17 @@ namespace Plotting.RadicalFragmentation
 
                 y = yRolled;
 
+                string name = $"{mods} mods";
+                if (missedMono == -1)
+                    name += $" with {modGroup.Key.MissedMonoisotopics} Missed Mono";
+                if (tolerance == -1)
+                    name += $" at {modGroup.Key.PpmTolerance} ppm";
+
                 var chart = Chart.Scatter<double, double, string>(x, y, StyleParam.Mode.Lines,
-                    Name: $"{modGroup.Key} mods", MarkerColor: color,
+                    Name: name, MarkerColor: color,
                     Line: Line.init(Width: 1, Color: color));
                 var chart2 = Chart.Scatter<double, double, string>(x, y, StyleParam.Mode.Lines,
-                    Name: $"{modGroup.Key} mods", MarkerColor: color,
+                    Name: name, MarkerColor: color,
                     Line: Line.init(Width: 1, Color: color));
 
                 toCombine.Add(chart);
@@ -464,10 +482,14 @@ namespace Plotting.RadicalFragmentation
             }
 
             double yMax = summaryRecords.Max(p => p.Count) + 1;
-            double cutoff = /*summaryRecords.Average(p => p.Count) * 20;*/ 5000;
+            double cutoff = summaryRecords
+                .Select(p => p.Count)
+                .OrderByDescending(p => p)
+                .Skip(summaryRecords.Count / 10).Average(p => p) * 20;
 
             var combined = Chart.Combine(toCombine)
                 .WithAxisAnchor(X: 1, Y: 1)
+                .WithLegend(false)
                 .WithXAxisStyle(Title.init("Precursors in group"))
                 .WithXAxis(LinearAxis.init<int, int, int, int, int, int>(AxisType: StyleParam.AxisType.Log, Tick0: 0))
                 .WithYAxisStyle(Title.init($"Count of {GetAmbigLabel(ambigLevel)}"), Id: StyleParam.SubPlotId.NewYAxis(1),
@@ -475,17 +497,23 @@ namespace Plotting.RadicalFragmentation
 
             // Create the second plot with y ranging from 0 to averageCount * 5
             var secondPlot = Chart.Combine(toCombine2)
-                .WithLegend(false)
                 .WithAxisAnchor(X: 2, Y: 2)
+                .WithLegend(true)
                 .WithXAxisStyle(Title.init("Precursors in group"))
                 .WithXAxis(LinearAxis.init<int, int, int, int, int, int>(AxisType: StyleParam.AxisType.Log, Tick0: 0))
                 .WithYAxisStyle(Title.init($"Count of {GetAmbigLabel(ambigLevel)}"), Id: StyleParam.SubPlotId.NewYAxis(2),
                 MinMax: new FSharpOption<Tuple<IConvertible, IConvertible>>(new(0, cutoff)));
         
             // Combine both plots vertically
+            string title = $"{GetLabel(type, missedMono, tolerance)}: Precursor Competition ";
+            if (missedMono == -1)
+                title += "by Missed Monos";
+            else if (tolerance == -1)
+                title += "by Tolerance";
+
             var finalCombined = Chart.Grid(new[] { combined, secondPlot }, 2, 1, Pattern: StyleParam.LayoutGridPattern.Independent, YGap: 0.05,
                     XSide: StyleParam.LayoutGridXSide.Bottom)
-                .WithTitle($"{GetLabel(type, missedMono, tolerance)}: Precursors within {tolerance} ppm and {missedMono} Missed Monos")
+                .WithTitle(title)
                 .WithLayout(PlotlyBase.JustLegend)
                 .WithSize(StandardWidth, StandardHeight);
 

@@ -180,8 +180,9 @@ namespace Test
                     //fragNeededSummary.WriteMissedMonoFragmentsNeededHistogram(directoryPath, type, amb, 10);
                     //fragNeededSummary.WriteMissedMonoCumulativeLine(directoryPath, type, amb, 10);
 
-                    //precCompSummary.GetPrecursorCompetitionHistogram(type, amb, 10, 0).Show();
-                    precCompSummary.WritePrecursorCompetitionPlot(directoryPath, type, amb, 10, 0);
+                    precCompSummary.GetPrecursorCompetitionHistogram(type, amb, 10).Show();
+                    precCompSummary.GetPrecursorCompetitionHistogram(type, amb, -1, 0).Show();
+                    //precCompSummary.WritePrecursorCompetitionPlot(directoryPath, type, amb, 10, 0);
                     foreach (var missedMono in missedMonos)
                     {
                         var innerPath = Path.Combine(directoryPath, $"{missedMono} Missed Mono");

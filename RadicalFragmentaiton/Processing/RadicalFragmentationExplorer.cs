@@ -491,8 +491,17 @@ public abstract class RadicalFragmentationExplorer
 
             // reorder unique target list to be have those shared by the least other proteoforms first
             if (sortByUniqueness)
-                uniqueTargetFragmentList.Sort((a, b) => otherProteoforms.Count(p => p.FragmentMasses.BinaryContainsWithin(a, tolerance))
-                    .CompareTo(otherProteoforms.Count(p => p.FragmentMasses.BinaryContainsWithin(b, tolerance))));
+            {
+                // Precompute uniqueness scores for all fragments
+                var fragmentUniqueness = uniqueTargetFragmentList.ToDictionary(
+                    frag => frag,
+                    frag => otherProteoforms.Count(p => p.FragmentMasses.BinaryContainsWithin(frag, tolerance))
+                );
+
+                // Sort based on precomputed uniqueness scores
+                uniqueTargetFragmentList.Sort((a, b) => fragmentUniqueness[a].CompareTo(fragmentUniqueness[b]));
+
+            }
 
             if (useGreed)
                 return FindMinGreedy(uniqueTargetFragmentList, otherProteoforms, tolerance);
@@ -566,11 +575,16 @@ public abstract class RadicalFragmentationExplorer
             targetProteoform.Remove(bestFragment);
 
             // Periodic rescoring for dynamic adaptability
-            if (fragmentCount % 10 == 0)
+            if (fragmentCount % 2 == 0)
             {
-                targetProteoform.Sort((a, b) =>
-                    otherProteoforms.Count(p => p.FragmentMasses.BinaryContainsWithin(a, tolerance))
-                        .CompareTo(otherProteoforms.Count(p => p.FragmentMasses.BinaryContainsWithin(b, tolerance))));
+                // Precompute uniqueness scores for all fragments
+                var fragmentUniqueness = targetProteoform.ToDictionary(
+                    frag => frag,
+                    frag => otherProteoforms.Count(p => p.FragmentMasses.BinaryContainsWithin(frag, tolerance))
+                );
+
+                // Sort based on precomputed uniqueness scores
+                targetProteoform.Sort((a, b) => fragmentUniqueness[a].CompareTo(fragmentUniqueness[b]));
             }
         }
 
