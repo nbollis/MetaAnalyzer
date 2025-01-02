@@ -391,11 +391,11 @@ namespace Plotting.RadicalFragmentation
 
         public static GenericChart.GenericChart GetPrecursorCompetitionHistogram(this List<PrecursorCompetitionSummary> summaryRecords, string type, int ambigLevel = 1, double tolerance = 10, int missedMono = 1)
         {
-
             List<GenericChart.GenericChart> toCombine = new();
+            List<GenericChart.GenericChart> toCombine2 = new();
             foreach (var modGroup in summaryRecords
-                .Where(p => 
-                    p.AmbiguityLevel == ambigLevel && p.PpmTolerance == tolerance 
+                .Where(p =>
+                    p.AmbiguityLevel == ambigLevel && p.PpmTolerance == tolerance
                     && p.MissedMonoisotopics == missedMono && p.FragmentationType == type)
                 .GroupBy(p => p.NumberOfMods))
             {
@@ -403,40 +403,93 @@ namespace Plotting.RadicalFragmentation
                 var temp = modGroup.OrderBy(p => p.PrecursorsInGroup)
                     .ToList();
 
-                var x = temp.Select(p => p.PrecursorsInGroup).ToArray();
-                var y = temp.Select(p => p.Count).ToArray();
-                //var chart = Chart.Column<int, int, string>(y, x,
-                //    Name: $"{modGroup.Key} mods", MarkerColor: color);
+                List<double> x = new();
+                List<double> y = new();
 
-                List<double> values = new();
-                for (int i = 0; i < x.Length; i++)
+                foreach (var item in temp)
                 {
-                    for (int j = 0; j < y[i]; j++)
-                    {
-                        values.Add(x[i]);
-                    }
+                    if (item.Count == 0)
+                        continue;
+                    x.Add(item.PrecursorsInGroup + 1);
+                    y.Add(item.Count);
                 }
 
-                var chart = GenericPlots.KernelDensityPlot(values, $"{modGroup.Key} mods", "Precursors in group", "Count of Proteoforms", 0.5, color: color);
+                // Apply rolling average with 5% of all values with a floor and ceiling of 3 and 50
+                int toRoll = (int)(y.Count * 0.05);
+                int min = 5;
+                int max = 50;
 
-                //var chart = Chart.Histogram<int, int, string>(x.ToArray(), y.ToArray(), 
-                //    MarkerColor: color,
-                //    ShowLegend: true,
-                //    Name: $"{modGroup.Key} mods",
-                //    HistNorm: StyleParam.HistNorm.None, 
-                //    HistFunc: StyleParam.HistFunc.Sum);
+                if (toRoll > max)
+                    toRoll = max;
+                else if (toRoll < min)
+                    toRoll = min;
+
+                bool useWeighting = true;
+                int leaveAlone = 2;
+                List<double> yRolled = new(y.Count);
+                for (int i = 0; i < y.Count; i++)
+                {
+                    if (i < leaveAlone)
+                    {
+                        yRolled.Add(y[i]);
+                        continue;
+                    }
+
+                    double sum = 0;
+                    double weightSum = 0;
+                    for (int j = -toRoll; j <= toRoll; j++)
+                    {
+                        int index = i + j;
+                        if (index >= 0 && index < y.Count)
+                        {
+                            double weight = useWeighting ? 1.0 / (Math.Abs(j) + 1) : 1.0; // Closer values are weighted more if useWeighting is true
+                            sum += y[index] * weight;
+                            weightSum += weight;
+                        }
+                    }
+                    yRolled.Add(sum / weightSum);
+                }
+
+                y = yRolled;
+
+                var chart = Chart.Scatter<double, double, string>(x, y, StyleParam.Mode.Lines,
+                    Name: $"{modGroup.Key} mods", MarkerColor: color,
+                    Line: Line.init(Width: 1, Color: color));
+                var chart2 = Chart.Scatter<double, double, string>(x, y, StyleParam.Mode.Lines,
+                    Name: $"{modGroup.Key} mods", MarkerColor: color,
+                    Line: Line.init(Width: 1, Color: color));
 
                 toCombine.Add(chart);
+                toCombine2.Add(chart2);
             }
 
+            double yMax = summaryRecords.Max(p => p.Count) + 1;
+            double cutoff = /*summaryRecords.Average(p => p.Count) * 20;*/ 5000;
+
             var combined = Chart.Combine(toCombine)
-                .WithTitle($"{GetLabel(type, missedMono, tolerance)}: Precursors within {tolerance} ppm and {missedMono} Missed Monos")
+                .WithAxisAnchor(X: 1, Y: 1)
                 .WithXAxisStyle(Title.init("Precursors in group"))
-                .WithYAxisStyle(Title.init($"Count of {GetAmbigLabel(ambigLevel)}"))
-                .WithYAxis(LinearAxis.init<int, int, int, int, int, int>(AxisType: StyleParam.AxisType.Log))
+                .WithXAxis(LinearAxis.init<int, int, int, int, int, int>(AxisType: StyleParam.AxisType.Log, Tick0: 0))
+                .WithYAxisStyle(Title.init($"Count of {GetAmbigLabel(ambigLevel)}"), Id: StyleParam.SubPlotId.NewYAxis(1),
+                    MinMax: new FSharpOption<Tuple<IConvertible, IConvertible>>(new(cutoff, yMax)));
+
+            // Create the second plot with y ranging from 0 to averageCount * 5
+            var secondPlot = Chart.Combine(toCombine2)
+                .WithLegend(false)
+                .WithAxisAnchor(X: 2, Y: 2)
+                .WithXAxisStyle(Title.init("Precursors in group"))
+                .WithXAxis(LinearAxis.init<int, int, int, int, int, int>(AxisType: StyleParam.AxisType.Log, Tick0: 0))
+                .WithYAxisStyle(Title.init($"Count of {GetAmbigLabel(ambigLevel)}"), Id: StyleParam.SubPlotId.NewYAxis(2),
+                MinMax: new FSharpOption<Tuple<IConvertible, IConvertible>>(new(0, cutoff)));
+        
+            // Combine both plots vertically
+            var finalCombined = Chart.Grid(new[] { combined, secondPlot }, 2, 1, Pattern: StyleParam.LayoutGridPattern.Independent, YGap: 0.05,
+                    XSide: StyleParam.LayoutGridXSide.Bottom)
+                .WithTitle($"{GetLabel(type, missedMono, tolerance)}: Precursors within {tolerance} ppm and {missedMono} Missed Monos")
                 .WithLayout(PlotlyBase.JustLegend)
                 .WithSize(StandardWidth, StandardHeight);
-            return combined;
+
+            return finalCombined;
         }
 
         // missed mono

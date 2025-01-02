@@ -108,10 +108,10 @@ namespace Test
         public static void UseSummaryRecordsForAllFigures()
         {
             var baseDirPath = @"D:\Projects\RadicalFragmentation\FragmentAnalysis\SeventhIteration";
-            var directoryPath = @"D:\Projects\RadicalFragmentation\FragmentAnalysis\SeventhIteration\Figures_All";
+            var directoryPath = @"D:\Projects\RadicalFragmentation\FragmentAnalysis\SeventhIteration\Figures_3MaxMods";
             //baseDirPath = DirectoryPath;
 
-            int maxMods = 6;
+            int maxMods = 3;
             int[] missedMonos = new[] { 0, 1, 2, 3 };
             double[] tolerances = new[] { 10.0, 20, 50, 100 };
             string[] types = new[] { "ETD", "Tryptophan", "Cysteine" };
@@ -155,11 +155,11 @@ namespace Test
             foreach (var type in types)
             {
                 // create unique fragment histogram once per type
-                var uniqueFragmentRecords = explorers
-                    .Where(p => p.AnalysisType == type && p.AmbiguityLevel == 1)
-                    .SelectMany(p => p.FragmentHistogramFile)
-                    .ToList();
-                uniqueFragmentRecords.WriteUniqueFragmentPlot(directoryPath, type);
+                //var uniqueFragmentRecords = explorers
+                //    .Where(p => p.AnalysisType == type && p.AmbiguityLevel == 1)
+                //    .SelectMany(p => p.FragmentHistogramFile)
+                //    .ToList();
+                //uniqueFragmentRecords.WriteUniqueFragmentPlot(directoryPath, type);
 
                 foreach (var amb in ambig)
                 {
@@ -174,22 +174,23 @@ namespace Test
                         .ToList();
 
 
-                    fragNeededSummary.WriteToleranceFragmentsNeededHistogram(directoryPath, type, amb, 0);
-                    fragNeededSummary.WriteToleranceCumulativeLine(directoryPath, type, amb, 0);
+                    //fragNeededSummary.WriteToleranceFragmentsNeededHistogram(directoryPath, type, amb, 0);
+                    //fragNeededSummary.WriteToleranceCumulativeLine(directoryPath, type, amb, 0);
 
-                    fragNeededSummary.WriteMissedMonoFragmentsNeededHistogram(directoryPath, type, amb, 10);
-                    fragNeededSummary.WriteMissedMonoCumulativeLine(directoryPath, type, amb, 10);
+                    //fragNeededSummary.WriteMissedMonoFragmentsNeededHistogram(directoryPath, type, amb, 10);
+                    //fragNeededSummary.WriteMissedMonoCumulativeLine(directoryPath, type, amb, 10);
 
-                    precCompSummary.GetPrecursorCompetitionHistogram(type, amb, 10, 0).Show();
+                    //precCompSummary.GetPrecursorCompetitionHistogram(type, amb, 10, 0).Show();
+                    precCompSummary.WritePrecursorCompetitionPlot(directoryPath, type, amb, 10, 0);
                     foreach (var missedMono in missedMonos)
                     {
                         var innerPath = Path.Combine(directoryPath, $"{missedMono} Missed Mono");
                         var innerSummary = fragNeededSummary.Where(p => p.MissedMonoisotopics == missedMono)
                             .ToList();
 
-                        innerSummary.WriteFragmentsNeededHistogram(innerPath, type, amb, 10, missedMono);
-                        innerSummary.WriteCumulativeFragmentsNeededLine(innerPath, type, amb, 10, missedMono, true);
-                        innerSummary.WriteHybridFragmentNeeded(innerPath, type, amb, 10, missedMono);
+                        //innerSummary.WriteFragmentsNeededHistogram(innerPath, type, amb, 10, missedMono);
+                        //innerSummary.WriteCumulativeFragmentsNeededLine(innerPath, type, amb, 10, missedMono, true);
+                        //innerSummary.WriteHybridFragmentNeeded(innerPath, type, amb, 10, missedMono);
                     }
 
                     foreach (var tolerance in tolerances)
@@ -201,9 +202,9 @@ namespace Test
                         var innerSummary = fragNeededSummary.Where(p => p.PpmTolerance == tolerance)
                             .ToList();
 
-                        innerSummary.WriteFragmentsNeededHistogram(innerPath, type, amb, tolerance, 0);
-                        innerSummary.WriteCumulativeFragmentsNeededLine(innerPath, type, amb, tolerance, 0, true);
-                        innerSummary.WriteHybridFragmentNeeded(innerPath, type, amb, tolerance, 0);
+                        //innerSummary.WriteFragmentsNeededHistogram(innerPath, type, amb, tolerance, 0);
+                        //innerSummary.WriteCumulativeFragmentsNeededLine(innerPath, type, amb, tolerance, 0, true);
+                        //innerSummary.WriteHybridFragmentNeeded(innerPath, type, amb, tolerance, 0);
                     }
                 }
             }
