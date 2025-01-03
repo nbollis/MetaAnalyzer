@@ -43,6 +43,9 @@
     <None Update="ProteolyticDigestion\proteases.tsv">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
+    <None Update="RadicalFragmentation\Tryptophan\Human_0Mods_All_FragmentIndexFile.csv">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
     <None Update="RadicalFragmentation\Tryptophan\Human_0Mods_All_Level(1)Ambiguity_FragmentCountHistogram.csv">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>

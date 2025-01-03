@@ -109,6 +109,73 @@ public class PrecursorFragmentMassFile
         Count = (int)new FileInfo(filePath).Length;
     }
 
+    public IEnumerable<(PrecursorFragmentMassSet, List<PrecursorFragmentMassSet>)> StreamGroupsByTolerance(
+     Tolerance tolerance, int chunkSize, int ambiguityLevel)
+    {
+        var workingSet = new LinkedList<PrecursorFragmentMassSet>();
+        var processedRecords = new HashSet<string>(); // To track processed records
+        var unprocessed = new Queue<PrecursorFragmentMassSet>(); // Tracks next unprocessed records
+
+        using var stream = new FileStream(FilePath, FileMode.Open, FileAccess.Read, FileShare.Read);
+        using var reader = new StreamReader(stream);
+        using var csv = new CsvReader(reader, PrecursorFragmentMassSet.CsvConfiguration);
+
+        while (true)
+        {
+            // Read the next chunk and add to the working set
+            var chunk = ReadChunk(csv, chunkSize).ToList();
+            if (!chunk.Any() && !unprocessed.Any())
+                break; // Exit when no more records are available
+
+            foreach (var record in chunk)
+            {
+                workingSet.AddLast(record);
+                unprocessed.Enqueue(record); // Mark all new records as unprocessed
+            }
+
+            // Process all unprocessed records
+            while (unprocessed.Any())
+            {
+                var current = unprocessed.Dequeue();
+
+                // Ensure the working set includes all relevant records
+                while (workingSet.First != null && !tolerance.Within(workingSet.First.Value.PrecursorMass, current.PrecursorMass))
+                {
+                    workingSet.RemoveFirst();
+                }
+
+                // If last in working set is within tolerance, add new chunk to working set
+                if (workingSet.Last != null && tolerance.Within(workingSet.Last.Value.PrecursorMass, current.PrecursorMass))
+                {
+                    var nextChunk = ReadChunk(csv, chunkSize).ToList();
+                    foreach (var record in nextChunk)
+                    {
+                        workingSet.AddLast(record);
+                        unprocessed.Enqueue(record);
+                    }
+                }
+
+                // Form the group for the current record
+                var group = workingSet
+                    .Where(r => tolerance.Within(current.PrecursorMass, r.PrecursorMass)
+                                && (ambiguityLevel != 2 || r.Accession != current.Accession))
+                    .ToList();
+
+                // Mark the current record as processed and return its group
+                processedRecords.Add(current.FullSequence);
+                yield return (current, group);
+            }
+        }
+    }
+
+    private static IEnumerable<PrecursorFragmentMassSet> ReadChunk(CsvReader csv, int chunkSize)
+    {
+        for (int i = 0; i < chunkSize && csv.Read(); i++)
+        {
+            yield return csv.GetRecord<PrecursorFragmentMassSet>();
+        }
+    }
+
 
     public IEnumerable<PrecursorFragmentMassSet> ReadChunks(long offset, int chunkSize)
     {
