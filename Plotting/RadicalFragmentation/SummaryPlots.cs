@@ -445,7 +445,10 @@ namespace Plotting.RadicalFragmentation
             List<GenericChart.GenericChart> toCombine = new();
             List<GenericChart.GenericChart> toCombine2 = new();
             foreach (var modGroup in toUse
-                .GroupBy(p => (p.MissedMonoisotopics, p.PpmTolerance, p.NumberOfMods)))
+                .GroupBy(p => (p.NumberOfMods, p.MissedMonoisotopics, p.PpmTolerance))
+                .OrderBy(p => p.Key.NumberOfMods)
+                .ThenBy(p => p.Key.MissedMonoisotopics)
+                .ThenBy(p => p.Key.PpmTolerance))
             {
                 int mods = modGroup.Key.NumberOfMods;
                 var color = RadicalFragmentationPlotHelpers.ModToColorSetDict[mods][modIndexDict[mods]];
@@ -510,10 +513,10 @@ namespace Plotting.RadicalFragmentation
                     name += $" at {modGroup.Key.PpmTolerance} ppm";
 
                 var chart = Chart.Scatter<double, double, string>(x, y, StyleParam.Mode.Lines,
-                    Name: name, MarkerColor: color, ShowLegend: false,
+                    Name: name, MarkerColor: color,
                     Line: Line.init(Width: 1, Color: color, Smoothing: 0.5, Shape: StyleParam.Shape.Spline));
                 var chart2 = Chart.Scatter<double, double, string>(x, y, StyleParam.Mode.Lines,
-                    Name: name, MarkerColor: color, 
+                    Name: name, MarkerColor: color, ShowLegend: false,
                     Line: Line.init(Width: 1, Color: color, Smoothing: 0.5, Shape: StyleParam.Shape.Spline));
 
                 toCombine.Add(chart);
@@ -527,31 +530,34 @@ namespace Plotting.RadicalFragmentation
                 .Select(p => p.Count)
                 .Average(p => p) *2;
 
-            var combined = Chart.Combine(toCombine)
-                .WithAxisAnchor(X: 1, Y: 1)
-                .WithLegend(false)
-                .WithXAxisStyle(Title.init("Precursors in group"))
-                .WithXAxis(LinearAxis.init<int, int, int, int, int, int>(AxisType: StyleParam.AxisType.Log, Tick0: 0))
-                .WithYAxisStyle(Title.init($"Count of {GetAmbigLabel(ambigLevel)}"), Id: StyleParam.SubPlotId.NewYAxis(1),
-                    MinMax: new FSharpOption<Tuple<IConvertible, IConvertible>>(new(cutoff, yMax)));
-
-            // Create the second plot with y ranging from 0 to averageCount * 5
-            var secondPlot = Chart.Combine(toCombine2)
-                .WithAxisAnchor(X: 2, Y: 2)
-                .WithLegend(true)
-                .WithLayout(PlotlyBase.JustLegend)
-                .WithXAxisStyle(Title.init("Precursors in group"))
-                .WithXAxis(LinearAxis.init<int, int, int, int, int, int>(AxisType: StyleParam.AxisType.Log, Tick0: 0))
-                .WithYAxisStyle(Title.init($"Count of {GetAmbigLabel(ambigLevel)}"), Id: StyleParam.SubPlotId.NewYAxis(2),
-                MinMax: new FSharpOption<Tuple<IConvertible, IConvertible>>(new(0, cutoff)));
-        
-            // Combine both plots vertically
             string title = $"{GetLabel(type, missedMono, tolerance)}: {GetAmbigLabel(ambigLevel)} Precursor Competition ";
             if (missedMono == -1)
                 title += "by Missed Monos";
             else if (tolerance == -1)
                 title += "by Tolerance";
 
+            var combined = Chart.Combine(toCombine)
+                .WithAxisAnchor(X: 1, Y: 1)
+                .WithTitle(title)
+                .WithLayout(PlotlyBase.JustLegend)
+                .WithSize(StandardWidth, StandardHeight)
+                .WithXAxisStyle(Title.init("Precursors in group"))
+                .WithXAxis(LinearAxis.init<int, int, int, int, int, int>(AxisType: StyleParam.AxisType.Log, Tick0: 0))
+                .WithYAxis(LinearAxis.init<int, int, int, int, int, int>(AxisType: StyleParam.AxisType.Log, Tick0: 0))
+                .WithYAxisStyle(Title.init($"Count of {GetAmbigLabel(ambigLevel)}"), Id: StyleParam.SubPlotId.NewYAxis(1)
+                    /*MinMax: new FSharpOption<Tuple<IConvertible, IConvertible>>(new(cutoff, yMax))*/);
+            return combined;
+
+            // Create the second plot with y ranging from 0 to averageCount * 5
+            var secondPlot = Chart.Combine(toCombine2)
+                .WithAxisAnchor(X: 2, Y: 2)
+                .WithLegend(false)
+                .WithXAxisStyle(Title.init("Precursors in group"))
+                .WithXAxis(LinearAxis.init<int, int, int, int, int, int>(AxisType: StyleParam.AxisType.Log, Tick0: 0))
+                .WithYAxisStyle(Title.init($"Count of {GetAmbigLabel(ambigLevel)}"), Id: StyleParam.SubPlotId.NewYAxis(2),
+                MinMax: new FSharpOption<Tuple<IConvertible, IConvertible>>(new(0, cutoff)));
+        
+            // Combine both plots vertically
             var finalCombined = Chart.Grid(new[] { combined, secondPlot }, 2, 1, Pattern: StyleParam.LayoutGridPattern.Independent, YGap: 0.05,
                     XSide: StyleParam.LayoutGridXSide.Bottom)
                 .WithTitle(title)
