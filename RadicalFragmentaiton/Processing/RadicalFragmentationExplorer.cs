@@ -591,55 +591,6 @@ public abstract class RadicalFragmentationExplorer
         return fragmentCount;
     }
 
-
-
-    // first big set attempt. Causes infinite loops
-    public static int FindMinFragmentsWithBacktrackingAlphaBeta(List<double> uniqueTargetFragmentList,
-        List<PrecursorFragmentMassSet> otherProteoforms, Tolerance tolerance, HashSet<double> usedFragments, int depth,
-        Dictionary<int, int> memoizationCache, int alpha, int beta)
-    {
-        // Create a cache key based on the current state of used fragments
-        int cacheKey = GetHashCodeForSet(usedFragments);
-        if (memoizationCache.TryGetValue(cacheKey, out int cachedResult))
-            return cachedResult;
-
-        // If all other proteoforms have fragments that overlap with the used fragments, return the current depth
-        if (otherProteoforms.All(p => usedFragments.Overlaps(p.FragmentMasses)))
-            return depth;
-
-        int minFragments = int.MaxValue;
-
-        // Iterate through each fragment in the unique target fragment list
-        foreach (var fragment in uniqueTargetFragmentList)
-        {
-            // Skip if the fragment is already used
-            if (!usedFragments.Add(fragment))
-                continue;
-
-            // Filter out the proteoforms that do not contain the current fragment within the tolerance
-            var remainingProteoforms = otherProteoforms
-                .Where(p => !p.FragmentMasses.BinaryContainsWithin(fragment, tolerance))
-                .ToList();
-
-            // Recursively find the minimum number of fragments needed with the updated used fragments and increased depth
-            int result = FindMinFragmentsWithBacktrackingAlphaBeta(uniqueTargetFragmentList, remainingProteoforms, tolerance, usedFragments, depth + 1, memoizationCache, alpha, beta);
-            if (result != -1)
-                minFragments = Math.Min(minFragments, result);
-
-            // Remove the fragment from the used fragments set to backtrack
-            usedFragments.Remove(fragment);
-
-            // Alpha-beta pruning
-            beta = Math.Min(beta, minFragments);
-            if (beta <= alpha)
-                break;
-        }
-
-        // Cache the result for the current state of used fragments
-        memoizationCache[cacheKey] = minFragments == int.MaxValue ? -1 : minFragments;
-        return memoizationCache[cacheKey];
-    }
-
     /// <summary>
     /// Takes a large group of Precursor fragment mass sets and returns a list with an element for each allResultsToGroup
     /// The element is a tuple with the first element being the PrecursorFragmentMassSet and the second element being a list of all other PrecursorFragmentMassSets whose precursor mass falls within the tolerance

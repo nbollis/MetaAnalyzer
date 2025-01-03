@@ -180,6 +180,25 @@ namespace Plotting.RadicalFragmentation
             }
         }
 
+        public static void WriteMissedMonoPrecursorCompetitionPlot(this List<PrecursorCompetitionSummary> summaryRecords, string outDir, string type, int ambigLevel = 1, double tolerance = 10, int? width = null, int? height = null)
+        {
+            try
+            {
+                width ??= StandardWidth;
+                height ??= StandardHeight;
+                if (!Directory.Exists(outDir))
+                    Directory.CreateDirectory(outDir);
+                var chart = summaryRecords.GetPrecursorCompetitionHistogram(type, ambigLevel, tolerance, -1);
+                var outPath = Path.Combine(outDir, $"{GetLabel(type, 0, tolerance)}_{GetAmbigLabel(ambigLevel)}_MissedMonoPrecursorCompetition");
+                chart.SavePNG(outPath, null, width, height);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error in WriteMissedMonoPrecursorCompetitionPlot: {ex.Message}\nType: {type}, AmbigLevel: {ambigLevel}, Tolerance: {tolerance}\n{ex.StackTrace}");
+                System.Diagnostics.Debugger.Break();
+            }
+        }
+
         public static void WriteToleranceCumulativeLine(this List<FragmentsNeededSummary> summaryRecords, string outDir, string type, int ambigLevel = 1, int missedMono = 0, int? width = null, int? height = null)
         {
             try
@@ -215,6 +234,25 @@ namespace Plotting.RadicalFragmentation
             catch (Exception ex)
             {
                 Console.WriteLine($"Error in WriteToleranceFragmentsNeededHistogram: {ex.Message}\nType: {type}, AmbigLevel: {ambigLevel}, MissedMono: {missedMono}\n{ex.StackTrace}");
+                System.Diagnostics.Debugger.Break();
+            }
+        }
+
+        public static void WriteTolerancePrecursorCompetitionPlot(this List<PrecursorCompetitionSummary> summaryRecords, string outDir, string type, int ambigLevel = 1, int missedMono = 0, int? width = null, int? height = null)
+        {
+            try
+            {
+                width ??= StandardWidth;
+                height ??= StandardHeight;
+                if (!Directory.Exists(outDir))
+                    Directory.CreateDirectory(outDir);
+                var chart = summaryRecords.GetPrecursorCompetitionHistogram(type, ambigLevel, -1, missedMono);
+                var outPath = Path.Combine(outDir, $"{GetLabel(type, 0, 10)}_{GetAmbigLabel(ambigLevel)}_TolerancePrecursorCompetition");
+                chart.SavePNG(outPath, null, width, height);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error in WriteTolerancePrecursorCompetitionPlot: {ex.Message}\nType: {type}, AmbigLevel: {ambigLevel}, MissedMono: {missedMono}\n{ex.StackTrace}");
                 System.Diagnostics.Debugger.Break();
             }
         }
@@ -394,19 +432,20 @@ namespace Plotting.RadicalFragmentation
             int ambigLevel = 1, double tolerance = -1, int missedMono = -1)
         {
             if (tolerance == -1 && missedMono == -1)
-                throw new ArgumentException("Cannot do both")
-                    ;
+                throw new ArgumentException("Cannot do both");
 
-            var modIndexDict = summaryRecords.Select(p => p.NumberOfMods).Distinct()
+            var toUse = summaryRecords.Where(p =>
+                p.AmbiguityLevel == ambigLevel && p.FragmentationType == type
+                                               && (missedMono == -1 || p.MissedMonoisotopics == missedMono)
+                                               && (tolerance == -1 || p.PpmTolerance == tolerance))
+                .ToList();
+
+            var modIndexDict = toUse.Select(p => p.NumberOfMods).Distinct()
                 .ToDictionary(p => p, p => 0);
             List<GenericChart.GenericChart> toCombine = new();
             List<GenericChart.GenericChart> toCombine2 = new();
-            foreach (var modGroup in summaryRecords
-                .Where(p =>
-                    p.AmbiguityLevel == ambigLevel && p.FragmentationType == type
-                    && (missedMono == -1 || p.MissedMonoisotopics == missedMono)
-                    && (tolerance == -1 || p.PpmTolerance == tolerance))
-                .GroupBy(p => (p.NumberOfMods, p.MissedMonoisotopics, p.PpmTolerance)))
+            foreach (var modGroup in toUse
+                .GroupBy(p => (p.MissedMonoisotopics, p.PpmTolerance, p.NumberOfMods)))
             {
                 int mods = modGroup.Key.NumberOfMods;
                 var color = RadicalFragmentationPlotHelpers.ModToColorSetDict[mods][modIndexDict[mods]];
@@ -436,7 +475,7 @@ namespace Plotting.RadicalFragmentation
                 else if (toRoll < min)
                     toRoll = min;
 
-                bool useWeighting = true;
+                bool useWeighting = false;
                 int leaveAlone = 2;
                 List<double> yRolled = new(y.Count);
                 for (int i = 0; i < y.Count; i++)
@@ -471,21 +510,22 @@ namespace Plotting.RadicalFragmentation
                     name += $" at {modGroup.Key.PpmTolerance} ppm";
 
                 var chart = Chart.Scatter<double, double, string>(x, y, StyleParam.Mode.Lines,
-                    Name: name, MarkerColor: color,
-                    Line: Line.init(Width: 1, Color: color));
+                    Name: name, MarkerColor: color, ShowLegend: false,
+                    Line: Line.init(Width: 1, Color: color, Smoothing: 0.5, Shape: StyleParam.Shape.Spline));
                 var chart2 = Chart.Scatter<double, double, string>(x, y, StyleParam.Mode.Lines,
-                    Name: name, MarkerColor: color,
-                    Line: Line.init(Width: 1, Color: color));
+                    Name: name, MarkerColor: color, 
+                    Line: Line.init(Width: 1, Color: color, Smoothing: 0.5, Shape: StyleParam.Shape.Spline));
 
                 toCombine.Add(chart);
                 toCombine2.Add(chart2);
             }
 
-            double yMax = summaryRecords.Max(p => p.Count) + 1;
-            double cutoff = summaryRecords
+            double yMax = toUse.Max(p => p.Count) + 1;
+            double cutoff = toUse
+                .Where(p => p is { PrecursorsInGroup: > 2, Count: > 0 })
+                .OrderBy(p => p.PrecursorsInGroup)
                 .Select(p => p.Count)
-                .OrderByDescending(p => p)
-                .Skip(summaryRecords.Count / 10).Average(p => p) * 20;
+                .Average(p => p) *2;
 
             var combined = Chart.Combine(toCombine)
                 .WithAxisAnchor(X: 1, Y: 1)
@@ -499,13 +539,14 @@ namespace Plotting.RadicalFragmentation
             var secondPlot = Chart.Combine(toCombine2)
                 .WithAxisAnchor(X: 2, Y: 2)
                 .WithLegend(true)
+                .WithLayout(PlotlyBase.JustLegend)
                 .WithXAxisStyle(Title.init("Precursors in group"))
                 .WithXAxis(LinearAxis.init<int, int, int, int, int, int>(AxisType: StyleParam.AxisType.Log, Tick0: 0))
                 .WithYAxisStyle(Title.init($"Count of {GetAmbigLabel(ambigLevel)}"), Id: StyleParam.SubPlotId.NewYAxis(2),
                 MinMax: new FSharpOption<Tuple<IConvertible, IConvertible>>(new(0, cutoff)));
         
             // Combine both plots vertically
-            string title = $"{GetLabel(type, missedMono, tolerance)}: Precursor Competition ";
+            string title = $"{GetLabel(type, missedMono, tolerance)}: {GetAmbigLabel(ambigLevel)} Precursor Competition ";
             if (missedMono == -1)
                 title += "by Missed Monos";
             else if (tolerance == -1)
@@ -514,7 +555,6 @@ namespace Plotting.RadicalFragmentation
             var finalCombined = Chart.Grid(new[] { combined, secondPlot }, 2, 1, Pattern: StyleParam.LayoutGridPattern.Independent, YGap: 0.05,
                     XSide: StyleParam.LayoutGridXSide.Bottom)
                 .WithTitle(title)
-                .WithLayout(PlotlyBase.JustLegend)
                 .WithSize(StandardWidth, StandardHeight);
 
             return finalCombined;
