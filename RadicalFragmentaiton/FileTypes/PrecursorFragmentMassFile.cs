@@ -98,6 +98,7 @@ public class PrecursorFragmentMassFile
     }
     public override void LoadResults()
     {
+
         if (_accessor == null)
         {
             throw new InvalidOperationException("MemoryMappedViewAccessor is not initialized.");
@@ -109,23 +110,19 @@ public class PrecursorFragmentMassFile
         Results = csv.GetRecords<PrecursorFragmentMassSet>().ToList();
     }
 
-    public IEnumerable<PrecursorFragmentMassSet> ReadChunks(int chunkSize)
+    public IEnumerable<PrecursorFragmentMassSet> ReadChunks(long offset, int chunkSize)
     {
         if (_accessor == null)
         {
             throw new InvalidOperationException("MemoryMappedViewAccessor is not initialized.");
         }
 
-        long offset = 0;
-        while (offset < Count)
+        long size = Math.Min(chunkSize, Count - offset);
+        using var stream = new UnmanagedMemoryStream(_accessor.SafeMemoryMappedViewHandle, offset, size, FileAccess.Read);
+        using var csv = new CsvReader(new StreamReader(stream), PrecursorFragmentMassSet.CsvConfiguration);
+        foreach (var record in csv.GetRecords<PrecursorFragmentMassSet>())
         {
-            using var stream = new UnmanagedMemoryStream(_accessor.SafeMemoryMappedViewHandle, offset, Math.Min(chunkSize, Count - offset), FileAccess.Read);
-            using var csv = new CsvReader(new StreamReader(stream), PrecursorFragmentMassSet.CsvConfiguration);
-            foreach (var record in csv.GetRecords<PrecursorFragmentMassSet>())
-            {
-                yield return record;
-            }
-            offset += chunkSize;
+            yield return record;
         }
     }
 
@@ -142,7 +139,7 @@ public class PrecursorFragmentMassFile
     }
 
     public override void WriteResults(string outputPath)
-    {
+    { 
         var csv = new CsvWriter(new StreamWriter(outputPath), PrecursorFragmentMassSet.CsvConfiguration);
 
         csv.WriteHeader<PrecursorFragmentMassSet>();

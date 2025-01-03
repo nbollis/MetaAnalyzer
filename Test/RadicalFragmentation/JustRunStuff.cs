@@ -40,7 +40,7 @@ namespace Test
         public static void CreateSummaryRecords()
         {
             var explorers = DirectoryToFragmentExplorers.GetFragmentExplorersFromDirectory(DatabasePath, DirectoryPath)
-              //  .Where(p => p.NumberOfMods < 2)
+                //  .Where(p => p.NumberOfMods < 2)
                 .ToList();
 
             var fragNeededOutPath = Path.Combine(DirectoryPath, $"{FileIdentifiers.FragNeededSummary}.csv");
@@ -217,10 +217,28 @@ namespace Test
         [Test]
         public static void ReorderIndexFilesByPrecursorMass()
         {
-            var indexFiles = Directory.GetFiles(DirectoryPath, "*_FragmentIndex.csv", SearchOption.AllDirectories);
+            var indexFiles = Directory.GetFiles(DirectoryPath, "*_FragmentIndexFile.csv", SearchOption.AllDirectories)
+                .OrderBy(p => p)
+                .ToList();
+            var newDirectoryPath = Path.Combine(DirectoryPath, "IndexFiles2");
+            if (!Directory.Exists(newDirectoryPath))
+                Directory.CreateDirectory(newDirectoryPath);
 
             foreach (var filePath in indexFiles)
             {
+                
+                // Write the ordered results to a new file in the new directory
+                string dir = Path.GetDirectoryName(filePath)!; 
+                string type = dir.Split(Path.DirectorySeparatorChar).Last();
+
+                var newFilePath = Path.Combine(newDirectoryPath, type, Path.GetFileName(filePath));
+                dir = Path.GetDirectoryName(newFilePath)!;
+                if (!Directory.Exists(dir))
+                    Directory.CreateDirectory(dir);
+                else if (File.Exists(newFilePath))
+                    continue;
+
+
                 var precursorFragmentMassFile = new PrecursorFragmentMassFile(filePath);
 
                 // Load the data
@@ -229,11 +247,11 @@ namespace Test
                 // Order by PrecursorMass
                 var orderedResults = precursorFragmentMassFile.Results.OrderBy(p => p.PrecursorMass).ToList();
 
-                // Write the ordered results back to the file
                 precursorFragmentMassFile.Results = orderedResults;
-                precursorFragmentMassFile.WriteResults(filePath);
+                precursorFragmentMassFile.WriteResults(newFilePath);
 
-                Console.WriteLine($"Reordered and wrote file: {filePath}");
+                precursorFragmentMassFile.Dispose();
+                Console.WriteLine($"Reordered and wrote file: {newFilePath}");
             }
         }
     }
