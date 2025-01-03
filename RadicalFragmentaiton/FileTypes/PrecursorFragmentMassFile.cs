@@ -102,17 +102,12 @@ public class PrecursorFragmentMassFile
     private void InitializeMemoryMappedFile(string filePath)
     {
         // Create or open the memory-mapped file
-        //_memoryMappedFile = MemoryMappedFile.CreateFromFile(filePath, FileMode.OpenOrCreate, "PrecursorFragmentMassFile");
+        _memoryMappedFile = MemoryMappedFile.CreateFromFile(filePath, FileMode.Open, "PrecursorFragmentMassFile");
+        _accessor = _memoryMappedFile.CreateViewAccessor(0, 0, MemoryMappedFileAccess.Read);
 
-        // Get file size
+        // Calculate total file size
         Count = (int)new FileInfo(filePath).Length;
-
-        // Create an accessor to read and write data
-        //_accessor = _memoryMappedFile.CreateViewAccessor();
     }
-
-
-
 
 
     public IEnumerable<PrecursorFragmentMassSet> ReadChunks(long offset, int chunkSize)
@@ -124,7 +119,9 @@ public class PrecursorFragmentMassFile
 
         long size = Math.Min(chunkSize, Count - offset);
         using var stream = new UnmanagedMemoryStream(_accessor.SafeMemoryMappedViewHandle, offset, size, FileAccess.Read);
-        using var csv = new CsvReader(new StreamReader(stream), PrecursorFragmentMassSet.CsvConfiguration);
+        using var reader = new StreamReader(stream);
+        using var csv = new CsvReader(reader, PrecursorFragmentMassSet.CsvConfiguration);
+
         foreach (var record in csv.GetRecords<PrecursorFragmentMassSet>())
         {
             yield return record;
@@ -134,14 +131,12 @@ public class PrecursorFragmentMassFile
 
     public IEnumerable<PrecursorFragmentMassSet> ReadRange(long startOffset, double minMass, double maxMass, Tolerance tolerance)
     {
-        //if (_accessor == null)
-        //{
-        //    throw new InvalidOperationException("MemoryMappedViewAccessor is not initialized.");
-        //}
+        if (_accessor == null)
+        {
+            throw new InvalidOperationException("MemoryMappedViewAccessor is not initialized.");
+        }
 
-        using var stream = new FileStream(FilePath, FileMode.Open, FileAccess.Read, FileShare.Read);
-        stream.Seek(startOffset, SeekOrigin.Begin); // Start reading from the specified offset
-
+        using var stream = new UnmanagedMemoryStream(_accessor.SafeMemoryMappedViewHandle, startOffset, Count - startOffset, FileAccess.Read);
         using var reader = new StreamReader(stream);
         using var csv = new CsvReader(reader, PrecursorFragmentMassSet.CsvConfiguration);
 
