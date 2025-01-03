@@ -226,7 +226,10 @@ namespace Test
 
             foreach (var filePath in indexFiles)
             {
-                
+                if (filePath.Contains("ETD"))
+                    continue;
+
+
                 // Write the ordered results to a new file in the new directory
                 string dir = Path.GetDirectoryName(filePath)!; 
                 string type = dir.Split(Path.DirectorySeparatorChar).Last();

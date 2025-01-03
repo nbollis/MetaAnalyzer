@@ -98,15 +98,16 @@ public class PrecursorFragmentMassFile
     }
     public override void LoadResults()
     {
-
-        if (_accessor == null)
-        {
-            throw new InvalidOperationException("MemoryMappedViewAccessor is not initialized.");
-        }
+        //if (_accessor == null)
+        //{
+        //    throw new InvalidOperationException("MemoryMappedViewAccessor is not initialized.");
+        //}
 
         // Read data from the memory-mapped file
-        using var stream = new UnmanagedMemoryStream(_accessor.SafeMemoryMappedViewHandle, 0, _accessor.Capacity, FileAccess.Read);
-        using var csv = new CsvReader(new StreamReader(stream), PrecursorFragmentMassSet.CsvConfiguration);
+       // using var stream = new UnmanagedMemoryStream(_accessor.SafeMemoryMappedViewHandle, 0, _accessor.Capacity+1, FileAccess.Read);
+        //using var reader = new StreamReader(stream);
+        using var reader = new StreamReader(FilePath);
+        using var csv = new CsvReader(reader, PrecursorFragmentMassSet.CsvConfiguration);
         Results = csv.GetRecords<PrecursorFragmentMassSet>().ToList();
     }
 
@@ -129,13 +130,13 @@ public class PrecursorFragmentMassFile
     private void InitializeMemoryMappedFile(string filePath)
     {
         // Create or open the memory-mapped file
-        _memoryMappedFile = MemoryMappedFile.CreateFromFile(filePath, FileMode.OpenOrCreate, "PrecursorFragmentMassFile");
+        //_memoryMappedFile = MemoryMappedFile.CreateFromFile(filePath, FileMode.OpenOrCreate, "PrecursorFragmentMassFile");
 
         // Get file size
         Count = (int)new FileInfo(filePath).Length;
 
         // Create an accessor to read and write data
-        _accessor = _memoryMappedFile.CreateViewAccessor();
+        //_accessor = _memoryMappedFile.CreateViewAccessor();
     }
 
     public override void WriteResults(string outputPath)
