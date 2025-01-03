@@ -70,5 +70,40 @@ namespace Test
             var tolerance = new MissedMonoisotopicTolerance(-10);
             Assert.IsFalse(tolerance.Within(100, 130));
         }
+        [Test]
+        public void GetMinimumValue_NoMissedMonoisotopics_ReturnsCorrectValue()
+        {
+            var tolerance = new MissedMonoisotopicTolerance(10);
+            double mean = 100;
+            double expectedMinValue = mean * (1.0 - 10 / 1000000.0);
+            Assert.AreEqual(expectedMinValue, tolerance.GetMinimumValue(mean));
+        }
+
+        [Test]
+        public void GetMinimumValue_WithMissedMonoisotopics_ReturnsCorrectValue()
+        {
+            var tolerance = new MissedMonoisotopicTolerance(10, 2);
+            double mean = 100;
+            double expectedMinValue = (mean) * (1.0 - 10 / 1000000.0);
+            Assert.AreEqual(expectedMinValue, tolerance.GetMinimumValue(mean));
+        }
+
+        [Test]
+        public void GetMaximumValue_NoMissedMonoisotopics_ReturnsCorrectValue()
+        {
+            var tolerance = new MissedMonoisotopicTolerance(10);
+            double mean = 100;
+            double expectedMaxValue = mean * (1.0 + 10 / 1000000.0);
+            Assert.AreEqual(expectedMaxValue, tolerance.GetMaximumValue(mean));
+        }
+
+        [Test]
+        public void GetMaximumValue_WithMissedMonoisotopics_ReturnsCorrectValue()
+        {
+            var tolerance = new MissedMonoisotopicTolerance(10, 2);
+            double mean = 100;
+            double expectedMaxValue = (mean + 2 * Constants.C13MinusC12) * (1.0 + 10 / 1000000.0);
+            Assert.AreEqual(expectedMaxValue, tolerance.GetMaximumValue(mean));
+        }
     }
 }

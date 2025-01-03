@@ -633,7 +633,59 @@ public abstract class RadicalFragmentationExplorer
         producerTask.Wait();
     }
 
- 
+    public static IEnumerable<(PrecursorFragmentMassSet, List<PrecursorFragmentMassSet>)> GroupByPrecursorMass(
+        PrecursorFragmentMassFile memoryMappedFile,
+        Tolerance tolerance,
+        int ambiguityLevel = 1,
+        double rangeWindow = 10.0,
+        int chunkSize = 1000)
+    {
+        var results = new BlockingCollection<(PrecursorFragmentMassSet, List<PrecursorFragmentMassSet>)>();
+        var producerTask = Task.Run(() =>
+        {
+            long currentOffset = 0;
+            double currentMinMass = 0;
+
+            while (true)
+            {
+                // Read data within the current mass range starting from the current offset
+                var chunk = memoryMappedFile
+                .ReadRange(currentOffset, currentMinMass, currentMinMass + rangeWindow, tolerance).ToList();
+
+                if (!chunk.Any())
+                    break; // Exit loop if no more data is available
+
+                foreach (var outerResult in chunk)
+                {
+                    var innerResults = chunk
+                        .Where(innerResult =>
+                            !innerResult.Equals(outerResult) &&
+                            tolerance.Within(outerResult.PrecursorMass, innerResult.PrecursorMass) &&
+                            !(ambiguityLevel == 2 && innerResult.Accession == outerResult.Accession))
+                        .ToList();
+
+                    results.Add((outerResult, innerResults));
+                }
+
+                // Update the offset for the next chunk
+                currentOffset += chunkSize;
+
+                // Update the mass range for the next chunk
+                currentMinMass += rangeWindow;
+            }
+
+            results.CompleteAdding();
+        });
+
+        foreach (var result in results.GetConsumingEnumerable())
+        {
+            yield return result;
+        }
+
+        producerTask.Wait();
+    }
+
+
 
 
     protected static bool HasUniqueFragment(List<double> targetProteoform, List<PrecursorFragmentMassSet> otherProteoforms,

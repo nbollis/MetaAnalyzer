@@ -86,4 +86,26 @@ public class GroupByPrecursorMassTests
         Assert.That(result[0].Item2.Count, Is.EqualTo(2));
         Assert.That(result[1].Item2.Count, Is.EqualTo(2));
     }
+
+
+    [Test]
+    public void GroupByPrecursorMass_MemoryMappedFile_ReturnsExpectedGroups()
+    {
+        // Arrange
+        var filePath = Path.Combine(TestContext.CurrentContext.TestDirectory, "RadicalFragmentation", "Tryptophan", "Human_0Mods_All_FragmentIndexFile.csv");
+        var precursorFragmentMassFile = new PrecursorFragmentMassFile(filePath);
+        var tolerance = new PpmTolerance(10);
+
+        // Act
+        var result = RadicalFragmentationExplorer
+            .GroupByPrecursorMass(precursorFragmentMassFile, tolerance)
+            .ToList();
+
+        // Assert
+        // Add appropriate assertions based on the expected results
+        Assert.That(result, Is.Not.Null);
+        Assert.That(result.Count, Is.GreaterThan(0));
+        // Additional assertions can be added here based on the expected behavior
+    }
+
 }

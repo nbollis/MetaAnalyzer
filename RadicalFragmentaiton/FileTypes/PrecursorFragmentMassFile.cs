@@ -86,30 +86,34 @@ public class PrecursorFragmentMassFile
     private MemoryMappedFile? _memoryMappedFile;
     private MemoryMappedViewAccessor? _accessor;
     public int Count { get; private set; }
+
     public PrecursorFragmentMassFile(string filePath) : base(filePath)
     {
         InitializeMemoryMappedFile(filePath);
     }
+
     public PrecursorFragmentMassFile() : base()
     {
         // Ensure non-nullable fields are initialized
         _memoryMappedFile = null;
         _accessor = null;
     }
-    public override void LoadResults()
-    {
-        //if (_accessor == null)
-        //{
-        //    throw new InvalidOperationException("MemoryMappedViewAccessor is not initialized.");
-        //}
 
-        // Read data from the memory-mapped file
-       // using var stream = new UnmanagedMemoryStream(_accessor.SafeMemoryMappedViewHandle, 0, _accessor.Capacity+1, FileAccess.Read);
-        //using var reader = new StreamReader(stream);
-        using var reader = new StreamReader(FilePath);
-        using var csv = new CsvReader(reader, PrecursorFragmentMassSet.CsvConfiguration);
-        Results = csv.GetRecords<PrecursorFragmentMassSet>().ToList();
+    private void InitializeMemoryMappedFile(string filePath)
+    {
+        // Create or open the memory-mapped file
+        //_memoryMappedFile = MemoryMappedFile.CreateFromFile(filePath, FileMode.OpenOrCreate, "PrecursorFragmentMassFile");
+
+        // Get file size
+        Count = (int)new FileInfo(filePath).Length;
+
+        // Create an accessor to read and write data
+        //_accessor = _memoryMappedFile.CreateViewAccessor();
     }
+
+
+
+
 
     public IEnumerable<PrecursorFragmentMassSet> ReadChunks(long offset, int chunkSize)
     {
@@ -127,16 +131,48 @@ public class PrecursorFragmentMassFile
         }
     }
 
-    private void InitializeMemoryMappedFile(string filePath)
+
+    public IEnumerable<PrecursorFragmentMassSet> ReadRange(long startOffset, double minMass, double maxMass, Tolerance tolerance)
     {
-        // Create or open the memory-mapped file
-        //_memoryMappedFile = MemoryMappedFile.CreateFromFile(filePath, FileMode.OpenOrCreate, "PrecursorFragmentMassFile");
+        //if (_accessor == null)
+        //{
+        //    throw new InvalidOperationException("MemoryMappedViewAccessor is not initialized.");
+        //}
 
-        // Get file size
-        Count = (int)new FileInfo(filePath).Length;
+        using var stream = new FileStream(FilePath, FileMode.Open, FileAccess.Read, FileShare.Read);
+        stream.Seek(startOffset, SeekOrigin.Begin); // Start reading from the specified offset
 
-        // Create an accessor to read and write data
-        //_accessor = _memoryMappedFile.CreateViewAccessor();
+        using var reader = new StreamReader(stream);
+        using var csv = new CsvReader(reader, PrecursorFragmentMassSet.CsvConfiguration);
+
+        foreach (var record in csv.GetRecords<PrecursorFragmentMassSet>())
+        {
+            if (tolerance.Within(record.PrecursorMass, minMass) || tolerance.Within(record.PrecursorMass, maxMass))
+            {
+                yield return record;
+            }
+            else if (record.PrecursorMass > maxMass)
+            {
+                break; // Stop reading once beyond the range
+            }
+        }
+    }
+
+
+    // TODO: Fix to allow static reading from memory mapped file
+    public override void LoadResults()
+    {
+        //if (_accessor == null)
+        //{
+        //    throw new InvalidOperationException("MemoryMappedViewAccessor is not initialized.");
+        //}
+
+        // Read data from the memory-mapped file
+        // using var stream = new UnmanagedMemoryStream(_accessor.SafeMemoryMappedViewHandle, 0, _accessor.Capacity+1, FileAccess.Read);
+        //using var reader = new StreamReader(stream);
+        using var reader = new StreamReader(FilePath);
+        using var csv = new CsvReader(reader, PrecursorFragmentMassSet.CsvConfiguration);
+        Results = csv.GetRecords<PrecursorFragmentMassSet>().ToList();
     }
 
     public override void WriteResults(string outputPath)

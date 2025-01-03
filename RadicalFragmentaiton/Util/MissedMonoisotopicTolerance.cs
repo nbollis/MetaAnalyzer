@@ -24,21 +24,40 @@ namespace RadicalFragmentation.Util
             throw new NotImplementedException();
         }
 
+
         public override double GetMinimumValue(double mean)
         {
-            throw new NotImplementedException();
+            double minValue = mean * (1.0 - this.Value / 1000000.0);
+            foreach (var shift in AcceptableSortedMassShifts)
+            {
+                double shiftedValue = (mean + shift) * (1.0 - this.Value / 1000000.0);
+                if (shiftedValue < minValue)
+                {
+                    minValue = shiftedValue;
+                }
+            }
+            return minValue;
         }
 
         public override double GetMaximumValue(double mean)
         {
-            throw new NotImplementedException();
+            double maxValue = mean * (1.0 + this.Value / 1000000.0);
+            foreach (var shift in AcceptableSortedMassShifts)
+            {
+                double shiftedValue = (mean + shift) * (1.0 + this.Value / 1000000.0);
+                if (shiftedValue > maxValue)
+                {
+                    maxValue = shiftedValue;
+                }
+            }
+            return maxValue;
         }
 
         public override bool Within(double experimental, double theoretical)
         {
-            for (int i = 0; i < AcceptableSortedMassShifts.Length; i++)
+            foreach (var shift in AcceptableSortedMassShifts)
             {
-                if (Math.Abs(experimental - theoretical + AcceptableSortedMassShifts[i]) / theoretical * 1e6 <= Value)
+                if (Math.Abs(experimental - theoretical + shift) / theoretical * 1e6 <= Value)
                 {
                     return true;
                 }
