@@ -490,14 +490,13 @@ public abstract class RadicalFragmentationExplorer
                 return -1;
 
             // reorder unique target list to be have those shared by the least other proteoforms first
-            if (sortByUniqueness)
-                SortFragmentsByUniqueness(uniqueTargetFragmentList, otherProteoforms, tolerance);
+            //if (sortByUniqueness)
+            //    SortFragmentsByUniqueness(uniqueTargetFragmentList, otherProteoforms, tolerance);
 
             if (useGreed)
                 return FindMinGreedy(uniqueTargetFragmentList, otherProteoforms, tolerance);
             else
                 return FindMinBruteForce(uniqueTargetFragmentList, otherProteoforms, tolerance, sortByUniqueness);
-
         }
         finally
         {
@@ -589,7 +588,7 @@ public abstract class RadicalFragmentationExplorer
         var results = new BlockingCollection<(PrecursorFragmentMassSet, List<PrecursorFragmentMassSet>)>();
         var producerTask = Task.Run(() =>
         {
-            Parallel.ForEach(Partitioner.Create(0, orderedResults.Count), new ParallelOptions { MaxDegreeOfParallelism = Math.Max(StaticVariables.MaxThreads / 2, 1) }, range =>
+            Parallel.ForEach(Partitioner.Create(0, orderedResults.Count), new ParallelOptions { MaxDegreeOfParallelism = Math.Max(StaticVariables.MaxThreads / 4, 1) }, range =>
             {
                 for (int index = range.Item1; index < range.Item2; index++)
                 {
@@ -730,9 +729,13 @@ public abstract class RadicalFragmentationExplorer
         var fragmentUniqueness = FragmentCacheDictionaryPool.Get();
         try
         {
-            foreach (var frag in targetProteoform.Distinct())
+            foreach (var frag in targetProteoform)
             {
-                fragmentUniqueness[frag] = otherProteoforms.Count(p => p.FragmentMasses.BinaryContainsWithin(frag, tolerance));
+                // Try to add the fragment to the dictionary
+                if (!fragmentUniqueness.ContainsKey(frag))
+                {
+                    fragmentUniqueness[frag] = otherProteoforms.Count(p => p.FragmentMasses.BinaryContainsWithin(frag, tolerance));
+                }
             }
 
             // Sort based on precomputed uniqueness scores, and if equal, sort by fragment mass (min to max)
