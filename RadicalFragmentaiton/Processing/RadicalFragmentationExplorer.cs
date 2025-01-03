@@ -265,7 +265,11 @@ public abstract class RadicalFragmentationExplorer
             }
         });
         
-        var uniqueSets = sets.DistinctBy(p => p, CustomComparerExtensions.LevelOneComparer).ToList();
+        var uniqueSets = sets
+            .DistinctBy(p => p, CustomComparerExtensions.LevelOneComparer)
+            .OrderBy(p => p.PrecursorMass)
+            .ToList();
+
         var file = new PrecursorFragmentMassFile()
         {
             FilePath = PrecursorFragmentMassFilePath,
@@ -564,7 +568,7 @@ public abstract class RadicalFragmentationExplorer
             targetProteoform.Remove(bestFragment);
 
             // Periodic rescoring for dynamic adaptability
-            if (fragmentCount % 2 == 0)
+            if (fragmentCount % 4 == 0)
                 SortFragmentsByUniqueness(targetProteoform, otherProteoforms, tolerance);
 
         }
@@ -628,6 +632,9 @@ public abstract class RadicalFragmentationExplorer
 
         producerTask.Wait();
     }
+
+ 
+
 
     protected static bool HasUniqueFragment(List<double> targetProteoform, List<PrecursorFragmentMassSet> otherProteoforms,
         Tolerance tolerance)
@@ -760,6 +767,5 @@ public abstract class RadicalFragmentationExplorer
         }
         return hash;
     }
-
 
 }

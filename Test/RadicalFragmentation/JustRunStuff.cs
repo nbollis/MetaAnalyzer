@@ -211,5 +211,30 @@ namespace Test
                 }
             }
         }
+
+
+
+        [Test]
+        public static void ReorderIndexFilesByPrecursorMass()
+        {
+            var indexFiles = Directory.GetFiles(DirectoryPath, "*_FragmentIndex.csv", SearchOption.AllDirectories);
+
+            foreach (var filePath in indexFiles)
+            {
+                var precursorFragmentMassFile = new PrecursorFragmentMassFile(filePath);
+
+                // Load the data
+                precursorFragmentMassFile.LoadResults();
+
+                // Order by PrecursorMass
+                var orderedResults = precursorFragmentMassFile.Results.OrderBy(p => p.PrecursorMass).ToList();
+
+                // Write the ordered results back to the file
+                precursorFragmentMassFile.Results = orderedResults;
+                precursorFragmentMassFile.WriteResults(filePath);
+
+                Console.WriteLine($"Reordered and wrote file: {filePath}");
+            }
+        }
     }
 }

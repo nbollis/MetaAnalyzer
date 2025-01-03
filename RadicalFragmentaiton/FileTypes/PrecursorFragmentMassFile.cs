@@ -6,6 +6,7 @@ using System.Globalization;
 using CsvHelper;
 using MzLibUtil;
 using ResultAnalyzerUtil.CsvConverters;
+using System.IO.MemoryMappedFiles;
 
 namespace RadicalFragmentation;
 
@@ -78,14 +79,66 @@ public class PrecursorFragmentMassSet : IEquatable<PrecursorFragmentMassSet>
     }
 }
 
-public class PrecursorFragmentMassFile : ResultFile<PrecursorFragmentMassSet>, IResultFile
+
+public class PrecursorFragmentMassFile
+    : ResultFile<PrecursorFragmentMassSet>, IMemoryMapped<PrecursorFragmentMassSet>
 {
-    public PrecursorFragmentMassFile(string filePath) : base(filePath) { }
-    public PrecursorFragmentMassFile() : base() { }
+    private MemoryMappedFile? _memoryMappedFile;
+    private MemoryMappedViewAccessor? _accessor;
+    public int Count { get; private set; }
+    public PrecursorFragmentMassFile(string filePath) : base(filePath)
+    {
+        InitializeMemoryMappedFile(filePath);
+    }
+    public PrecursorFragmentMassFile() : base()
+    {
+        // Ensure non-nullable fields are initialized
+        _memoryMappedFile = null;
+        _accessor = null;
+    }
     public override void LoadResults()
     {
-        var csv = new CsvReader(new StreamReader(FilePath), PrecursorFragmentMassSet.CsvConfiguration);
+        if (_accessor == null)
+        {
+            throw new InvalidOperationException("MemoryMappedViewAccessor is not initialized.");
+        }
+
+        // Read data from the memory-mapped file
+        using var stream = new UnmanagedMemoryStream(_accessor.SafeMemoryMappedViewHandle, 0, _accessor.Capacity, FileAccess.Read);
+        using var csv = new CsvReader(new StreamReader(stream), PrecursorFragmentMassSet.CsvConfiguration);
         Results = csv.GetRecords<PrecursorFragmentMassSet>().ToList();
+    }
+
+    public IEnumerable<PrecursorFragmentMassSet> ReadChunks(int chunkSize)
+    {
+        if (_accessor == null)
+        {
+            throw new InvalidOperationException("MemoryMappedViewAccessor is not initialized.");
+        }
+
+        long offset = 0;
+        while (offset < Count)
+        {
+            using var stream = new UnmanagedMemoryStream(_accessor.SafeMemoryMappedViewHandle, offset, Math.Min(chunkSize, Count - offset), FileAccess.Read);
+            using var csv = new CsvReader(new StreamReader(stream), PrecursorFragmentMassSet.CsvConfiguration);
+            foreach (var record in csv.GetRecords<PrecursorFragmentMassSet>())
+            {
+                yield return record;
+            }
+            offset += chunkSize;
+        }
+    }
+
+    private void InitializeMemoryMappedFile(string filePath)
+    {
+        // Create or open the memory-mapped file
+        _memoryMappedFile = MemoryMappedFile.CreateFromFile(filePath, FileMode.OpenOrCreate, "PrecursorFragmentMassFile");
+
+        // Get file size
+        Count = (int)new FileInfo(filePath).Length;
+
+        // Create an accessor to read and write data
+        _accessor = _memoryMappedFile.CreateViewAccessor();
     }
 
     public override void WriteResults(string outputPath)
@@ -104,4 +157,11 @@ public class PrecursorFragmentMassFile : ResultFile<PrecursorFragmentMassSet>, I
 
     public override SupportedFileType FileType { get; }
     public override Software Software { get; set; }
+
+    // Dispose the memory-mapped file and accessor
+    public void Dispose()
+    {
+        _accessor?.Dispose();
+        _memoryMappedFile?.Dispose();
+    }
 }
