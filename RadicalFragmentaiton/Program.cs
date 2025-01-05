@@ -124,6 +124,9 @@ namespace RadicalFragmentation
                 explorer.CreateIndexedFile();
                 explorer.CreateFragmentHistogramFile();
                 explorer.FindNumberOfFragmentsNeededToDifferentiate();
+
+                explorer.PrecursorFragmentMassFile.Dispose();
+
                 CommandLineLogger.FinishedSubProcessHandler("", new SubProcessEventArgs(explorerLabel));
             }
             catch (Exception e)
