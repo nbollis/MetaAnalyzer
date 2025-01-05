@@ -7,6 +7,7 @@ using CsvHelper;
 using MzLibUtil;
 using ResultAnalyzerUtil.CsvConverters;
 using System.IO.MemoryMappedFiles;
+using PuppeteerSharp;
 
 namespace RadicalFragmentation;
 
@@ -85,7 +86,7 @@ public class PrecursorFragmentMassFile
 {
     private MemoryMappedFile? _memoryMappedFile;
     private MemoryMappedViewAccessor? _accessor;
-    public int Count { get; private set; }
+    public long Count { get; private set; }
 
     public PrecursorFragmentMassFile(string filePath) : base(filePath)
     {
@@ -106,17 +107,16 @@ public class PrecursorFragmentMassFile
         _accessor = _memoryMappedFile.CreateViewAccessor(0, 0, MemoryMappedFileAccess.Read);
 
         // Calculate total file size
-        Count = (int)new FileInfo(filePath).Length;
+        Count = new FileInfo(filePath).Length;
     }
 
     public IEnumerable<(PrecursorFragmentMassSet, List<PrecursorFragmentMassSet>)> StreamGroupsByTolerance(
      Tolerance tolerance, int chunkSize, int ambiguityLevel)
     {
         var workingSet = new LinkedList<PrecursorFragmentMassSet>();
-        var processedRecords = new HashSet<string>(); // To track processed records
         var unprocessed = new Queue<PrecursorFragmentMassSet>(); // Tracks next unprocessed records
 
-        using var stream = new FileStream(FilePath, FileMode.Open, FileAccess.Read, FileShare.Read);
+        using var stream = new UnmanagedMemoryStream(_accessor!.SafeMemoryMappedViewHandle, 0, Count, FileAccess.Read);
         using var reader = new StreamReader(stream);
         using var csv = new CsvReader(reader, PrecursorFragmentMassSet.CsvConfiguration);
 
@@ -145,7 +145,7 @@ public class PrecursorFragmentMassFile
                 }
 
                 // If last in working set is within tolerance, add new chunk to working set
-                if (workingSet.Last != null && tolerance.Within(workingSet.Last.Value.PrecursorMass, current.PrecursorMass))
+                while (workingSet.Last != null && tolerance.Within(workingSet.Last.Value.PrecursorMass, current.PrecursorMass))
                 {
                     var nextChunk = ReadChunk(csv, chunkSize).ToList();
                     foreach (var record in nextChunk)
@@ -162,7 +162,6 @@ public class PrecursorFragmentMassFile
                     .ToList();
 
                 // Mark the current record as processed and return its group
-                processedRecords.Add(current.FullSequence);
                 yield return (current, group);
             }
         }

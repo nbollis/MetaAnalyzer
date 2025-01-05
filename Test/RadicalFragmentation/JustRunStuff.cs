@@ -243,7 +243,7 @@ namespace Test
                 // Load the data
                 precursorFragmentMassFile.LoadResults();
 
-                // Order by Pre28cursorMass
+                // Order by PrecursorMass
                 var orderedResults = precursorFragmentMassFile.Results.OrderBy(p => p.PrecursorMass).ToList();
 
                 precursorFragmentMassFile.Results = orderedResults;

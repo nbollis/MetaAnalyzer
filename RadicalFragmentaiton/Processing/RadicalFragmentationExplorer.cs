@@ -330,7 +330,7 @@ public abstract class RadicalFragmentationExplorer
         bool isCysteine = this is CysteineFragmentationExplorer;
         var writeTasks = new List<Task>(16);
         var results = new ConcurrentQueue<FragmentsToDistinguishRecord>();
-        int toProcess = PrecursorFragmentMassFile.Count;
+        long toProcess = PrecursorFragmentMassFile.Count;
         int current = 0;
         int maxBeforeTempFile = 250000;
 
