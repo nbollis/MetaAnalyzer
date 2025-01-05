@@ -153,13 +153,31 @@ public class PrecursorFragmentMassFile
                         workingSet.AddLast(record);
                         unprocessed.Enqueue(record);
                     }
+
+                    // end of file, avoid infinite loop
+                    if (nextChunk.Count == 0)
+                        break;
                 }
 
                 // Form the group for the current record
-                var group = workingSet
-                    .Where(r => tolerance.Within(current.PrecursorMass, r.PrecursorMass)
-                                && (ambiguityLevel != 2 || r.Accession != current.Accession))
-                    .ToList();
+                var group = new List<PrecursorFragmentMassSet>();
+                foreach (var r in workingSet)
+                {
+                    if (current.Equals(r))
+                        continue;
+
+                    switch (ambiguityLevel)
+                    {
+                        case 2 when current.Accession == r.Accession:
+                        case 2 when current.FullSequence == r.FullSequence:
+                            continue;
+                    }
+
+                    if (tolerance.Within(current.PrecursorMass, r.PrecursorMass))
+                    {
+                        group.Add(r);
+                    }
+                }
 
                 // Mark the current record as processed and return its group
                 yield return (current, group);

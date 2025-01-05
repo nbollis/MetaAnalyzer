@@ -7,6 +7,34 @@ namespace Test;
 [TestFixture]
 public class GroupByPrecursorMassTests
 {
+
+    public static string TestingDirectory;
+
+    [OneTimeSetUp]
+    public static void Setup()
+    {
+        TestingDirectory = Path.Combine(TestContext.CurrentContext.TestDirectory, "GroupingTests");
+        if (Directory.Exists(TestingDirectory))
+        {
+            Directory.Delete(TestingDirectory, true);
+        }
+
+        if (!Directory.Exists(TestingDirectory))
+        {
+            Directory.CreateDirectory(TestingDirectory);
+        }
+    }
+
+    [OneTimeTearDown]
+    public static void CleanUp()
+    {
+        if (Directory.Exists(TestingDirectory))
+        {
+            Directory.Delete(TestingDirectory, true);
+        }
+    }
+
+
     [Test]
     public void GroupByPrecursorMass_SingleEntry_ReturnsSingleGroup()
     {
@@ -89,23 +117,99 @@ public class GroupByPrecursorMassTests
 
 
     [Test]
-    public void GroupByPrecursorMass_MemoryMappedFile_ReturnsExpectedGroups()
+    public static void StreamGroupsByTolerance_AllWorkingSetValuesIncluded()
     {
-        // Arrange
-        var filePath = Path.Combine(TestContext.CurrentContext.TestDirectory, "RadicalFragmentation", "Tryptophan", "Human_0Mods_All_FragmentIndexFile.csv");
-        var precursorFragmentMassFile = new PrecursorFragmentMassFile(filePath);
-        var tolerance = new PpmTolerance(10);
+        var filePath = Path.Combine(TestingDirectory, "StreamGroupsByTolerance_AllWorkingSetValuesIncluded.csv");
+        var precursorFragmentMassSets = new List<PrecursorFragmentMassSet>
+        {
+            new PrecursorFragmentMassSet(100.0, "P1", new List<double> { 100.0 }, "SEQ1"),
+            new PrecursorFragmentMassSet(105.0, "P2", new List<double> { 105.0 }, "SEQ2"),
+            new PrecursorFragmentMassSet(110.0, "P3", new List<double> { 110.0 }, "SEQ3"),
+            new PrecursorFragmentMassSet(115.0, "P4", new List<double> { 115.0 }, "SEQ4"),
+            new PrecursorFragmentMassSet(120.0, "P5", new List<double> { 120.0 }, "SEQ5")
+        };
 
-        // Act
-        var result = RadicalFragmentationExplorer
-            .GroupByPrecursorMass(precursorFragmentMassFile, tolerance)
-            .ToList();
+        // Write test data to CSV file
+        using (var writer = new StreamWriter(filePath))
+        using (var csv = new CsvHelper.CsvWriter(writer, PrecursorFragmentMassSet.CsvConfiguration))
+        {
+            csv.WriteRecords(precursorFragmentMassSets);
+        }
 
-        // Assert
-        // Add appropriate assertions based on the expected results
-        Assert.That(result, Is.Not.Null);
-        Assert.That(result.Count, Is.GreaterThan(0));
-        // Additional assertions can be added here based on the expected behavior
+        var tolerance = new AbsoluteTolerance(100);
+        var chunkSize = 2;
+        var ambiguityLevel = 1;
+
+        using var precursorFragmentMassFile = new PrecursorFragmentMassFile(filePath);
+        var result = precursorFragmentMassFile.StreamGroupsByTolerance(tolerance, chunkSize, ambiguityLevel).ToList();
+
+        Assert.That(result.Count, Is.EqualTo(5));
+
+        for (var index = 0; index < result.Count; index++)
+        {
+            var indResult = result[index];
+            // one result per precursor
+            Assert.That(indResult.Item1, Is.EqualTo(precursorFragmentMassSets[index]));
+
+            // all are included in each set
+            Assert.That(indResult.Item2.Count, Is.EqualTo(4));
+            Assert.That(indResult.Item2, Is.EquivalentTo(precursorFragmentMassSets.Where((_, i) => i != index)));
+
+            // set does not contain original
+            Assert.That(indResult.Item2, Has.None.EqualTo(precursorFragmentMassSets[index]));
+            Assert.That(indResult.Item2, Has.None.EqualTo(indResult));
+        }
     }
 
+    [Test]
+    public static void StreamGroupsByTolerance_AllWorkingSetValuesIncluded_Level2Ambiguity()
+    {
+        var filePath = Path.Combine(TestingDirectory, "StreamGroupsByTolerance_AllWorkingSetValuesIncluded.csv");
+        var precursorFragmentMassSets = new List<PrecursorFragmentMassSet>
+        {
+            new PrecursorFragmentMassSet(100.0, "P1", new List<double> { 100.0 }, "SEQ1"),
+            new PrecursorFragmentMassSet(105.0, "P1", new List<double> { 105.0 }, "SEQ1"),
+            new PrecursorFragmentMassSet(110.0, "P2", new List<double> { 110.0 }, "SEQ2"),
+            new PrecursorFragmentMassSet(115.0, "P2", new List<double> { 115.0 }, "SEQ2"),
+            new PrecursorFragmentMassSet(120.0, "P3", new List<double> { 120.0 }, "SEQ3"),
+            new PrecursorFragmentMassSet(120.0, "P4", new List<double> { 120.0 }, "SEQ3"),
+        };
+
+        // Write test data to CSV file
+        using (var writer = new StreamWriter(filePath))
+        using (var csv = new CsvHelper.CsvWriter(writer, PrecursorFragmentMassSet.CsvConfiguration))
+        {
+            csv.WriteRecords(precursorFragmentMassSets);
+        }
+
+        var tolerance = new AbsoluteTolerance(100);
+        var chunkSize = 2;
+        var ambiguityLevel = 2;
+
+        using var precursorFragmentMassFile = new PrecursorFragmentMassFile(filePath);
+        var result = precursorFragmentMassFile.StreamGroupsByTolerance(tolerance, chunkSize, ambiguityLevel).ToList();
+
+        Assert.That(result.Count, Is.EqualTo(6));
+
+        for (var index = 0; index < result.Count; index++)
+        {
+            var indResult = result[index];
+            // one result per precursor
+            Assert.That(indResult.Item1, Is.EqualTo(precursorFragmentMassSets[index]));
+
+            // all are included in each set
+            Assert.That(indResult.Item2.Count, Is.EqualTo(4));
+
+            // set does not contain original
+            Assert.That(indResult.Item2, Has.None.EqualTo(precursorFragmentMassSets[index]));
+            Assert.That(indResult.Item2, Has.None.EqualTo(indResult));
+
+            // set contains none that share a sequence or an accession
+            foreach (var innerResult in indResult.Item2)
+            {
+                Assert.That(innerResult.Accession, Is.Not.EqualTo(indResult.Item1.Accession));
+                Assert.That(innerResult.FullSequence, Is.Not.EqualTo(indResult.Item1.FullSequence));
+            }
+        }
+    }
 }
