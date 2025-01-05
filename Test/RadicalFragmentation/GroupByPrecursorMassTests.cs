@@ -141,13 +141,9 @@ public class GroupByPrecursorMassTests
         var ambiguityLevel = 1;
 
         using var precursorFragmentMassFile = new PrecursorFragmentMassFile(filePath);
-        var result = precursorFragmentMassFile.StreamGroupsByTolerance(tolerance, chunkSize, ambiguityLevel).ToList();
-
-        Assert.That(result.Count, Is.EqualTo(5));
-
-        for (var index = 0; index < result.Count; index++)
+        int index = 0;
+        foreach (var indResult in precursorFragmentMassFile.StreamGroupsByTolerance(tolerance, chunkSize, ambiguityLevel))
         {
-            var indResult = result[index];
             // one result per precursor
             Assert.That(indResult.Item1, Is.EqualTo(precursorFragmentMassSets[index]));
 
@@ -158,7 +154,9 @@ public class GroupByPrecursorMassTests
             // set does not contain original
             Assert.That(indResult.Item2, Has.None.EqualTo(precursorFragmentMassSets[index]));
             Assert.That(indResult.Item2, Has.None.EqualTo(indResult));
+            index++;
         }
+        Assert.That(index, Is.EqualTo(precursorFragmentMassSets.Count));
     }
 
     [Test]
@@ -187,13 +185,9 @@ public class GroupByPrecursorMassTests
         var ambiguityLevel = 2;
 
         using var precursorFragmentMassFile = new PrecursorFragmentMassFile(filePath);
-        var result = precursorFragmentMassFile.StreamGroupsByTolerance(tolerance, chunkSize, ambiguityLevel).ToList();
-
-        Assert.That(result.Count, Is.EqualTo(6));
-
-        for (var index = 0; index < result.Count; index++)
+        int index = 0;
+        foreach (var indResult in precursorFragmentMassFile.StreamGroupsByTolerance(tolerance, chunkSize, ambiguityLevel))
         {
-            var indResult = result[index];
             // one result per precursor
             Assert.That(indResult.Item1, Is.EqualTo(precursorFragmentMassSets[index]));
 
@@ -210,6 +204,104 @@ public class GroupByPrecursorMassTests
                 Assert.That(innerResult.Accession, Is.Not.EqualTo(indResult.Item1.Accession));
                 Assert.That(innerResult.FullSequence, Is.Not.EqualTo(indResult.Item1.FullSequence));
             }
+            index++;
         }
+        Assert.That(index, Is.EqualTo(precursorFragmentMassSets.Count));
     }
+
+    //[Test]
+    //public static void StreamGroupsByTolerance_AllWorkingSetValuesIncluded_Parallel()
+    //{
+    //    var filePath = Path.Combine(TestingDirectory, "StreamGroupsByTolerance_AllWorkingSetValuesIncluded.csv");
+    //    var precursorFragmentMassSets = new List<PrecursorFragmentMassSet>
+    //    {
+    //        new PrecursorFragmentMassSet(100.0, "P1", new List<double> { 100.0 }, "SEQ1"),
+    //        new PrecursorFragmentMassSet(105.0, "P2", new List<double> { 105.0 }, "SEQ2"),
+    //        new PrecursorFragmentMassSet(110.0, "P3", new List<double> { 110.0 }, "SEQ3"),
+    //        new PrecursorFragmentMassSet(115.0, "P4", new List<double> { 115.0 }, "SEQ4"),
+    //        new PrecursorFragmentMassSet(120.0, "P5", new List<double> { 120.0 }, "SEQ5")
+    //    };
+
+    //    // Write test data to CSV file
+    //    using (var writer = new StreamWriter(filePath))
+    //    using (var csv = new CsvHelper.CsvWriter(writer, PrecursorFragmentMassSet.CsvConfiguration))
+    //    {
+    //        csv.WriteRecords(precursorFragmentMassSets);
+    //    }
+
+    //    var tolerance = new AbsoluteTolerance(100);
+    //    var chunkSize = 2;
+    //    var ambiguityLevel = 1;
+
+    //    using var precursorFragmentMassFile = new PrecursorFragmentMassFile(filePath);
+
+    //    int index = 0;
+    //    foreach(var indResult in precursorFragmentMassFile.StreamByPrecursorWithinToleranceParallelStream(tolerance, chunkSize, ambiguityLevel))
+    //    {
+    //        // one result per precursor
+    //        Assert.That(indResult.Item1, Is.EqualTo(precursorFragmentMassSets[index]));
+
+    //        // all are included in each set
+    //        Assert.That(indResult.Item2.Count, Is.EqualTo(4));
+    //        Assert.That(indResult.Item2, Is.EquivalentTo(precursorFragmentMassSets.Where((_, i) => i != index)));
+
+    //        // set does not contain original
+    //        Assert.That(indResult.Item2, Has.None.EqualTo(precursorFragmentMassSets[index]));
+    //        Assert.That(indResult.Item2, Has.None.EqualTo(indResult));
+
+    //        index++;
+    //    }
+    //    Assert.That(index, Is.EqualTo(precursorFragmentMassSets.Count));
+    //}
+
+    //[Test]
+    //public static void StreamGroupsByTolerance_AllWorkingSetValuesIncluded_Level2Ambiguity_Parallel()
+    //{
+    //    var filePath = Path.Combine(TestingDirectory, "StreamGroupsByTolerance_AllWorkingSetValuesIncluded.csv");
+    //    var precursorFragmentMassSets = new List<PrecursorFragmentMassSet>
+    //    {
+    //        new PrecursorFragmentMassSet(100.0, "P1", new List<double> { 100.0 }, "SEQ1"),
+    //        new PrecursorFragmentMassSet(105.0, "P1", new List<double> { 105.0 }, "SEQ1"),
+    //        new PrecursorFragmentMassSet(110.0, "P2", new List<double> { 110.0 }, "SEQ2"),
+    //        new PrecursorFragmentMassSet(115.0, "P2", new List<double> { 115.0 }, "SEQ2"),
+    //        new PrecursorFragmentMassSet(120.0, "P3", new List<double> { 120.0 }, "SEQ3"),
+    //        new PrecursorFragmentMassSet(120.0, "P4", new List<double> { 120.0 }, "SEQ3"),
+    //    };
+
+    //    // Write test data to CSV file
+    //    using (var writer = new StreamWriter(filePath))
+    //    using (var csv = new CsvHelper.CsvWriter(writer, PrecursorFragmentMassSet.CsvConfiguration))
+    //    {
+    //        csv.WriteRecords(precursorFragmentMassSets);
+    //    }
+
+    //    var tolerance = new AbsoluteTolerance(100);
+    //    var chunkSize = 2;
+    //    var ambiguityLevel = 2;
+
+    //    using var precursorFragmentMassFile = new PrecursorFragmentMassFile(filePath);
+
+    //    int index = 0;
+    //    foreach (var indResult in precursorFragmentMassFile.StreamByPrecursorWithinToleranceParallelStream(tolerance, chunkSize, ambiguityLevel))
+    //    {
+    //        // one result per precursor
+    //        Assert.That(indResult.Item1, Is.EqualTo(precursorFragmentMassSets[index]));
+
+    //        // all are included in each set
+    //        Assert.That(indResult.Item2.Count, Is.EqualTo(4));
+
+    //        // set does not contain original
+    //        Assert.That(indResult.Item2, Has.None.EqualTo(precursorFragmentMassSets[index]));
+    //        Assert.That(indResult.Item2, Has.None.EqualTo(indResult));
+
+    //        // set contains none that share a sequence or an accession
+    //        foreach (var innerResult in indResult.Item2)
+    //        {
+    //            Assert.That(innerResult.Accession, Is.Not.EqualTo(indResult.Item1.Accession));
+    //            Assert.That(innerResult.FullSequence, Is.Not.EqualTo(indResult.Item1.FullSequence));
+    //        }
+    //        index++;
+    //    }
+    //    Assert.That(index, Is.EqualTo(precursorFragmentMassSets.Count));
+    //}
 }

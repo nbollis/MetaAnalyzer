@@ -330,7 +330,8 @@ public abstract class RadicalFragmentationExplorer
         bool isCysteine = this is CysteineFragmentationExplorer;
         var writeTasks = new List<Task>(16);
         var results = new ConcurrentQueue<FragmentsToDistinguishRecord>();
-        long toProcess = PrecursorFragmentMassFile.Count;
+        long totalBytes = PrecursorFragmentMassFile.Count;
+        long bytesProcessed = 0;
         int current = 0;
         int maxBeforeTempFile = 250000;
 
@@ -421,9 +422,16 @@ public abstract class RadicalFragmentationExplorer
                 }
 
                 // report progress every 1% of data
-                if (Interlocked.Increment(ref current) % (toProcess / 100) == 0)
+                //if (Interlocked.Increment(ref current) % (totalBytes / 100) == 0)
+                //{
+                //    UpdateProgressBar($"Finding Fragments Needed for {AnalysisLabel}", (double)current / totalBytes);
+                //}
+
+                // Update bytes processed and report progress
+                Interlocked.Add(ref bytesProcessed, result.Item1.FragmentMasses.Count * sizeof(double));
+                if (Interlocked.Increment(ref current) % (totalBytes / 100) == 0)
                 {
-                    UpdateProgressBar($"Finding Fragments Needed for {AnalysisLabel}", (double)current / toProcess);
+                    UpdateProgressBar($"Finding Fragments Needed for {AnalysisLabel}", (double)bytesProcessed / totalBytes);
                 }
             });
 

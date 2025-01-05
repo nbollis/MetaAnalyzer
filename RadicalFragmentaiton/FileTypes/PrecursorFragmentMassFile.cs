@@ -8,6 +8,7 @@ using MzLibUtil;
 using ResultAnalyzerUtil.CsvConverters;
 using System.IO.MemoryMappedFiles;
 using PuppeteerSharp;
+using System.Collections.Concurrent;
 
 namespace RadicalFragmentation;
 
@@ -82,7 +83,7 @@ public class PrecursorFragmentMassSet : IEquatable<PrecursorFragmentMassSet>
 
 
 public class PrecursorFragmentMassFile
-    : ResultFile<PrecursorFragmentMassSet>, IMemoryMapped<PrecursorFragmentMassSet>
+    : ResultFile<PrecursorFragmentMassSet>, IDisposable
 {
     private MemoryMappedFile? _memoryMappedFile;
     private MemoryMappedViewAccessor? _accessor;
@@ -166,12 +167,8 @@ public class PrecursorFragmentMassFile
                     if (current.Equals(r))
                         continue;
 
-                    switch (ambiguityLevel)
-                    {
-                        case 2 when current.Accession == r.Accession:
-                        case 2 when current.FullSequence == r.FullSequence:
-                            continue;
-                    }
+                    if (!ShouldIncludeInGroup(r, current, ambiguityLevel))
+                        continue;
 
                     if (tolerance.Within(current.PrecursorMass, r.PrecursorMass))
                     {
@@ -185,6 +182,8 @@ public class PrecursorFragmentMassFile
         }
     }
 
+   
+
     private static IEnumerable<PrecursorFragmentMassSet> ReadChunk(CsvReader csv, int chunkSize)
     {
         for (int i = 0; i < chunkSize && csv.Read(); i++)
@@ -193,63 +192,30 @@ public class PrecursorFragmentMassFile
         }
     }
 
-
-    public IEnumerable<PrecursorFragmentMassSet> ReadChunks(long offset, int chunkSize)
+    // Determines if a record should be included in the group based on ambiguity level
+    private static bool ShouldIncludeInGroup(PrecursorFragmentMassSet candidate, PrecursorFragmentMassSet current, int ambiguityLevel)
     {
-        if (_accessor == null)
+        switch (ambiguityLevel)
         {
-            throw new InvalidOperationException("MemoryMappedViewAccessor is not initialized.");
-        }
-
-        long size = Math.Min(chunkSize, Count - offset);
-        using var stream = new UnmanagedMemoryStream(_accessor.SafeMemoryMappedViewHandle, offset, size, FileAccess.Read);
-        using var reader = new StreamReader(stream);
-        using var csv = new CsvReader(reader, PrecursorFragmentMassSet.CsvConfiguration);
-
-        foreach (var record in csv.GetRecords<PrecursorFragmentMassSet>())
-        {
-            yield return record;
+            case 2 when candidate.Accession == current.Accession:
+            case 2 when candidate.FullSequence == current.FullSequence:
+                return false;
+            default:
+                return true;
         }
     }
-
-
-    public IEnumerable<PrecursorFragmentMassSet> ReadRange(long startOffset, double minMass, double maxMass, Tolerance tolerance)
-    {
-        if (_accessor == null)
-        {
-            throw new InvalidOperationException("MemoryMappedViewAccessor is not initialized.");
-        }
-
-        using var stream = new UnmanagedMemoryStream(_accessor.SafeMemoryMappedViewHandle, startOffset, Count - startOffset, FileAccess.Read);
-        using var reader = new StreamReader(stream);
-        using var csv = new CsvReader(reader, PrecursorFragmentMassSet.CsvConfiguration);
-
-        foreach (var record in csv.GetRecords<PrecursorFragmentMassSet>())
-        {
-            if (tolerance.Within(record.PrecursorMass, minMass) || tolerance.Within(record.PrecursorMass, maxMass))
-            {
-                yield return record;
-            }
-            else if (record.PrecursorMass > maxMass)
-            {
-                break; // Stop reading once beyond the range
-            }
-        }
-    }
-
 
     // TODO: Fix to allow static reading from memory mapped file
     public override void LoadResults()
     {
-        //if (_accessor == null)
-        //{
-        //    throw new InvalidOperationException("MemoryMappedViewAccessor is not initialized.");
-        //}
+        if (_accessor == null)
+        {
+            throw new InvalidOperationException("MemoryMappedViewAccessor is not initialized.");
+        }
 
-        // Read data from the memory-mapped file
-        // using var stream = new UnmanagedMemoryStream(_accessor.SafeMemoryMappedViewHandle, 0, _accessor.Capacity+1, FileAccess.Read);
-        //using var reader = new StreamReader(stream);
-        using var reader = new StreamReader(FilePath);
+        //Read data from the memory-mapped file
+        using var stream = new UnmanagedMemoryStream(_accessor.SafeMemoryMappedViewHandle, 0, _accessor.Capacity + 1, FileAccess.Read);
+        using var reader = new StreamReader(stream);
         using var csv = new CsvReader(reader, PrecursorFragmentMassSet.CsvConfiguration);
         Results = csv.GetRecords<PrecursorFragmentMassSet>().ToList();
     }
