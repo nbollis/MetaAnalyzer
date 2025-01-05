@@ -182,7 +182,17 @@ public class PrecursorFragmentMassFile
         }
     }
 
-   
+    public IEnumerable<PrecursorFragmentMassSet> StreamResults()
+    {
+        using var stream = new UnmanagedMemoryStream(_accessor!.SafeMemoryMappedViewHandle, 0, Count, FileAccess.Read);
+        using var reader = new StreamReader(stream);
+        using var csv = new CsvReader(reader, PrecursorFragmentMassSet.CsvConfiguration);
+
+        while (csv.Read())
+        {
+            yield return csv.GetRecord<PrecursorFragmentMassSet>();
+        }
+    }
 
     private static IEnumerable<PrecursorFragmentMassSet> ReadChunk(CsvReader csv, int chunkSize)
     {
@@ -214,10 +224,7 @@ public class PrecursorFragmentMassFile
         }
 
         //Read data from the memory-mapped file
-        using var stream = new UnmanagedMemoryStream(_accessor.SafeMemoryMappedViewHandle, 0, _accessor.Capacity + 1, FileAccess.Read);
-        using var reader = new StreamReader(stream);
-        using var csv = new CsvReader(reader, PrecursorFragmentMassSet.CsvConfiguration);
-        Results = csv.GetRecords<PrecursorFragmentMassSet>().ToList();
+        Results = StreamResults().ToList();
     }
 
     public override void WriteResults(string outputPath)
