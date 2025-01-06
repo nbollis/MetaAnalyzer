@@ -10,7 +10,7 @@ using Plotly.NET;
 using ResultAnalyzerUtil;
 using UsefulProteomicsDatabases;
 
-namespace Test
+namespace Test.ChimeraPaper
 {
     internal class BottomUpRunner
     {
@@ -23,7 +23,7 @@ namespace Test
                    .Where(p => !p.Contains("Figures") && !p.Contains("ProcessedResults") && !p.Contains("Prosight") && RunOnAll || p.Contains("Hela"))
                    .Select(datasetDirectory => new CellLineResults(datasetDirectory)).ToList());
 
-        
+
         internal static List<MsFraggerResult> MsFraggerResults => new AllResults(DirectoryPath, Directory.GetDirectories(DirectoryPath)
             .Where(p => !p.Contains("Figures") && !p.Contains("ProcessedResults") && !p.Contains("Prosight"))
             .Select(datasetDirectory => new CellLineResults(datasetDirectory)).ToList())
@@ -109,7 +109,7 @@ namespace Test
         public static void RunAllParsing()
         {
             // Got to K562
-            foreach (CellLineResults cellLine in AllResults.Skip(9))
+            foreach (CellLineResults cellLine in AllResults)
             {
                 foreach (var result in cellLine)
                 {
@@ -211,7 +211,7 @@ namespace Test
                 {
                     result.Override = true;
                     //if (result is MsFraggerResult)
-                        result.ToPsmProformaFile();
+                    result.ToPsmProformaFile();
                     result.Override = false;
                     result.Dispose();
                 }
@@ -223,7 +223,7 @@ namespace Test
                     Results = allRecords
                 };
                 newFile.WriteResults(proforomaFileName);
-                
+
                 group.Value.ForEach(p => p.Dispose());
             }
         }
@@ -328,7 +328,7 @@ namespace Test
             pspd.CountProteins();
         }
 
- 
+
 
         [Test]
         public static void TestProteinCountPlots()
@@ -384,7 +384,7 @@ namespace Test
             runResults.GetModificationDistribution().Show();
             runResults.GetModificationDistribution(ResultType.Peptide).Show();
 
-            
+
         }
 
 
@@ -489,7 +489,7 @@ namespace Test
                     Console.WriteLine($"Int Factorial Maxed Out at {i}");
                     break;
                 }
-                lastValue4 = (int)val;
+                lastValue4 = val;
             }
 
             BigInteger lastValue5 = 0;

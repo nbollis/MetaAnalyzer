@@ -15,7 +15,7 @@ using ResultAnalyzerUtil;
 using RetentionTimePrediction;
 using TaskLayer.ChimeraAnalysis;
 
-namespace Test
+namespace Test.ChimeraPaper
 {
     internal class MiscTaskRunner
     {
@@ -202,15 +202,15 @@ namespace Test
 
             var barChart = indFile.GetFileDelimitedPlotsForIsolationWidthStudy(ResultType.Psm, isTopDown, $"{titleLeader}");
             var outpath = Path.Combine(figureDir, $"{outName}_Psm");
-            barChart.SavePNG(outpath, null, widthSq + (int)((1/3)*widthSq), heightSq);
+            barChart.SavePNG(outpath, null, widthSq + 1 / 3 * widthSq, heightSq);
 
             var pepBarChart = indFile.GetFileDelimitedPlotsForIsolationWidthStudy(ResultType.Peptide, isTopDown, $"{titleLeader}");
             var pepOutpath = Path.Combine(figureDir, $"{outName}_Peptide");
-            pepBarChart.SavePNG(pepOutpath, null, widthSq + (int)((1/3)*widthSq), heightSq);
+            pepBarChart.SavePNG(pepOutpath, null, widthSq + 1 / 3 * widthSq, heightSq);
 
             var protBarChart = indFile.GetFileDelimitedPlotsForIsolationWidthStudy(ResultType.Protein, isTopDown, $"{titleLeader}");
             var protOutpath = Path.Combine(figureDir, $"{outName}_Protein");
-            protBarChart.SavePNG(protOutpath, null, widthSq + (int)((1 / 3) * widthSq), heightSq);
+            protBarChart.SavePNG(protOutpath, null, widthSq + 1 / 3 * widthSq, heightSq);
 
             //var breakdown = mm.GetChimeraBreakdownFile();
 
@@ -285,7 +285,7 @@ namespace Test
                 var mm = (MetaMorpheusResult)cellLine.First(p => p is MetaMorpheusResult);
                 var peptides = mm.AllPeptides;
                 var results = peptides
-                    .Where(p => p is {PEP_QValue: <= 0.01, DecoyContamTarget: "T"} 
+                    .Where(p => p is { PEP_QValue: <= 0.01, DecoyContamTarget: "T" }
                                 && !p.FullSequence.Contains("Metal")
                                 && !p.BaseSeq.Contains('U'))
                     .Select(p => (p.FullSequence, p.RetentionTime, ChronologerEstimator.PredictRetentionTime(p.BaseSeq, p.FullSequence))).ToArray();
@@ -387,7 +387,7 @@ namespace Test
                         continue;
 
                     var length = i;
-                    results.Add(new HyperScoreMetric { Length = length, Score = score, IsDecoy = isDecoy});
+                    results.Add(new HyperScoreMetric { Length = length, Score = score, IsDecoy = isDecoy });
                 }
             }
 

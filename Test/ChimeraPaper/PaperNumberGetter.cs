@@ -1,7 +1,7 @@
 ﻿using Analyzer.SearchType;
 using Analyzer.Util;
 
-namespace Test
+namespace Test.ChimeraPaper
 {
     internal class PaperNumberGetter
     {
@@ -11,16 +11,16 @@ namespace Test
 
         #region Input Directories
 
-        public static string Mann11FdrRunPath => 
+        public static string Mann11FdrRunPath =>
             MiscTaskRunner.Man11FDRRunPath;
 
-        public static string Mann11AllRunPath => 
+        public static string Mann11AllRunPath =>
             MiscTaskRunner.Man11AllResultsPath;
 
-        public static string TdJurkatFdrRunPath => 
+        public static string TdJurkatFdrRunPath =>
             MiscTaskRunner.TopDownJurkatFDRRunPath;
 
-        public static string TdJurkatAllRunPath => 
+        public static string TdJurkatAllRunPath =>
             MiscTaskRunner.TopDownDirectoryPath;
 
 
@@ -59,7 +59,7 @@ namespace Test
         {
 
         }
-        
+
 
     }
 }

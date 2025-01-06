@@ -9,7 +9,7 @@ using Plotting.Util;
 using ResultAnalyzerUtil;
 using UsefulProteomicsDatabases;
 
-namespace Test
+namespace Test.ChimeraPaper
 {
     internal class TopDownRunner
     {
@@ -168,11 +168,11 @@ namespace Test
                 p => p.Value
                     .OrderBy(n => n.Key)
                     .ToDictionary(
-                    m => m.Key, 
+                    m => m.Key,
                     m => m.Value.Count / (double)p.Value.Sum(p => p.Value.Count) * 100));
 
             var singles = percentResults.Select(p => (p.Key.Item1, p.Key.Item2, p.Value[1])).ToList();
-            
+
             var topDown = singles.Take(AllResults.Count());
             var bottomUp = singles.Skip(AllResults.Count());
 
@@ -215,7 +215,7 @@ namespace Test
             errors.ForEach(Console.WriteLine);
         }
 
-    
+
 
         [Test]
         public static void IsabellaData()

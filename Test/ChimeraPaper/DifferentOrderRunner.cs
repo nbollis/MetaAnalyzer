@@ -3,7 +3,7 @@ using Easy.Common.Extensions;
 using static NUnit.Framework.Assert;
 using Directory = System.IO.Directory;
 
-namespace Test
+namespace Test.ChimeraPaper
 {
     internal class DifferentOrderRunner
     {
