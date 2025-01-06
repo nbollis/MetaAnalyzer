@@ -503,8 +503,8 @@ public abstract class RadicalFragmentationExplorer
                 return -1;
 
             // reorder unique target list to be have those shared by the least other proteoforms first
-            //if (sortByUniqueness)
-            //    SortFragmentsByUniqueness(uniqueTargetFragmentList, otherProteoforms, tolerance);
+            if (sortByUniqueness)
+                SortFragmentsByUniqueness(uniqueTargetFragmentList, otherProteoforms, tolerance);
 
             if (useGreed)
                 return FindMinGreedy(uniqueTargetFragmentList, otherProteoforms, tolerance);

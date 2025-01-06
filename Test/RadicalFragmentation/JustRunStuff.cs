@@ -8,7 +8,8 @@ namespace Test
     internal class JustRunStuff
     {
         static string DatabasePath = @"D:\Projects\RadicalFragmentation\FragmentAnalysis\Databases\uniprotkb_human_proteome_AND_reviewed_t_2024_03_22.xml";
-        static string DirectoryPath = @"D:\Projects\RadicalFragmentation\FragmentAnalysis\SeventhIteration";
+        //static string DirectoryPath = @"D:\Projects\RadicalFragmentation\FragmentAnalysis\SeventhIteration";
+        static string DirectoryPath = @"B:\Users\Nic\RadicalFragmentation_Greedy";
 
         [Test]
         public static void GeneratePlotsOnSecondIteration()
@@ -107,7 +108,7 @@ namespace Test
         [Test]
         public static void UseSummaryRecordsForAllFigures()
         {
-            var baseDirPath = @"D:\Projects\RadicalFragmentation\FragmentAnalysis\SeventhIteration";
+            var baseDirPath = @"B:\Users\Nic\RadicalFragmentation_Greedy";
             var directoryPath = @"D:\Projects\RadicalFragmentation\FragmentAnalysis\SeventhIteration\Figures_3MaxMods";
             //baseDirPath = DirectoryPath;
 
