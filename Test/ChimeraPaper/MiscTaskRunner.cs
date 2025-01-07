@@ -347,6 +347,53 @@ namespace Test.ChimeraPaper
         #endregion
 
 
+        [Test]
+        public static void ChimerysRearanger()
+        {
+            string buBasePath = BottomUpRunner.DirectoryPath;
+            var destinationDir = ExternalComparisonTask.Mann11OutputDirectory;
+
+            foreach (var cellLineDir in Directory.GetDirectories(buBasePath)
+                .Where(p => !p.Contains("Figure"))
+                .Where(p => !p.Contains("Processed"))
+                .Where(p => !p.Contains("Prosight")))
+            {
+                var dirName = Path.GetFileName(cellLineDir);
+                var searchResultDir = Directory.GetDirectories(cellLineDir).First(p => p.Contains("SearchRes"));
+                var chimerysDir = Directory.GetDirectories(searchResultDir).First(p => p.Contains("Chimerys2"));
+                var chimerysFiles = Directory.GetFiles(chimerysDir).ToList();
+
+                var groupedFiles = chimerysFiles.GroupBy(p => Path.GetFileName(p).Split('_')[0])
+                    .ToDictionary(p => p.Key, p => p.ToList());
+
+                foreach (var chimerysGroup in groupedFiles)
+                {
+                    var finalDestName = $"Chimerys_{chimerysGroup.Key}";
+                    var finalDestDir = Path.Combine(destinationDir, dirName, finalDestName);
+                    var localDestDir = Path.Combine(searchResultDir, finalDestName);
+
+                    if (!Directory.Exists(finalDestDir))
+                        Directory.CreateDirectory(finalDestDir);
+
+                    foreach (var file in chimerysGroup.Value)
+                    {
+                        var finalDestPath = Path.Combine(finalDestDir, Path.GetFileName(file))
+                            .Replace("__", "_");
+                        if (!File.Exists(finalDestPath))
+                            File.Copy(file, finalDestPath);
+
+                        var originalSubbedPath = file.Replace("__", "_");
+                        if (!File.Exists(originalSubbedPath))
+                            File.Move(file, originalSubbedPath);
+                    }
+                    var dummyFile = Path.Combine(chimerysDir, "dummyReport.tdReport");
+                    if (!File.Exists(dummyFile))
+                        File.Create(dummyFile);
+                }
+            }
+        }
+
+
 
         [Test]
         public static void EdwinTest()

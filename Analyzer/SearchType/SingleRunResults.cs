@@ -105,7 +105,7 @@ namespace Analyzer.SearchType
             if (datasetName is null)
                 if (DirectoryPath.Contains("Task"))
                     DatasetName = Path.GetFileName(Path.GetDirectoryName(Path.GetDirectoryName(Path.GetDirectoryName(DirectoryPath))));
-                else if (DirectoryPath.Contains("ChimericLibrary_"))
+                else if (DirectoryPath.Contains("ChimericLibrary_") || DirectoryPath.Contains("ExternalMM"))
                     DatasetName = Path.GetFileName(Path.GetDirectoryName(DirectoryPath));
                 else
                     DatasetName = Path.GetFileName(Path.GetDirectoryName(Path.GetDirectoryName(DirectoryPath)));

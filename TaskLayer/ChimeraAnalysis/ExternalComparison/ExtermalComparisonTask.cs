@@ -47,12 +47,12 @@ namespace TaskLayer.ChimeraAnalysis
                 Directory.CreateDirectory(BulkFigureDirectory);
         }
 
-        protected override void RunSpecific() => RunSpecificAsync(Parameters).Wait();
+        protected override void RunSpecific() => RunSpecificAsync(Parameters)/*.Wait()*/;
 
-        private static async Task RunSpecificAsync(ExternalComparisonParameters parameters)
+        private static Task RunSpecificAsync(ExternalComparisonParameters parameters)
         {
             var processes = BuildProcesses(parameters);
-            await RunProcesses(processes);
+            RunProcesses(processes).Wait();
 
 
             var isTopDown = !parameters.InputDirectoryPath.Contains("Mann");
@@ -112,7 +112,7 @@ namespace TaskLayer.ChimeraAnalysis
 
                 try
                 {
-                    await RunProcesses(summaryTasks);
+                    /*await*/ RunProcesses(summaryTasks).Wait();
                 }
                 catch (Exception e)
                 {
@@ -121,8 +121,9 @@ namespace TaskLayer.ChimeraAnalysis
             }
 
             // Pull in Other software results to add to plots
-            var otherSearchResults = GetOtherSearches(isTopDown);
-            foreach (var runGroup in otherSearchResults.GroupBy(p => p.Condition.ConvertConditionName()))
+            var otherSearchResults = GetOtherSearches(isTopDown, parameters);
+            foreach (var runGroup in otherSearchResults
+                .GroupBy(p => p.Condition.ConvertConditionName()))
             {
                 cellLineDict.Add(runGroup.Key, new());
                 foreach (var run in runGroup)
@@ -142,7 +143,8 @@ namespace TaskLayer.ChimeraAnalysis
                 {
                     SingleRunResults result;
                     if (singleRunPath.Contains("MetaMorpheus"))
-                        result = new MetaMorpheusResult(singleRunPath);
+                        continue;
+                    //result = new MetaMorpheusResult(singleRunPath);
                     else if (singleRunPath.Contains("Fragger"))
                         result = new MsFraggerResult(singleRunPath);
                     else if (singleRunPath.Contains("Chimerys") || singleRunPath.Contains("ProsightPD"))
@@ -227,6 +229,7 @@ namespace TaskLayer.ChimeraAnalysis
             // plot in R
 
 
+            return Task.CompletedTask;
         }
 
 
@@ -323,52 +326,6 @@ namespace TaskLayer.ChimeraAnalysis
                     false => SearchMann11
                 };
             }
-        }
-
-        static List<SingleRunResults> GetOtherSearches(bool isTopDown)
-        {
-            List<SingleRunResults> allOtherResults = new();
-            if (isTopDown)
-            {
-                if (BulkFigureDirectory.Contains("Jurkat"))
-                {
-
-                }
-                else if (BulkFigureDirectory.Contains("Ecoli"))
-                {
-
-                }
-                else
-                {
-                    Debugger.Break();
-                }
-            }
-            else
-            {
-                var dirPath = @"B:\Users\Nic\Chimeras\Mann_11cell_analysis";
-                var allResults = new AllResults(dirPath, Directory.GetDirectories(dirPath)
-                        .Where(p => !p.Contains("Figures") && !p.Contains("ProcessedResults") && !p.Contains("Prosight"))
-                        .Select(datasetDirectory => new CellLineResults(datasetDirectory)).ToList())
-                    .SelectMany(cellLine => cellLine.Results.Where(result => result.Condition.Contains("DDA+") 
-                                                                             && result is MsFraggerResult).Cast<MsFraggerResult>())
-                    .ToList();
-                var fraggerReviewedDbNoPhospho = allResults
-                    .Where(p => p.Condition.ConvertConditionName().Contains("NoPhospho"))
-                    .ToList();
-                var fraggerReviewdWithPhospho = allResults
-                    .Where(p => !p.Condition.ConvertConditionName().Contains("NoPhospho") && p.Condition != "ReviewdDatabase_MsFraggerDDA+")
-                    .ToList();
-
-                allOtherResults.AddRange(fraggerReviewedDbNoPhospho);
-
-
-                string chimerysPath = @"B:\Users\Nic\Chimeras\Chimerys\Chimerys";
-                var chimerys = new ProteomeDiscovererResult(chimerysPath);
-
-                allOtherResults.Add(chimerys);
-            }
-
-            return allOtherResults;
         }
 
         #endregion
@@ -523,6 +480,59 @@ namespace TaskLayer.ChimeraAnalysis
 
         #endregion
 
+        static List<SingleRunResults> GetOtherSearches(bool isTopDown, ExternalComparisonParameters parameters)
+        {
+            List<SingleRunResults> allOtherResults = new();
+            if (isTopDown)
+            {
+                if (BulkFigureDirectory.Contains("Jurkat"))
+                {
+
+                }
+                else if (BulkFigureDirectory.Contains("Ecoli"))
+                {
+
+                }
+                else
+                {
+                    Debugger.Break();
+                }
+            }
+            else
+            {
+                var dirPath = @"B:\Users\Nic\Chimeras\Mann_11cell_analysis";
+                var allResults = new AllResults(dirPath, Directory.GetDirectories(dirPath)
+                    .Where(p => !p.Contains("Figures") && !p.Contains("ProcessedResults") && !p.Contains("Prosight"))
+                    .Select(datasetDirectory => new CellLineResults(datasetDirectory)).ToList());
+
+                var fraggerResults = allResults.SelectMany(cellLine => cellLine.Results.Where(result => result.Condition.Contains("DDA+")
+                        && result is MsFraggerResult).Cast<MsFraggerResult>())
+                    .ToList();
+                var fraggerReviewedDbNoPhospho = fraggerResults
+                    .Where(p => p.Condition.ConvertConditionName().Contains("NoPhospho"))
+                    .ToList();
+                var fraggerReviewdWithPhospho = fraggerResults
+                    .Where(p => !p.Condition.ConvertConditionName().Contains("NoPhospho") && p.Condition != "ReviewdDatabase_MsFraggerDDA+")
+                    .ToList();
+
+                allOtherResults.AddRange(fraggerReviewedDbNoPhospho);
+
+                foreach (var cellLineDirectory in Directory.GetDirectories(parameters.OutputDirectory)
+                             .Where(p => !p.Contains("Generate") && !p.Contains("Figure")))
+                {
+                    foreach (var indResultDir in Directory.GetDirectories(cellLineDirectory))
+                    {
+                        if (!indResultDir.Contains("Chimerys"))
+                            continue;
+
+                        var result = new ProteomeDiscovererResult(indResultDir);
+                        allOtherResults.Add(result);
+                    }
+                }
+            }
+
+            return allOtherResults;
+        }
 
         #region Plotting
 

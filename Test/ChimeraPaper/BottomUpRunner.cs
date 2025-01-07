@@ -2,12 +2,14 @@
 using Analyzer;
 using Analyzer.Interfaces;
 using Analyzer.Plotting;
+using Analyzer.Plotting.ComparativePlots;
 using Analyzer.Plotting.IndividualRunPlots;
 using Analyzer.Plotting.Util;
 using Analyzer.SearchType;
 using Easy.Common.Extensions;
 using Plotly.NET;
 using ResultAnalyzerUtil;
+using TaskLayer.ChimeraAnalysis;
 using UsefulProteomicsDatabases;
 
 namespace Test.ChimeraPaper
@@ -58,7 +60,7 @@ namespace Test.ChimeraPaper
 
             foreach (CellLineResults cellLine in AllResults)
             {
-                //cellLine.PlotIndividualFileResults(ResultType.Psm);
+                cellLine.PlotIndividualFileResults(ResultType.Psm);
                 //cellLine.PlotIndividualFileResults(ResultType.Peptide);
                 //cellLine.PlotIndividualFileResults(ResultType.Protein);
                 //cellLine.PlotCellLineRetentionTimePredictions();
@@ -275,10 +277,34 @@ namespace Test.ChimeraPaper
         [Test]
         public static void RunProformaShit_TempChimerys()
         {
-            var pspd = new ProteomeDiscovererResult(
-                @"B:\Users\Nic\Chimeras\Chimerys\Chimerys");
-            pspd.Override = true;
-            pspd.ToPsmProformaFile();
+            var dirPath = ExternalComparisonTask.Mann11OutputDirectory;
+            List<SingleRunResults> results = new();
+            foreach (var cellLineDir in Directory.GetDirectories(dirPath).Where(p =>
+                             !p.Contains("Figures") && !p.Contains("Genera") && !p.Contains("Prosight") && !p.Contains("ProcessedResults")))
+            {
+                foreach (var indRunDir in Directory.GetDirectories(cellLineDir))
+                {
+                    if (indRunDir.Contains("Figure"))
+                        continue;
+
+                    SingleRunResults result;
+                    if (indRunDir.Contains("MetaM"))
+                        result = new MetaMorpheusResult(indRunDir);
+                    else
+                        result = new ProteomeDiscovererResult(indRunDir);
+                    results.Add(result);
+                }
+            }
+
+            foreach (var result in results)
+            {
+                if (result is MetaMorpheusResult)
+                    continue;
+
+                result.GetIndividualFileComparison();
+                result.GetBulkResultCountComparisonFile();
+                result.ToPsmProformaFile();
+            }
         }
 
         [Test]
