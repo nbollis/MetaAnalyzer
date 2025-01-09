@@ -41,7 +41,6 @@ namespace Test
         public static void CreateSummaryRecords()
         {
             var explorers = DirectoryToFragmentExplorers.GetFragmentExplorersFromDirectory(DatabasePath, DirectoryPath)
-                //  .Where(p => p.NumberOfMods < 2)
                 .ToList();
 
             var fragNeededOutPath = Path.Combine(DirectoryPath, $"{FileIdentifiers.FragNeededSummary}.csv");
@@ -109,10 +108,11 @@ namespace Test
         public static void UseSummaryRecordsForAllFigures()
         {
             var baseDirPath = @"B:\Users\Nic\RadicalFragmentation_Greedy";
-            var directoryPath = @"D:\Projects\RadicalFragmentation\FragmentAnalysis\SeventhIteration\Figures_3MaxMods";
-            //baseDirPath = DirectoryPath;
+            var directoryPath = @"D:\Projects\RadicalFragmentation\FragmentAnalysis\SeventhIteration\Figures_All";
+            //var directoryPath = @"D:\Projects\RadicalFragmentation\FragmentAnalysis\SeventhIteration\Figures_3MaxMods";
+            baseDirPath = DirectoryPath;
 
-            int maxMods = 3;
+            int maxMods = 6;
             int[] missedMonos = new[] { 0, 1, 2, 3 };
             double[] tolerances = new[] { 10.0, 20, 50, 100 };
             string[] types = new[] { "ETD", "Tryptophan", "Cysteine" };
@@ -151,13 +151,12 @@ namespace Test
 
             #endregion
 
-
-
+            bool createdPrecursorCompetitionPlots = false;
             foreach (var type in types)
             {
                 // create unique fragment histogram once per type
                 var uniqueFragmentRecords = explorers
-                    .Where(p => p.AnalysisType == type && p.AmbiguityLevel == 1)
+                    .Where(p => p.AnalysisType == type && p is { AmbiguityLevel: 1, MissedMonoIsotopics: 0, Tolerance: 10 })
                     .SelectMany(p => p.FragmentHistogramFile)
                     .ToList();
                 uniqueFragmentRecords.WriteUniqueFragmentPlot(directoryPath, type);
@@ -174,22 +173,27 @@ namespace Test
                         .Where(p => p.AmbiguityLevel == amb)
                         .ToList();
 
-
                     fragNeededSummary.WriteToleranceFragmentsNeededHistogram(directoryPath, type, amb, 0);
                     fragNeededSummary.WriteToleranceCumulativeLine(directoryPath, type, amb, 0);
-                    precCompSummary.WriteTolerancePrecursorCompetitionPlot(directoryPath, type, amb, 0);
 
                     fragNeededSummary.WriteMissedMonoFragmentsNeededHistogram(directoryPath, type, amb, 10);
                     fragNeededSummary.WriteMissedMonoCumulativeLine(directoryPath, type, amb, 10);
-                    precCompSummary.WriteMissedMonoPrecursorCompetitionPlot(directoryPath, type, amb, 10);
+
+                    // only need one per ambiguity level
+                    if (!createdPrecursorCompetitionPlots && type == "Tryptophan")
+                    {
+                        precCompSummary.WriteTolerancePrecursorCompetitionPlot(directoryPath, type, amb, 0);
+                        precCompSummary.WriteMissedMonoPrecursorCompetitionPlot(directoryPath, type, amb, 10);
+                        precCompSummary.WritePrecursorCompetitionPlot(directoryPath, type, amb, 10, 0);
+                        if (amb == 2)
+                            createdPrecursorCompetitionPlots = true;
+                    }
 
                     foreach (var missedMono in missedMonos)
                     {
                         var innerPath = Path.Combine(directoryPath, $"{missedMono} Missed Mono");
                         var innerSummary = fragNeededSummary.Where(p => p.MissedMonoisotopics == missedMono)
                             .ToList();
-
-                        precCompSummary.WritePrecursorCompetitionPlot(innerPath, type, amb, 10, missedMono);
                         innerSummary.WriteFragmentsNeededHistogram(innerPath, type, amb, 10, missedMono);
                         innerSummary.WriteCumulativeFragmentsNeededLine(innerPath, type, amb, 10, missedMono, true);
                         innerSummary.WriteHybridFragmentNeeded(innerPath, type, amb, 10, missedMono);
@@ -204,7 +208,6 @@ namespace Test
                         var innerSummary = fragNeededSummary.Where(p => p.PpmTolerance == tolerance)
                             .ToList();
 
-                        precCompSummary.WritePrecursorCompetitionPlot(innerPath, type, amb, tolerance, 0);
                         innerSummary.WriteFragmentsNeededHistogram(innerPath, type, amb, tolerance, 0);
                         innerSummary.WriteCumulativeFragmentsNeededLine(innerPath, type, amb, tolerance, 0, true);
                         innerSummary.WriteHybridFragmentNeeded(innerPath, type, amb, tolerance, 0);

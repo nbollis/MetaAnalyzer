@@ -14,6 +14,7 @@ using ResultAnalyzerUtil;
 using System.Security.Cryptography;
 using static Plotly.NET.StyleParam.LinearAxisId;
 using MzLibUtil;
+using static Plotly.NET.StyleParam;
 
 namespace Plotting.RadicalFragmentation
 {
@@ -41,6 +42,37 @@ namespace Plotting.RadicalFragmentation
                 2 => "Protein",
                 _ => throw new ArgumentOutOfRangeException()
             };
+        }
+
+        public static string GetName(int mods, int missedMonos = -1, double tolerance = -1)
+        {
+            var sb = new StringBuilder(16);
+            sb.Append($"{mods} mod");
+            sb.Append(mods != 1 ? 's' : ' ');
+
+            if (missedMonos is not -1)
+            {
+                sb.Append($" ({missedMonos} Missed Mono");
+                if (missedMonos > 1)
+                    sb.Append("s)");
+                else
+                    sb.Append(')');
+            }
+
+
+            switch (tolerance)
+            {
+                case -1:
+                    return sb.ToString();
+                case 100: // ensure this comes in last when plotly orders by alphabetical
+                    sb.Append($" at\u00a0{tolerance} ppm  "); 
+                    break;
+                default:
+                    sb.Append($" at {tolerance} ppm  ");
+                    break;
+            }
+
+            return sb.ToString();
         }
 
         #region Plot Writing
@@ -130,7 +162,7 @@ namespace Plotting.RadicalFragmentation
                 if (!Directory.Exists(outDir))
                     Directory.CreateDirectory(outDir);
                 var chart = summaryRecords.GetPrecursorCompetitionHistogram(type, ambigLevel, tolerance, missedMono);
-                var outPath = Path.Combine(outDir, $"{GetLabel(type, missedMono, tolerance)}_{GetAmbigLabel(ambigLevel)}_PrecursorCompetition");
+                var outPath = Path.Combine(outDir, $"All_{GetAmbigLabel(ambigLevel)}_PrecursorCompetition");
                 chart.SavePNG(outPath, null, width, height);
             }
             catch (Exception ex)
@@ -189,7 +221,7 @@ namespace Plotting.RadicalFragmentation
                 if (!Directory.Exists(outDir))
                     Directory.CreateDirectory(outDir);
                 var chart = summaryRecords.GetPrecursorCompetitionHistogram(type, ambigLevel, tolerance, -1);
-                var outPath = Path.Combine(outDir, $"{GetLabel(type, 0, tolerance)}_{GetAmbigLabel(ambigLevel)}_MissedMonoPrecursorCompetition");
+                var outPath = Path.Combine(outDir, $"All_{GetAmbigLabel(ambigLevel)}_PrecursorCompetition_MissedMono");
                 chart.SavePNG(outPath, null, width, height);
             }
             catch (Exception ex)
@@ -247,7 +279,7 @@ namespace Plotting.RadicalFragmentation
                 if (!Directory.Exists(outDir))
                     Directory.CreateDirectory(outDir);
                 var chart = summaryRecords.GetPrecursorCompetitionHistogram(type, ambigLevel, -1, missedMono);
-                var outPath = Path.Combine(outDir, $"{GetLabel(type, 0, 10)}_{GetAmbigLabel(ambigLevel)}_TolerancePrecursorCompetition");
+                var outPath = Path.Combine(outDir, $"All_{GetAmbigLabel(ambigLevel)}_PrecursorCompetition_Tolerance");
                 chart.SavePNG(outPath, null, width, height);
             }
             catch (Exception ex)
@@ -296,7 +328,7 @@ namespace Plotting.RadicalFragmentation
 
 
                 var chart = Chart.Column<int, string, string>(y, x,
-                    Name: $"{modGroup.Key} mods", MarkerColor: color);
+                    Name: GetName(modGroup.Key), MarkerColor: color);
                 toCombine.Add(chart);
             }
             var combined = Chart.Combine(toCombine)
@@ -331,7 +363,7 @@ namespace Plotting.RadicalFragmentation
                 xVal[0] = "No ID";
                 xVal[1] = "Precursor Only";
                 var chart = Chart.Spline<string, double, string>(xVal, yVal, true, 0.0,
-                    Name: $"{modGroup.Key} mods", MultiText: yVal.Select(p => $"{p.Round(2)}%").ToArray(), MarkerColor: color);
+                    Name: GetName(modGroup.Key), MultiText: yVal.Select(p => $"{p.Round(2)}%").ToArray(), MarkerColor: color);
                 if (outlinedMarkers)
                     chart = chart.WithMarkerStyle(Color: color, Size: 8, Outline: Line.init(Color: Color.fromKeyword(ColorKeyword.Black), Width: 0.5),
                         Symbol: StyleParam.MarkerSymbol.NewModified(StyleParam.MarkerSymbol.Circle, StyleParam.SymbolStyle.Dot));
@@ -356,7 +388,8 @@ namespace Plotting.RadicalFragmentation
         {
             var combined = Chart.Combine(new[]
                 {
-                    summaryRecords.MinFragmentsNeededHist(type, out int maxVal, ambigLevel, tolerance, missedMono).WithAxisAnchor(Y: 1),
+                    summaryRecords.MinFragmentsNeededHist(type, out int maxVal, ambigLevel, tolerance, missedMono)
+                    .WithAxisAnchor(Y: 1),
                     summaryRecords.GetCumulativeFragmentsNeededChart(type, ambigLevel, tolerance, missedMono, true)
                         .WithAxisAnchor(Y: 2)
                 })
@@ -408,13 +441,21 @@ namespace Plotting.RadicalFragmentation
                          .OrderBy(p => p.Key))
             {
                 var color = RadicalFragmentationPlotHelpers.ModToColorDict[modGroup.Key];
-                var x = modGroup.Select(p => p.FragmentCount);
-                var y = modGroup.Select(p => p.ProteinCount);
-                //var chart = Chart.Spline<int, int, string>(x, y, true, 2, $"{modGroup.Key} mods", MarkerColor: color);
+                var x = modGroup.OrderBy(p => p.FragmentCount)
+                    .Select(p => p.FragmentCount).ToArray();
+                var y = modGroup.OrderBy(p => p.FragmentCount)
+                    .Select(p => p.ProteinCount).ToArray();
 
-                var chart = Chart.Histogram<int, int, string>(x.ToArray(), y.ToArray(), ShowLegend: true, 
-                    Name: $"{modGroup.Key} mods", MarkerColor: color,
-                 HistNorm: StyleParam.HistNorm.None, HistFunc: StyleParam.HistFunc.Sum);
+                GenericChart.GenericChart chart;
+                //if (type == "Tryptophan")
+                //chart = Chart.Spline<int, int, string>(x, y, true, 0.5,
+                //    GetName(modGroup.Key), MarkerColor: color);
+                //else
+                chart = Chart.Histogram<int, int, string>(x, y, ShowLegend: true,
+                        Name: GetName(modGroup.Key), MarkerColor: color,
+                        HistNorm: StyleParam.HistNorm.None, HistFunc: StyleParam.HistFunc.Sum);
+
+
                 toCombine.Add(chart);
             }
 
@@ -423,6 +464,7 @@ namespace Plotting.RadicalFragmentation
                 .WithYAxisStyle(Title.init($"Count of {GetAmbigLabel(1)}s"))
                 .WithTitle($"{GetLabel(type, 0, 10)}: Unique Fragments per {GetAmbigLabel(1)} ")
                 .WithLayout(PlotlyBase.JustLegend)
+                .WithYAxis(LinearAxis.init<int, int, int, int, int, int>(AxisType: StyleParam.AxisType.Log))
                 .WithSize(StandardWidth, StandardHeight);
 
             return combined;
@@ -506,11 +548,15 @@ namespace Plotting.RadicalFragmentation
 
                 y = yRolled;
 
-                string name = $"{mods} mods";
-                if (missedMono == -1)
-                    name += $" with {modGroup.Key.MissedMonoisotopics} Missed Mono";
-                if (tolerance == -1)
-                    name += $" at {modGroup.Key.PpmTolerance} ppm";
+                //string name = $"{mods} mods";
+                //if (missedMono == -1)
+                //    name += $" with {modGroup.Key.MissedMonoisotopics} Missed Mono";
+                //if (tolerance == -1)
+                //    name += $" at {modGroup.Key.PpmTolerance} ppm";
+
+                string name = GetName(mods,
+                    missedMono == 0 ? -1 : modGroup.Key.MissedMonoisotopics,
+                    tolerance == 10 ? -1 : modGroup.Key.PpmTolerance);
 
                 var chart = Chart.Scatter<double, double, string>(x, y, StyleParam.Mode.Lines,
                     Name: name, MarkerColor: color,
@@ -531,6 +577,8 @@ namespace Plotting.RadicalFragmentation
                 .Average(p => p) *2;
 
             string title = $"{GetLabel(type, missedMono, tolerance)}: {GetAmbigLabel(ambigLevel)} Precursor Competition ";
+            title = title.Replace($"{type}:", "");
+            title = title.Replace(type, "");
             if (missedMono == -1)
                 title += "by Missed Monos";
             else if (tolerance == -1)
@@ -567,7 +615,8 @@ namespace Plotting.RadicalFragmentation
         }
 
         // missed mono
-        public static GenericChart.GenericChart GetMissedMonoCumulativeChart(this List<FragmentsNeededSummary> summaryRecords, string type, int ambigLevel = 1, double tolerance = 10)
+        public static GenericChart.GenericChart GetMissedMonoCumulativeChart(this List<FragmentsNeededSummary> summaryRecords, 
+            string type, int ambigLevel = 1, double tolerance = 10)
         {
             int maxToDifferentiate = summaryRecords.Max(m => m.FragmentsNeeded);
             var xInteger = Enumerable.Range(-1, maxToDifferentiate + 2).ToList();
@@ -593,7 +642,7 @@ namespace Plotting.RadicalFragmentation
                     // missed mono plot differences
                     var color = RadicalFragmentationPlotHelpers.ModAndMissedMonoToColorDict[modCount][missedMonos];
                     var lineDash = RadicalFragmentationPlotHelpers.IntegerToLineDict[missedMonos];
-                    var name = missedMonos == 0 ? $"{modCount} mods" : $"{modCount} mods with {missedMonos} Missed Mono";
+                    var name = GetName(modCount, missedMonos);
 
                     var chart = Chart.Spline<string, double, string>(xVal, yVal, true, 0.0, LineDash: lineDash,
                         Name: name, MultiText: yVal.Select(p => $"{p.Round(2)}%").ToArray(), MarkerColor: color);
@@ -612,7 +661,8 @@ namespace Plotting.RadicalFragmentation
             return combined;
         }
 
-        public static GenericChart.GenericChart GetMissedMonoFragmentsNeededHist(this List<FragmentsNeededSummary> summaryRecords, string type, int ambigLevel = 1, double tolerance = 10, bool doLog = true)
+        public static GenericChart.GenericChart GetMissedMonoFragmentsNeededHist(this List<FragmentsNeededSummary> summaryRecords,
+            string type, int ambigLevel = 1, double tolerance = 10, bool doLog = true)
         {
             int maxToDifferentiate = summaryRecords.Max(m => m.FragmentsNeeded);
             var xInteger = Enumerable.Range(-1, maxToDifferentiate + 2).ToList();
@@ -641,9 +691,10 @@ namespace Plotting.RadicalFragmentation
                         };
                     }
 
+                    string name = GetName(result.Key, innerGroup.Key);
                     var color = RadicalFragmentationPlotHelpers.ModAndMissedMonoToColorDict[result.Key][innerGroup.Key];
                     var chart = Chart.Column<int, string, string>(y, x,
-                        Name: $"{result.Key} mods ({innerGroup.Key})", MarkerColor: color);
+                        Name: name, MarkerColor: color);
                     toCombine.Add(chart);
                 }
             }
@@ -694,9 +745,7 @@ namespace Plotting.RadicalFragmentation
                     // missed mono plot differences
                     var color = RadicalFragmentationPlotHelpers.ModToColorSetDict[modCount][i];
                     var lineDash = RadicalFragmentationPlotHelpers.IntegerToLineDict[tolerance];
-                    var name = tolerance == 100 
-                        ? $"{modCount} mods\u00a0({tolerance})"
-                        : $"{modCount} mods ({tolerance})";
+                    var name = GetName(modGroup.Key, -1, tolerance);
 
                     var chart = Chart.Spline<string, double, string>(xVal, yVal, true, 0.0, LineDash: lineDash,
                         Name: name, MultiText: yVal.Select(p => $"{p.Round(2)}%").ToArray(), MarkerColor: color);
@@ -746,10 +795,8 @@ namespace Plotting.RadicalFragmentation
                             _ => x[i]
                         };
                     }
-                    var name = tolerance == 100
-                        ? $"{modCount} mods\u00a0({tolerance})"
-                        : $"{modCount} mods ({tolerance})";
 
+                    var name = GetName(result.Key, -1, tolerance);
                     var color = RadicalFragmentationPlotHelpers.ModToColorSetDict[modCount][index];
                     var chart = Chart.Column<int, string, string>(y, x,
                         Name: name, MarkerColor: color);
