@@ -68,8 +68,8 @@ namespace Analyzer.SearchType
             // foreach psm, if the proteoform shares accession and mods, count it. If the protein shares accession, count it.
             foreach (var fileGroupedPrsms in PrsmFile.GroupBy(p => p.FileID))
             {
-                results[fileGroupedPrsms.Key].PsmCount = fileGroupedPrsms.Count();
-                results[fileGroupedPrsms.Key].OnePercentPsmCount = fileGroupedPrsms.Count(p => IsTopDown ? p.NegativeLogEValue >= 5 : p.QValue <= 0.01);
+                //results[fileGroupedPrsms.Key].PsmCount = fileGroupedPrsms.Count();
+                //results[fileGroupedPrsms.Key].OnePercentPsmCount = fileGroupedPrsms.Count(p => IsTopDown ? p.NegativeLogEValue >= 5 : p.QValue <= 0.01);
 
                 List<ProteomeDiscovererProteoformRecord> fileSpecificProteoforms = new();
                 List<ProteomeDiscovererProteinRecord> fileSpecificProteins = new();
@@ -84,13 +84,18 @@ namespace Analyzer.SearchType
                     fileSpecificProteins.AddRange(proteins);
                 }
 
+                var uniquePsms = fileGroupedPrsms.Distinct().ToArray();
+                var onePercentPsms = uniquePsms.Count(p => IsTopDown ? p.NegativeLogEValue >= 5 : p.PEP <= 0.01);
+
                 var uniqueProteoforms = fileSpecificProteoforms.Distinct().ToArray();
-                var onePercentProteoforms = uniqueProteoforms.Count(p => p.QValue <= 0.01);
+                var onePercentProteoforms = uniqueProteoforms.Count(p => p.PEP <= 0.01);
                 var uniqueProteins = fileSpecificProteins.Distinct().ToArray();
                 var onePercentProteins = uniqueProteins.Count(p => p.QValue <= 0.01);
 
+                results[fileGroupedPrsms.Key].PsmCount = uniquePsms.Length;
                 results[fileGroupedPrsms.Key].PeptideCount = uniqueProteoforms.Length;
                 results[fileGroupedPrsms.Key].ProteinGroupCount = uniqueProteins.Length;
+                results[fileGroupedPrsms.Key].OnePercentPsmCount = onePercentPsms;
                 results[fileGroupedPrsms.Key].OnePercentPeptideCount = onePercentProteoforms;
                 results[fileGroupedPrsms.Key].OnePercentProteinGroupCount = onePercentProteins;
             }
@@ -112,8 +117,7 @@ namespace Analyzer.SearchType
                 .GroupBy(p => p, CustomComparerExtensions.PSPDPrSMChimeraComparer)
                 .GroupBy(p => p.Count())
                 .ToDictionary(p => p.Key, p => p.Count());
-            var filtered = PrsmFile
-                .Where(p => IsTopDown ? p.NegativeLogEValue >= 5 : p.QValue <= 0.01)
+            var filtered = PrsmFile.FilteredResults
                 .GroupBy(p => p, CustomComparerExtensions.PSPDPrSMChimeraComparer)
                 .GroupBy(p => p.Count())
                 .ToDictionary(p => p.Key, p => p.Count());
@@ -136,16 +140,13 @@ namespace Analyzer.SearchType
 
             // TODO: Consider if this distinct comparer is necessary for the final results to be comparable
             var onePercentPsmCount = PrsmFile.FilteredResults
-                .Where(p => IsTopDown ? p.NegativeLogEValue >= 5 : p.QValue <= 0.01)
                 .Distinct()
                 .Count();
-            var onePercentProteoformCount = ProteoformFile
-                .Where(p => p.QValue <= 0.01)
+            var onePercentProteoformCount = ProteoformFile.FilteredResults
                 .Distinct()
                 .Count();
 
-            var onePercentProteinCount = ProteinFile
-                .Where(p => p.QValue <= 0.01)
+            var onePercentProteinCount = ProteinFile.FilteredResults
                 .Distinct()
                 .Count();
 
@@ -308,7 +309,7 @@ namespace Analyzer.SearchType
             if (File.Exists(_proformaPsmFilePath) && !Override)
                 return _proformaPsmFile ??= new ProformaFile(_proformaPsmFilePath);
 
-            var spectraFileGroup = PrsmFile
+            var spectraFileGroup = PrsmFile.FilteredResults
                 .GroupBy(p => IdToFileNameDictionary[p.FileID])
                 .ToDictionary(p => p.Key, 
                     p => p.ToArray());

@@ -135,8 +135,8 @@ namespace Analyzer.FileTypes.External
         // decoys are not reported by default
         [Ignore] public bool IsDecoy => false;
         [Ignore] public double ConfidenceMetric => NegativeLogEValue;
-        [Ignore] public double SecondaryConfidenceMetric => QValue;
-        [Ignore] public bool PassesConfidenceFilter => SecondaryConfidenceMetric <= 0.01;
+        [Ignore] public double SecondaryConfidenceMetric => PEP;
+        [Ignore] public bool PassesConfidenceFilter => !IsDecoy && SecondaryConfidenceMetric <= 0.01;
 
         #endregion
 
@@ -323,7 +323,10 @@ namespace Analyzer.FileTypes.External
         {
             if (ReferenceEquals(null, other)) return false;
             if (ReferenceEquals(this, other)) return true;
-            return AnnotatedSequence == other.AnnotatedSequence && ProteinAccessions == other.ProteinAccessions && Ms2ScanNumber == other.Ms2ScanNumber && FileID == other.FileID;
+            return AnnotatedSequence == other.AnnotatedSequence 
+                && ProteinAccessions == other.ProteinAccessions 
+                && Ms2ScanNumber == other.Ms2ScanNumber 
+                && FileID == other.FileID;
         }
 
         public override bool Equals(object? obj)
@@ -353,7 +356,8 @@ namespace Analyzer.FileTypes.External
         public override Software Software { get; set; }
 
         private List<ProteomeDiscovererPsmRecord>? _filteredResults;
-        public List<ProteomeDiscovererPsmRecord> FilteredResults => _filteredResults ??= Results.Where(p => p.QValue <= 0.01 && (p.NegativeLogEValue >= 5 || FilePath.Contains("Chimerys"))).ToList();
+        public List<ProteomeDiscovererPsmRecord> FilteredResults => 
+            _filteredResults ??= Results.Where(p => p.PEP <= 0.01 && (p.NegativeLogEValue >= 5 || FilePath.Contains("Chimerys"))).ToList();
         public override void LoadResults()
         {
             using var csv = new CsvReader(new StreamReader(FilePath), ProteomeDiscovererPsmRecord.CsvConfiguration);

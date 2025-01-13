@@ -2,6 +2,14 @@
 
 namespace Analyzer.Plotting.Util
 {
+    public enum SelectorType
+    {
+        IndividualFileComparison,
+        InternalMetaMorpheusFileComparison,
+        BulkResultComparison,
+        SingleResult
+    }
+
     public class Selector
     {
         #region Static Implementations
@@ -209,9 +217,19 @@ namespace Analyzer.Plotting.Util
             throw new ArgumentException($"Dataset {datasetName} not found in selectors");
         }
 
-
         #endregion
 
+        public bool Contains(string toTest, SelectorType type)
+        {
+            return type switch
+            {
+                SelectorType.IndividualFileComparison => IndividualFileComparisonSelector.Contains(toTest),
+                SelectorType.InternalMetaMorpheusFileComparison => InternalMetaMorpheusFileComparisonSelector.Contains(toTest),
+                SelectorType.BulkResultComparison => BulkResultComparisonSelector.Contains(toTest),
+                SelectorType.SingleResult => SingleResultSelector.Contains(toTest),
+                _ => throw new ArgumentOutOfRangeException(nameof(type), type, null)
+            };
+        }
 
 
         public string DatasetName { get; private init; }

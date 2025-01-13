@@ -70,7 +70,7 @@ public class ProteomeDiscovererProteoformRecord : IEquatable<ProteomeDiscovererP
     [Name("Average PrSM Detected Neutral Mass")]
     public double AveragePrsmDetectedNeutralMass { get; set; }
 
-    [Name("Q-value")]
+    [Name("Q-value", "q-Value")]
     public double QValue { get; set; }
 
     [Name("PEP")]
@@ -125,6 +125,10 @@ public class ProteomeDiscovererProteoformRecord : IEquatable<ProteomeDiscovererP
 
 public class ProteomeDiscovererProteoformFile : ResultFile<ProteomeDiscovererProteoformRecord>, IResultFile
 {
+    private List<ProteomeDiscovererProteoformRecord>? _filteredResults;
+    public List<ProteomeDiscovererProteoformRecord> FilteredResults => 
+        _filteredResults ??= Results.Where(p => p.PEP <= 0.01).ToList();
+
     public ProteomeDiscovererProteoformFile(string filePath) : base(filePath)
     {
     }

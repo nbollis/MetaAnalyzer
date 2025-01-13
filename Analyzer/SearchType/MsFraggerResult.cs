@@ -68,7 +68,7 @@ namespace Analyzer.SearchType
         /// </summary>
         /// <param name="path"></param>
         /// <returns></returns>
-        public override BulkResultCountComparisonFile GetIndividualFileComparison(string path = null)
+        public override BulkResultCountComparisonFile GetIndividualFileComparison(string? path = null)
         {
             path ??= _IndividualFilePath;
             if (!Override && File.Exists(path))
@@ -80,19 +80,20 @@ namespace Analyzer.SearchType
                 string fileNameWithoutExtension = Path.GetFileNameWithoutExtension(file.PsmFile.First().FileNameWithoutExtension);
                 string fileName = fileNameWithoutExtension!.Replace("interact-", "");
 
+                
+                var uniquePsms = file.PsmFile.Results.Count;
+                var uniquePsmsProb = file.PsmFile.Results.Count(p => p.PeptideProphetProbability >= 0.99);
+
                 var uniquePeptides = path.Contains("BaseS")
                     ? file.PeptideFile.Results.GroupBy(p => p.BaseSequence).Count()
                     : file.PeptideFile.Results.Count;
-                var uniquePsms = file.PsmFile.Results.Count;
-
                 var uniquePeptidesProb = path.Contains("BaseS")
                     ? file.PeptideFile.Results.GroupBy(p => p.BaseSequence)
                         .Select(p => p.MaxBy(m => m.Probability))
                         .Count()
-                    : file.PeptideFile.Results.Count();
-                var uniquePsmsProb = file.PsmFile.Results.Count(p => p.PeptideProphetProbability >= 0.99);
+                    : file.PeptideFile.Results.Count;
 
-                var uniqueProteins = file.ProteinFile.Results.GroupBy(p => p.Accession).Count();
+                var uniqueProteins = file.ProteinFile.Results.Count;
                 var uniqueProteinsProb = file.ProteinFile.Results.Count(p => p.ProteinProbability >= 0.99);
 
                 bulkResultCountComparisonFiles.Add(new BulkResultCountComparison

@@ -20,9 +20,7 @@ public class ProteomeDiscovererProteinRecord : IEquatable<ProteomeDiscovererProt
 
     public bool Equals(ProteomeDiscovererPsmRecord psm)
     {
-        if (psm.ProteinAccessions != Accession)
-            return false;
-        return true;
+        return psm.ProteinAccessions.Contains(Accession);
     }
 
     [Name("Accession")]
@@ -114,6 +112,10 @@ public class ProteomeDiscovererProteinRecord : IEquatable<ProteomeDiscovererProt
 
 public class ProteomeDiscovererProteinFile : ResultFile<ProteomeDiscovererProteinRecord>, IResultFile
 {
+    private List<ProteomeDiscovererProteinRecord>? _filteredResults;
+    public List<ProteomeDiscovererProteinRecord> FilteredResults =>
+        _filteredResults ??= Results.Where(p => p.QValue <= 0.01).ToList();
+
     public ProteomeDiscovererProteinFile(string filePath) : base(filePath)
     {
     }

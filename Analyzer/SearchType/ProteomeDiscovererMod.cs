@@ -18,7 +18,9 @@ public class ProteomeDiscovererMod : IEquatable<ProteomeDiscovererMod>
     {
         if (ReferenceEquals(null, other)) return false;
         if (ReferenceEquals(this, other)) return true;
-        return ModLocation == other.ModLocation && ModName == other.ModName && ModifiedResidue == other.ModifiedResidue;
+        return ModLocation == other.ModLocation 
+            && ModName == other.ModName 
+            && ModifiedResidue == other.ModifiedResidue;
     }
 
     public override bool Equals(object? obj)

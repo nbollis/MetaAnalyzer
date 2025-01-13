@@ -473,6 +473,9 @@ public static class PlottingTranslators
         { "MetaMorpheusWithChimeras_105_ChimericLibrary_Rep1", "MetaMorpheus⠀" },
         { "MetaMorpheusWithChimeras_105_ChimericLibrary_Rep2", "MetaMorpheus⠀" },
         { "MetaMorpheusWithChimeras_105_ChimericLibrary_Rep3", "MetaMorpheus⠀" },
+        { "MetaMorpheus_106_Rep1", "MetaMorpheus" },
+        { "MetaMorpheus_106_Rep2", "MetaMorpheus" },
+        { "MetaMorpheus_106_Rep3", "MetaMorpheus" },
         { "MetaMorpheusNoChimeras_105_NonChimericLibrary_Rep1", "MetaMorpheus No Chimeras" },
         { "MetaMorpheusNoChimeras_105_NonChimericLibrary_Rep2", "MetaMorpheus No Chimeras" },
         { "MetaMorpheusNoChimeras_105_NonChimericLibrary_Rep3", "MetaMorpheus No Chimeras" },
@@ -504,6 +507,9 @@ public static class PlottingTranslators
         { "ReviewdDatabase_MsFraggerDDA+", "MsFraggerDDA+" },
         { "MsFraggerDDA+", "OG MsFraggerDDA+" },
         { "Chimerys", "\u2800Chimerys"},
+        { "Chimerys_Rep1", "Chimerys"},
+        { "Chimerys_Rep2", "Chimerys"},
+        { "Chimerys_Rep3", "Chimerys"},
 
         // Top Down
         { "MetaMorpheus", "MetaMorpheus\u2800" },
@@ -588,26 +594,27 @@ public static class PlottingTranslators
     {
         if (ConditionToColorDictionary.TryGetValue(condition, out var color))
             return color;
-        else if (ConditionToColorDictionary.TryGetValue(condition.Trim(), out color))
+        if (ConditionToColorDictionary.TryGetValue(condition.Trim(), out color))
             return color;
-        else
+
+        if (ConditionNameConversionDictionary.ContainsValue(condition))
         {
-            if (ConditionNameConversionDictionary.ContainsValue(condition))
-            {
-                var key = ConditionNameConversionDictionary.FirstOrDefault(x => x.Value == condition).Key;
-                if (key is null)
-                    return Color.fromKeyword(ColorKeyword.Black);
-                if (ConditionToColorDictionary.TryGetValue(key, out color))
-                    return color;
-            }
-            else
-            {
-                ConditionToColorDictionary.Add(condition, ColorQueue.Dequeue());
-                return ConditionToColorDictionary[condition];
-            }
+            var key = ConditionNameConversionDictionary.FirstOrDefault(x => x.Value == condition).Key;
+            if (key is null)
+                return Color.fromKeyword(ColorKeyword.Black);
+            if (ConditionToColorDictionary.TryGetValue(key, out color))
+                return color;
+        }
+        else if (ConditionNameConversionDictionary.TryGetValue(condition, out var converted))
+        {
+            if (ConditionToColorDictionary.TryGetValue(converted, out color))
+                return color;
+            if (ConditionToColorDictionary.TryGetValue(converted.Trim(), out color))
+                return color;
         }
 
-        return Color.fromKeyword(ColorKeyword.Black);
+        ConditionToColorDictionary.Add(condition, ColorQueue.Dequeue());
+        return ConditionToColorDictionary[condition];
     }
 
     public static IEnumerable<Color> ConvertConditionsToColors(this IEnumerable<string> conditions)

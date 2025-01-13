@@ -1,13 +1,18 @@
 ﻿using System.Diagnostics;
 using Analyzer;
 using Analyzer.FileTypes.Internal;
+using Analyzer.Plotting;
 using Analyzer.Plotting.IndividualRunPlots;
+using Analyzer.Plotting.Util;
 using Analyzer.SearchType;
 using Analyzer.Util;
 using Easy.Common.Extensions;
 using Plotting.Util;
 using ResultAnalyzerUtil;
 using TaskLayer.CMD;
+using Plotly.NET;
+using Chart = Plotly.NET.CSharp.Chart;
+using Plotly.NET.TraceObjects;
 
 namespace TaskLayer.ChimeraAnalysis
 {
@@ -130,7 +135,9 @@ namespace TaskLayer.ChimeraAnalysis
                     cellLineDict[runGroup.Key].Add(run.DirectoryPath);
             }
 
-            // TODO: Comparative bar graphs
+            var allPaths = cellLineDict.SelectMany(p => p.Value).ToList();
+            PlotIndividualFileBarCharts(allPaths, isTopDown);
+
 
             // Run Protein Information
             Log("Creating Proforma Files", 1);
@@ -141,21 +148,7 @@ namespace TaskLayer.ChimeraAnalysis
                 Log($"Processing Cell Line {cellLine}", 1);
                 foreach (var singleRunPath in cellLineDictEntry.Value)
                 {
-                    SingleRunResults result;
-                    if (singleRunPath.Contains("MetaMorpheus"))
-                        continue;
-                    //result = new MetaMorpheusResult(singleRunPath);
-                    else if (singleRunPath.Contains("Fragger"))
-                        result = new MsFraggerResult(singleRunPath);
-                    else if (singleRunPath.Contains("Chimerys") || singleRunPath.Contains("ProsightPD"))
-                        result = new ProteomeDiscovererResult(singleRunPath);
-                    else if (singleRunPath.Contains("MsPathFinder"))
-                        result = new MsPathFinderTResults(singleRunPath);
-                    else
-                    {
-                        Debugger.Break();
-                        throw new NotImplementedException();
-                    }
+                    SingleRunResults result = LoadResultFromFilePath(singleRunPath);
                     result.ToPsmProformaFile();
                     result.Dispose();
                 }
@@ -189,20 +182,7 @@ namespace TaskLayer.ChimeraAnalysis
                 Log($"Processing Cell Line {cellLine}", 1);
                 foreach (var singleRunPath in cellLineDictEntry.Value)
                 {
-                    SingleRunResults result;
-                    if (singleRunPath.Contains("MetaMorpheus"))
-                        result = new MetaMorpheusResult(singleRunPath);
-                    else if (singleRunPath.Contains("Fragger"))
-                        result = new MsFraggerResult(singleRunPath);
-                    else if (singleRunPath.Contains("Chimerys") || singleRunPath.Contains("ProsightPD"))
-                        result = new ProteomeDiscovererResult(singleRunPath);
-                    else if (singleRunPath.Contains("MsPathFinder"))
-                        result = new MsPathFinderTResults(singleRunPath);
-                    else
-                    {
-                        Debugger.Break();
-                        throw new NotImplementedException();
-                    }
+                    SingleRunResults result = LoadResultFromFilePath(singleRunPath);
                     result.CountProteins();
                     result.Dispose();
                 }
@@ -505,17 +485,23 @@ namespace TaskLayer.ChimeraAnalysis
                     .Where(p => !p.Contains("Figures") && !p.Contains("ProcessedResults") && !p.Contains("Prosight"))
                     .Select(datasetDirectory => new CellLineResults(datasetDirectory)).ToList());
 
+                var selector = Selector.GetSelector(Path.GetFileName(dirPath), isTopDown);
                 var fraggerResults = allResults.SelectMany(cellLine => cellLine.Results.Where(result => result.Condition.Contains("DDA+")
-                        && result is MsFraggerResult).Cast<MsFraggerResult>())
+                        && !result.Condition.Contains("ase_MsF") && result is MsFraggerResult).Cast<MsFraggerResult>())
                     .ToList();
-                var fraggerReviewedDbNoPhospho = fraggerResults
-                    .Where(p => p.Condition.ConvertConditionName().Contains("NoPhospho"))
-                    .ToList();
-                var fraggerReviewdWithPhospho = fraggerResults
-                    .Where(p => !p.Condition.ConvertConditionName().Contains("NoPhospho") && p.Condition != "ReviewdDatabase_MsFraggerDDA+")
+                //var fraggerReviewedDbNoPhospho = fraggerResults
+                //    .Where(p => p.Condition.ConvertConditionName().Contains("NoPhospho"))
+                //    .ToList();
+                //var fraggerReviewdWithPhospho = fraggerResults
+                //    .Where(p => !p.Condition.ConvertConditionName().Contains("NoPhospho") && p.Condition != "ReviewdDatabase_MsFraggerDDA+")
+                //    .ToList();
+
+                // Only return one run
+                var fraggerToReturn = fraggerResults
+                    .Where(p => selector.Contains(p.Condition, SelectorType.BulkResultComparison))
                     .ToList();
 
-                allOtherResults.AddRange(fraggerReviewedDbNoPhospho);
+                allOtherResults.AddRange(fraggerToReturn);
 
                 foreach (var cellLineDirectory in Directory.GetDirectories(parameters.OutputDirectory)
                              .Where(p => !p.Contains("Generate") && !p.Contains("Figure")))
@@ -536,9 +522,93 @@ namespace TaskLayer.ChimeraAnalysis
 
         #region Plotting
 
-        // TODO:
+        static void PlotIndividualFileBarCharts(List<string> allPaths, bool isTopDown)
+        {
+            var results = allPaths.Select(LoadResultFromFilePath)
+                .Select(p => p.IndividualFileComparisonFile)
+                .Where(p => p != null && p.Any())
+                .ToList();
+
+            results.ForEach(p => p!.Results = p.Results.OrderBy(m => m.FileName.ConvertFileName()).ToList());
+
+            var toPlot = results
+                .SelectMany(p => p!.Results).ToList();
+
+            var psmPlot = GetBarChar(toPlot, ResultType.Psm, isTopDown);
+            var peptidePlot = GetBarChar(toPlot, ResultType.Peptide, isTopDown);
+            var proteinPlot = GetBarChar(toPlot, ResultType.Protein, isTopDown);
+        }
+
+        static GenericChart.GenericChart GetBarChar(List<BulkResultCountComparison> records, ResultType resultType, bool isTopDown)
+        {
+            bool withErrorBars = true;
+
+
+            List<GenericChart.GenericChart> toCombine = new();
+            foreach (var softwareGroup in records.GroupBy(p => p.Condition.Split('_')[0]))
+            {
+                List<string> labels = new();
+                List<int> values = new();
+                List<int> lower = new();
+                List<int> upper = new();
+                foreach (var cellLineGroup in softwareGroup.GroupBy(p => p.DatasetName))
+                {
+                    var repGroups = cellLineGroup.GroupBy(p => p.FileName.ConvertFileName().Split('_')[1])
+                        .ToDictionary(p => p.Key,
+                            p => p.Select(AnalyzerGenericPlots.ResultSelector(resultType)).ToArray());
+
+                    int value = (int)repGroups.Select(p => p.Value.Sum()).Average();
+                    values.Add(value);
+                    labels.Add(cellLineGroup.Key);
+
+
+                    int lowerBound = repGroups.Select(p => p.Value.Sum()).Min();
+                    lower.Add(value - lowerBound);
+                    int upperBound = repGroups.Select(p => p.Value.Sum()).Max();
+                    upper.Add(upperBound - value);
+                }
+
+                var name = softwareGroup.First().Condition.ConvertConditionName();
+                var color = softwareGroup.First().Condition.ConvertConditionToColor();
+                var softwareChart = Chart.Column<int, string, string>(values, labels, name, MarkerColor: color);
+                if (withErrorBars)
+                    softwareChart = softwareChart.WithYError(Error.init<int, int>(true, StyleParam.ErrorType.Data, false,
+                    lower, upper));
+                toCombine.Add(softwareChart);
+            }
+
+            var finalChart = Chart.Combine(toCombine.ToArray()).WithTitle($"1% FDR {Labels.GetLabel(isTopDown, resultType)}")
+                .WithXAxisStyle(Title.init("File"))
+                .WithYAxisStyle(Title.init("Count"))
+                .WithLayout(PlotlyBase.DefaultLayoutWithLegend)
+                .WithSize(800, 600);
+
+
+            finalChart.Show();
+
+            return finalChart;
+        }
 
         #endregion
+
+        private static SingleRunResults LoadResultFromFilePath(string singleRunPath)
+        {
+            SingleRunResults result;
+            if (singleRunPath.Contains("MetaMorpheus"))
+                result = new MetaMorpheusResult(singleRunPath);
+            else if (singleRunPath.Contains("Fragger"))
+                result = new MsFraggerResult(singleRunPath);
+            else if (singleRunPath.Contains("Chimerys") || singleRunPath.Contains("ProsightPD"))
+                result = new ProteomeDiscovererResult(singleRunPath);
+            else if (singleRunPath.Contains("MsPathFinder"))
+                result = new MsPathFinderTResults(singleRunPath);
+            else
+            {
+                Debugger.Break();
+                throw new NotImplementedException();
+            }
+            return result;
+        }
     }
 
 
