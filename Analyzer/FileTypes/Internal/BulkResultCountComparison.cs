@@ -28,6 +28,8 @@ namespace Analyzer.FileTypes.Internal
         public int OnePercentProteinGroupCount { get; set; }
         [Optional] public int OnePercentUnambiguousPsmCount { get; set; }
         [Optional] public int OnePercentUnambiguousPeptideCount { get; set; }
+        [Optional] public int OnePercentSecondary_PsmCount { get; set; }
+        [Optional] public int OnePercentSecondary_PeptideCount { get; set; }
 
 
         // addition operator to sum all integer components
@@ -51,7 +53,9 @@ namespace Analyzer.FileTypes.Internal
                 OnePercentPeptideCount = a.OnePercentPeptideCount + b.OnePercentPeptideCount,
                 OnePercentProteinGroupCount = a.OnePercentProteinGroupCount + b.OnePercentProteinGroupCount,
                 OnePercentUnambiguousPsmCount = a.OnePercentUnambiguousPsmCount + b.OnePercentUnambiguousPsmCount,
-                OnePercentUnambiguousPeptideCount = a.OnePercentUnambiguousPeptideCount + b.OnePercentUnambiguousPeptideCount
+                OnePercentUnambiguousPeptideCount = a.OnePercentUnambiguousPeptideCount + b.OnePercentUnambiguousPeptideCount,
+                OnePercentSecondary_PsmCount = a.OnePercentSecondary_PsmCount + b.OnePercentSecondary_PsmCount,
+                OnePercentSecondary_PeptideCount = a.OnePercentSecondary_PeptideCount + b.OnePercentSecondary_PeptideCount
             };
         }
 

@@ -127,7 +127,12 @@ public class ProteomeDiscovererProteoformFile : ResultFile<ProteomeDiscovererPro
 {
     private List<ProteomeDiscovererProteoformRecord>? _filteredResults;
     public List<ProteomeDiscovererProteoformRecord> FilteredResults => 
-        _filteredResults ??= Results.Where(p => p.PEP <= 0.01).ToList();
+        _filteredResults ??= Results.Where(p => p.QValue <= 0.01).ToList();
+
+    private List<ProteomeDiscovererProteoformRecord>? _pepFilteredResults;
+    public List<ProteomeDiscovererProteoformRecord> PepFilteredResults =>
+        _pepFilteredResults ??= Results.Where(p => p.PEP <= 0.01).ToList();
+
 
     public ProteomeDiscovererProteoformFile(string filePath) : base(filePath)
     {

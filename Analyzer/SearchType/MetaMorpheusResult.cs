@@ -135,8 +135,10 @@ namespace Analyzer.SearchType
                 
                 int psmCount = spectralmatches.Count;
                 int onePercentPsmCount = spectralmatches.Count(p => p.PEP_QValue <= 0.01);
+                int onePercentSecondaryPsmCount = spectralmatches.Count(p => p.QValue <= 0.01);
                 int peptideCount = peptides.Count;
                 int onePercentPeptideCount = peptides.Count(p => p.PEP_QValue <= 0.01);
+                int onePercentSecondaryPeptideCount = peptides.Count(p => p.QValue <= 0.01);
 
                 results.Add(new BulkResultCountComparison()
                 {
@@ -148,7 +150,9 @@ namespace Analyzer.SearchType
                     ProteinGroupCount = count,
                     OnePercentPsmCount = onePercentPsmCount,
                     OnePercentPeptideCount = onePercentPeptideCount,
-                    OnePercentProteinGroupCount = onePercentCount
+                    OnePercentProteinGroupCount = onePercentCount,
+                    OnePercentSecondary_PeptideCount = onePercentSecondaryPeptideCount,
+                    OnePercentSecondary_PsmCount = onePercentSecondaryPsmCount
                 });
             }
 
@@ -254,6 +258,8 @@ namespace Analyzer.SearchType
             int onePercentPeptideCount = peptides.Count(p => p.PEP_QValue <= 0.01);
             int onePercentUnambiguousPsmCount = psms.Count(p => p.PEP_QValue <= 0.01 && p.AmbiguityLevel == "1");
             int onePercentUnambiguousPeptideCount = peptides.Count(p => p.PEP_QValue <= 0.01 && p.AmbiguityLevel == "1");
+            int onePercentSecondaryPsmCount = psms.Count(p => p.QValue <= 0.01);
+            int onePercentSecondaryPeptideCount = peptides.Count(p => p.QValue <= 0.01);
 
 
             int proteingCount = 0;
@@ -289,7 +295,9 @@ namespace Analyzer.SearchType
                 OnePercentPeptideCount = onePercentPeptideCount,
                 OnePercentProteinGroupCount = onePercentProteinCount,
                 OnePercentUnambiguousPsmCount = onePercentUnambiguousPsmCount,
-                OnePercentUnambiguousPeptideCount = onePercentUnambiguousPeptideCount
+                OnePercentUnambiguousPeptideCount = onePercentUnambiguousPeptideCount,
+                OnePercentSecondary_PsmCount = onePercentSecondaryPsmCount,
+                OnePercentSecondary_PeptideCount = onePercentSecondaryPeptideCount
             };
 
             var bulkComparisonFile = new BulkResultCountComparisonFile(path)
@@ -1392,45 +1400,45 @@ namespace Analyzer.SearchType
                             .Sum(p => (int)p.Value.MonoisotopicMass!.RoundedDouble(0)!);
 
                     // Splitting the protein accession and base sequence
-                    ProformaRecord record;
-                    if (psm.AmbiguityLevel != "1")
-                    {
-                        record = new ProformaRecord()
-                        {
-                            Condition = condition,
-                            FileName = fileName,
-                            BaseSequence = psm.BaseSeq.Split('|')[0].Trim(),
-                            ModificationMass = modMass,
-                            PrecursorCharge = psm.PrecursorCharge,
-                            ProteinAccession = psm.ProteinAccession.Split('|')[0].Trim(),
-                            ScanNumber = psm.Ms2ScanNumber,
-                            FullSequence = psm.FullSequence.Split('|')[0].Trim()
-                        };
-                    }
-                    else
-                    {
-                        if (psm.Accession.Contains('|'))
-                        {
-                            var accessions = psm.Accession.Split('|');
-                            foreach (var accession in accessions)
-                            {
-                                record = new ProformaRecord()
-                                {
-                                    Condition = condition,
-                                    FileName = fileName,
-                                    BaseSequence = psm.BaseSeq,
-                                    ModificationMass = modMass,
-                                    PrecursorCharge = psm.PrecursorCharge,
-                                    ProteinAccession = accession,
-                                    ScanNumber = psm.Ms2ScanNumber,
-                                    FullSequence = psm.FullSequence
-                                };
-                                records.Add(record);
-                            }
-                            continue;
-                        }
+                    //ProformaRecord record;
+                    //if (psm.AmbiguityLevel != "1")
+                    //{
+                    //    record = new ProformaRecord()
+                    //    {
+                    //        Condition = condition,
+                    //        FileName = fileName,
+                    //        BaseSequence = psm.BaseSeq.Split('|')[0].Trim(),
+                    //        ModificationMass = modMass,
+                    //        PrecursorCharge = psm.PrecursorCharge,
+                    //        ProteinAccession = psm.ProteinAccession.Split('|')[0].Trim(),
+                    //        ScanNumber = psm.Ms2ScanNumber,
+                    //        FullSequence = psm.FullSequence.Split('|')[0].Trim()
+                    //    };
+                    //}
+                    //else
+                    //{
+                    //    if (psm.Accession.Contains('|'))
+                    //    {
+                    //        var accessions = psm.Accession.Split('|');
+                    //        foreach (var accession in accessions)
+                    //        {
+                    //            record = new ProformaRecord()
+                    //            {
+                    //                Condition = condition,
+                    //                FileName = fileName,
+                    //                BaseSequence = psm.BaseSeq,
+                    //                ModificationMass = modMass,
+                    //                PrecursorCharge = psm.PrecursorCharge,
+                    //                ProteinAccession = accession,
+                    //                ScanNumber = psm.Ms2ScanNumber,
+                    //                FullSequence = psm.FullSequence
+                    //            };
+                    //            records.Add(record);
+                    //        }
+                    //        continue;
+                    //    }
 
-                        record = new ProformaRecord()
+                       var record = new ProformaRecord()
                         {
                             Condition = condition,
                             FileName = fileName,
@@ -1441,7 +1449,7 @@ namespace Analyzer.SearchType
                             ScanNumber = psm.Ms2ScanNumber,
                             FullSequence = psm.FullSequence
                         };
-                    }
+                    //}
 
                     records.Add(record);
                 }

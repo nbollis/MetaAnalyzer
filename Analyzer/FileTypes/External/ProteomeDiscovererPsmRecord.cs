@@ -357,7 +357,14 @@ namespace Analyzer.FileTypes.External
 
         private List<ProteomeDiscovererPsmRecord>? _filteredResults;
         public List<ProteomeDiscovererPsmRecord> FilteredResults => 
-            _filteredResults ??= Results.Where(p => p.PEP <= 0.01 && (p.NegativeLogEValue >= 5 || FilePath.Contains("Chimerys"))).ToList();
+            _filteredResults ??= Results.Where(p => p.QValue <= 0.01 && (p.NegativeLogEValue >= 5 || FilePath.Contains("Chimerys"))).ToList();
+
+        private List<ProteomeDiscovererPsmRecord>? _pepFilteredResults;
+        public List<ProteomeDiscovererPsmRecord> PepFilteredResults =>
+            _pepFilteredResults ??= Results.Where(p => p.PEP <= 0.01 && (p.NegativeLogEValue >= 5 || FilePath.Contains("Chimerys"))).ToList();
+
+
+
         public override void LoadResults()
         {
             using var csv = new CsvReader(new StreamReader(FilePath), ProteomeDiscovererPsmRecord.CsvConfiguration);

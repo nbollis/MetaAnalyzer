@@ -85,10 +85,13 @@ namespace Analyzer.SearchType
                 }
 
                 var uniquePsms = fileGroupedPrsms.Distinct().ToArray();
-                var onePercentPsms = uniquePsms.Count(p => IsTopDown ? p.NegativeLogEValue >= 5 : p.PEP <= 0.01);
+                var onePercentPsms = uniquePsms.Count(p => IsTopDown ? p.NegativeLogEValue >= 5 : p.QValue <= 0.01);
+                var onePercentPEPPsms = uniquePsms.Count(p => IsTopDown ? p.NegativeLogEValue >= 5 : p.PEP <= 0.01);
 
                 var uniqueProteoforms = fileSpecificProteoforms.Distinct().ToArray();
-                var onePercentProteoforms = uniqueProteoforms.Count(p => p.PEP <= 0.01);
+                var onePercentProteoforms = uniqueProteoforms.Count(p => p.QValue <= 0.01);
+                var onePercentPEPProteoforms = uniqueProteoforms.Count(p => p.PEP <= 0.01);
+
                 var uniqueProteins = fileSpecificProteins.Distinct().ToArray();
                 var onePercentProteins = uniqueProteins.Count(p => p.QValue <= 0.01);
 
@@ -98,6 +101,8 @@ namespace Analyzer.SearchType
                 results[fileGroupedPrsms.Key].OnePercentPsmCount = onePercentPsms;
                 results[fileGroupedPrsms.Key].OnePercentPeptideCount = onePercentProteoforms;
                 results[fileGroupedPrsms.Key].OnePercentProteinGroupCount = onePercentProteins;
+                results[fileGroupedPrsms.Key].OnePercentSecondary_PsmCount = onePercentPEPPsms;
+                results[fileGroupedPrsms.Key].OnePercentSecondary_PeptideCount = onePercentPEPProteoforms;
             }
 
             var bulkResultComparisonFile = new BulkResultCountComparisonFile(_IndividualFilePath)
@@ -142,7 +147,16 @@ namespace Analyzer.SearchType
             var onePercentPsmCount = PrsmFile.FilteredResults
                 .Distinct()
                 .Count();
+
+            var onePercentPepPsmCount = PrsmFile.PepFilteredResults
+                .Distinct()
+                .Count();
+
             var onePercentProteoformCount = ProteoformFile.FilteredResults
+                .Distinct()
+                .Count();
+
+            var onePercentPepProteoformCount = ProteoformFile.PepFilteredResults
                 .Distinct()
                 .Count();
 
@@ -160,7 +174,9 @@ namespace Analyzer.SearchType
                 ProteinGroupCount = proteinCount,
                 OnePercentPsmCount = onePercentPsmCount,
                 OnePercentPeptideCount = onePercentProteoformCount,
-                OnePercentProteinGroupCount = onePercentProteinCount
+                OnePercentProteinGroupCount = onePercentProteinCount,
+                OnePercentSecondary_PsmCount = onePercentPepPsmCount,
+                OnePercentSecondary_PeptideCount = onePercentPepProteoformCount
             };
 
             var bulkComparisonFile = new BulkResultCountComparisonFile(_bulkResultCountComparisonPath)
@@ -331,29 +347,29 @@ namespace Analyzer.SearchType
                             .Sum(p => (int)p.Value.MonoisotopicMass!.RoundedDouble(0)!);
 
                     // Splitting proteins
-                    ProformaRecord record;
-                    if (psmResult.ProteinAccession.Contains(';'))
-                    {
-                        var accessions = psmResult.ProteinAccession.Split(';');
-                        foreach (var accession in accessions)
-                        {
-                            record = new ProformaRecord()
-                            {
-                                Condition = condition,
-                                FileName = fileName,
-                                BaseSequence = psmResult.BaseSequence,
-                                FullSequence = psmResult.FullSequence,
-                                ModificationMass = modMass,
-                                PrecursorCharge = psmResult.Charge,
-                                ProteinAccession = accession,
-                                ScanNumber = psmResult.OneBasedScanNumber,
-                            };
-                            records.Add(record);
-                        }
-                        continue;
-                    }
+                    //ProformaRecord record;
+                    //if (psmResult.ProteinAccession.Contains(';'))
+                    //{
+                    //    var accessions = psmResult.ProteinAccession.Split(';');
+                    //    foreach (var accession in accessions)
+                    //    {
+                    //        record = new ProformaRecord()
+                    //        {
+                    //            Condition = condition,
+                    //            FileName = fileName,
+                    //            BaseSequence = psmResult.BaseSequence,
+                    //            FullSequence = psmResult.FullSequence,
+                    //            ModificationMass = modMass,
+                    //            PrecursorCharge = psmResult.Charge,
+                    //            ProteinAccession = accession,
+                    //            ScanNumber = psmResult.OneBasedScanNumber,
+                    //        };
+                    //        records.Add(record);
+                    //    }
+                    //    continue;
+                    //}
 
-                    record = new ProformaRecord()
+                    var record = new ProformaRecord()
                     {
                         Condition = condition,
                         FileName = fileName,
@@ -361,7 +377,7 @@ namespace Analyzer.SearchType
                         FullSequence = psmResult.FullSequence,
                         ModificationMass = modMass,
                         PrecursorCharge = psmResult.Charge,
-                        ProteinAccession = psmResult.ProteinAccession,
+                        ProteinAccession = psmResult.ProteinAccession.Replace(';', '|'),
                         ScanNumber = psmResult.OneBasedScanNumber,
                     };
 

@@ -301,6 +301,7 @@ namespace Test.ChimeraPaper
                 if (result is MetaMorpheusResult)
                     continue;
 
+                result.Override = true;
                 result.GetIndividualFileComparison();
                 result.GetBulkResultCountComparisonFile();
                 result.ToPsmProformaFile();

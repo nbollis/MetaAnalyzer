@@ -13,6 +13,7 @@ using TaskLayer.CMD;
 using Plotly.NET;
 using Chart = Plotly.NET.CSharp.Chart;
 using Plotly.NET.TraceObjects;
+using Plotly.NET.ImageExport;
 
 namespace TaskLayer.ChimeraAnalysis
 {
@@ -136,7 +137,7 @@ namespace TaskLayer.ChimeraAnalysis
             }
 
             var allPaths = cellLineDict.SelectMany(p => p.Value).ToList();
-            PlotIndividualFileBarCharts(allPaths, isTopDown);
+            PlotCellLineAveragedBarCharts(allPaths, isTopDown);
 
 
             // Run Protein Information
@@ -155,8 +156,7 @@ namespace TaskLayer.ChimeraAnalysis
             }
 
             var proformaGroups = cellLineDict.SelectMany(p => p.Value)
-                .Where(p => p.Contains("MetaMorpheus"))
-                .Select(p => new MetaMorpheusResult(p))
+                .Select(LoadResultFromFilePath)
                 .GroupBy(p => p.Condition.ConvertConditionName())
                 .ToDictionary(p => p.Key, p => p.ToList());
             var proformaResultPath = Path.Combine(BulkFigureDirectory, "ProformaResults");
@@ -189,8 +189,7 @@ namespace TaskLayer.ChimeraAnalysis
             }
 
             var proteinGroups = cellLineDict.SelectMany(p => p.Value)
-                .Where(p => p.Contains("MetaMorpheus"))
-                .Select(p => new MetaMorpheusResult(p))
+                .Select(LoadResultFromFilePath)
                 .GroupBy(p => p.Condition.ConvertConditionName())
                 .ToDictionary(p => p.Key, p => p.ToList());
             foreach (var condition in proteinGroups)
@@ -522,7 +521,7 @@ namespace TaskLayer.ChimeraAnalysis
 
         #region Plotting
 
-        static void PlotIndividualFileBarCharts(List<string> allPaths, bool isTopDown)
+        static void PlotCellLineAveragedBarCharts(List<string> allPaths, bool isTopDown)
         {
             var results = allPaths.Select(LoadResultFromFilePath)
                 .Select(p => p.IndividualFileComparisonFile)
@@ -534,9 +533,18 @@ namespace TaskLayer.ChimeraAnalysis
             var toPlot = results
                 .SelectMany(p => p!.Results).ToList();
 
+
             var psmPlot = GetBarChar(toPlot, ResultType.Psm, isTopDown);
+            var outPath = Path.Combine(BulkFigureDirectory, "ResultsByCellLine_PSM");
+            psmPlot.SavePNG(outPath, null, 800, 600);
+
             var peptidePlot = GetBarChar(toPlot, ResultType.Peptide, isTopDown);
+            outPath = Path.Combine(BulkFigureDirectory, "ResultsByCellLine_Peptide");
+            peptidePlot.SavePNG(outPath, null, 800, 600);
+
             var proteinPlot = GetBarChar(toPlot, ResultType.Protein, isTopDown);
+            outPath = Path.Combine(BulkFigureDirectory, "ResultsByCellLine_Protein");
+            proteinPlot.SavePNG(outPath, null, 800, 600);
         }
 
         static GenericChart.GenericChart GetBarChar(List<BulkResultCountComparison> records, ResultType resultType, bool isTopDown)
@@ -582,9 +590,6 @@ namespace TaskLayer.ChimeraAnalysis
                 .WithYAxisStyle(Title.init("Count"))
                 .WithLayout(PlotlyBase.DefaultLayoutWithLegend)
                 .WithSize(800, 600);
-
-
-            finalChart.Show();
 
             return finalChart;
         }

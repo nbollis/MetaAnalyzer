@@ -503,7 +503,7 @@ public static class PlottingTranslators
         { "ReviewdDatabaseNoPhospho_MsFragger", "No P MsFragger" },
         { "ReviewdDatabaseNoPhospho_MsFraggerDDA", "No P MsFragger" },
         { "MsFraggerDDA", "MsFraggerDDA" },
-        { "ReviewdDatabaseNoPhospho_MsFraggerDDA+", "No P MsFraggerDDA+" },
+        { "ReviewdDatabaseNoPhospho_MsFraggerDDA+", "MsFraggerDDA+" },
         { "ReviewdDatabase_MsFraggerDDA+", "MsFraggerDDA+" },
         { "MsFraggerDDA+", "OG MsFraggerDDA+" },
         { "Chimerys", "\u2800Chimerys"},
