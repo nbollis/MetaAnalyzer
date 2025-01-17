@@ -55,6 +55,7 @@ namespace Analyzer.FileTypes.External
 
                     results.Add(record);
                 }
+                Results = results;
             }
             else
                 Results = csv.GetRecords<MsFraggerPeptide>().ToList();
