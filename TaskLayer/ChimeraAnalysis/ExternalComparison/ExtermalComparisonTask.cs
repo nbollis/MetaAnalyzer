@@ -459,18 +459,16 @@ namespace TaskLayer.ChimeraAnalysis
 
         #endregion
 
-        static List<SingleRunResults> GetOtherSearches(bool isTopDown, ExternalComparisonParameters parameters)
+        public static List<SingleRunResults> GetOtherSearches(bool isTopDown, ExternalComparisonParameters parameters)
         {
             List<SingleRunResults> allOtherResults = new();
             if (isTopDown)
             {
                 if (BulkFigureDirectory.Contains("Jurkat"))
                 {
-
                 }
                 else if (BulkFigureDirectory.Contains("Ecoli"))
                 {
-
                 }
                 else
                 {
@@ -485,7 +483,8 @@ namespace TaskLayer.ChimeraAnalysis
                     .Select(datasetDirectory => new CellLineResults(datasetDirectory)).ToList());
 
                 var selector = Selector.GetSelector(Path.GetFileName(dirPath), isTopDown);
-                var fraggerResults = allResults.SelectMany(cellLine => cellLine.Results.Where(result => result.Condition.Contains("DDA+")
+                var fraggerResults = allResults.SelectMany(cellLine => cellLine.Results.Where(result =>
+                        result.Condition.Contains("DDA+")
                         && !result.Condition.Contains("ase_MsF") && result is MsFraggerResult).Cast<MsFraggerResult>())
                     .ToList();
                 //var fraggerReviewedDbNoPhospho = fraggerResults

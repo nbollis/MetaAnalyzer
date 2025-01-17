@@ -290,22 +290,34 @@ namespace Test.ChimeraPaper
                     SingleRunResults result;
                     if (indRunDir.Contains("MetaM"))
                         result = new MetaMorpheusResult(indRunDir);
+                    else if (indRunDir.Contains("Frag"))
+                        result = new MsFraggerResult(indRunDir);
                     else
                         result = new ProteomeDiscovererResult(indRunDir);
                     results.Add(result);
                 }
             }
 
-            foreach (var result in results)
-            {
-                if (result is MetaMorpheusResult)
-                    continue;
+            // load fragger. 
+            dirPath = @"B:\Users\Nic\Chimeras\Mann_11cell_analysis";
+            var allResults = new AllResults(dirPath, Directory.GetDirectories(dirPath)
+                .Where(p => !p.Contains("Figures") && !p.Contains("ProcessedResults") && !p.Contains("Prosight"))
+                .Select(datasetDirectory => new CellLineResults(datasetDirectory)).ToList());
 
+            var selector = Selector.GetSelector(Path.GetFileName(dirPath), false);
+            var fraggerResults = allResults.SelectMany(cellLine => cellLine.Results.Where(result =>
+                    result.Condition.Contains("DDA+")
+                    && !result.Condition.Contains("ase_MsF") && result is MsFraggerResult).Cast<MsFraggerResult>())
+                    .Where(p => selector.Contains(p.Condition, SelectorType.BulkResultComparison));
+            results.AddRange(fraggerResults);
+
+            Parallel.ForEach(results, new ParallelOptions() { MaxDegreeOfParallelism = 6},  result =>
+            {
                 result.Override = true;
                 result.GetIndividualFileComparison();
                 result.GetBulkResultCountComparisonFile();
                 result.ToPsmProformaFile();
-            }
+            });
         }
 
         [Test]
