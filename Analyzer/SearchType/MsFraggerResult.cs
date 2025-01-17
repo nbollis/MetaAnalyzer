@@ -91,7 +91,7 @@ namespace Analyzer.SearchType
                     ? file.PeptideFile.Results.GroupBy(p => p.BaseSequence)
                         .Select(p => p.MaxBy(m => m.Probability))
                         .Count()
-                    : file.PeptideFile.Results.Count;
+                    : file.PeptideFile.Results.Count(p => p.Probability > 0.99);
 
                 var uniqueProteins = file.ProteinFile.Results.Count;
                 var uniqueProteinsProb = file.ProteinFile.Results.Count(p => p.ProteinProbability >= 0.99);
@@ -146,12 +146,11 @@ namespace Analyzer.SearchType
             if (!Override && File.Exists(path))
                 return new BulkResultCountComparisonFile(path);
 
-            var peptideFile = /*path.Contains("BaseS") ? CombinedPeptideBaseSeq :*/ CombinedPeptides;
             var psmsCount = CombinedPsms.Results.Count;
-            var peptidesCount = peptideFile.Results.Count;
+            var peptidesCount = CombinedPeptides.Results.Count;
 
             var psmsProbCount = CombinedPsms.Results.Count(p => p.PeptideProphetProbability > 0.99);
-            var peptidesProbCount = peptideFile.Results.Count(p => p.Probability > 0.99);
+            var peptidesProbCount = CombinedPeptides.Results.Count(p => p.Probability > 0.99);
 
             int proteinCount;
             int onePercentProteinCount;

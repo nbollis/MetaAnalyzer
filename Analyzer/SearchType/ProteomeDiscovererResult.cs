@@ -68,20 +68,22 @@ namespace Analyzer.SearchType
             // foreach psm, if the proteoform shares accession and mods, count it. If the protein shares accession, count it.
             foreach (var fileGroupedPrsms in PrsmFile.GroupBy(p => p.FileID))
             {
-                //results[fileGroupedPrsms.Key].PsmCount = fileGroupedPrsms.Count();
-                //results[fileGroupedPrsms.Key].OnePercentPsmCount = fileGroupedPrsms.Count(p => IsTopDown ? p.NegativeLogEValue >= 5 : p.QValue <= 0.01);
-
                 List<ProteomeDiscovererProteoformRecord> fileSpecificProteoforms = new();
                 List<ProteomeDiscovererProteinRecord> fileSpecificProteins = new();
+
+                var allProteoforms= ProteoformFile.Results.ToList();
+                var allProteins = ProteinFile.Results.ToList();
                 foreach (var prsm in fileGroupedPrsms)
                 {
-                    var proteoforms = ProteoformFile.Where(p => p.Equals(prsm))
+                    var proteoforms = allProteoforms.Where(p => p.Equals(prsm))
                         .DistinctBy(p => (p.ProteinAccessions, p.Modifications.Length)).ToArray();
                     fileSpecificProteoforms.AddRange(proteoforms);
+                    proteoforms.ForEach(p => allProteoforms.Remove(p));
 
-                    var proteins = ProteinFile.Where(p => p.Equals(prsm))
+                    var proteins = allProteins.Where(p => p.Equals(prsm))
                         .DistinctBy(p => p.Accession).ToArray();
                     fileSpecificProteins.AddRange(proteins);
+                    proteins.ForEach(p => allProteins.Remove(p));
                 }
 
                 var uniquePsms = fileGroupedPrsms.Distinct().ToArray();
