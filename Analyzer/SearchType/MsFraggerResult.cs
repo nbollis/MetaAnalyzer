@@ -293,9 +293,20 @@ namespace Analyzer.SearchType
             proteinCountingFile.WriteResults(_proteinCountingFilePath);
             return _proteinCountingFile = proteinCountingFile;
         }
+
+        public new void Dispose()
+        {
+            _psmFile = null;
+            _peptideFile = null;
+            _proteinFile = null;
+            _retentionTimePredictionFile = null;
+
+            IndividualFileResults.ForEach(p => p.Dispose());
+            base.Dispose();
+        }
     }
 
-    public class MsFraggerIndividualFileResult
+    public class MsFraggerIndividualFileResult : IDisposable
     {
         public string DirectoryPath { get; set; }
 
@@ -318,6 +329,13 @@ namespace Analyzer.SearchType
             PsmPath = System.IO.Path.Combine(DirectoryPath, "psm.tsv");
             PeptidePath = System.IO.Path.Combine(DirectoryPath, "peptide.tsv");
             ProteinPath = System.IO.Path.Combine(DirectoryPath, "protein.tsv");
+        }
+
+        public void Dispose()
+        {
+            _psmFile = null;
+            _peptideFile = null;
+            _proteinFile = null;
         }
     }
 }

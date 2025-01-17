@@ -414,10 +414,16 @@ namespace Analyzer.SearchType
             return _proteinCountingFile = proteinCountingFile;
         }
 
-        public new void Dispose()
+        public new void Dispose() 
         {
-            base.Dispose();
             _chimeraBreakdownFile = null;
+            _psmFile = null;
+            _peptideFile = null;
+            _proteinFile = null;
+            _inputFile = null;
+            _idToFileNameDictionary = null;
+
+            base.Dispose();
         }
     }
 }

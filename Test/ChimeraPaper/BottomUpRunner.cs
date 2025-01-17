@@ -311,12 +311,13 @@ namespace Test.ChimeraPaper
                     .Where(p => selector.Contains(p.Condition, SelectorType.BulkResultComparison));
             results.AddRange(fraggerResults);
 
-            Parallel.ForEach(results, new ParallelOptions() { MaxDegreeOfParallelism = 6},  result =>
+            Parallel.ForEach(results, new ParallelOptions() { MaxDegreeOfParallelism = 3},  result =>
             {
                 result.Override = true;
                 result.GetIndividualFileComparison();
                 result.GetBulkResultCountComparisonFile();
                 result.ToPsmProformaFile();
+                result = null!;
             });
         }
 

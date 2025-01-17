@@ -1488,7 +1488,6 @@ namespace Analyzer.SearchType
 
         public new void Dispose()
         {
-            base.Dispose();
             _chimeraBreakdownFile = null;
             _chimeraPeptideFile = null;
             _chimericSpectrumSummaryFile = null;
@@ -1500,6 +1499,7 @@ namespace Analyzer.SearchType
             AllPsms.Clear();
             AllPeptides.Clear();
             IndividualFileResults.ForEach(p => p.Dispose());
+            base.Dispose();
         }
     }
 
