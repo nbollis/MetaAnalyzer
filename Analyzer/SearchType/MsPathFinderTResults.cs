@@ -1,4 +1,6 @@
-﻿using System.Collections;
+﻿global using MsPathFinderTResultFile = Analyzer.FileTypes.External.MsPathFinderTResultFile;
+global using MsPathFinderTResult = Analyzer.FileTypes.External.MsPathFinderTResult;
+using System.Collections;
 using Analyzer.FileTypes.External;
 using Analyzer.FileTypes.Internal;
 using Analyzer.Interfaces;

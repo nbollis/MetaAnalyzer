@@ -37,7 +37,7 @@ namespace Analyzer.FileTypes.External
         public static string ConvertProteomeDiscovererModification(ProteomeDiscovererMod pdMod, IEnumerable<Modification> allKnownMods)
         {
             var nameMatching = allKnownMods.Where(p => 
-                    p.IdWithMotif.Contains(pdMod.ModName.Replace("-L-lysine", "")) 
+                    p.IdWithMotif.Contains(pdMod.Name.Replace("-L-lysine", "")) 
                     && (p.IdWithMotif.Contains($" on {pdMod.ModifiedResidue}") || p.IdWithMotif.Contains(" on X"))                      
                     /*&& !p.OriginalId.Contains("DTT")*/)
                 .ToArray();
@@ -106,7 +106,7 @@ namespace Analyzer.FileTypes.External
 
                 var sb = new StringBuilder();
 
-                if (Modifications.Any(p => p.ModLocation == 0))
+                if (Modifications.Any(p => p.OneBasedLocalization == 0))
                 {
 
                 }
@@ -115,7 +115,7 @@ namespace Analyzer.FileTypes.External
                     var residue = BaseSequence[i];
                     sb.Append(residue);
 
-                    var potentialMod = Modifications.FirstOrDefault(p => p.ModLocation == i + 1);
+                    var potentialMod = Modifications.FirstOrDefault(p => p.OneBasedLocalization == i + 1);
                     if (potentialMod is null) continue;
 
                     var mmMod = ConvertProteomeDiscovererModification(potentialMod, GlobalVariables.AllModsKnown);

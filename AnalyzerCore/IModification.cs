@@ -4,7 +4,6 @@
     {
         string Name { get; }
         char ModifiedResidue { get; }
-        int NominalMass { get; }
     }
 
     public interface ILocalizedModification : IModification

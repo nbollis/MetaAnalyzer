@@ -83,28 +83,28 @@ namespace Test
                 {
                     case 0:
                         Assert.That(psm.Modifications.Length, Is.EqualTo(2));
-                        Assert.That(psm.Modifications[0].ModLocation, Is.EqualTo(15));
+                        Assert.That(psm.Modifications[0].OneBasedLocalization, Is.EqualTo(15));
                         Assert.That(psm.Modifications[0].ModifiedResidue, Is.EqualTo('C'));
-                        Assert.That(psm.Modifications[0].ModName, Is.EqualTo("Carbamidomethyl"));
-                        Assert.That(psm.Modifications[1].ModLocation, Is.EqualTo(16));
+                        Assert.That(psm.Modifications[0].Name, Is.EqualTo("Carbamidomethyl"));
+                        Assert.That(psm.Modifications[1].OneBasedLocalization, Is.EqualTo(16));
                         Assert.That(psm.Modifications[1].ModifiedResidue, Is.EqualTo('C'));
-                        Assert.That(psm.Modifications[1].ModName, Is.EqualTo("Carbamidomethyl"));
+                        Assert.That(psm.Modifications[1].Name, Is.EqualTo("Carbamidomethyl"));
 
                         break;
                     case 1:
                         Assert.That(psm.Modifications.Length, Is.EqualTo(1));
-                        Assert.That(psm.Modifications[0].ModLocation, Is.EqualTo(8));
+                        Assert.That(psm.Modifications[0].OneBasedLocalization, Is.EqualTo(8));
                         Assert.That(psm.Modifications[0].ModifiedResidue, Is.EqualTo('M'));
-                        Assert.That(psm.Modifications[0].ModName, Is.EqualTo("Oxidation"));
+                        Assert.That(psm.Modifications[0].Name, Is.EqualTo("Oxidation"));
                         break;
                     case 2:
                         Assert.That(psm.Modifications.Length, Is.EqualTo(0));
                         break;
                     case 3:
                         Assert.That(psm.Modifications.Length, Is.EqualTo(1));
-                        Assert.That(psm.Modifications[0].ModLocation, Is.EqualTo(2));
+                        Assert.That(psm.Modifications[0].OneBasedLocalization, Is.EqualTo(2));
                         Assert.That(psm.Modifications[0].ModifiedResidue, Is.EqualTo('S'));
-                        Assert.That(psm.Modifications[0].ModName, Is.EqualTo("Phospho"));
+                        Assert.That(psm.Modifications[0].Name, Is.EqualTo("Phospho"));
                         break;
                 }
             }
@@ -126,15 +126,15 @@ namespace Test
                         break;
                     case 1:
                         Assert.That(peptide.Modifications.Length, Is.EqualTo(1));
-                        Assert.That(peptide.Modifications[0].ModLocation, Is.EqualTo(8));
+                        Assert.That(peptide.Modifications[0].OneBasedLocalization, Is.EqualTo(8));
                         Assert.That(peptide.Modifications[0].ModifiedResidue, Is.EqualTo('C'));
-                        Assert.That(peptide.Modifications[0].ModName, Is.EqualTo("Carbamidomethyl"));
+                        Assert.That(peptide.Modifications[0].Name, Is.EqualTo("Carbamidomethyl"));
                         break;
                     case 2:
                         Assert.That(peptide.Modifications.Length, Is.EqualTo(1));
-                        Assert.That(peptide.Modifications[0].ModLocation, Is.EqualTo(3));
+                        Assert.That(peptide.Modifications[0].OneBasedLocalization, Is.EqualTo(3));
                         Assert.That(peptide.Modifications[0].ModifiedResidue, Is.EqualTo('S'));
-                        Assert.That(peptide.Modifications[0].ModName, Is.EqualTo("Phospho"));
+                        Assert.That(peptide.Modifications[0].Name, Is.EqualTo("Phospho"));
                         break;
                 }
             }

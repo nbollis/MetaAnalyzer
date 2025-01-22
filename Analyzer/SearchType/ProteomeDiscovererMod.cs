@@ -2,26 +2,19 @@
 
 namespace Analyzer.SearchType;
 
-public class ProteomeDiscovererMod : IEquatable<ProteomeDiscovererMod>, ILocalizedModification
+public class ProteomeDiscovererMod(int modLocation, string modName, char modifiedResidue)
+    : IEquatable<ProteomeDiscovererMod>, ILocalizedModification
 {
-    public int ModLocation { get; }
-    public string ModName { get; }
-    public char ModifiedResidue { get; }
-
-    public ProteomeDiscovererMod(int modLocation, string modName, char modifiedResidue)
-    {
-        ModLocation = modLocation;
-        ModName = modName;
-        ModifiedResidue = modifiedResidue;
-    }
-
+    public int OneBasedLocalization { get; } = modLocation;
+    public string Name { get; } = modName;
+    public char ModifiedResidue { get; } = modifiedResidue;
 
     public bool Equals(ProteomeDiscovererMod? other)
     {
         if (ReferenceEquals(null, other)) return false;
         if (ReferenceEquals(this, other)) return true;
-        return ModLocation == other.ModLocation 
-            && ModName == other.ModName 
+        return OneBasedLocalization == other.OneBasedLocalization 
+            && Name == other.Name 
             && ModifiedResidue == other.ModifiedResidue;
     }
 
@@ -35,11 +28,11 @@ public class ProteomeDiscovererMod : IEquatable<ProteomeDiscovererMod>, ILocaliz
 
     public override int GetHashCode()
     {
-        return HashCode.Combine(ModLocation, ModName, ModifiedResidue);
+        return HashCode.Combine(OneBasedLocalization, Name, ModifiedResidue);
     }
 
     public override string ToString()
     {
-        return $"{ModLocation}{ModifiedResidue}-{ModName}";
+        return $"{OneBasedLocalization}{ModifiedResidue}-{Name}";
     }
 }
