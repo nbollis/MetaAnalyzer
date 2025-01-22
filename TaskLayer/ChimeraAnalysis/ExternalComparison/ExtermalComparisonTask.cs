@@ -490,9 +490,9 @@ namespace TaskLayer.ChimeraAnalysis
                 //var fraggerReviewedDbNoPhospho = fraggerResults
                 //    .Where(p => p.Condition.ConvertConditionName().Contains("NoPhospho"))
                 //    .ToList();
-                //var fraggerReviewdWithPhospho = fraggerResults
-                //    .Where(p => !p.Condition.ConvertConditionName().Contains("NoPhospho") && p.Condition != "ReviewdDatabase_MsFraggerDDA+")
-                //    .ToList();
+                var fraggerReviewdWithPhospho = fraggerResults
+                    .Where(p => !p.Condition.ConvertConditionName().Contains("NoPhospho") && p.Condition != "ReviewdDatabase_MsFraggerDDA+")
+                    .ToList();
 
                 // Only return one run
                 var fraggerToReturn = fraggerResults

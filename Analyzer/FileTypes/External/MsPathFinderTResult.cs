@@ -1,10 +1,12 @@
-﻿using Analyzer.Util.TypeConverters;
+﻿using Analyzer.SearchType;
+using Analyzer.Util.TypeConverters;
 using Chemistry;
 using CsvHelper;
 using CsvHelper.Configuration;
 using CsvHelper.Configuration.Attributes;
 using Easy.Common.Extensions;
 using Readers;
+using System.Text;
 
 namespace Analyzer.FileTypes.External
 {
@@ -82,7 +84,9 @@ namespace Analyzer.FileTypes.External
 
         [Name("Post")] public char NextResidue { get; set; }
 
-        [Name("Modifications")] public string Modifications { get; set; }
+        [Name("Modifications")]
+        [TypeConverter(typeof(MsPathFinderTPsmStringToModificationsArrayConverter))] 
+        public MsPathFinderTModification[] Modifications { get; set; }
 
         [Name("Composition")]
         [TypeConverter(typeof(MsPathFinderTCompositionToChemicalFormulaConverter))]
@@ -114,9 +118,9 @@ namespace Analyzer.FileTypes.External
 
         [Name("EValue")] public double EValue { get; set; }
 
-        [Name("QValue")] [Optional] public double QValue { get; set; }
+        [Name("QValue")][Optional] public double QValue { get; set; }
 
-        [Name("PepQValue")] [Optional] public double PepQValue { get; set; }
+        [Name("PepQValue")][Optional] public double PepQValue { get; set; }
 
         #region InterpretedFields
 
@@ -132,13 +136,72 @@ namespace Analyzer.FileTypes.External
 
         #region Interface Fields
 
-        public string FullSequence => throw new NotImplementedException();
-        public double ConfidenceMetric => SpecEValue;
-        public double SecondaryConfidenceMetric => Probability;
-        public bool PassesConfidenceFilter => SpecEValue <= 0.01 && Probability >= 0.5;
-        public string ProteinAccession => Accession;
-        public double RetentionTime => throw new NotImplementedException();
+        [Ignore] private string? _fullSequence;
+        [Ignore]
+        public string FullSequence
+        {
+            get
+            {
+                if (_fullSequence != null)
+                    return _fullSequence;
+                if (!Modifications.Any())
+                    return _fullSequence = BaseSequence;
+
+                var sb = new StringBuilder();
+
+
+
+
+
+                return sb.ToString();
+            }
+        }
+        [Ignore] public double ConfidenceMetric => SpecEValue;
+        [Ignore] public double SecondaryConfidenceMetric => Probability;
+        [Ignore] public bool PassesConfidenceFilter => SpecEValue <= 0.01 && Probability >= 0.5;
+        [Ignore] public string ProteinAccession => Accession;
+        [Ignore] public double RetentionTime => throw new NotImplementedException();
 
         #endregion
+    }
+
+    public class MsPathFinderTModification : IEquatable<MsPathFinderTModification>
+    {
+        public MsPathFinderTModification(string modName, int modLocation, int nominalModMass)
+        {
+            ModName = modName;
+            ModLocation = modLocation;
+            ModNominalMass = nominalModMass;
+        }
+
+        public string ModName { get; }
+        public int ModLocation { get; }
+        public int ModNominalMass { get; }
+
+        public bool Equals(MsPathFinderTModification? other)
+        {
+            if (ReferenceEquals(null, other)) return false;
+            if (ReferenceEquals(this, other)) return true;
+            return ModLocation == other.ModLocation
+                   && ModName == other.ModName
+                   && ModNominalMass == other.ModNominalMass;
+        }
+
+        public override bool Equals(object? obj)
+        {
+            if (ReferenceEquals(null, obj)) return false;
+            if (ReferenceEquals(this, obj)) return true;
+            if (obj.GetType() != this.GetType()) return false;
+            return Equals((MsPathFinderTModification)obj);
+        }
+
+        public override int GetHashCode()
+        {
+            return HashCode.Combine(ModLocation, ModName, ModNominalMass);
+        }
+        public override string ToString()
+        {
+            return $"{ModLocation}{ModName}-{ModNominalMass}";
+        }
     }
 }

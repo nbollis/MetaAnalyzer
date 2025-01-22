@@ -1,10 +1,12 @@
-﻿namespace Analyzer.SearchType;
+﻿using AnalyzerCore;
 
-public class ProteomeDiscovererMod : IEquatable<ProteomeDiscovererMod>
+namespace Analyzer.SearchType;
+
+public class ProteomeDiscovererMod : IEquatable<ProteomeDiscovererMod>, ILocalizedModification
 {
-    public int ModLocation { get; set; }
-    public string ModName { get; set; }
-    public char ModifiedResidue { get; set; }
+    public int ModLocation { get; }
+    public string ModName { get; }
+    public char ModifiedResidue { get; }
 
     public ProteomeDiscovererMod(int modLocation, string modName, char modifiedResidue)
     {

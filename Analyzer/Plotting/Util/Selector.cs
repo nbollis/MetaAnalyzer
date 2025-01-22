@@ -103,7 +103,7 @@ namespace Analyzer.Plotting.Util
                     //"MetaMorpheus_Rep2_WithLibrary", // metamorpheus rep2 with library and old pep
                     "MetaMorpheus_Rep2_WithLibrary_NewPEP_NoNorm",
 
-                    /*"MsPathFinderTWithModsNoChimerasRep2", "MsPathFinderTWithMods_7Rep2", */"MsPathFinderTWithMods_15Rep2",
+                    /*"MsPathFinderTWithModsNoChimerasRep2", "MsPathFinderTWithMods_7Rep2", */"MsPathFinderTWithMods_15Rep2_Final",
 
                     /*"ProsightPDChimeras_Rep2",*/ /*"ProsightPDNoChimeras_Rep2",*/
                     "ProsightPdChimeras_Rep2_15_10ppm", /*"ProsightPDChimeras_Rep2_7_10ppm",*/
@@ -119,7 +119,7 @@ namespace Analyzer.Plotting.Util
                     //"MetaMorpheus_NewPEP_NoNormNoMult",
                     "MetaMorpheus_Rep2_WithLibrary_NewPEP_NoNorm",
 
-                    "MsPathFinderTWithModsNoChimerasRep2", "MsPathFinderTWithMods_7Rep2", "MsPathFinderTWithMods_15Rep2",
+                    "MsPathFinderTWithModsNoChimerasRep2", "MsPathFinderTWithMods_7Rep2", "MsPathFinderTWithMods_15Rep2_Final",
 
                     /*"ProsightPDChimeras_Rep2",*/ "ProsightPDNoChimeras_Rep2", /*"ProsightPDChimeras_Rep2_15",*/
                     "ProsightPdChimeras_Rep2_15_10ppm", "ProsightPDChimeras_Rep2_7_10ppm",
@@ -136,9 +136,9 @@ namespace Analyzer.Plotting.Util
                     "MetaMorpheus_NewPEP_NoNorm", // ecoli ran with new pep
                     "MetaMorpheus_NewPEP_NoNormNoMult", // ecoli ran with new pep no mult
 
-                    /*"MsPathFinderTWithModsNoChimeras", "MsPathFinderTWithMods_7", */"MsPathFinderTWithMods_15",
+                    "MsPathFinderTWithMods_15_Final",
 
-                    /*"ProsightPDNoChimeras", "ProsightPDChimeras_7",*/ "ProsightPDChimeras_15"
+                     "ProsightPDChimeras_15"
                 },
                 InternalMetaMorpheusFileComparisonSelector = new[]
                 {
@@ -149,7 +149,7 @@ namespace Analyzer.Plotting.Util
                     "MetaMorpheus_NewPEP_NoNormNoMult", "MetaMorpheusNoChimeras",
                     //"MetaMorpheus_NewPEP_NoNorm", // ecoli ran with new pep
 
-                    "MsPathFinderTWithModsNoChimeras", "MsPathFinderTWithMods_7", "MsPathFinderTWithMods_15",
+                    "MsPathFinderTWithModsNoChimeras", "MsPathFinderTWithMods_7", "MsPathFinderTWithMods_15_Final",
 
                     "ProsightPDChimeras_7", "ProsightPDNoChimeras", "ProsightPDChimeras_15"
                 },

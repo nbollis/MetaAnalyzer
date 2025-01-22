@@ -3,11 +3,15 @@ using Analyzer.FileTypes.External;
 using Analyzer.FileTypes.Internal;
 using Analyzer.Interfaces;
 using Analyzer.Util;
+using Chemistry;
 using Easy.Common.Extensions;
 using MassSpectrometry;
 using Plotting.Util;
+using Proteomics;
+using Proteomics.ProteolyticDigestion;
 using Readers;
 using ResultAnalyzerUtil;
+using UsefulProteomicsDatabases;
 
 namespace Analyzer.SearchType
 {
@@ -55,7 +59,7 @@ namespace Analyzer.SearchType
                 IndividualFileResults.Add(new MsPathFinderTIndividualFileResult(decoyPath, targetPath, combinedPath, key, ftFilepath, paramsPath, rawFilePath));
             }
             // TODO: Add case for the with mods search where not all items will be in the same directory
-            foreach (var resultFile in files.Where(p => p.Value.Count == 4))
+            foreach (var resultFile in files.Where(p => p.Value.Count is (4 or 5)))
             {
                 var key = resultFile.Key;
                 var decoyPath = resultFile.Value.First(p => p.Contains("Decoy"));
@@ -416,10 +420,31 @@ namespace Analyzer.SearchType
             List<ProformaRecord> records = new();
             foreach (var file in IndividualFileResults)
             {
+                string fileName = file.Name.ConvertFileName();
+                foreach (var psm in file.TargetResults.Where(p => p.PassesConfidenceFilter))
+                {
+                    int modMass = 0;
+                    if (psm.FullSequence.Contains('['))
+                        modMass += new PeptideWithSetModifications(psm.FullSequence.Split('|')[0].Trim(),
+                                GlobalVariables.AllModsKnownDictionary).AllModsOneIsNterminus
+                            .Sum(p => (int)p.Value.MonoisotopicMass!.RoundedDouble(0)!);
+
+                    var record = new ProformaRecord()
+                    {
+                        Condition = condition,
+                        FileName = fileName,
+                        BaseSequence = psm.BaseSequence,
+                        FullSequence = psm.FullSequence,
+                        ModificationMass = modMass,
+                        PrecursorCharge = psm.Charge,
+                        ProteinAccession = psm.ProteinAccession.Replace(';', '|'),
+                        ScanNumber = psm.OneBasedScanNumber,
+                    };
+
+                    records.Add(record);
+                }
 
             }
-
-
             var proformaFile = new ProformaFile(_proformaPsmFilePath) { Results = records };
             proformaFile.WriteResults(_proformaPsmFilePath);
             return _proformaPsmFile = proformaFile;
@@ -427,19 +452,18 @@ namespace Analyzer.SearchType
 
         public override ProteinCountingFile CountProteins()
         {
-            throw new NotImplementedException();
-            //if (File.Exists(_proteinCountingFilePath) && !Override)
-            //    return _proteinCountingFile ??= new ProteinCountingFile(_proteinCountingFilePath);
+            if (File.Exists(_proteinCountingFilePath) && !Override)
+                return _proteinCountingFile ??= new ProteinCountingFile(_proteinCountingFilePath);
 
 
-            //string dbPath = @"B:\Users\Nic\Chimeras\Mann_11cell_analysis\UP000005640_reviewed.fasta";
-            //List<Protein> proteins = ProteinDbLoader.LoadProteinFasta(dbPath, true, DecoyType.None, false, out _);
+            string dbPath = @"B:\Users\Nic\Chimeras\Mann_11cell_analysis\UP000005640_reviewed.fasta";
+            List<Protein> proteins = ProteinDbLoader.LoadProteinFasta(dbPath, true, DecoyType.None, false, out _);
 
-            //var psms = IndividualFileResults.SelectMany(p => p.PsmFile.Results.Cast<ISpectralMatch>()).ToList();
-            //var records = ProteinCountingRecord.GetRecords(psms, proteins, Condition);
-            //var proteinCountingFile = new ProteinCountingFile(_proteinCountingFilePath) { Results = records };
-            //proteinCountingFile.WriteResults(_proteinCountingFilePath);
-            //return _proteinCountingFile = proteinCountingFile;
+            var psms = IndividualFileResults.SelectMany(p => p.TargetResults.Results.Where(m => m.PassesConfidenceFilter).Cast<ISpectralMatch>()).ToList();
+            var records = ProteinCountingRecord.GetRecords(psms, proteins, Condition);
+            var proteinCountingFile = new ProteinCountingFile(_proteinCountingFilePath) { Results = records };
+            proteinCountingFile.WriteResults(_proteinCountingFilePath);
+            return _proteinCountingFile = proteinCountingFile;
 
         }
 

@@ -36,9 +36,6 @@ namespace Analyzer.FileTypes.External
 
         public static string ConvertProteomeDiscovererModification(ProteomeDiscovererMod pdMod, IEnumerable<Modification> allKnownMods)
         {
-            
-            var targetResidueMatching = allKnownMods.Where(p => p.Target.ToString().Contains(pdMod.ModifiedResidue) || p.Target.ToString().Contains("on X"))
-                .ToArray();
             var nameMatching = allKnownMods.Where(p => 
                     p.IdWithMotif.Contains(pdMod.ModName.Replace("-L-lysine", "")) 
                     && (p.IdWithMotif.Contains($" on {pdMod.ModifiedResidue}") || p.IdWithMotif.Contains(" on X"))                      
