@@ -4,6 +4,7 @@ using CsvHelper;
 using CsvHelper.Configuration;
 using CsvHelper.Configuration.Attributes;
 using Readers;
+using MsFraggerPsm = Analyzer.FileTypes.External.MsFraggerPsm;
 
 namespace Analyzer.FileTypes.Internal
 {
@@ -68,7 +69,7 @@ namespace Analyzer.FileTypes.Internal
             if (!CanRead(outputPath))
                 outputPath += FileType.GetFileExtension();
 
-            using var csv = new CsvWriter(new StreamWriter(File.Create(outputPath)), MsFraggerPsm.CsvConfiguration);
+            using var csv = new CsvWriter(new StreamWriter(File.Create(outputPath)), ChimeraSpecFileMap.CsvConfiguration);
 
             csv.WriteHeader<ChimeraSpecFileMap>();
             foreach (var result in Results)

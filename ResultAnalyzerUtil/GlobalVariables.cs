@@ -13,7 +13,7 @@ namespace ResultAnalyzerUtil
         private static HashSet<string> _AllModTypesKnown;
 
         public static List<string> ErrorsReadingMods;
-        public static IEnumerable<Modification> AllModsKnown => _AllModsKnown.AsEnumerable();
+        public static IList<Modification> AllModsKnown => _AllModsKnown;
         public static IEnumerable<string> AllModTypesKnown => _AllModTypesKnown.AsEnumerable();
         public static Dictionary<string, Modification> AllModsKnownDictionary { get; private set; }
         public static UsefulProteomicsDatabases.Generated.obo PsiModDeserialized { get; private set; }

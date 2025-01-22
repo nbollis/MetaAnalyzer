@@ -164,44 +164,4 @@ namespace Analyzer.FileTypes.External
 
         #endregion
     }
-
-    public class MsPathFinderTModification : IEquatable<MsPathFinderTModification>
-    {
-        public MsPathFinderTModification(string modName, int modLocation, int nominalModMass)
-        {
-            ModName = modName;
-            ModLocation = modLocation;
-            ModNominalMass = nominalModMass;
-        }
-
-        public string ModName { get; }
-        public int ModLocation { get; }
-        public int ModNominalMass { get; }
-
-        public bool Equals(MsPathFinderTModification? other)
-        {
-            if (ReferenceEquals(null, other)) return false;
-            if (ReferenceEquals(this, other)) return true;
-            return ModLocation == other.ModLocation
-                   && ModName == other.ModName
-                   && ModNominalMass == other.ModNominalMass;
-        }
-
-        public override bool Equals(object? obj)
-        {
-            if (ReferenceEquals(null, obj)) return false;
-            if (ReferenceEquals(this, obj)) return true;
-            if (obj.GetType() != this.GetType()) return false;
-            return Equals((MsPathFinderTModification)obj);
-        }
-
-        public override int GetHashCode()
-        {
-            return HashCode.Combine(ModLocation, ModName, ModNominalMass);
-        }
-        public override string ToString()
-        {
-            return $"{ModLocation}{ModName}-{ModNominalMass}";
-        }
-    }
 }

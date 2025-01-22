@@ -1,5 +1,7 @@
 ﻿using System.Text.RegularExpressions;
+using System.Xml.Linq;
 using Analyzer.SearchType;
+using AnalyzerCore;
 using CsvHelper;
 using CsvHelper.Configuration;
 using CsvHelper.TypeConversion;
@@ -46,6 +48,7 @@ namespace Analyzer.Util.TypeConverters
                 {
                     var modParts = match.Value.Split(" [");
                     string modName = modParts[0].Substring(2);
+                    var mass = ILocalizedModification.GetNominalMass(modName);
 
                     foreach (var loc in modParts[1].Split(';').Select(p => p.Trim().Replace("]", "")))
                     {
@@ -53,7 +56,7 @@ namespace Analyzer.Util.TypeConverters
                             modLocation = 1;
                         
                         var modifiedResidue = loc.Trim()[0];
-                        proteomeDiscovererMods.Add(new ProteomeDiscovererMod(modLocation, modName, modifiedResidue));
+                        proteomeDiscovererMods.Add(new ProteomeDiscovererMod(modLocation, modName, modifiedResidue, mass));
                     }
                 }
             }
@@ -66,7 +69,8 @@ namespace Analyzer.Util.TypeConverters
                     var modLocation = int.Parse(modParts[0].Trim().Substring(1));
                     var modifiedResidue = modParts[0].Trim()[0];
                     var modName = modParts[1].Substring(0, modParts[1].Length - 1);
-                    proteomeDiscovererMods.Add(new ProteomeDiscovererMod(modLocation, modName, modifiedResidue));
+                    var mass = ILocalizedModification.GetNominalMass(modName);
+                    proteomeDiscovererMods.Add(new ProteomeDiscovererMod(modLocation, modName, modifiedResidue, mass));
                 }
             }
 

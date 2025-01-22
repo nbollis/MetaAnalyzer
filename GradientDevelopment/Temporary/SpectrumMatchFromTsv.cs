@@ -231,7 +231,8 @@ namespace GradientDevelopment.Temporary
                                 out terminus);
                         else
                             terminus =
-                                Omics.Fragmentation.Oligo.DissociationTypeCollection.GetRnaTerminusType(productType);
+                                Omics.Fragmentation.Oligo.TerminusSpecificProductTypes.ProductTypeToFragmentationTerminus[
+                                    productType];
 
 
                         //get amino acid position

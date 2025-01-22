@@ -1,5 +1,4 @@
-﻿using Easy.Common.Extensions;
-using MzLibUtil;
+﻿using MzLibUtil;
 using Omics.Modifications;
 using Proteomics;
 using Proteomics.ProteolyticDigestion;
@@ -7,7 +6,6 @@ using RadicalFragmentation.Util;
 using ResultAnalyzerUtil;
 using ResultAnalyzerUtil.CommandLine;
 using System.Collections.Concurrent;
-using System.Collections.Generic;
 using UsefulProteomicsDatabases;
 
 namespace RadicalFragmentation.Processing;

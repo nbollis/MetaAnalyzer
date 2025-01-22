@@ -1,14 +1,12 @@
-﻿using System.Diagnostics;
-using AnalyzerCore;
-using Omics.Modifications;
+﻿using AnalyzerCore;
 
-namespace Analyzer.SearchType;
+namespace Analyzer.FileTypes.External;
 
-public class ProteomeDiscovererMod(int modLocation, string modName, char modifiedResidue, int nominalMass) 
+public class MsPathFinderTModification(string modName, int modLocation, char modifiedResidue, int nominalMass) 
     : ILocalizedModification
 {
-    public int OneBasedLocalization { get; } = modLocation;
     public string Name { get; } = modName;
+    public int OneBasedLocalization { get; } = modLocation;
     public char ModifiedResidue { get; } = modifiedResidue;
     public int NominalMass { get; } = nominalMass;
 
@@ -26,14 +24,13 @@ public class ProteomeDiscovererMod(int modLocation, string modName, char modifie
         if (ReferenceEquals(null, obj)) return false;
         if (ReferenceEquals(this, obj)) return true;
         if (obj.GetType() != this.GetType()) return false;
-        return Equals((ProteomeDiscovererMod)obj);
+        return Equals((ILocalizedModification)obj);
     }
 
     public override int GetHashCode()
     {
         return HashCode.Combine(OneBasedLocalization, Name, ModifiedResidue);
     }
-
     public override string ToString()
     {
         return $"{OneBasedLocalization}{ModifiedResidue}-{Name}";

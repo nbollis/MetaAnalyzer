@@ -1,6 +1,7 @@
 ﻿using System.Text;
 using Analyzer.SearchType;
 using Analyzer.Util.TypeConverters;
+using AnalyzerCore;
 using Chemistry;
 using CsvHelper;
 using CsvHelper.Configuration;
@@ -34,59 +35,6 @@ namespace Analyzer.FileTypes.External
             _modConversionDictionary = new Dictionary<ProteomeDiscovererMod, Modification>();
         }
 
-        public static string ConvertProteomeDiscovererModification(ProteomeDiscovererMod pdMod, IEnumerable<Modification> allKnownMods)
-        {
-            var nameMatching = allKnownMods.Where(p => 
-                    p.IdWithMotif.Contains(pdMod.Name.Replace("-L-lysine", "")) 
-                    && (p.IdWithMotif.Contains($" on {pdMod.ModifiedResidue}") || p.IdWithMotif.Contains(" on X"))                      
-                    /*&& !p.OriginalId.Contains("DTT")*/)
-                .ToArray();
-
-            Modification modToReturn;
-            if (nameMatching.Length != 1) // if multiple match by name, go with lowest uniprot reference number
-            {
-                int lowestRef = int.MaxValue;
-                Modification? lowestReference = null;
-                foreach (var modification in nameMatching)
-                {
-                    if (modification.DatabaseReference.TryGetValue("Unimod", out var values))
-                    {
-                        foreach (var value in values)
-                        {
-                            if (int.TryParse(value, out var result) && result < lowestRef)
-                            {
-                                lowestRef = result;
-                                lowestReference = modification;
-                            }
-                        }
-                    }
-                    else
-                    {
-                        //Debugger.Break();
-                    }
-                }
-
-                if (lowestReference is null)
-                    modToReturn = nameMatching.MinBy(p => p.IdWithMotif.Length)!;
-                else
-                    modToReturn = lowestReference;
-            }
-            else
-                modToReturn = nameMatching[0];
-
-            string category = modToReturn.ModificationType switch
-            {
-                "Unimod" when modToReturn.OriginalId.Contains("Carbamido") => "Common Fixed",
-                "Unimod" when modToReturn.OriginalId.Contains("Oxidation") => "Common Variable",
-                "Unimod" when modToReturn.OriginalId.Contains("Phosphoryl") => "Common Biological",
-                "Unimod" when modToReturn.OriginalId.Contains("Acetyl") => "Common Biological",
-                "Unimod" when modToReturn.OriginalId.Contains("Methy") => "Common Biological",
-                _ => modToReturn.ModificationType
-            };
-
-            return $"[{category}:{modToReturn.OriginalId} on {modToReturn.Target}]";
-        }
-
         #endregion
 
         #region ISpectralMatch Members
@@ -115,10 +63,10 @@ namespace Analyzer.FileTypes.External
                     var residue = BaseSequence[i];
                     sb.Append(residue);
 
-                    var potentialMod = Modifications.FirstOrDefault(p => p.OneBasedLocalization == i + 1);
+                    ILocalizedModification? potentialMod = Modifications.FirstOrDefault(p => p.OneBasedLocalization == i + 1);
                     if (potentialMod is null) continue;
 
-                    var mmMod = ConvertProteomeDiscovererModification(potentialMod, GlobalVariables.AllModsKnown);
+                    var mmMod = potentialMod.GetMetaMorpheusFullSequenceString(GlobalVariables.AllModsKnown);
                     sb.Append(mmMod);
                 }
 

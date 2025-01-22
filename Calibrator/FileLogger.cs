@@ -2,6 +2,7 @@
 using MathNet.Numerics.Statistics;
 using Microsoft.ML;
 using Readers;
+using MsFraggerPsmFile = Analyzer.FileTypes.External.MsFraggerPsmFile;
 
 namespace Calibrator;
 

@@ -6,6 +6,7 @@ using CsvHelper.Configuration.Attributes;
 using Easy.Common.Extensions;
 using Readers;
 using ResultAnalyzerUtil;
+using CommaDelimitedToIntegerArrayTypeConverter = ResultAnalyzerUtil.CommaDelimitedToIntegerArrayTypeConverter;
 
 namespace Analyzer.FileTypes.External;
 

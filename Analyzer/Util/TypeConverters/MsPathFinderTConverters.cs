@@ -1,6 +1,7 @@
 ﻿using System.Text;
 using Analyzer.FileTypes.External;
 using Analyzer.SearchType;
+using AnalyzerCore;
 using CsvHelper;
 using CsvHelper.Configuration;
 using CsvHelper.TypeConversion;
@@ -82,18 +83,12 @@ namespace Analyzer.Util.TypeConverters
                 var modSplits = modString.Split(' ');
                 var name = modSplits[0];
                 var location = int.Parse(modSplits[1]);
+                var mass = ILocalizedModification.GetNominalMass(name);
 
-                var mass = name switch
-                {
-                    "Carbamidomethyl" => 57,
-                    "Oxidation" => 16,
-                    "Phospho" => 80,
-                    "Acetyl" => 42,
-                    "Methyl" => 14,
-                    _ => throw new ArgumentOutOfRangeException()
-                };
+                var baseSequence = row.GetField<string>(2);
+                var modifiedResidue = baseSequence[location - 1];
 
-                mods.Add(new MsPathFinderTModification(name, location, mass));
+                mods.Add(new MsPathFinderTModification(name, location, modifiedResidue, mass));
             }
 
             return mods.ToArray();
@@ -101,7 +96,12 @@ namespace Analyzer.Util.TypeConverters
 
         public override string? ConvertToString(object? value, IWriterRow row, MemberMapData memberMapData)
         {
-            return base.ConvertToString(value, row, memberMapData);
+            if (value is MsPathFinderTModification[] modifications)
+            {
+                var modStrings = modifications.Select(mod => $"{mod.Name} {mod.OneBasedLocalization}");
+                return string.Join(",", modStrings);
+            }
+            return "";
         }
     }
 }
