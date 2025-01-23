@@ -38,7 +38,7 @@ namespace Analyzer.Util.TypeConverters
             var proteomeDiscovererMods = new List<ProteomeDiscovererMod>();
             if (string.IsNullOrEmpty(text))
                 return proteomeDiscovererMods.ToArray();
-            else if (char.IsDigit(text.First()))
+            else if (char.IsDigit(text.First())) // Chimerys
             {
                 string pattern = @"\d(.*?)\]";
                 MatchCollection matches = Regex.Matches(text, pattern);
@@ -48,29 +48,32 @@ namespace Analyzer.Util.TypeConverters
                 {
                     var modParts = match.Value.Split(" [");
                     string modName = modParts[0].Substring(2);
-                    var mass = ILocalizedModification.GetNominalMass(modName);
-
+                    
                     foreach (var loc in modParts[1].Split(';').Select(p => p.Trim().Replace("]", "")))
                     {
                         if (!int.TryParse(loc.Trim().Substring(1), out int modLocation))
                             modLocation = 1;
                         
-                        var modifiedResidue = loc.Trim()[0];
+                        var modifiedResidue = loc.Trim()[0]; 
+                        var mass = ILocalizedModification.GetNominalMass(modName, modifiedResidue);
                         proteomeDiscovererMods.Add(new ProteomeDiscovererMod(modLocation, modName, modifiedResidue, mass));
                     }
                 }
             }
-            else
+            else // Prosight
             {
                 var mods = text.Split(';');
                 foreach (var mod in mods)
                 {
-                    var modParts = mod.Split('(');
-                    var modLocation = int.Parse(modParts[0].Trim().Substring(1));
-                    var modifiedResidue = modParts[0].Trim()[0];
-                    var modName = modParts[1].Substring(0, modParts[1].Length - 1);
-                    var mass = ILocalizedModification.GetNominalMass(modName);
-                    proteomeDiscovererMods.Add(new ProteomeDiscovererMod(modLocation, modName, modifiedResidue, mass));
+                    var match = Regex.Match(mod, @"([A-Z])(\d+)\((.+)\)");
+                    if (match.Success)
+                    {
+                        var modifiedResidue = match.Groups[1].Value[0];
+                        var modLocation = int.Parse(match.Groups[2].Value);
+                        var modName = match.Groups[3].Value;
+                        var mass = ILocalizedModification.GetNominalMass(modName, modifiedResidue);
+                        proteomeDiscovererMods.Add(new ProteomeDiscovererMod(modLocation, modName, modifiedResidue, mass));
+                    }
                 }
             }
 

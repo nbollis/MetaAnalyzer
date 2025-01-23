@@ -10,4 +10,8 @@
     <PackageReference Include="mzLib" Version="1.0.558" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\ResultAnalyzerUtil\ResultAnalyzerUtil.csproj" />
+  </ItemGroup>
+
 </Project>

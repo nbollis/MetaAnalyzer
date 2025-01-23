@@ -1,4 +1,6 @@
 ﻿using Analyzer.FileTypes.External;
+using Analyzer.SearchType;
+using Analyzer.Util.TypeConverters;
 
 namespace Test
 {
@@ -138,6 +140,28 @@ namespace Test
                         break;
                 }
             }
+        }
+
+        [Test]
+        [TestCase("C15(Carbamidomethyl)", "Carbamidomethyl", 57, 'C', 15)]
+        [TestCase("S28(O-(ADP-ribosyl)-L-serine)", "O-(ADP-ribosyl)-L-serine", 541, 'S', 28)]
+        [TestCase("K81(Acetyl)", "Acetyl", 42, 'K', 81)]
+        [TestCase("K39(N6,N6,N6-trimethyl-L-lysine)", "N6,N6,N6-trimethyl-L-lysine", 59, 'K', 39)]
+        [TestCase("A1(N,N,N-trimethyl-L-alanine)", "N,N,N-trimethyl-L-alanine", 43, 'A', 1)]
+        [TestCase("Y12(O4'-(phospho-5'-adenosine)-L-tyrosine)", "O4'-(phospho-5'-adenosine)-L-tyrosine", 329, 'Y', 12)]
+        public static void TestModificationStringConversion_SingleMod(string inputString, string expectedName, int expectedMass, char expectedLocation, int expectedResidueNumber)
+        {
+            var converter = new ProteomeDiscovererPSMModToProteomeDiscovererModificationArrayConverter();
+
+            var result = converter.ConvertFromString(inputString, null, null) as ProteomeDiscovererMod[];
+            Assert.That(result, Is.Not.Null);
+            Assert.That(result.Length, Is.EqualTo(1));
+
+            var modToTest = result[0];
+            Assert.That(modToTest.Name, Is.EqualTo(expectedName));
+            Assert.That(modToTest.NominalMass, Is.EqualTo(expectedMass));
+            Assert.That(modToTest.ModifiedResidue, Is.EqualTo(expectedLocation));
+            Assert.That(modToTest.OneBasedLocalization, Is.EqualTo(expectedResidueNumber));
         }
     }
 }

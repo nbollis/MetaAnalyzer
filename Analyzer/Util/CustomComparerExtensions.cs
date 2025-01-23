@@ -61,7 +61,8 @@ namespace Analyzer.Util
         public static CustomComparer<MsPathFinderTCrossTabResultRecord> MsPathFinderTCrossTabDistinctProteoformComparer =>
             new CustomComparer<MsPathFinderTCrossTabResultRecord>(
                 prsm => prsm.BaseSequence,
-                prsm => string.Join<int>('.', prsm.Modifications),
+                prsm => prsm.Modifications
+                .Select(p => (p.Name, p.ModifiedResidue)).OrderBy(p => p.Item2),
                 prsm => prsm.StartResidue,
                 prsm => prsm.EndResidue,
                 prsm => prsm.ProteinAccession

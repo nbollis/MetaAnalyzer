@@ -59,12 +59,12 @@ namespace Test.ChimeraPaper
                         pc.CountChimericPeptides();
                     if (result is MetaMorpheusResult mm)
                     {
-                        mm.PlotPepFeaturesScatterGrid();
-                        mm.ExportCombinedChimeraTargetDecoyExploration(mm.FigureDirectory, mm.Condition);
-                        mm.PlotTargetDecoyCurves(ResultType.Psm, TargetDecoyCurveMode.Score, false);
-                        mm.PlotTargetDecoyCurves(ResultType.Psm, TargetDecoyCurveMode.Score, true);
-                        mm.PlotTargetDecoyCurves(ResultType.Peptide, TargetDecoyCurveMode.Score, false);
-                        mm.PlotTargetDecoyCurves(ResultType.Peptide, TargetDecoyCurveMode.Score, true);
+                        //mm.PlotPepFeaturesScatterGrid();
+                        //mm.ExportCombinedChimeraTargetDecoyExploration(mm.FigureDirectory, mm.Condition);
+                        //mm.PlotTargetDecoyCurves(ResultType.Psm, TargetDecoyCurveMode.Score, false);
+                        //mm.PlotTargetDecoyCurves(ResultType.Psm, TargetDecoyCurveMode.Score, true);
+                        //mm.PlotTargetDecoyCurves(ResultType.Peptide, TargetDecoyCurveMode.Score, false);
+                        //mm.PlotTargetDecoyCurves(ResultType.Peptide, TargetDecoyCurveMode.Score, true);
                     }
                     result.Override = false;
                 }
@@ -137,8 +137,8 @@ namespace Test.ChimeraPaper
         public static void MsPathTDatasetInfoGenerator()
         {
 
-            var path =@"B:\Users\Nic\Chimeras\TopDown_Analysis\Jurkat\SearchResults\MsPathFinderTWithMods_15Rep2_Final";
-            //var path = @"B:\Users\Nic\Chimeras\TopDown_Analysis\Ecoli\SearchResults\MsPathFinderTWithMods_15_Final";
+            //var path =@"B:\Users\Nic\Chimeras\TopDown_Analysis\Jurkat\SearchResults\MsPathFinderTWithMods_15Rep2_Final";
+            var path = @"B:\Users\Nic\Chimeras\TopDown_Analysis\Ecoli\SearchResults\MsPathFinderTWithMods_15_Final";
             var result = new MsPathFinderTResults(path);
             result.GetIndividualFileComparison();
             result.ToPsmProformaFile();

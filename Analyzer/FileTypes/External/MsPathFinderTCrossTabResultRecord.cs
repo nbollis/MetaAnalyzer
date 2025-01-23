@@ -1,5 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations.Schema;
 using System.Globalization;
+using Analyzer.Util.TypeConverters;
 using CsvHelper;
 using CsvHelper.Configuration;
 using CsvHelper.Configuration.Attributes;
@@ -103,8 +104,8 @@ public class MsPathFinderTCrossTabResultRecord
     [Name("Post")]
     public char NextAminoAcid { get; set; }
 
-    [TypeConverter(typeof(CommaDelimitedToIntegerArrayTypeConverter))]
-    public int[] Modifications { get; set; }
+    [TypeConverter(typeof(MsPathFinderTPsmStringToModificationsArrayConverter))]
+    public MsPathFinderTModification[] Modifications { get; set; }
 
     [Name("ProteinName")]
     public string ProteinAccessionName { get; set; }

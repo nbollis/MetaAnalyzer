@@ -1,4 +1,5 @@
 ﻿using System.Text;
+using System.Text.RegularExpressions;
 using Analyzer.FileTypes.External;
 using Analyzer.SearchType;
 using AnalyzerCore;
@@ -17,15 +18,17 @@ namespace Analyzer.Util.TypeConverters
     {
         public override object ConvertFromString(string text, IReaderRow row, MemberMapData memberMapData)
         {
-            var composition = text.Split(' ').Where(p => p != "").ToArray();
+            var regex = new Regex(@"([A-Z][a-z]*)(\((\d+)\))?");
+            var matches = regex.Matches(text);
             var chemicalFormula = new Chemistry.ChemicalFormula();
-            foreach (var element in composition)
+
+            foreach (Match match in matches)
             {
-                var elementSplit = element.Split('(');
-                var elementName = elementSplit[0];
-                var elementCount = int.Parse(elementSplit[1].Replace(")", ""));
+                var elementName = match.Groups[1].Value;
+                var elementCount = match.Groups[3].Success ? int.Parse(match.Groups[3].Value) : 1;
                 chemicalFormula.Add(elementName, elementCount);
             }
+
             return chemicalFormula;
         }
 
@@ -83,10 +86,10 @@ namespace Analyzer.Util.TypeConverters
                 var modSplits = modString.Split(' ');
                 var name = modSplits[0];
                 var location = int.Parse(modSplits[1]);
-                var mass = ILocalizedModification.GetNominalMass(name);
 
-                var baseSequence = row.GetField<string>(2);
+                var baseSequence = row.GetField<string>("Sequence");
                 var modifiedResidue = location == 0 ? 'X' : baseSequence[location - 1];
+                var mass = ILocalizedModification.GetNominalMass(name, modifiedResidue);
 
                 mods.Add(new MsPathFinderTModification(name, location, modifiedResidue, mass));
             }
