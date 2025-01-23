@@ -1,11 +1,13 @@
 ﻿using Analyzer.SearchType;
 using Analyzer.Util.TypeConverters;
+using AnalyzerCore;
 using Chemistry;
 using CsvHelper;
 using CsvHelper.Configuration;
 using CsvHelper.Configuration.Attributes;
 using Easy.Common.Extensions;
 using Readers;
+using ResultAnalyzerUtil;
 using System.Text;
 
 namespace Analyzer.FileTypes.External
@@ -149,11 +151,25 @@ namespace Analyzer.FileTypes.External
 
                 var sb = new StringBuilder();
 
+                if (Modifications.Any(p => p.OneBasedLocalization == 0))
+                {
+                    ILocalizedModification? modToAdd = Modifications.FirstOrDefault(p => p.OneBasedLocalization == 0);
+                    if (modToAdd is not null)
+                        sb.Append(modToAdd.GetMetaMorpheusFullSequenceString(GlobalVariables.AllModsKnown));
+                }
+                for (int i = 0; i < BaseSequence.Length; i++)
+                {
+                    var residue = BaseSequence[i];
+                    sb.Append(residue);
 
+                    ILocalizedModification? potentialMod = Modifications.FirstOrDefault(p => p.OneBasedLocalization == i + 1);
+                    if (potentialMod is null) continue;
 
+                    var mmMod = potentialMod.GetMetaMorpheusFullSequenceString(GlobalVariables.AllModsKnown);
+                    sb.Append(mmMod);
+                }
 
-
-                return sb.ToString();
+                return _fullSequence = sb.ToString();
             }
         }
         [Ignore] public double ConfidenceMetric => SpecEValue;

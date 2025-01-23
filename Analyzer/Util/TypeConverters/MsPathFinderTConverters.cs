@@ -86,7 +86,7 @@ namespace Analyzer.Util.TypeConverters
                 var mass = ILocalizedModification.GetNominalMass(name);
 
                 var baseSequence = row.GetField<string>(2);
-                var modifiedResidue = baseSequence[location - 1];
+                var modifiedResidue = location == 0 ? 'X' : baseSequence[location - 1];
 
                 mods.Add(new MsPathFinderTModification(name, location, modifiedResidue, mass));
             }

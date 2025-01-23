@@ -56,7 +56,9 @@ namespace Analyzer.FileTypes.External
 
                 if (Modifications.Any(p => p.OneBasedLocalization == 0))
                 {
-
+                    ILocalizedModification? modToAdd = Modifications.FirstOrDefault(p => p.OneBasedLocalization == 0);
+                    if (modToAdd is not null)
+                        sb.Append(modToAdd.GetMetaMorpheusFullSequenceString(GlobalVariables.AllModsKnown));
                 }
                 for (int i = 0; i < BaseSequence.Length; i++)
                 {
@@ -70,7 +72,7 @@ namespace Analyzer.FileTypes.External
                     sb.Append(mmMod);
                 }
 
-                return sb.ToString();
+                return _fullSequence = sb.ToString();
             }
         }
         [Ignore] public string FileNameWithoutExtension { get; }
