@@ -2,6 +2,7 @@
 using Plotting.RadicalFragmentation;
 using RadicalFragmentation;
 using ResultAnalyzerUtil;
+using UsefulProteomicsDatabases;
 
 namespace Test
 {
@@ -35,6 +36,21 @@ namespace Test
             {
                 groupedExplorers.ToList().CreateMissedMonoCombinedCumulativeFragCountPlot();
             }
+        }
+
+
+        [Test]
+        public static void HorseTest()
+        {
+            string directoryPath = @"D:\Projects\RadicalFragmentation\FragmentAnalysis\Databases";
+            string reviewedName = "uniprotkb_horseReviewed_taxonomy_id_9796_AND_reviewed_2025_02_04.xml";
+            string fullName = "uniprotkb_horse_taxonomy_id_9796_2025_02_04.xml";
+
+            var reviewedPath = Path.Combine(directoryPath, reviewedName);
+            var fullPath = Path.Combine(directoryPath, fullName);
+
+            var reviewed = ProteinDbLoader.LoadProteinXML(reviewedPath, true, DecoyType.None, GlobalVariables.AllModsKnown, false, [], out var unknownMods);
+            var full = ProteinDbLoader.LoadProteinXML(fullPath, true, DecoyType.None, GlobalVariables.AllModsKnown, false, [], out var unknownMods2);
         }
 
         [Test]

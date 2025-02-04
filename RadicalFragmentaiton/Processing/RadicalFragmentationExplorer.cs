@@ -336,11 +336,11 @@ public abstract class RadicalFragmentationExplorer
         if (this is CysteineFragmentationExplorer cys)
             cys.CountCysteines();
 
+        var toProcess = PrecursorFragmentMassFile.StreamGroupsByTolerance(PrecursorMassTolerance, 1000, AmbiguityLevel);
+
         Parallel.ForEach(Partitioner.Create
             (
-                // GroupByPrecursorMass(PrecursorFragmentMassFile.Results, PrecursorMassTolerance, AmbiguityLevel),
-                PrecursorFragmentMassFile.StreamGroupsByTolerance(PrecursorMassTolerance,1000, AmbiguityLevel),
-                EnumerablePartitionerOptions.NoBuffering
+                toProcess, EnumerablePartitionerOptions.NoBuffering
             ),
             new ParallelOptions() { MaxDegreeOfParallelism = StaticVariables.MaxThreads },
             result =>
@@ -459,6 +459,11 @@ public abstract class RadicalFragmentationExplorer
             File.Delete(tempFile);
 
         return _minFragmentNeededFile = fragmentsToDistinguishFile;
+    }
+
+    public void DifferentiateFromSingleProtein()
+    {
+
     }
 
     // works well for smaller sets
