@@ -8,6 +8,7 @@ using Analyzer.Plotting.Util;
 using Analyzer.SearchType;
 using Easy.Common.Extensions;
 using Plotly.NET;
+using Plotting.Util;
 using ResultAnalyzerUtil;
 using TaskLayer.ChimeraAnalysis;
 using UsefulProteomicsDatabases;
@@ -277,48 +278,114 @@ namespace Test.ChimeraPaper
         [Test]
         public static void RunProformaShit_TempChimerys()
         {
-            var dirPath = ExternalComparisonTask.Mann11OutputDirectory;
-            List<SingleRunResults> results = new();
-            foreach (var cellLineDir in Directory.GetDirectories(dirPath).Where(p =>
-                             !p.Contains("Figures") && !p.Contains("Genera") && !p.Contains("Prosight") && !p.Contains("ProcessedResults")))
-            {
-                foreach (var indRunDir in Directory.GetDirectories(cellLineDir))
-                {
-                    if (indRunDir.Contains("Figure"))
-                        continue;
+            //var dirPath = ExternalComparisonTask.Mann11OutputDirectory;
+            //List<SingleRunResults> results = new();
+            //foreach (var cellLineDir in Directory.GetDirectories(dirPath).Where(p =>
+            //                 !p.Contains("Figures") && !p.Contains("Genera") && !p.Contains("Prosight") && !p.Contains("ProcessedResults")))
+            //{
+            //    foreach (var indRunDir in Directory.GetDirectories(cellLineDir))
+            //    {
+            //        if (indRunDir.Contains("Figure"))
+            //            continue;
 
-                    SingleRunResults result;
-                    if (indRunDir.Contains("MetaM"))
-                        result = new MetaMorpheusResult(indRunDir);
-                    else if (indRunDir.Contains("Frag"))
-                        result = new MsFraggerResult(indRunDir);
+            //        SingleRunResults result;
+            //        if (indRunDir.Contains("MetaM"))
+            //            result = new MetaMorpheusResult(indRunDir);
+            //        else if (indRunDir.Contains("Frag"))
+            //            result = new MsFraggerResult(indRunDir);
+            //        else
+            //            result = new ProteomeDiscovererResult(indRunDir);
+            //        results.Add(result);
+            //    }
+            //}
+
+            //// load fragger. 
+            //dirPath = @"B:\Users\Nic\Chimeras\Mann_11cell_analysis";
+            //var allResults = new AllResults(dirPath, Directory.GetDirectories(dirPath)
+            //    .Where(p => !p.Contains("Figures") && !p.Contains("ProcessedResults") && !p.Contains("Prosight"))
+            //    .Select(datasetDirectory => new CellLineResults(datasetDirectory)).ToList());
+
+            //var selector = Selector.GetSelector(Path.GetFileName(dirPath), false);
+            //var fraggerResults = allResults.SelectMany(cellLine => cellLine.Results.Where(result =>
+            //        result.Condition.Contains("DDA+")
+            //        && !result.Condition.Contains("ase_MsF") && result is MsFraggerResult).Cast<MsFraggerResult>())
+            //        .Where(p => selector.Contains(p.Condition, SelectorType.BulkResultComparison));
+            //results.AddRange(fraggerResults);
+
+
+
+
+            // Isolated
+            //string path = @"B:\Users\Nic\Chimeras\ExternalMMAnalysis\Mann_11cell_lines_1.0.6a\HEK293";
+            //var dirPaths = Directory.GetDirectories(path).Where(p => p.Contains("MetaMorph")).ToList();
+            //var results = dirPaths.Select(p => new MetaMorpheusResult(p)).ToList();
+
+            //var cellLine = new CellLineResults(path, results.Cast<SingleRunResults>().ToList());
+            //cellLine.GetBulkResultCountComparisonFile();
+            //cellLine.GetIndividualFileComparison();
+            //for (var index = 0; index < results.Count; index++)
+            //{
+            //    var result = results[index];
+            //    result.Override = true;
+            //    result.GetIndividualFileComparison();
+            //    result.GetBulkResultCountComparisonFile();
+            //    result.ToPsmProformaFile();
+            //    result.CountProteins();
+            //    results[index] = null!;
+            //}
+
+
+            // all
+            var path = ExternalComparisonTask.Mann11OutputDirectory;
+            var dirPaths = Directory.GetDirectories(path).Where(p => !p.Contains("Figure") && !p.Contains("Gener"))
+                .ToList();
+            List<CellLineResults> cellLines = new();
+            foreach (var dirPath in dirPaths)
+            {
+                var runPaths = Directory.GetDirectories(dirPath).Where(p => !p.Contains("Figure")).ToList();
+                List<SingleRunResults> results = new();
+                foreach (var runPath in runPaths)
+                {
+                    if (runPath.Contains("MetaMorpheus"))
+                        results.Add(new MetaMorpheusResult(runPath));
+                    else if (runPath.Contains("MsFragger"))
+                        results.Add(new MsFraggerResult(runPath));
                     else
-                        result = new ProteomeDiscovererResult(indRunDir);
-                    results.Add(result);
+                        results.Add(new ProteomeDiscovererResult(runPath));
                 }
+                var cellLineResults = new CellLineResults(dirPath, results);
+                cellLines.Add(cellLineResults);
             }
 
-            // load fragger. 
-            dirPath = @"B:\Users\Nic\Chimeras\Mann_11cell_analysis";
-            var allResults = new AllResults(dirPath, Directory.GetDirectories(dirPath)
-                .Where(p => !p.Contains("Figures") && !p.Contains("ProcessedResults") && !p.Contains("Prosight"))
-                .Select(datasetDirectory => new CellLineResults(datasetDirectory)).ToList());
-
-            var selector = Selector.GetSelector(Path.GetFileName(dirPath), false);
-            var fraggerResults = allResults.SelectMany(cellLine => cellLine.Results.Where(result =>
-                    result.Condition.Contains("DDA+")
-                    && !result.Condition.Contains("ase_MsF") && result is MsFraggerResult).Cast<MsFraggerResult>())
-                    .Where(p => selector.Contains(p.Condition, SelectorType.BulkResultComparison));
-            results.AddRange(fraggerResults);
-
-            Parallel.ForEach(results, new ParallelOptions() { MaxDegreeOfParallelism = 3},  result =>
+            foreach (var cellLine in cellLines)
             {
-                result.Override = true;
-                result.GetIndividualFileComparison();
-                result.GetBulkResultCountComparisonFile();
-                result.ToPsmProformaFile();
-                result = null!;
-            });
+                cellLine.GetBulkResultCountComparisonFile();
+                cellLine.GetIndividualFileComparison();
+            }
+
+
+        }
+
+        [Test]
+        public static void AddExtrasToProformaDir()
+        {
+            var outDir = Path.Combine(ExternalComparisonTask.Mann11OutputDirectory, "Figures", "ProformaResults");
+            var mmResultsToAdd = AllResults.SelectMany(cellLine => cellLine.Results.Where(result =>
+                    result.Condition == "MetaMorpheusWithLibrary"
+                    && result is MetaMorpheusResult).Cast<MetaMorpheusResult>())
+                .ToList();
+
+            var records = new List<ProformaRecord>();
+            foreach (var result in mmResultsToAdd)
+            {
+                records.AddRange(result.ToPsmProformaFile().Results);
+            }
+            var proforomaFileName = Path.Combine(outDir, "MetaMorpheus_Full" + "_PSM_" + FileIdentifiers.ProformaFile);
+            var newFile = new ProformaFile(proforomaFileName)
+            {
+                Results = records
+            };
+            newFile.WriteResults(proforomaFileName);
         }
 
         [Test]

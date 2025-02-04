@@ -138,6 +138,8 @@ namespace TaskLayer.ChimeraAnalysis
 
             var allPaths = cellLineDict.SelectMany(p => p.Value).ToList();
             PlotCellLineAveragedBarCharts(allPaths, isTopDown);
+            var bulkResults = GetResultCountFile(allPaths.Select(LoadResultFromFilePath).ToList());
+            PlotCellLineBulkBarCharts(bulkResults.Results, isTopDown);
 
 
             // Run Protein Information
@@ -174,6 +176,11 @@ namespace TaskLayer.ChimeraAnalysis
                 newFile.WriteResults(proforomaFileName);
             }
 
+
+            var allProfomaResults = proformaGroups.SelectMany(p => p.Value.SelectMany(m => m.ToPsmProformaFile().Results)).ToList();
+            var modPlot = allProfomaResults.GetModificationDistribution(isTopDown, true);
+            modPlot.Show();
+
             Log("Creating Protein Counting Files", 1);
             foreach (var cellLineDictEntry in cellLineDict)
             {
@@ -205,9 +212,9 @@ namespace TaskLayer.ChimeraAnalysis
 
                 newFile.WriteResults(proforomaFileName);
             }
-            // plot in R
 
-
+            var countingRecords = proteinGroups.SelectMany(p => p.Value.SelectMany(m => m.CountProteins().Results)).ToList();
+            PlotProteinCountingCharts(countingRecords, isTopDown);
             return Task.CompletedTask;
         }
 
@@ -316,7 +323,6 @@ namespace TaskLayer.ChimeraAnalysis
 
         internal static BulkResultCountComparisonFile GetResultCountFile(List<SingleRunResults> mmResults)
         {
-            Debugger.Break();
             Log($"Counting Total Results", 0);
             if (_bulkResultCountComparisonFile != null)
                 return _bulkResultCountComparisonFile;
@@ -337,10 +343,10 @@ namespace TaskLayer.ChimeraAnalysis
                 {
                     string cellLine = cellLineGroup.Key;
 
-                    if (cellLineGroup.Count() != 3 && !isTopDown)
-                        Debugger.Break();
-                    if (cellLineGroup.Count() != 2 && isTopDown)
-                        Debugger.Break();
+                    //if (cellLineGroup.Count() != 3 && !isTopDown)
+                    //    Debugger.Break();
+                    //if (cellLineGroup.Count() != 2 && isTopDown)
+                    //    Debugger.Break();
 
                     int psmCount = 0;
                     int allPsmCount = 0;
@@ -354,23 +360,33 @@ namespace TaskLayer.ChimeraAnalysis
                     {
                         case MetaMorpheusResult:
                             var group = cellLineGroup.Cast<MetaMorpheusResult>().ToArray();
-                            psmCount = group.Sum(p =>
-                                p.AllPsms.Count(psm => !psm.IsDecoy() && psm.PEP_QValue <= 0.01));
-                            allPsmCount = group.Sum(p => p.AllPsms.Count(psm => !psm.IsDecoy()));
+                            var allPsms = group
+                                .SelectMany(p => p.IndividualFileResults)
+                                .SelectMany(p => p.AllPsms)
+                                .Where(psm => !psm.IsDecoy())
+                                .ToList();
+                            psmCount = allPsms.Count(psm => psm.PEP_QValue <= 0.01);
+                            allPsmCount = allPsms.Count;
 
-                            peptideCount = group.SelectMany(p =>
-                                    p.AllPeptides.Where(peptide => !peptide.IsDecoy() && peptide.PEP_QValue <= 0.01))
+                            var allPeptides = group
+                                .SelectMany(p => p.IndividualFileResults)
+                                .SelectMany(p => p.AllPeptides)
+                                .Where(peptide => !peptide.IsDecoy())
+                                .ToList();
+                            peptideCount = allPeptides
+                                .Where(peptide => peptide.PEP_QValue <= 0.01)
                                 .DistinctBy(peptide => peptide.FullSequence)
                                 .Count();
-                            allPeptideCount = group.SelectMany(p => p.AllPeptides.Where(peptide => !peptide.IsDecoy()))
+                            allPeptideCount = allPeptides
                                 .DistinctBy(peptide => peptide.FullSequence)
                                 .Count();
 
                             List<string> accessions = new();
                             List<string> unfilteredAccessions = new();
-                            cellLineGroup.ForEach(group =>
+                            group.SelectMany(p => p.IndividualFileResults).ForEach(indFileResult
+                                =>
                             {
-                                using (var sw = new StreamReader(File.OpenRead(group.ProteinPath)))
+                                using (var sw = new StreamReader(File.OpenRead(indFileResult.ProteinPath)))
                                 {
                                     var header = sw.ReadLine();
                                     var headerSplit = header.Split('\t');
@@ -405,34 +421,64 @@ namespace TaskLayer.ChimeraAnalysis
                             break;
                         case MsFraggerResult:
                             var group2 = cellLineGroup.Cast<MsFraggerResult>().ToArray();
-                            var psms = group2.SelectMany(m => m.IndividualFileResults)
-                                .SelectMany(p => p.PsmFile).ToList();
+                            var psms = group2
+                                .SelectMany(m => m.IndividualFileResults)
+                                .SelectMany(p => p.PsmFile)
+                                .Where(p => !p.IsDecoy)
+                                .ToList();
                             psmCount = psms.Count(m => m.PassesConfidenceFilter);
                             allPsmCount = psms.Count;
 
-                            var peptides = group2.SelectMany(m => m.IndividualFileResults)
-                                .SelectMany(p => p.PeptideFile).ToList();
+                            var peptides = group2
+                                .SelectMany(m => m.IndividualFileResults)
+                                .SelectMany(p => p.PeptideFile)
+                                .Where(p => !p.IsDecoy)
+                                .DistinctBy(p => p.FullSequence)
+                                .ToList();
                             peptideCount = peptides.Count(p => p.Probability >= 0.99);
+                            allPeptideCount = peptides.Count;
 
-                            var proteins = group2.SelectMany(m => m.IndividualFileResults)
-                                .SelectMany(p => p.ProteinFile).ToList();
-                            proteinGroupCount = proteins.GroupBy(p => p.Accession).Count();
-                            allProteinGroupCount = proteins.Where(p => p.ProteinProbability >= 0.99)
+                            var proteins = group2
+                                .SelectMany(m => m.IndividualFileResults)
+                                .SelectMany(p => p.ProteinFile)
+                                .ToList();
+                            proteinGroupCount = proteins
+                                .Where(p => p.ProteinProbability >= 0.99)
                                 .GroupBy(p => p.Accession).Count();
+                            allProteinGroupCount = proteins
+                                .GroupBy(p => p.Accession).Count();
+
                             break;
                         case ProteomeDiscovererResult:
                             var group3 = cellLineGroup.Cast<ProteomeDiscovererResult>().ToArray();
+
+                            allPsmCount = group3.SelectMany(p => p.PrsmFile.Results)
+                                .Where(p => !p.IsDecoy)
+                                .DistinctBy(p => p, CustomComparerExtensions.PSPDPrSMDistinctPsmComparer)
+                                .Count();
+                            psmCount = group3.SelectMany(p => p.PrsmFile.FilteredResults)
+                                .DistinctBy(p => p, CustomComparerExtensions.PSPDPrSMDistinctPsmComparer)
+                                .Count();
+
+                            allPeptideCount = group3.SelectMany(p => p.ProteoformFile.Results)
+                                .DistinctBy(p => p, CustomComparerExtensions.PSPDPrSMDistinctProteoformComparer)
+                                .Count();
+                            peptideCount = group3.SelectMany(p => p.ProteoformFile.FilteredResults)
+                                .DistinctBy(p => p, CustomComparerExtensions.PSPDPrSMDistinctProteoformComparer)
+                                .Count();
+
+                            allProteinGroupCount = group3.SelectMany(p => p.ProteinFile.Results)
+                                .DistinctBy(p => p, CustomComparerExtensions.PSPDPrSMDistinctProteinComparer)
+                                .Count();
+                            proteinGroupCount = group3.SelectMany(p => p.ProteinFile.FilteredResults)
+                                .DistinctBy(p => p, CustomComparerExtensions.PSPDPrSMDistinctProteinComparer)
+                                .Count();
 
                             break;
                         case MsPathFinderTResults:
 
                             break;
                     }
-
-                    
-                    
-
-                    
 
                     var result = new BulkResultCountComparison()
                     {
@@ -487,19 +533,23 @@ namespace TaskLayer.ChimeraAnalysis
                         result.Condition.Contains("DDA+")
                         && !result.Condition.Contains("ase_MsF") && result is MsFraggerResult).Cast<MsFraggerResult>())
                     .ToList();
-                //var fraggerReviewedDbNoPhospho = fraggerResults
-                //    .Where(p => p.Condition.ConvertConditionName().Contains("NoPhospho"))
+
+                //var fraggerReviewdWithPhospho = fraggerResults
+                //    .Where(p => !p.Condition.ConvertConditionName().Contains("NoPhospho") && p.Condition != "ReviewdDatabase_MsFraggerDDA+")
                 //    .ToList();
-                var fraggerReviewdWithPhospho = fraggerResults
-                    .Where(p => !p.Condition.ConvertConditionName().Contains("NoPhospho") && p.Condition != "ReviewdDatabase_MsFraggerDDA+")
-                    .ToList();
 
                 // Only return one run
                 var fraggerToReturn = fraggerResults
                     .Where(p => selector.Contains(p.Condition, SelectorType.BulkResultComparison))
                     .ToList();
-
                 allOtherResults.AddRange(fraggerToReturn);
+
+                var mmResultsToAdd = allResults.SelectMany(cellLine => cellLine.Results.Where(result =>
+                        result.Condition == "MetaMorpheusWithLibrary"
+                        && result is MetaMorpheusResult).Cast<MetaMorpheusResult>())
+                    .ToList();
+                allOtherResults.AddRange(mmResultsToAdd);
+
 
                 foreach (var cellLineDirectory in Directory.GetDirectories(parameters.OutputDirectory)
                              .Where(p => !p.Contains("Generate") && !p.Contains("Figure")))
@@ -520,6 +570,26 @@ namespace TaskLayer.ChimeraAnalysis
 
         #region Plotting
 
+        static void PlotProteinCountingCharts(List<ProteinCountingRecord> records, bool isTopDown)
+        {
+            var directory = Path.Combine(BulkFigureDirectory, "ProteinSummary");
+            if (!Directory.Exists(directory))
+                Directory.CreateDirectory(directory);
+
+            var outPath = Path.Combine(directory, "SequenceCoverage");
+            var plot = records.GetProteinCountPlotsStacked(ProteinCountPlots.ProteinCountPlotTypes.SequenceCoverage);
+            plot.SavePNG(outPath, null, 1200, 1200);
+
+            outPath = Path.Combine(directory, "BaseSequenceCount");
+            plot = records.GetProteinCountPlotsStacked(ProteinCountPlots.ProteinCountPlotTypes.BaseSequenceCount);
+            plot.SavePNG(outPath, null, 1200, 1200);
+
+            outPath = Path.Combine(directory, "FullSequenceCount");
+            plot = records.GetProteinCountPlotsStacked(ProteinCountPlots.ProteinCountPlotTypes.FullSequenceCount);
+            plot.SavePNG(outPath, null, 1200, 1200);
+        }
+
+
         static void PlotCellLineAveragedBarCharts(List<string> allPaths, bool isTopDown)
         {
             var results = allPaths.Select(LoadResultFromFilePath)
@@ -533,20 +603,20 @@ namespace TaskLayer.ChimeraAnalysis
                 .SelectMany(p => p!.Results).ToList();
 
 
-            var psmPlot = GetBarChar(toPlot, ResultType.Psm, isTopDown);
+            var psmPlot = GetIndividualSummedBarChar(toPlot, ResultType.Psm, isTopDown);
             var outPath = Path.Combine(BulkFigureDirectory, "ResultsByCellLine_PSM");
             psmPlot.SavePNG(outPath, null, 800, 600);
 
-            var peptidePlot = GetBarChar(toPlot, ResultType.Peptide, isTopDown);
+            var peptidePlot = GetIndividualSummedBarChar(toPlot, ResultType.Peptide, isTopDown);
             outPath = Path.Combine(BulkFigureDirectory, "ResultsByCellLine_Peptide");
             peptidePlot.SavePNG(outPath, null, 800, 600);
 
-            var proteinPlot = GetBarChar(toPlot, ResultType.Protein, isTopDown);
+            var proteinPlot = GetIndividualSummedBarChar(toPlot, ResultType.Protein, isTopDown);
             outPath = Path.Combine(BulkFigureDirectory, "ResultsByCellLine_Protein");
             proteinPlot.SavePNG(outPath, null, 800, 600);
         }
 
-        static GenericChart.GenericChart GetBarChar(List<BulkResultCountComparison> records, ResultType resultType, bool isTopDown)
+        static GenericChart.GenericChart GetIndividualSummedBarChar(List<BulkResultCountComparison> records, ResultType resultType, bool isTopDown)
         {
             bool withErrorBars = true;
 
@@ -581,6 +651,45 @@ namespace TaskLayer.ChimeraAnalysis
                 if (withErrorBars)
                     softwareChart = softwareChart.WithYError(Error.init<int, int>(true, StyleParam.ErrorType.Data, false,
                     lower, upper));
+                toCombine.Add(softwareChart);
+            }
+
+            var finalChart = Chart.Combine(toCombine.ToArray()).WithTitle($"1% FDR {Labels.GetLabel(isTopDown, resultType)}")
+                .WithXAxisStyle(Title.init("File"))
+                .WithYAxisStyle(Title.init("Count"))
+                .WithLayout(PlotlyBase.DefaultLayoutWithLegend)
+                .WithSize(800, 600);
+
+            return finalChart;
+        }
+
+
+        static void PlotCellLineBulkBarCharts(List<BulkResultCountComparison> records, bool isTopDown)
+        {
+
+            var psmPlot = GetBulkBarChar(records, ResultType.Psm, isTopDown);
+            var outPath = Path.Combine(BulkFigureDirectory, "Bulk_ResultsByCellLine_PSM");
+            psmPlot.SavePNG(outPath, null, 800, 600);
+
+            var peptidePlot = GetBulkBarChar(records, ResultType.Peptide, isTopDown);
+            outPath = Path.Combine(BulkFigureDirectory, "Bulk_ResultsByCellLine_Peptide");
+            peptidePlot.SavePNG(outPath, null, 800, 600);
+
+            var proteinPlot = GetBulkBarChar(records, ResultType.Protein, isTopDown);
+            outPath = Path.Combine(BulkFigureDirectory, "Bulk_ResultsByCellLine_Protein");
+            proteinPlot.SavePNG(outPath, null, 800, 600);
+        }
+
+        static GenericChart.GenericChart GetBulkBarChar(List<BulkResultCountComparison> records, ResultType resultType, bool isTopDown)
+        {
+            List<GenericChart.GenericChart> toCombine = new();
+            foreach (var softwareGroup in records.GroupBy(p => p.Condition.Split('_')[0]))
+            {
+                var labels = softwareGroup.Select(p => p.DatasetName).ToArray();
+                var values = softwareGroup.Select(AnalyzerGenericPlots.ResultSelector(resultType)).ToArray();
+                var name = softwareGroup.First().Condition.ConvertConditionName();
+                var color = softwareGroup.First().Condition.ConvertConditionToColor();
+                var softwareChart = Chart.Column<int, string, string>(values, labels, name, MarkerColor: color);
                 toCombine.Add(softwareChart);
             }
 

@@ -201,5 +201,23 @@ namespace Analyzer.Plotting.IndividualRunPlots
                 .WithLayout(PlotlyBase.DefaultLayout);
             return chart;
         }
+    
+        public static GenericChart.GenericChart GetModificationDistribution(this List<ProformaRecord> records, bool isTopDown, bool displayRelative = false, bool displayCarbamidoMethyl = false)
+        {
+            List<GenericChart.GenericChart> toCombine = new();
+            foreach (var conditionGroup in records.GroupBy(p => p.Condition.ConvertConditionName()))
+            {
+                var fullSequences = conditionGroup.Select(p => p.FullSequence);
+                var plot = GenericPlots.ModificationDistribution(fullSequences.ToList(), conditionGroup.Key, "Modification", "Count", displayCarbamidoMethyl, displayRelative);
+                toCombine.Add(plot);
+            }
+
+            var finalPlot = Chart.Combine(toCombine)
+                .WithTitle($"1% {Labels.GetLabel(isTopDown, ResultType.Psm)}  Modification Distribution")
+                .WithSize(900, 600)
+                .WithLayout(PlotlyBase.DefaultLayoutWithLegend);
+
+            return finalPlot;
+        }
     }
 }

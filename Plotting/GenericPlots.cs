@@ -126,27 +126,15 @@ namespace Plotting
             var modDict = new Dictionary<string, double>();
             foreach (var mod in fullSequences.SelectMany(p =>
                          Omics.SpectrumMatch.SpectrumMatchFromTsv.ParseModifications(p).SelectMany(m => m.Value)
-                             .Select(mod => mod.Split(":")[1].Split(' ')[0].Trim()
+                             .Select(mod => System.Text.RegularExpressions.Regex.Replace(mod, @".*?:", "").Trim()
                                  .Replace("Accetyl", "Acetyl"))))
             {
+                if (!displayCarbamimidoMethyl && mod.StartsWith("Carbamidometh"))
+                    continue;
+
                 if (!modDict.TryAdd(mod, 1))
                 {
                     modDict[mod]++;
-                }
-            }
-
-            if (!displayCarbamimidoMethyl)
-            {
-                modDict.Remove("Carbamidomethyl on C");
-                modDict.Remove("Carbamidomethyl on U");
-                modDict.Remove("Carbamidomethyl");
-            }
-
-            if (false)
-            {
-                foreach (var keyValuePair in modDict.Where(p => p.Key.Contains("Deamida") || p.Key.Contains("Hydrox")))
-                {
-                    modDict.Remove(keyValuePair.Key);
                 }
             }
 
@@ -156,6 +144,15 @@ namespace Plotting
                 foreach (var keyValuePair in modDict)
                 {
                     modDict[keyValuePair.Key] = keyValuePair.Value / modCount * 100.0;
+                }
+            }
+
+
+            if (false)
+            {
+                foreach (var keyValuePair in modDict.Where(p => p.Key.Contains("Deamida") || p.Key.Contains("Hydrox")))
+                {
+                    modDict.Remove(keyValuePair.Key);
                 }
             }
 

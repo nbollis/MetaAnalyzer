@@ -45,7 +45,7 @@ namespace Test.ChimeraPaper
         [Test]
         public static void RunAllParsing()
         {
-            foreach (var cellLine in AllResults)
+            foreach (var cellLine in AllResults.Skip(1))
             {
                 foreach (var result in cellLine)
                 {

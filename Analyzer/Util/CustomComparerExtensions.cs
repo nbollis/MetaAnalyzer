@@ -3,7 +3,7 @@ using ResultAnalyzerUtil;
 
 namespace Analyzer.Util
 {
-    internal static class CustomComparerExtensions
+    public static class CustomComparerExtensions
     {
         // MsFragger
         public static CustomComparer<MsFraggerPsm> MsFraggerChimeraComparer =>
@@ -31,15 +31,15 @@ namespace Analyzer.Util
                            prsm => prsm.FileID,
                            prsm => prsm.AnnotatedSequence);
 
-        //public static CustomComparer<ProteomeDiscovererProteoformRecord> PSPDPrSMDistinctProteoformComparer =>
-        //    new CustomComparer<ProteomeDiscovererProteoformRecord>(
-        //        prsm => prsm.ProteinAccessions,
-        //        prsm => prsm.Sequence,
-        //        prsm => prsm.Modifications);
+        public static CustomComparer<ProteomeDiscovererProteoformRecord> PSPDPrSMDistinctProteoformComparer =>
+            new CustomComparer<ProteomeDiscovererProteoformRecord>(
+                prsm => prsm.ProteinAccessions,
+                prsm => prsm.Sequence,
+                prsm => prsm.Modifications);
 
-        //public static CustomComparer<ProteomeDiscovererPsmRecord> PSPDPrSMDistinctProteinComparer => 
-        //new CustomComparer<ProteomeDiscovererPsmRecord>(
-        //                   prsm => prsm.ProteinAccessions);
+        public static CustomComparer<ProteomeDiscovererProteinRecord> PSPDPrSMDistinctProteinComparer =>
+        new CustomComparer<ProteomeDiscovererProteinRecord>(
+                           prsm => prsm.Accession);
 
 
 
@@ -51,8 +51,8 @@ namespace Analyzer.Util
 
         public static CustomComparer<MsPathFinderTResult> MsPathFinderTDistinctProteoformComparer =>
             new CustomComparer<MsPathFinderTResult>(
-                prsm => prsm.BaseSequence,
-                prsm => prsm.Modifications);
+                prsm => prsm.FullSequence,
+                prsm => prsm.OneBasedScanNumber);
 
         public static CustomComparer<MsPathFinderTResult> MsPathFinderTDistinctProteinComparer =>
             new CustomComparer<MsPathFinderTResult>(
