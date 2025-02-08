@@ -7,6 +7,7 @@ using Analyzer.SearchType;
 using Analyzer.Util;
 using Plotting.Util;
 using ResultAnalyzerUtil;
+using System.Diagnostics;
 using UsefulProteomicsDatabases;
 
 namespace Test.ChimeraPaper
@@ -45,41 +46,41 @@ namespace Test.ChimeraPaper
         [Test]
         public static void RunAllParsing()
         {
-            foreach (var cellLine in AllResults.Skip(1))
+            foreach (var cellLine in AllResults)
             {
-                foreach (var result in cellLine)
-                {
-                    //result.Override = true;
-                    result.CountChimericPsms();
-                    result.GetBulkResultCountComparisonFile();
-                    result.GetIndividualFileComparison();
-                    if (result is IChimeraBreakdownCompatible cb)
-                        cb.GetChimeraBreakdownFile();
-                    if (result is IChimeraPeptideCounter pc)
-                        pc.CountChimericPeptides();
-                    if (result is MetaMorpheusResult mm)
-                    {
-                        //mm.PlotPepFeaturesScatterGrid();
-                        //mm.ExportCombinedChimeraTargetDecoyExploration(mm.FigureDirectory, mm.Condition);
-                        //mm.PlotTargetDecoyCurves(ResultType.Psm, TargetDecoyCurveMode.Score, false);
-                        //mm.PlotTargetDecoyCurves(ResultType.Psm, TargetDecoyCurveMode.Score, true);
-                        //mm.PlotTargetDecoyCurves(ResultType.Peptide, TargetDecoyCurveMode.Score, false);
-                        //mm.PlotTargetDecoyCurves(ResultType.Peptide, TargetDecoyCurveMode.Score, true);
-                    }
-                    result.Override = false;
-                }
+                //foreach (var result in cellLine)
+                //{
+                //    //result.Override = true;
+                //    result.CountChimericPsms();
+                //    result.GetBulkResultCountComparisonFile();
+                //    result.GetIndividualFileComparison();
+                //    if (result is IChimeraBreakdownCompatible cb)
+                //        cb.GetChimeraBreakdownFile();
+                //    if (result is IChimeraPeptideCounter pc)
+                //        pc.CountChimericPeptides();
+                //    if (result is MetaMorpheusResult mm)
+                //    {
+                //        //mm.PlotPepFeaturesScatterGrid();
+                //        //mm.ExportCombinedChimeraTargetDecoyExploration(mm.FigureDirectory, mm.Condition);
+                //        //mm.PlotTargetDecoyCurves(ResultType.Psm, TargetDecoyCurveMode.Score, false);
+                //        //mm.PlotTargetDecoyCurves(ResultType.Psm, TargetDecoyCurveMode.Score, true);
+                //        //mm.PlotTargetDecoyCurves(ResultType.Peptide, TargetDecoyCurveMode.Score, false);
+                //        //mm.PlotTargetDecoyCurves(ResultType.Peptide, TargetDecoyCurveMode.Score, true);
+                //    }
+                //    result.Override = false;
+                //}
 
-                cellLine.Override = true;
-                cellLine.GetIndividualFileComparison();
-                cellLine.GetBulkResultCountComparisonFile();
-                cellLine.CountChimericPsms();
-                cellLine.CountChimericPeptides();
-                cellLine.Override = false;
+                //cellLine.Override = true;
+                //cellLine.GetIndividualFileComparison();
+                //cellLine.GetBulkResultCountComparisonFile();
+                //cellLine.CountChimericPsms();
+                //cellLine.CountChimericPeptides();
+                //cellLine.Override = false;
 
-                cellLine.PlotIndividualFileResults();
-                cellLine.PlotCellLineSpectralSimilarity();
+                //cellLine.PlotIndividualFileResults();
+                //cellLine.PlotCellLineSpectralSimilarity();
                 cellLine.PlotCellLineChimeraBreakdown();
-                cellLine.PlotCellLineChimeraBreakdown_TargetDecoy();
+                //cellLine.PlotCellLineChimeraBreakdown_TargetDecoy();
                 cellLine.PlotModificationDistribution(ResultType.Psm, false);
                 cellLine.PlotModificationDistribution(ResultType.Peptide, false);
 
@@ -97,20 +98,20 @@ namespace Test.ChimeraPaper
         [Test]
         public static void GenerateAllFigures()
         {
-            //foreach (CellLineResults cellLine in AllResults)
-            //{
-            //    foreach (var individualResult in cellLine)
-            //    {
-            //        if (individualResult is not MetaMorpheusResult mm) continue;
-            //        //mm.PlotPepFeaturesScatterGrid();
-            //        //mm.ExportCombinedChimeraTargetDecoyExploration(mm.FigureDirectory, mm.Condition);
-            //    }
+            foreach (CellLineResults cellLine in AllResults)
+            {
+                //foreach (var individualResult in cellLine)
+                //{
+                //    if (individualResult is not MetaMorpheusResult mm) continue;
+                //    //mm.PlotPepFeaturesScatterGrid();
+                //    //mm.ExportCombinedChimeraTargetDecoyExploration(mm.FigureDirectory, mm.Condition);
+                //}
 
-            //    cellLine.PlotIndividualFileResults();
-            //    cellLine.PlotCellLineSpectralSimilarity();
-            //    cellLine.PlotCellLineChimeraBreakdown();
-            //    cellLine.PlotCellLineChimeraBreakdown_TargetDecoy();
-            //}
+                cellLine.PlotIndividualFileResults();
+                cellLine.PlotCellLineSpectralSimilarity();
+                cellLine.PlotCellLineChimeraBreakdown();
+                cellLine.PlotCellLineChimeraBreakdown_TargetDecoy();
+            }
 
             //AllResults.PlotInternalMMComparison();
             AllResults.PlotBulkResultComparisons();
@@ -219,10 +220,79 @@ namespace Test.ChimeraPaper
 
 
         [Test]
-        public static void IsabellaData()
+        public static void Renamer()
         {
+            string dirPath = @"B:\RawSpectraFiles\Mann_11cell_lines";
+            var directories = Directory.GetDirectories(dirPath);
+            var calibAvgDirs = directories.Where(p => p.Contains("ged_107")).ToList();
+            var cellLineDirs = directories.Except(calibAvgDirs).ToList();
 
-            AllResults.PlotBulkResultComparisons();
+            Dictionary<string, List<string>> fileDictionary = new();
+            foreach (var replicateDir in calibAvgDirs)
+            {
+                int rep = int.Parse(replicateDir.Last().ToString());
+                var toLook = Directory.GetDirectories(replicateDir).First(p => p.Contains("Task1-C"));
+
+                var files = Directory.GetFiles(toLook).Where(p => !p.EndsWith(".txt"));
+
+                foreach (var file in files)
+                {
+                    var fileName = Path.GetFileNameWithoutExtension(file);
+                    var converted = fileName.ConvertFileName();
+
+                    var splits = converted.Split('_');
+                    var name = splits[0];
+                    var innerRep = int.Parse(splits[1]);
+                    var fileNumber = int.Parse(splits[2]);
+
+                    if (rep != innerRep)
+                        Debugger.Break();
+
+                    if (fileDictionary.ContainsKey(name))
+                    {
+                        fileDictionary[name].Add(file);
+                    }
+                    else
+                    {
+                        fileDictionary.Add(name, [file]);
+                    }
+                }
+            }
+
+            // Find the folder called CalibratedAveraged and rename it to 106_CalibratedAveraged
+            foreach (var cellLineDir in cellLineDirs)
+            {
+                var destinationDir = Path.Combine(cellLineDir, "106_Calibrated");
+                if (Directory.Exists(destinationDir) && Directory.GetFiles(destinationDir).Length == 36)
+                    continue;
+
+
+                var calibDirs = Directory.GetDirectories(cellLineDir).Where(p => p.Contains("Calibra", StringComparison.InvariantCultureIgnoreCase) && !p.Contains("Averaged", StringComparison.InvariantCultureIgnoreCase))
+                    .Where(p => p != destinationDir)
+                    .ToList();
+                if (calibDirs.Count > 1)
+                    Debugger.Break();
+                else if (calibDirs.Count == 1)
+                {
+                    var calibDir = calibDirs.First();
+                    Directory.Move(calibDir, destinationDir);
+                }
+
+
+                var cellLineName = Path.GetFileNameWithoutExtension(cellLineDir);
+                var calibPath = Path.Combine(cellLineDir, "Calibrated");
+                Directory.CreateDirectory(calibPath);
+
+                var files = fileDictionary[cellLineName];
+
+                foreach (var file in files)
+                {
+                    var originalDir = Path.GetDirectoryName(file);
+                    var newLocation = file.Replace(originalDir!, calibPath);
+
+                    File.Move(file, newLocation);
+                }
+            }
         }
 
 

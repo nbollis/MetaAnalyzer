@@ -35,7 +35,7 @@ namespace TaskLayer.ChimeraAnalysis
             @"B:\Users\Nic\Chimeras\Mann_11cell_analysis\Search_BuildLibrary_ReducedForComparison.toml";
         public static string Mann11OutputDirectory =>
             @"B:\Users\Nic\Chimeras\ExternalMMAnalysis\Mann_11cell_lines";
-        public static string Version => "106";
+        public static string Version => "107";
 
         public override MyTask MyTask => MyTask.ExternalChimeraPaperAnalysis;
         public override ExternalComparisonParameters Parameters { get; }
@@ -53,7 +53,7 @@ namespace TaskLayer.ChimeraAnalysis
                 Directory.CreateDirectory(BulkFigureDirectory);
         }
 
-        protected override void RunSpecific() => RunSpecificAsync(Parameters)/*.Wait()*/;
+        protected override void RunSpecific() => RunSpecificAsync(Parameters).Wait();
 
         private static Task RunSpecificAsync(ExternalComparisonParameters parameters)
         {
