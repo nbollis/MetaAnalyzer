@@ -42,15 +42,33 @@ namespace Test
         [Test]
         public static void HorseTest()
         {
+            string horseCytoAccession = "P00004";
             string directoryPath = @"D:\Projects\RadicalFragmentation\FragmentAnalysis\Databases";
             string reviewedName = "uniprotkb_horseReviewed_taxonomy_id_9796_AND_reviewed_2025_02_04.xml";
             string fullName = "uniprotkb_horse_taxonomy_id_9796_2025_02_04.xml";
 
-            var reviewedPath = Path.Combine(directoryPath, reviewedName);
+            //var reviewedPath = Path.Combine(directoryPath, reviewedName);
             var fullPath = Path.Combine(directoryPath, fullName);
 
-            var reviewed = ProteinDbLoader.LoadProteinXML(reviewedPath, true, DecoyType.None, GlobalVariables.AllModsKnown, false, [], out var unknownMods);
-            var full = ProteinDbLoader.LoadProteinXML(fullPath, true, DecoyType.None, GlobalVariables.AllModsKnown, false, [], out var unknownMods2);
+            //var reviewed = ProteinDbLoader.LoadProteinXML(reviewedPath, true, DecoyType.None, GlobalVariables.AllModsKnown, false, [], out var unknownMods);
+            //var full = ProteinDbLoader.LoadProteinXML(fullPath, true, DecoyType.None, GlobalVariables.AllModsKnown, false, [], out var unknownMods2);
+            
+
+            var explorers = DirectoryToFragmentExplorers.GetFragmentExplorersFromDirectory(DatabasePath, DirectoryPath)
+                .ToList();
+
+            var horse = explorers.Where(p => p is { Tolerance: 10, MissedMonoIsotopics: 0, Species: "Horse" })
+                .ToList();
+
+            var horseRecords = horse.SelectMany(p => p.FindNumberOfFragmentsNeededToDifferentiate().Where(r => r.Accession == horseCytoAccession)).ToList();
+
+            var cytoFilePath = Path.Combine(DirectoryPath, "HorseCytoC.csv");
+            var cytoFile = new FragmentsToDistinguishFile(cytoFilePath)
+            {
+                Results = horseRecords
+            };
+            cytoFile.WriteResults(cytoFilePath);
+
         }
 
         [Test]

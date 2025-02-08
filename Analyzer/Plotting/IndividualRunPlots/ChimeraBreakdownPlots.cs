@@ -112,6 +112,7 @@ namespace Analyzer.Plotting.IndividualRunPlots
             string title = isTopDown ? type == ResultType.Psm ? "PrSM" : "Proteoform" :
                 type == ResultType.Psm ? "PSM" : "Peptide";
             var title2 = results.Select(p => p.Dataset).Distinct().Count() == 1 ? results.First().Dataset : "All Results";
+            var temp = $"Unique {form}";
 
             var charts = new[]
             {

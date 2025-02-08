@@ -98,7 +98,9 @@ public static class PlottingTranslators
         // Chimera Breakdown plot
         {"Isolated Species", Color.fromKeyword(ColorKeyword.LightAkyBlue)},
         {"Unique Proteoform", Color.fromKeyword(ColorKeyword.MediumVioletRed)},
+        {"Unique Proteoforms", Color.fromKeyword(ColorKeyword.MediumVioletRed)},
         {"Unique Peptidoform", Color.fromKeyword(ColorKeyword.MediumVioletRed)},
+        {"Unique Peptidoforms", Color.fromKeyword(ColorKeyword.MediumVioletRed)},
         {"Unique Protein", Color.fromKeyword(ColorKeyword.MediumAquamarine)},
         {"Targets", Color.fromKeyword(ColorKeyword.LightAkyBlue)},
         {"Decoys", Color.fromKeyword(ColorKeyword.Gold)},
