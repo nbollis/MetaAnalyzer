@@ -462,7 +462,7 @@ namespace Analyzer.SearchType
                                 orderedChimeras = chimeraGroup
                                     .Where(p => p.DecoyContamTarget == "T")
                                     .OrderByDescending(p => p.Score)
-                                    .ThenBy(p => Math.Abs(double.Parse(p.MassDiffDa))).ToArray();
+                                    .ThenBy(p => Math.Abs(double.Parse(p.MassDiffDa.Split('|')[0]))).ToArray();
                             else
                                 orderedChimeras = chimeraGroup
                                     .Where(p => p.DecoyContamTarget == "T")
@@ -475,7 +475,7 @@ namespace Analyzer.SearchType
                             orderedChimeras = chimeraGroup
                                 .Where(p => p.DecoyContamTarget == "T")
                                 .OrderByDescending(p => p.Score)
-                                .ThenBy(p => Math.Abs(double.Parse(p.MassDiffDa))).ToArray();
+                                .ThenBy(p => Math.Abs(double.Parse(p.MassDiffDa.Split('|')[0]))).ToArray();
                         }
 
                         foreach (var chimericPsm in orderedChimeras)
