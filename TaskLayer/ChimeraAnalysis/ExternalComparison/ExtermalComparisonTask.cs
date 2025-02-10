@@ -14,6 +14,7 @@ using Plotly.NET;
 using Chart = Plotly.NET.CSharp.Chart;
 using Plotly.NET.TraceObjects;
 using Plotly.NET.ImageExport;
+using Omics.SpectrumMatch;
 
 namespace TaskLayer.ChimeraAnalysis
 {
@@ -58,7 +59,7 @@ namespace TaskLayer.ChimeraAnalysis
         private static Task RunSpecificAsync(ExternalComparisonParameters parameters)
         {
             var processes = BuildProcesses(parameters);
-            RunProcesses(processes).Wait();
+            //RunProcesses(processes).Wait();
 
 
             var isTopDown = !parameters.InputDirectoryPath.Contains("Mann");
@@ -72,6 +73,7 @@ namespace TaskLayer.ChimeraAnalysis
             }
 
             // Run MM Task basic processing 
+            object plottingLock = new();
             int degreesOfParallelism = (int)(MaxWeight / 0.25);
             Parallel.ForEach(cellLineDict.SelectMany(p => p.Value),
                 new ParallelOptions() { MaxDegreeOfParallelism = Math.Max(degreesOfParallelism, 1) },
@@ -96,9 +98,11 @@ namespace TaskLayer.ChimeraAnalysis
                     // if it takes less than one minute to get the breakdown, and we are not overriding, do not plot
                     if (sw.Elapsed.Minutes < 1 && !parameters.Override)
                         return;
-
-                    mmResult.PlotChimeraBreakDownStackedColumn_Scaled(ResultType.Psm);
-                    mmResult.PlotChimeraBreakDownStackedColumn_Scaled(ResultType.Peptide);
+                    lock(plottingLock)
+                    {
+                        mmResult.PlotChimeraBreakDownStackedColumn_Scaled(ResultType.Psm);
+                        mmResult.PlotChimeraBreakDownStackedColumn_Scaled(ResultType.Peptide);
+                    }
                 });
 
             Log($"Running Chimeric Spectrum Summaries", 0);
