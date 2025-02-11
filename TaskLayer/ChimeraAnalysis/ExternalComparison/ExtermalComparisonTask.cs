@@ -59,7 +59,7 @@ namespace TaskLayer.ChimeraAnalysis
         private static Task RunSpecificAsync(ExternalComparisonParameters parameters)
         {
             var processes = BuildProcesses(parameters);
-            //RunProcesses(processes).Wait();
+            RunProcesses(processes).Wait();
 
 
             var isTopDown = !parameters.InputDirectoryPath.Contains("Mann");
