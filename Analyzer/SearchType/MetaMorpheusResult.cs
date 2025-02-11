@@ -1003,7 +1003,7 @@ namespace Analyzer.SearchType
                 case "Chimeras" when IsTopDown:
                 case "TopDown_Jurkat": // internal metamorpheus top-down
                     massSpecFiles = Directory.GetFiles(@"B:\RawSpectraFiles\JurkatTopDown\CalibratedAveraged", "*.mzML",
-                                               SearchOption.AllDirectories).Where(p => p.Contains("rep2")).ToList();
+                                               SearchOption.AllDirectories).ToList();
                     fullDeconDirectory = Path.Combine(@"B:\Users\Nic\Chimeras\TopDown_Analysis\Jurkat\DeconResults",
                         specificDir);
                     deconFiles = Directory.GetFiles(fullDeconDirectory, "*ms1.feature", SearchOption.AllDirectories).ToList();
@@ -1091,7 +1091,7 @@ namespace Analyzer.SearchType
                 Log($"Loading in Files", 3);
 
                 // Setup
-                MsDataFile dataFile = FileReader.ReadFile<MsDataFileToResultFileAdapter>(individualFile).LoadAllStaticData(); 
+                MsDataFile dataFile = MsDataFileReader.GetDataFile(individualFile).LoadAllStaticData(); 
                 string fileName = Path.GetFileNameWithoutExtension(dataFile.FilePath).ConvertFileName();
                 
 
