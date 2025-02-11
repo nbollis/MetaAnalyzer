@@ -24,12 +24,12 @@ public static class PlottingTranslators
         // Bottom Up
         {"MetaMorpheusWithLibrary", Color.fromKeyword(ColorKeyword.Purple) },
         {"MetaMorpheus_Chimeras", Color.fromKeyword(ColorKeyword.Purple) },
-        {"MetaMorpheusNoChimerasWithLibrary", Color.fromKeyword(ColorKeyword.Plum) },
-        {"MetaMorpheus_NoChimeras", Color.fromKeyword(ColorKeyword.Plum) },
+        {"MetaMorpheusNoChimerasWithLibrary", Color.fromKeyword(ColorKeyword.SeaGreen) },
+        {"MetaMorpheus_NoChimeras", Color.fromKeyword(ColorKeyword.SeaGreen) },
         { "MetaMorpheusFraggerEquivalent_IndividualFilesFraggerEquivalentWithChimeras", Color.fromKeyword(ColorKeyword.Purple) },
         { "MetaMorpheus_ExternalComparison_Chimeras", Color.fromKeyword(ColorKeyword.Purple) },
-        { "MetaMorpheusFraggerEquivalent_IndividualFilesFraggerEquivalentNoChimeras", Color.fromKeyword(ColorKeyword.Plum)  },
-        { "MetaMorpheus_ExternalComparison_NoChimeras", Color.fromKeyword(ColorKeyword.Plum)  },
+        { "MetaMorpheusFraggerEquivalent_IndividualFilesFraggerEquivalentNoChimeras", Color.fromKeyword(ColorKeyword.SeaGreen)  },
+        { "MetaMorpheus_ExternalComparison_NoChimeras", Color.fromKeyword(ColorKeyword.SeaGreen)  },
         {"MsFraggerDDA", Color.fromKeyword(ColorKeyword.LightAkyBlue) }, // Old fragger params
         {"MsFraggerDDA+", Color.fromKeyword(ColorKeyword.RoyalBlue) },
         {"ReviewdDatabaseNoPhospho_MsFraggerDDA", Color.fromKeyword(ColorKeyword.LightAkyBlue) },
@@ -53,7 +53,7 @@ public static class PlottingTranslators
         {"Chimeric 1% Psms", Color.fromKeyword(ColorKeyword.Red) },
         {"Chimeric All Peptides", Color.fromKeyword(ColorKeyword.Blue) },
         {"Chimeric 1% Peptides", Color.fromKeyword(ColorKeyword.Green) },
-        {"Non-Chimeric All Psms", Color.fromKeyword(ColorKeyword.Plum) },
+        {"Non-Chimeric All Psms", Color.fromKeyword(ColorKeyword.SeaGreen) },
         {"Non-Chimeric 1% Psms", Color.fromKeyword(ColorKeyword.PaleVioletRed) },
         {"Non-Chimeric All Peptides", Color.fromKeyword(ColorKeyword.DeepSkyBlue) },
         {"Non-Chimeric 1% Peptides", Color.fromKeyword(ColorKeyword.Lime) },
@@ -61,8 +61,8 @@ public static class PlottingTranslators
         // Top Down
         {"MetaMorpheus", Color.fromKeyword(ColorKeyword.Purple) }, // ecoli
         {"MetaMorpheus\u2800", Color.fromKeyword(ColorKeyword.Purple) }, // ecoli
-        {"MetaMorpheusNoChimeras", Color.fromKeyword(ColorKeyword.Plum) }, // shared
-        {"MetaMorpheus No Chimeras", Color.fromKeyword(ColorKeyword.Plum) }, // shared
+        {"MetaMorpheusNoChimeras", Color.fromKeyword(ColorKeyword.SeaGreen) }, // shared
+        {"MetaMorpheus No Chimeras", Color.fromKeyword(ColorKeyword.SeaGreen) }, // shared
         {"MetaMorpheus_Rep2_WithLibrary", Color.fromKeyword(ColorKeyword.MediumOrchid)}, // jurkat
         {"MetaMorpheus_Rep2_WithLibrary_NewPEP_NoNorm", Color.fromKeyword(ColorKeyword.Purple)},
         {"MetaMorpheus_NewPEP_NoNormNoMult", Color.fromKeyword(ColorKeyword.Purple)},

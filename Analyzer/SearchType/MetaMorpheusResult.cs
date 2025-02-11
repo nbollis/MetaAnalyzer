@@ -985,6 +985,7 @@ namespace Analyzer.SearchType
             switch (DatasetName)
             {
                 case "Ecoli":
+                case "TopDown_Jurkat" when DirectoryPath.Contains("Ecoli"): // weird edge case due to directory parsing and internalMM task structure
                     massSpecFiles = Directory
                         .GetFiles(@"B:\RawSpectraFiles\Ecoli_SEC_CZE\CalibratedAveraged",
                             "*.mzML").ToList();
@@ -1000,15 +1001,16 @@ namespace Analyzer.SearchType
 
                 case "Jurkat" when IsTopDown:
                 case "Chimeras" when IsTopDown:
+                case "TopDown_Jurkat": // internal metamorpheus top-down
                     massSpecFiles = Directory.GetFiles(@"B:\RawSpectraFiles\JurkatTopDown\CalibratedAveraged", "*.mzML",
                                                SearchOption.AllDirectories).Where(p => p.Contains("rep2")).ToList();
                     fullDeconDirectory = Path.Combine(@"B:\Users\Nic\Chimeras\TopDown_Analysis\Jurkat\DeconResults",
                         specificDir);
                     deconFiles = Directory.GetFiles(fullDeconDirectory, "*ms1.feature", SearchOption.AllDirectories).ToList();
 
-                    if (massSpecFiles.Count != 10)
+                    if (massSpecFiles.Count != 10 && massSpecFiles.Count != 20)
                         throw new ArgumentException("Not all mass spec files were found");
-                    if (deconFiles.Count != 10)
+                    if (deconFiles.Count != 10 && deconFiles.Count != 20)
                         throw new ArgumentException("Not all decon files were found");
                     break;
 
