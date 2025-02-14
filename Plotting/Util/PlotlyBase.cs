@@ -44,7 +44,7 @@ namespace Plotting.Util
         public static Layout DefaultLayoutWithLegendLargerText => Layout.init<string>(
             ShowLegend: true,
             Legend: DefaultLegend,
-            Font: Font.init(null, 18, null));
+            Font: Font.init(null, 20, null));
         public static Layout DefaultLayoutNoLegend => Layout.init<string>(
             PaperBGColor: Color.fromKeyword(ColorKeyword.White),
             PlotBGColor: Color.fromKeyword(ColorKeyword.White),
