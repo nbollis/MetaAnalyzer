@@ -574,9 +574,9 @@ namespace TaskLayer.ChimeraAnalysis
 
         #region Plotting
 
-        static void PlotProteinCountingCharts(List<ProteinCountingRecord> records, bool isTopDown)
+        public static void PlotProteinCountingCharts(List<ProteinCountingRecord> records, bool isTopDown, string? directory = null)
         {
-            var directory = Path.Combine(BulkFigureDirectory, "ProteinSummary");
+            directory ??= Path.Combine(BulkFigureDirectory, "ProteinSummary");
             if (!Directory.Exists(directory))
                 Directory.CreateDirectory(directory);
 
@@ -661,7 +661,7 @@ namespace TaskLayer.ChimeraAnalysis
             var finalChart = Chart.Combine(toCombine.ToArray()).WithTitle($"1% FDR {Labels.GetLabel(isTopDown, resultType)}")
                 .WithXAxisStyle(Title.init("File"))
                 .WithYAxisStyle(Title.init("Count"))
-                .WithLayout(PlotlyBase.DefaultLayoutWithLegend)
+                .WithLayout(PlotlyBase.DefaultLayoutWithLegendLargeText)
                 .WithSize(800, 600);
 
             return finalChart;
@@ -700,7 +700,7 @@ namespace TaskLayer.ChimeraAnalysis
             var finalChart = Chart.Combine(toCombine.ToArray()).WithTitle($"1% FDR {Labels.GetLabel(isTopDown, resultType)}")
                 .WithXAxisStyle(Title.init("File"))
                 .WithYAxisStyle(Title.init("Count"))
-                .WithLayout(PlotlyBase.DefaultLayoutWithLegend)
+                .WithLayout(PlotlyBase.DefaultLayoutWithLegendLargeText)
                 .WithSize(800, 600);
 
             return finalChart;

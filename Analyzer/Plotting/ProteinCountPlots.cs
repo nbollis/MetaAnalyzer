@@ -112,23 +112,23 @@ namespace Analyzer.Plotting
                 var condition = record.Key;
                 var data = record.GetValues(resultType).ToList();
 
-
+                int max = 50;
                 switch (plotType)
                 {
                     case DistributionPlotTypes.ViolinPlot:
-                        toCombine.Add(GenericPlots.ViolinPlot(data, condition));
+                        toCombine.Add(GenericPlots.ViolinPlot(data, condition).WithYAxisStyle<int, int, string>(MinMax: new Tuple<int, int>(-10, max)));
                         break;
 
                     case DistributionPlotTypes.Histogram:
-                        toCombine.Add(GenericPlots.Histogram(data, condition, xTitle, yTitle));
+                        toCombine.Add(GenericPlots.Histogram(data, condition, xTitle, yTitle).WithXAxisStyle<int, int, string>(MinMax: new Tuple<int, int>(0, max)));
                         break;
 
                     case DistributionPlotTypes.BoxPlot:
-                        toCombine.Add(GenericPlots.BoxPlot(data, condition, xTitle, yTitle, false));
+                        toCombine.Add(GenericPlots.BoxPlot(data, condition, xTitle, yTitle, false).WithYAxisStyle<int, int, string>(MinMax: new Tuple<int, int>(-10, max)));
                         break;
 
                     case DistributionPlotTypes.KernelDensity:
-                        toCombine.Add(GenericPlots.KernelDensityPlot(data, condition, xTitle, yTitle, 0.1));
+                        toCombine.Add(GenericPlots.KernelDensityPlot(data, condition, xTitle, yTitle, 0.1).WithXAxisStyle<int, int, string>(MinMax: new Tuple<int, int>(0, max)));
                         break;
 
                     default:

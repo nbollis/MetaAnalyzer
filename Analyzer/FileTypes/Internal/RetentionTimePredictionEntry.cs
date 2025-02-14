@@ -117,8 +117,6 @@ namespace Analyzer.FileTypes.Internal
         public RetentionTimePredictionEntry()
         {
         }
-
-        
     }
 
 
