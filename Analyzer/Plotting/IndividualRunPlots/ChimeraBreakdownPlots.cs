@@ -186,29 +186,29 @@ namespace Analyzer.Plotting.IndividualRunPlots
                                 (double)p.Sum(m => m.DecoyCount),
                                 (double)p.Sum(m => m.DuplicateCount)))
                         .ToArray();
-            
+
             // Step 2: Calculate the percentages and scale them
-            //data = data.Select(p =>
-            //{
-            //    var total = p.Parent + p.UniqueProtein + p.UniqueForms + p.Decoys + p.Duplicates;
-            //    double parentPercent = InterperateVals( p.Parent, 
-            //        total); 
-            //    double decoysPercent = InterperateVals(p.Parent + p.Decoys, 
-            //        total, parentPercent);
-            //    double uniqueProteinPercent = InterperateVals(p.Parent + p.Decoys + p.UniqueProtein,
-            //        total, parentPercent + decoysPercent) ;
-            //    double uniqueFormsPercent = InterperateVals(p.Parent + p.Decoys + p.UniqueProtein + p.UniqueForms, 
-            //        total, parentPercent + decoysPercent + uniqueProteinPercent);
-            //    double duplicatesPercent = InterperateVals(p.Parent + p.Decoys + p.UniqueProtein + p.UniqueForms + p.Duplicates,
-            //        total, parentPercent + decoysPercent + uniqueProteinPercent + uniqueFormsPercent );
-            //    // Scale percentages so that each bar's height is based on its total value
-            //    return (p.IdsPerSpectra,
-            //        parentPercent ,
-            //        uniqueProteinPercent ,
-            //        uniqueFormsPercent ,
-            //        decoysPercent ,
-            //        duplicatesPercent );
-            //}).ToArray();
+            data = data.Select(p =>
+            {
+                var total = p.Parent + p.UniqueProtein + p.UniqueForms + p.Decoys + p.Duplicates;
+                double parentPercent = InterperateVals(p.Parent,
+                    total);
+                double decoysPercent = InterperateVals(p.Parent + p.Decoys,
+                    total, parentPercent);
+                double uniqueProteinPercent = InterperateVals(p.Parent + p.Decoys + p.UniqueProtein,
+                    total, parentPercent + decoysPercent);
+                double uniqueFormsPercent = InterperateVals(p.Parent + p.Decoys + p.UniqueProtein + p.UniqueForms,
+                    total, parentPercent + decoysPercent + uniqueProteinPercent);
+                double duplicatesPercent = InterperateVals(p.Parent + p.Decoys + p.UniqueProtein + p.UniqueForms + p.Duplicates,
+                    total, parentPercent + decoysPercent + uniqueProteinPercent + uniqueFormsPercent);
+                // Scale percentages so that each bar's height is based on its total value
+                return (p.IdsPerSpectra,
+                    parentPercent,
+                    uniqueProteinPercent,
+                    uniqueFormsPercent,
+                    decoysPercent,
+                    duplicatesPercent);
+            }).ToArray();
 
 
             var form = Labels.GetDifferentFormLabel(isTopDown); var keys = data.Select(p => p.IdsPerSpectra).ToArray();
@@ -234,10 +234,10 @@ namespace Analyzer.Plotting.IndividualRunPlots
                     MultiText: data.Select(p => p.Duplicates.ToString()).ToArray())).ToArray();
 
             var chart = Chart.Combine(charts)
-                .WithXAxisStyle(Title.init($"1% {Labels.GetLabel(isTopDown, resultType)} per Spectrum"))
+                .WithXAxisStyle(Title.init($"1% {Labels.GetLabel(isTopDown, resultType)} per Spectrum", Font: Font.init(Size: PlotlyBase.AxisTitleFontSize)))
                 //.WithYAxis(LinearAxis.init<int, int, int, int, int, int>(AxisType: StyleParam.AxisType.Log))
-                .WithYAxisStyle(Title.init("Count of Spectra"))
-                .WithLayout(PlotlyBase.DefaultLayoutWithLegendLargeText);
+                .WithYAxisStyle(Title.init("Count of Spectra", Font: Font.init(Size: PlotlyBase.AxisTitleFontSize)))
+                .WithLayout(PlotlyBase.DefaultLayoutWithLegendLargerText);
           
             return chart;
         }

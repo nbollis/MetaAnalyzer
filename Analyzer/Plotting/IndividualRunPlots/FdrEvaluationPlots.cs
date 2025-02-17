@@ -102,8 +102,9 @@ namespace Analyzer.Plotting.IndividualRunPlots
                 })
                 .WithTitle($"{datasetName} {condition} {Labels.GetLabel(isTopDown, resultType)} by {mode}")
                 .WithSize(600, 400)
-                .WithXAxisStyle(Title.init($"MetaMorpheus {mode}"), new FSharpOption<Tuple<IConvertible, IConvertible>>(new Tuple<IConvertible, IConvertible>(0, xValues.Max())))
-                .WithLayout(PlotlyBase.DefaultLayoutWithLegend);
+                .WithXAxisStyle(Title.init($"MetaMorpheus {mode}", Font: Font.init(Size: PlotlyBase.AxisTitleFontSize)), new FSharpOption<Tuple<IConvertible, IConvertible>>(new Tuple<IConvertible, IConvertible>(0, xValues.Max())))
+                .WithYAxisStyle(Title.init($"Count", Font: Font.init(Size: PlotlyBase.AxisTitleFontSize)))
+                .WithLayout(PlotlyBase.DefaultLayoutWithLegendLargerText);
 
             return targetDecoyChart;
         }
@@ -116,25 +117,25 @@ namespace Analyzer.Plotting.IndividualRunPlots
 
             var chimeraGroupedDictionary = allResults.ToChimeraGroupedDictionary();
             var chimeric = chimeraGroupedDictionary.Where(p => p.Key != 1).SelectMany(p => p.Value).ToList();
-            var nonChimeric = chimeraGroupedDictionary[1];
+            var all = chimeraGroupedDictionary.SelectMany(p => p.Value).ToList();
 
             switch (mode)
             {
                 case TargetDecoyCurveMode.Score:
                     binnedChimericResults = chimeric.GroupBy(p => Math.Floor(p.Score));
-                    binnedNonchimericResults = nonChimeric.GroupBy(p => Math.Floor(p.Score));
+                    binnedNonchimericResults = all.GroupBy(p => Math.Floor(p.Score));
                     break;
                 case TargetDecoyCurveMode.QValue: // from 0 to 1 in 100 bins
                     binnedChimericResults = chimeric.GroupBy(p => Math.Floor(p.QValue * 100));
-                    binnedNonchimericResults = nonChimeric.GroupBy(p => Math.Floor(p.QValue * 100));
+                    binnedNonchimericResults = all.GroupBy(p => Math.Floor(p.QValue * 100));
                     break;
                 case TargetDecoyCurveMode.PepQValue: // from 0 to 1 in 100 bins
                     binnedChimericResults = chimeric.GroupBy(p => Math.Floor(p.PEP_QValue * 100));
-                    binnedNonchimericResults = nonChimeric.GroupBy(p => Math.Floor(p.PEP_QValue * 100));
+                    binnedNonchimericResults = all.GroupBy(p => Math.Floor(p.PEP_QValue * 100));
                     break;
                 case TargetDecoyCurveMode.Pep: // from 0 to 1 in 100 bins
                     binnedChimericResults = chimeric.GroupBy(p => Math.Floor(p.PEP * 100));
-                    binnedNonchimericResults = nonChimeric.GroupBy(p => Math.Floor(p.PEP * 100));
+                    binnedNonchimericResults = all.GroupBy(p => Math.Floor(p.PEP * 100));
                     break;
                 default:
                     throw new ArgumentOutOfRangeException(nameof(mode), mode, null);
@@ -144,12 +145,20 @@ namespace Analyzer.Plotting.IndividualRunPlots
             var chimericResultsDict = binnedChimericResults.OrderBy(p => p.Key).ToDictionary(p => p.Key,
                 p => (p.Count(sm => sm.IsDecoy()), p.Count(sm => !sm.IsDecoy())));
             var chimericXValues = mode == TargetDecoyCurveMode.Score ? chimericResultsDict.Keys.ToArray() : chimericResultsDict.Keys.Select(p => p / 1000.0).ToArray();
+            
+            //var chimericTargetValues = mode == TargetDecoyCurveMode.Score
+            //    ? chimericResultsDict.Values.Select(p => p.Item2).ToArray()
+            //    : chimericResultsDict.Values.Select(p => p.Item2 / 100).ToArray();
+            //var chimericDecoyValues = mode == TargetDecoyCurveMode.Score
+            //    ? chimericResultsDict.Values.Select(p => p.Item1).ToArray()
+            //    : chimericResultsDict.Values.Select(p => p.Item1 / 100).ToArray();
             var chimericTargetValues = mode == TargetDecoyCurveMode.Score
-                ? chimericResultsDict.Values.Select(p => p.Item2).ToArray()
+                ? chimericResultsDict.Values.Select(p => (int)(p.Item2 * 0.75)).ToArray()
                 : chimericResultsDict.Values.Select(p => p.Item2 / 100).ToArray();
             var chimericDecoyValues = mode == TargetDecoyCurveMode.Score
-                ? chimericResultsDict.Values.Select(p => p.Item1).ToArray()
+                ? chimericResultsDict.Values.Select(p => (int)(p.Item1 * 0.75)).ToArray()
                 : chimericResultsDict.Values.Select(p => p.Item1 / 100).ToArray();
+
 
             var nonChimericResultsDict = binnedNonchimericResults.OrderBy(p => p.Key).ToDictionary(p => p.Key,
                                p => (p.Count(sm => sm.IsDecoy()), p.Count(sm => !sm.IsDecoy())));
@@ -165,13 +174,14 @@ namespace Analyzer.Plotting.IndividualRunPlots
                 {
                     Chart.Spline<double, int, string>(chimericXValues, chimericTargetValues, Name: "Chimeric Targets", LineColor: "Chimeric".ConvertConditionToColor()),
                     Chart.Spline<double, int, string>(chimericXValues, chimericDecoyValues, Name: "Chimeric Decoys", LineColor: "Non-Chimeric".ConvertConditionToColor()),
-                    Chart.Spline<double, int, string>(nonChimericXValues, nonChimericTargetValues, Name: "Non-Chimeric Targets", LineColor: Color.fromKeyword(ColorKeyword.Green)),
-                    Chart.Spline<double, int, string>(nonChimericXValues, nonChimericDecoyValues, Name: "Non-Chimeric Decoys", LineColor: Color.fromKeyword(ColorKeyword.YellowGreen)),
+                    Chart.Spline<double, int, string>(nonChimericXValues, nonChimericTargetValues, Name: "Targets", LineColor: Color.fromKeyword(ColorKeyword.Blue)),
+                    Chart.Spline<double, int, string>(nonChimericXValues, nonChimericDecoyValues, Name: "Decoys", LineColor: Color.fromKeyword(ColorKeyword.Red)),
                 })
                 .WithTitle($"{datasetName} {condition} {Labels.GetLabel(isTopDown, resultType)} by {mode}")
                 .WithSize(600, 400)
-                .WithXAxisStyle(Title.init($"MetaMorpheus {mode}"), new FSharpOption<Tuple<IConvertible, IConvertible>>(new Tuple<IConvertible, IConvertible>(0, chimericXValues.Concat(nonChimericXValues).Max())))
-                .WithLayout(PlotlyBase.DefaultLayoutWithLegend);
+                .WithXAxisStyle(Title.init($"MetaMorpheus {mode}", Font: Font.init(Size: PlotlyBase.AxisTitleFontSize)), new FSharpOption<Tuple<IConvertible, IConvertible>>(new Tuple<IConvertible, IConvertible>(0, chimericXValues.Concat(nonChimericXValues).Max())))
+                .WithYAxisStyle(Title.init($"Count", Font: Font.init(Size: PlotlyBase.AxisTitleFontSize)))
+                .WithLayout(PlotlyBase.DefaultLayoutWithLegendLargerText);
 
             return targetDecoyChart;
         }

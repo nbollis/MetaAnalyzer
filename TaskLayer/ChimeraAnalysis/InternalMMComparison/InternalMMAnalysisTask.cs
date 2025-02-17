@@ -12,8 +12,6 @@ using Analyzer;
 using Plotting;
 using Plotting.Util;
 using ResultAnalyzerUtil;
-using System.Drawing;
-using Analyzer.Plotting.Util;
 using Proteomics.PSM;
 
 namespace TaskLayer.ChimeraAnalysis
@@ -85,7 +83,7 @@ namespace TaskLayer.ChimeraAnalysis
 
         #endregion
 
-        public static string Version => "106";
+        public static string Version => "105";
         private static string NonChimericDescriptor => "MetaMorpheusNoChimeras";
         private static string ChimericDescriptor => "MetaMorpheusWithChimeras";
         private static string BulkFigureDirectory { get; set; }
@@ -118,6 +116,9 @@ namespace TaskLayer.ChimeraAnalysis
             foreach (var cellLineDirectory in Directory.GetDirectories(parameters.OutputDirectory)
                          .Where(p => !p.Contains("Generate") && !p.Contains("Figure")))
             {
+                // Filter here if needed. 
+
+
                 cellLineDict.Add(cellLineDirectory, new());
                 foreach (var runDirectory in Directory.GetDirectories(cellLineDirectory).Where(p => !p.Contains("Figure") && p.Contains(Version)))
                 {
@@ -126,6 +127,10 @@ namespace TaskLayer.ChimeraAnalysis
                     cellLineDict[cellLineDirectory].Add(new MetaMorpheusResult(runDirectory));
                 }
             }
+            cellLineDict = cellLineDict.SelectMany(p => p.Value)
+                .GroupBy(p => p.Condition.ConvertConditionName())
+                .ToDictionary(p => p.Key, p => p.ToList());
+
 
             bool isTopDown = cellLineDict.First().Value.First().IsTopDown;
 
@@ -161,62 +166,65 @@ namespace TaskLayer.ChimeraAnalysis
                     }
                 });
 
-            Log($"Running Chimeric Spectrum Summaries", 0);
-            foreach (var cellLineDictEntry in cellLineDict)
-            {
-                var cellLine = Path.GetFileNameWithoutExtension(cellLineDictEntry.Key);
-                Log($"Processing Cell Line {cellLine}", 1);
-                List<CmdProcess> summaryTasks = new();
-                foreach (var mmResult in cellLineDictEntry.Value)
-                {
-                    var summaryParams =
-                        new SingleRunAnalysisParameters(mmResult.DirectoryPath, parameters.Override, false, mmResult);
-                    var summaryTask = new SingleRunChimericSpectrumSummaryTask(summaryParams);
-                    summaryTasks.Add(new ResultAnalyzerTaskToCmdProcessAdaptor(summaryTask, "Chimeric Spectrum Summary", 0.5,
-                        mmResult.DirectoryPath));
-                }
+            //Log($"Running Chimeric Spectrum Summaries", 0);
+            //foreach (var cellLineDictEntry in cellLineDict)
+            //{
+            //    var cellLine = Path.GetFileNameWithoutExtension(cellLineDictEntry.Key);
+            //    Log($"Processing Cell Line {cellLine}", 1);
+            //    List<CmdProcess> summaryTasks = new();
+            //    foreach (var mmResult in cellLineDictEntry.Value)
+            //    {
+            //        var summaryParams =
+            //            new SingleRunAnalysisParameters(mmResult.DirectoryPath, parameters.Override, false, mmResult);
+            //        var summaryTask = new SingleRunChimericSpectrumSummaryTask(summaryParams);
+            //        summaryTasks.Add(new ResultAnalyzerTaskToCmdProcessAdaptor(summaryTask, "Chimeric Spectrum Summary", 0.5,
+            //            mmResult.DirectoryPath));
+            //    }
 
-                try
-                {
-                    await RunProcesses(summaryTasks);
-                }
-                catch (Exception e)
-                {
-                    Warn($"Error Running Chimeric Spectrum Summary for {cellLine}: {e.Message}");
-                }
-            }
+            //    try
+            //    {
+            //        await RunProcesses(summaryTasks);
+            //    }
+            //    catch (Exception e)
+            //    {
+            //        Warn($"Error Running Chimeric Spectrum Summary for {cellLine}: {e.Message}");
+            //    }
+            //}
 
-            Log($"Running Retention Time Plots", 0);
-            foreach (var cellLineDictEntry in cellLineDict)
-            {
-                var cellLine = Path.GetFileNameWithoutExtension(cellLineDictEntry.Key);
+            //if (!isTopDown)
+            //{
+            //    Log($"Running Retention Time Plots", 0);
+            //    foreach (var cellLineDictEntry in cellLineDict)
+            //    {
+            //        var cellLine = Path.GetFileNameWithoutExtension(cellLineDictEntry.Key);
 
-                List<CmdProcess> summaryTasks = new();
-                Log($"Processing Cell Line {cellLine}", 1);
-                foreach (var mmResult in cellLineDictEntry.Value)
-                {
-                    if (mmResult.DirectoryPath.Contains(NonChimericDescriptor))
-                        continue;
+            //        List<CmdProcess> summaryTasks = new();
+            //        Log($"Processing Cell Line {cellLine}", 1);
+            //        foreach (var mmResult in cellLineDictEntry.Value)
+            //        {
+            //            if (mmResult.DirectoryPath.Contains(NonChimericDescriptor))
+            //                continue;
 
-                    foreach (var distribPlotTypes in Enum.GetValues<DistributionPlotTypes>())
-                    {
-                        var summaryParams =
-                            new SingleRunAnalysisParameters(mmResult.DirectoryPath, parameters.Override, false, mmResult, distribPlotTypes);
-                        var summaryTask = new SingleRunChimeraRetentionTimeDistribution(summaryParams);
-                        summaryTasks.Add(new ResultAnalyzerTaskToCmdProcessAdaptor(summaryTask, "Retention Time Plots", 0.25,
-                            mmResult.DirectoryPath));
-                    }
-                }
+            //            foreach (var distribPlotTypes in Enum.GetValues<DistributionPlotTypes>())
+            //            {
+            //                var summaryParams =
+            //                    new SingleRunAnalysisParameters(mmResult.DirectoryPath, parameters.Override, false, mmResult, distribPlotTypes);
+            //                var summaryTask = new SingleRunChimeraRetentionTimeDistribution(summaryParams);
+            //                summaryTasks.Add(new ResultAnalyzerTaskToCmdProcessAdaptor(summaryTask, "Retention Time Plots", 0.25,
+            //                    mmResult.DirectoryPath));
+            //            }
+            //        }
 
-                try
-                {
-                    await RunProcesses(summaryTasks);
-                }
-                catch (Exception e)
-                {
-                    Warn($"Error Running Retention Time Plots for {cellLine}: {e.Message}");
-                }
-            }
+            //        try
+            //        {
+            //            await RunProcesses(summaryTasks);
+            //        }
+            //        catch (Exception e)
+            //        {
+            //            Warn($"Error Running Retention Time Plots for {cellLine}: {e.Message}");
+            //        }
+            //    }
+            //}
 
             Log($"Running Spectral Angle Comparisons", 0);
             foreach (var cellLineDictEntry in cellLineDict)
@@ -248,8 +256,12 @@ namespace TaskLayer.ChimeraAnalysis
                     Warn($"Error Running Spectral Angle Comparisons for {cellLine}: {e.Message}");
                 }
             }
+            //PlotSpectralAnglePlots(cellLineDict);
 
-            PlotSpectralAnglePlots(cellLineDict);
+
+            //Log($"Plotting Target Decoy Curves", 0);
+            //PlotFdrPlots(cellLineDict);
+
 
             //TODO: Change retention time alignment to operate on the grouped runs
             //Log($"Running Retention Time Alignment", 0);
@@ -280,39 +292,38 @@ namespace TaskLayer.ChimeraAnalysis
             //    }
             //}
 
-            Log("Creating Proforma Files", 1);
-            foreach (var cellLineDictEntry in cellLineDict)
-            {
-                var cellLine = Path.GetFileNameWithoutExtension(cellLineDictEntry.Key);
+            //Log("Creating Proforma Files", 1);
+            //foreach (var cellLineDictEntry in cellLineDict)
+            //{
+            //    var cellLine = Path.GetFileNameWithoutExtension(cellLineDictEntry.Key);
 
-                Log($"Processing Cell Line {cellLine}", 1);
-                foreach (var mmResult in cellLineDictEntry.Value)
-                {
-                    if (mmResult.DirectoryPath.Contains(NonChimericDescriptor))
-                        continue;
+            //    Log($"Processing Cell Line {cellLine}", 1);
+            //    foreach (var mmResult in cellLineDictEntry.Value)
+            //    {
+            //        if (mmResult.DirectoryPath.Contains(NonChimericDescriptor))
+            //            continue;
 
-                    mmResult.ToPsmProformaFile();
-                }
-            }
-
+            //        mmResult.ToPsmProformaFile();
+            //    }
+            //}
 
             var proformaResultPath = Path.Combine(BulkFigureDirectory, "ProformaResults");
-            foreach (var condition in cellLineDict)
-            {
-                var proforomaFileName = Path.Combine(proformaResultPath, condition.Key + "_PSM_" + FileIdentifiers.ProformaFile);
-                if (File.Exists(proforomaFileName) && !parameters.Override)
-                    continue;
+            //foreach (var condition in cellLineDict)
+            //{
+            //    var proforomaFileName = Path.Combine(proformaResultPath, condition.Key + "_PSM_" + FileIdentifiers.ProformaFile);
+            //    if (File.Exists(proforomaFileName) && !parameters.Override)
+            //        continue;
 
-                var records = new List<ProformaRecord>();
-                foreach (var result in condition.Value)
-                    records.AddRange(result.ToPsmProformaFile().Results);
-                var newFile = new ProformaFile(proforomaFileName)
-                {
-                    Results = records
-                };
+            //    var records = new List<ProformaRecord>();
+            //    foreach (var result in condition.Value)
+            //        records.AddRange(result.ToPsmProformaFile().Results);
+            //    var newFile = new ProformaFile(proforomaFileName)
+            //    {
+            //        Results = records
+            //    };
 
-                newFile.WriteResults(proforomaFileName);
-            }
+            //    newFile.WriteResults(proforomaFileName);
+            //}
 
             Log("Creating Protein Counting Files", 1);
             foreach (var cellLineDictEntry in cellLineDict)
@@ -611,7 +622,6 @@ namespace TaskLayer.ChimeraAnalysis
 
         #region Plotting
 
-        public static readonly int TitleSize = 24;
 
         static void PlotCellLineBarCharts(List<MetaMorpheusResult> results)
         {
@@ -654,27 +664,27 @@ namespace TaskLayer.ChimeraAnalysis
             }
 
             var psmPlot = Chart.Combine(psmCharts)
-                .WithTitle($"1% FDR {Labels.GetLabel(isTopDown, ResultType.Psm)}", Plotly.NET.Font.init(Size: TitleSize))
-                .WithXAxisStyle(Title.init("Cell Line"))
-                .WithYAxisStyle(Title.init("Count"))
+                .WithTitle($"1% FDR {Labels.GetLabel(isTopDown, ResultType.Psm)}", Plotly.NET.Font.init(Size: PlotlyBase.TitleSize))
+                .WithXAxisStyle(Title.init("Cell Line", Font: Font.init(Size: PlotlyBase.AxisTitleFontSize)))
+                .WithYAxisStyle(Title.init("Count", Font: Font.init(Size: PlotlyBase.AxisTitleFontSize)))
                 .WithLayout(PlotlyBase.DefaultLayoutWithLegendLargeText);
             //var psmPlot = GenericPlots.BulkResultBarChart(resultsToPlot, isTopDown, ResultType.Psm);
             var psmOutName = Path.Combine(BulkFigureDirectory, $"{Version}_InternalComparison_Psm");
             psmPlot.SaveJPG(psmOutName, null, 1000, 800);
 
             var peptidePlot = Chart.Combine(peptideCharts)
-                .WithTitle($"1% FDR {Labels.GetLabel(isTopDown, ResultType.Peptide)}", Plotly.NET.Font.init(Size: TitleSize))
-                .WithXAxisStyle(Title.init("Cell Line"))
-                .WithYAxisStyle(Title.init("Count"))
+                .WithTitle($"1% FDR {Labels.GetLabel(isTopDown, ResultType.Peptide)}", Plotly.NET.Font.init(Size: PlotlyBase.TitleSize))
+                .WithXAxisStyle(Title.init("Cell Line", Font: Font.init(Size: PlotlyBase.AxisTitleFontSize)))
+                .WithYAxisStyle(Title.init("Count", Font: Font.init(Size: PlotlyBase.AxisTitleFontSize)))
                 .WithLayout(PlotlyBase.DefaultLayoutWithLegendLargeText);
             //var peptidePlot = GenericPlots.BulkResultBarChart(resultsToPlot, isTopDown, ResultType.Peptide);
             var peptideOutName = Path.Combine(BulkFigureDirectory, $"{Version}_InternalComparison_Peptide");
             peptidePlot.SaveJPG(peptideOutName, null, 1000, 800);
 
             var proteinPlot = Chart.Combine(proteinCharts)
-                .WithTitle($"1% FDR {Labels.GetLabel(isTopDown, ResultType.Protein)}", Plotly.NET.Font.init(Size: TitleSize))
-                .WithXAxisStyle(Title.init("Cell Line"))
-                .WithYAxisStyle(Title.init("Count"))
+                .WithTitle($"1% FDR {Labels.GetLabel(isTopDown, ResultType.Protein)}", Plotly.NET.Font.init(Size: PlotlyBase.TitleSize))
+                .WithXAxisStyle(Title.init("Cell Line", Font: Font.init(Size: PlotlyBase.AxisTitleFontSize)))
+                .WithYAxisStyle(Title.init("Count", Font: Font.init(Size: PlotlyBase.AxisTitleFontSize)))
                 .WithLayout(PlotlyBase.DefaultLayoutWithLegendLargeText);
             //var proteinPlot = GenericPlots.BulkResultBarChart(resultsToPlot, isTopDown, ResultType.Protein);
             var proteinOutName = Path.Combine(BulkFigureDirectory, $"{Version}_InternalComparison_Protein");
@@ -690,13 +700,15 @@ namespace TaskLayer.ChimeraAnalysis
                 .ToList();
 
             var psmPlot = resultsToPlot.GetChimeraBreakdownStackedColumn_Scaled(ResultType.Psm, isTopDown)
-                .WithTitle($"{tempTitleLeader}Chimera Spectra Composition (1% {Labels.GetSpectrumMatchLabel(isTopDown)})", Plotly.NET.Font.init(Size: TitleSize));
-            var psmOutPath = Path.Combine(BulkFigureDirectory, $"{Version}_ChimeraBreakdown_AbsoluteUnLogged_Psm");
+                .WithTitle($"{tempTitleLeader}Chimera Spectra Composition (1% {Labels.GetSpectrumMatchLabel(isTopDown)})", Plotly.NET.Font.init(Size: PlotlyBase.TitleSize));
+            //var psmOutPath = Path.Combine(BulkFigureDirectory, $"{Version}_ChimeraBreakdown_AbsoluteUnLogged_Psm");
+            var psmOutPath = Path.Combine(BulkFigureDirectory, $"{Version}_ChimeraBreakdown_Psm");
             psmPlot.SaveJPG(psmOutPath, null, 1000, 800);
 
             var peptidePlot = resultsToPlot.GetChimeraBreakdownStackedColumn_Scaled(ResultType.Peptide, isTopDown)
-                .WithTitle($"{tempTitleLeader}Chimera Spectra Composition (1% {Labels.GetPeptideLabel(isTopDown)})", Plotly.NET.Font.init(Size: TitleSize));
-            var peptideOutPath = Path.Combine(BulkFigureDirectory, $"{Version}_ChimeraBreakdown_AbsoluteUnLogged_Peptide");
+                .WithTitle($"{tempTitleLeader}Chimera Spectra Composition (1% {Labels.GetPeptideLabel(isTopDown)})", Plotly.NET.Font.init(Size: PlotlyBase.TitleSize));
+            //var peptideOutPath = Path.Combine(BulkFigureDirectory, $"{Version}_ChimeraBreakdown_AbsoluteUnLogged_Peptide");
+            var peptideOutPath = Path.Combine(BulkFigureDirectory, $"{Version}_ChimeraBreakdown_Peptide");
             peptidePlot.SaveJPG(peptideOutPath, null, 1000, 800);
         }
 
@@ -725,8 +737,8 @@ namespace TaskLayer.ChimeraAnalysis
             var nonChimericHist = GenericPlots.Histogram(nonChimeric.Select(p =>
                 (double)p.PossibleFeatureCount).ToList(), "Non-Chimeric ID", "Features per Isolation Window", "Number of Spectra", false, minMax);
             var hist = Chart.Combine(new List<GenericChart.GenericChart> { chimericHist, nonChimericHist })
-                .WithTitle($"1% {Labels.GetLabel(isTopDown, resultType)} Detected Features Per MS2 Isolation Window", Plotly.NET.Font.init(Size: TitleSize))
-                .WithLayout(PlotlyBase.DefaultLayoutWithLegendLargeText);
+                .WithTitle($"1% {Labels.GetLabel(isTopDown, resultType)} Detected Features Per MS2 Isolation Window", Plotly.NET.Font.init(Size: PlotlyBase.TitleSize))
+                .WithLayout(PlotlyBase.DefaultLayoutWithLegendLargerText);
             var outname = $"{Version}_SpectrumSummary_FeatureCount_{Labels.GetLabel(isTopDown, resultType)}_Histogram";
             hist.SaveJPG(Path.Combine(BulkFigureDirectory, outname), null, 800, 600);
 
@@ -746,8 +758,8 @@ namespace TaskLayer.ChimeraAnalysis
             nonChimericHist = GenericPlots.Histogram(nonChimeric.Select(p =>
                     (double)p.PossibleFeatureCount).ToList(), "Non-Chimeric ID", "Features per Isolation Window", "Number of Spectra", false, minMax);
             hist = Chart.Combine(new List<GenericChart.GenericChart> { chimericHist, nonChimericHist })
-                .WithTitle($"1% {Labels.GetLabel(isTopDown, resultType)} Detected Features Per MS2 Isolation Window", Plotly.NET.Font.init(Size: TitleSize))
-                .WithLayout(PlotlyBase.DefaultLayoutWithLegendLargeText);
+                .WithTitle($"1% {Labels.GetLabel(isTopDown, resultType)} Detected Features Per MS2 Isolation Window", Plotly.NET.Font.init(Size: PlotlyBase.TitleSize))
+                .WithLayout(PlotlyBase.DefaultLayoutWithLegendLargerText);
             outname = $"{Version}_SpectrumSummary_FeatureCount_{Labels.GetLabel(isTopDown, resultType)}_Histogram";
             hist.SaveJPG(Path.Combine(BulkFigureDirectory, outname), null, 800, 600);
         }
@@ -835,10 +847,10 @@ namespace TaskLayer.ChimeraAnalysis
             var chimericHist = GenericPlots.Histogram(chimericFractionalIntensity, "Chimeric ID", label, "Number of Spectra", false, minMax);
             var nonChimericHist = GenericPlots.Histogram(nonChimericFractionalIntensity, "Non-Chimeric ID", label, "Number of Spectra", false, minMax);
             var hist = Chart.Combine(new List<GenericChart.GenericChart> { chimericHist, nonChimericHist })
-                .WithTitle($"1% {Labels.GetLabel(isTopDown, resultType)} Identified {outPrecursor} Intensity {titleEnd}", Plotly.NET.Font.init(Size: TitleSize))
-                .WithYAxisStyle(Title.init("Number of Spectra"), Side: StyleParam.Side.Left,
+                .WithTitle($"1% {Labels.GetLabel(isTopDown, resultType)} Identified {outPrecursor} Intensity {titleEnd}", Plotly.NET.Font.init(Size: PlotlyBase.TitleSize))
+                .WithYAxisStyle(Title.init("Number of Spectra", Font: Font.init(Size: PlotlyBase.AxisTitleFontSize)), Side: StyleParam.Side.Left,
                     Id: StyleParam.SubPlotId.NewYAxis(1))
-                .WithLayout(PlotlyBase.DefaultLayoutWithLegendLargeText);
+                .WithLayout(PlotlyBase.DefaultLayoutWithLegendLargerText);
             var outName = $"SpectrumSummary_{outPrecursor}FractionalIntensity_{outType}_{Labels.GetLabel(isTopDown, resultType)}_Histogram";
 
             outName =
@@ -846,11 +858,43 @@ namespace TaskLayer.ChimeraAnalysis
             hist.SavePNG(Path.Combine(BulkFigureDirectory, outName), null, 800, 600);
         }
 
+        static void PlotFdrPlots(Dictionary<string, List<MetaMorpheusResult>> allResults)
+        {
+            foreach (var conditionGroup in allResults)
+            {
+                if (conditionGroup.Key.Contains(NonChimericDescriptor))
+                    continue;
+                if (conditionGroup.Key.Contains("Non-chimeric")) continue;
+                if (conditionGroup.Key.Contains("No Chimeras")) continue;
+
+                bool isTopDown = conditionGroup.Value.First().IsTopDown;
+                var figDir = Path.Combine(BulkFigureDirectory, conditionGroup.Key);
+                if (!Directory.Exists(figDir))
+                    Directory.CreateDirectory(figDir);
+
+                var name = "";
+                var condition = conditionGroup.Key;
+                var psms = conditionGroup.Value.SelectMany(mm => mm.AllPsms).ToList();
+
+
+                var chart = psms.GetTargetDecoyCurve(ResultType.Psm, TargetDecoyCurveMode.Score, name, condition, isTopDown);
+                var outName = $"FdrAnalysis_{Labels.GetLabel(isTopDown, ResultType.Psm)}_{FileIdentifiers.TargetDecoyCurve}";
+                var outPath = Path.Combine(figDir, outName);
+                chart.SaveJPG(outPath, null, 1000, 800);
+
+                var chimStratChart = psms.GetTargetDecoyCurveChimeraStratified(ResultType.Psm, TargetDecoyCurveMode.Score, name, condition, isTopDown);
+                outName = $"FdrAnalysis_{Labels.GetLabel(isTopDown, ResultType.Psm)}_{FileIdentifiers.TargetDecoyCurve}_ChimeraStratified";
+                outPath = Path.Combine(figDir, outName);
+                chimStratChart.SaveJPG(outPath, null, 1000, 800);
+            }
+        }
+
         static void PlotSpectralAnglePlots(Dictionary<string, List<MetaMorpheusResult>> allResults)
         {
             foreach (var conditionGroup in allResults)
             {
-                if (conditionGroup.Key.Contains("NonChimeric")) continue;
+                if (conditionGroup.Key.Contains("Non-chimeric")) continue;
+                if (conditionGroup.Key.Contains("No Chimeras")) continue;
 
                 bool isTopDown = conditionGroup.Value.First().IsTopDown;
                 var figDir = Path.Combine(BulkFigureDirectory, conditionGroup.Key);
@@ -909,7 +953,7 @@ namespace TaskLayer.ChimeraAnalysis
                         peptideChimericAngles.ToArray(), peptideNonChimericAngles.ToArray(),
                         "", isTopDown, ResultType.Peptide)
                     .WithTitle(
-                        $"MetaMorpheus 1% {Labels.GetLabel(isTopDown, ResultType.Peptide)} Spectral Angle Distribution", Plotly.NET.Font.init(Size: TitleSize))
+                        $"MetaMorpheus 1% {Labels.GetLabel(isTopDown, ResultType.Peptide)} Spectral Angle Distribution", Plotly.NET.Font.init(Size: PlotlyBase.TitleSize))
                     .WithLayout(PlotlyBase.DefaultLayoutWithLegendLargeText);
                 var outName =
                     $"FdrAnalysis_{Labels.GetLabel(isTopDown, ResultType.Peptide)}_{FileIdentifiers.SpectralAngleFigure}_ViolinPlot";
@@ -922,7 +966,7 @@ namespace TaskLayer.ChimeraAnalysis
                         GenericPlots.BoxPlot(peptideNonChimericAngles, "Non-Chimeric", "", "Spectral Angle")
                     })
                     .WithTitle(
-                        $"MetaMorpheus 1% {Labels.GetLabel(isTopDown, ResultType.Peptide)} Spectral Angle Distribution", Plotly.NET.Font.init(Size: TitleSize))
+                        $"MetaMorpheus 1% {Labels.GetLabel(isTopDown, ResultType.Peptide)} Spectral Angle Distribution", Plotly.NET.Font.init(Size: PlotlyBase.TitleSize))
                     .WithLayout(PlotlyBase.DefaultLayoutWithLegendLargeText);
                 outName =
                     $"FdrAnalysis_{Labels.GetLabel(isTopDown, ResultType.Peptide)}_{FileIdentifiers.SpectralAngleFigure}_BoxPlot";
@@ -937,7 +981,7 @@ namespace TaskLayer.ChimeraAnalysis
                             "Density", 0.02)
                     })
                     .WithTitle(
-                        $"MetaMorpheus 1% {Labels.GetLabel(isTopDown, ResultType.Peptide)} Spectral Angle Distribution", Plotly.NET.Font.init(Size: TitleSize))
+                        $"MetaMorpheus 1% {Labels.GetLabel(isTopDown, ResultType.Peptide)} Spectral Angle Distribution", Plotly.NET.Font.init(Size: PlotlyBase.TitleSize))
                     .WithLayout(PlotlyBase.DefaultLayoutWithLegendLargeText);
                 outName =
                     $"FdrAnalysis_{Labels.GetLabel(isTopDown, ResultType.Peptide)}_{FileIdentifiers.SpectralAngleFigure}_KernelDensity";
@@ -950,7 +994,7 @@ namespace TaskLayer.ChimeraAnalysis
                         GenericPlots.Histogram(peptideNonChimericAngles, "Non-Chimeric", "Spectral Angle", "Count")
                     })
                     .WithTitle(
-                        $"MetaMorpheus 1% {Labels.GetLabel(isTopDown, ResultType.Peptide)} Spectral Angle Distribution", Plotly.NET.Font.init(Size: TitleSize))
+                        $"MetaMorpheus 1% {Labels.GetLabel(isTopDown, ResultType.Peptide)} Spectral Angle Distribution", Plotly.NET.Font.init(Size: PlotlyBase.TitleSize))
                     .WithLayout(PlotlyBase.DefaultLayoutWithLegendLargeText);
                 outName =
                     $"FdrAnalysis_{Labels.GetLabel(isTopDown, ResultType.Peptide)}_{FileIdentifiers.SpectralAngleFigure}_Histogram";
@@ -962,7 +1006,7 @@ namespace TaskLayer.ChimeraAnalysis
                         psmNonChimericAngles.ToArray(),
                         "", isTopDown, ResultType.Psm)
                     .WithTitle(
-                        $"MetaMorpheus 1% {Labels.GetLabel(isTopDown, ResultType.Psm)} Spectral Angle Distribution", Plotly.NET.Font.init(Size: TitleSize))
+                        $"MetaMorpheus 1% {Labels.GetLabel(isTopDown, ResultType.Psm)} Spectral Angle Distribution", Plotly.NET.Font.init(Size: PlotlyBase.TitleSize))
                     .WithLayout(PlotlyBase.DefaultLayoutWithLegendLargeText);
                 outName =
                     $"FdrAnalysis_{Labels.GetLabel(isTopDown, ResultType.Psm)}_{FileIdentifiers.SpectralAngleFigure}_ViolinPlot";
@@ -975,7 +1019,7 @@ namespace TaskLayer.ChimeraAnalysis
                         GenericPlots.BoxPlot(psmNonChimericAngles, "Non-Chimeric", "", "Spectral Angle", false)
                     })
                     .WithTitle(
-                        $"MetaMorpheus 1% {Labels.GetLabel(isTopDown, ResultType.Psm)} Spectral Angle Distribution", Plotly.NET.Font.init(Size: TitleSize))
+                        $"MetaMorpheus 1% {Labels.GetLabel(isTopDown, ResultType.Psm)} Spectral Angle Distribution", Plotly.NET.Font.init(Size: PlotlyBase.TitleSize))
                     .WithLayout(PlotlyBase.DefaultLayoutWithLegendLargeText);
                 outName =
                     $"FdrAnalysis_{Labels.GetLabel(isTopDown, ResultType.Psm)}_{FileIdentifiers.SpectralAngleFigure}_BoxPlot";
@@ -990,7 +1034,7 @@ namespace TaskLayer.ChimeraAnalysis
                             "Density", 0.02)
                     })
                     .WithTitle(
-                        $"MetaMorpheus 1% {Labels.GetLabel(isTopDown, ResultType.Psm)} Spectral Angle Distribution", Plotly.NET.Font.init(Size: TitleSize))
+                        $"MetaMorpheus 1% {Labels.GetLabel(isTopDown, ResultType.Psm)} Spectral Angle Distribution", Plotly.NET.Font.init(Size: PlotlyBase.TitleSize))
                     .WithLayout(PlotlyBase.DefaultLayoutWithLegendLargeText);
                 outName =
                     $"FdrAnalysis_{Labels.GetLabel(isTopDown, ResultType.Psm)}_{FileIdentifiers.SpectralAngleFigure}_KernelDensity";
@@ -1003,7 +1047,7 @@ namespace TaskLayer.ChimeraAnalysis
                         GenericPlots.Histogram(psmNonChimericAngles, "Non-Chimeric", "Spectral Angle", "Count")
                     })
                     .WithTitle(
-                        $"MetaMorpheus 1% {Labels.GetLabel(isTopDown, ResultType.Psm)} Spectral Angle Distribution", Plotly.NET.Font.init(Size: TitleSize))
+                        $"MetaMorpheus 1% {Labels.GetLabel(isTopDown, ResultType.Psm)} Spectral Angle Distribution", Plotly.NET.Font.init(Size: PlotlyBase.TitleSize))
                     .WithLayout(PlotlyBase.DefaultLayoutWithLegendLargeText);
                 outName =
                     $"FdrAnalysis_{Labels.GetLabel(isTopDown, ResultType.Psm)}_{FileIdentifiers.SpectralAngleFigure}_Histogram";

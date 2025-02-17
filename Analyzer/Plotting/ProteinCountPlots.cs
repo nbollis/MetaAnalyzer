@@ -63,21 +63,21 @@ namespace Analyzer.Plotting
                                 (Title: Title.init(ProteinCountPlotTypes.SequenceCoverage.GetAxisLabel())),
                             StyleParam.SubPlotId.NewYAxis(1))
                         .WithXAxis(LinearAxis.init<string, string, string, string, string, string>
-                                (Title: Title.init("Condition")),
+                                (Title: Title.init("Condition", Font: Font.init(Size: PlotlyBase.AxisTitleFontSize))),
                             StyleParam.SubPlotId.NewXAxis(1)),
                     GetProteinCountPlot(records, ProteinCountPlotTypes.BaseSequenceCount, plotType)
                         .WithYAxis(LinearAxis.init<string, string, string, string, string, string>
                                 (Title: Title.init(ProteinCountPlotTypes.BaseSequenceCount.GetAxisLabel())),
                             StyleParam.SubPlotId.NewYAxis(2))
                         .WithXAxis(LinearAxis.init<string, string, string, string, string, string>
-                                (Title: Title.init("Condition")),
+                                (Title: Title.init("Condition", Font: Font.init(Size: PlotlyBase.AxisTitleFontSize))),
                             StyleParam.SubPlotId.NewXAxis(2)),
                     GetProteinCountPlot(records, ProteinCountPlotTypes.FullSequenceCount, plotType)
                         .WithYAxis(LinearAxis.init<string, string, string, string, string, string>
-                                (Title: Title.init(ProteinCountPlotTypes.FullSequenceCount.GetAxisLabel())),
+                                (Title: Title.init(ProteinCountPlotTypes.FullSequenceCount.GetAxisLabel(), Font: Font.init(Size: PlotlyBase.AxisTitleFontSize))),
                             StyleParam.SubPlotId.NewYAxis(3))
                         .WithXAxis(LinearAxis.init<string, string, string, string, string, string>
-                                (Title: Title.init("Condition")),
+                                (Title: Title.init("Condition", Font: Font.init(Size: PlotlyBase.AxisTitleFontSize))),
                             StyleParam.SubPlotId.NewXAxis(3)),
                 }, 3, 1, 
                     YAxes: new Optional<StyleParam.LinearAxisId[]>(new StyleParam.LinearAxisId[]
@@ -116,19 +116,23 @@ namespace Analyzer.Plotting
                 switch (plotType)
                 {
                     case DistributionPlotTypes.ViolinPlot:
-                        toCombine.Add(GenericPlots.ViolinPlot(data, condition).WithYAxisStyle<int, int, string>(MinMax: new Tuple<int, int>(-10, max)));
+                        toCombine.Add(GenericPlots.ViolinPlot(data, condition)
+                            .WithYAxisStyle<int, int, string>(MinMax: new Tuple<int, int>(-10, max)));
                         break;
 
                     case DistributionPlotTypes.Histogram:
-                        toCombine.Add(GenericPlots.Histogram(data, condition, xTitle, yTitle).WithXAxisStyle<int, int, string>(MinMax: new Tuple<int, int>(0, max)));
+                        toCombine.Add(GenericPlots.Histogram(data, condition, xTitle, yTitle)
+                            .WithXAxisStyle<int, int, string>(MinMax: new Tuple<int, int>(0, max)));
                         break;
 
                     case DistributionPlotTypes.BoxPlot:
-                        toCombine.Add(GenericPlots.BoxPlot(data, condition, xTitle, yTitle, false).WithYAxisStyle<int, int, string>(MinMax: new Tuple<int, int>(-10, max)));
+                        toCombine.Add(GenericPlots.BoxPlot(data, condition, xTitle, yTitle, false)
+                            .WithYAxisStyle<int, int, string>(MinMax: new Tuple<int, int>(-10, max)));
                         break;
 
                     case DistributionPlotTypes.KernelDensity:
-                        toCombine.Add(GenericPlots.KernelDensityPlot(data, condition, xTitle, yTitle, 0.1).WithXAxisStyle<int, int, string>(MinMax: new Tuple<int, int>(0, max)));
+                        toCombine.Add(GenericPlots.KernelDensityPlot(data, condition, xTitle, yTitle, 0.1)
+                            .WithXAxisStyle<int, int, string>(MinMax: new Tuple<int, int>(0, max)));
                         break;
 
                     default:
@@ -138,7 +142,7 @@ namespace Analyzer.Plotting
 
             var finalPlot = Chart.Combine(toCombine)
                 .WithTitle($"Distribution of {yTitle} per Protein")
-                .WithLayout(PlotlyBase.DefaultLayout)
+                .WithLayout(PlotlyBase.DefaultLayoutWithLegendLargerText)
                 .WithSize(1000, 600);
             return finalPlot;
 

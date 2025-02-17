@@ -35,8 +35,8 @@ namespace Plotting
                 Chart.Line<double, double, string>(data.Select(p => p.Item1), data.Select(p => p.Item2), Name: title,
                         LineColor: color)
                     .WithSize(400, 400)
-                    .WithXAxisStyle(Title.init(xTitle)/*, new FSharpOption<Tuple<IConvertible, IConvertible>>(new Tuple<IConvertible, IConvertible>(-15, 15))*/)
-                    .WithYAxisStyle(Title.init(yTitle))
+                    .WithXAxisStyle(Title.init(xTitle, Font: Font.init(Size: PlotlyBase.AxisTitleFontSize))/*, new FSharpOption<Tuple<IConvertible, IConvertible>>(new Tuple<IConvertible, IConvertible>(-15, 15))*/)
+                    .WithYAxisStyle(Title.init(yTitle, Font: Font.init(Size: PlotlyBase.AxisTitleFontSize)))
                     .WithLayout(PlotlyBase.DefaultLayoutWithLegend);
             return chart;
         }
@@ -48,14 +48,14 @@ namespace Plotting
                                    HistNorm: normalize ? StyleParam.HistNorm.Percent : StyleParam.HistNorm.None)
                 .WithSize(400, 400)
                 .WithTitle(title)
-                .WithYAxisStyle(Title.init(yTitle))
+                .WithYAxisStyle(Title.init(yTitle, Font: Font.init(Size: PlotlyBase.AxisTitleFontSize)))
                 .WithLayout(PlotlyBase.DefaultLayoutWithLegend);
             if (minMax is not null)
-                return chart.WithXAxisStyle(Title.init(xTitle),
+                return chart.WithXAxisStyle(Title.init(xTitle, Font: Font.init(Size: PlotlyBase.AxisTitleFontSize)),
                     new FSharpOption<Tuple<IConvertible, IConvertible>>(
                         new Tuple<IConvertible, IConvertible>(minMax.Value.Item1, minMax.Value.Item2)));
             else
-                return chart.WithXAxisStyle(Title.init(xTitle));
+                return chart.WithXAxisStyle(Title.init(xTitle, Font: Font.init(Size: PlotlyBase.AxisTitleFontSize)));
         }
 
         public static GenericChart.GenericChart ViolinPlot(List<double> values, string label)
@@ -78,8 +78,8 @@ namespace Plotting
                                   /* Orientation: StyleParam.Orientation.Vertical*/)
                 .WithSize(400, 400)
                 .WithTitle(title)
-                .WithXAxisStyle(Title.init(xTitle))
-                .WithYAxisStyle(Title.init(yTitle))
+                .WithXAxisStyle(Title.init(xTitle, Font: Font.init(Size: PlotlyBase.AxisTitleFontSize)))
+                .WithYAxisStyle(Title.init(yTitle, Font: Font.init(Size: PlotlyBase.AxisTitleFontSize)))
                 .WithLayout(PlotlyBase.DefaultLayoutWithLegend);
             return chart;
         }

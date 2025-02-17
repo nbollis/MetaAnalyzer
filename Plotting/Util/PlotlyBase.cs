@@ -5,6 +5,9 @@ namespace Plotting.Util
 {
     public static class PlotlyBase
     {
+        public static readonly int TitleSize = 24;
+        public static readonly int AxisTitleFontSize = 18;
+
         public static int DefaultHeight = 600;
         public static Layout DefaultLayout =>
             Layout.init<string>(PaperBGColor: Color.fromKeyword(ColorKeyword.White), PlotBGColor: Color.fromKeyword(ColorKeyword.White));
@@ -15,6 +18,12 @@ namespace Plotting.Util
             YAnchor: StyleParam.YAnchorPosition.Top
         );
         public static Legend DefaultLegend16 => Legend.init(X: 0.5, Y: -0.2, Orientation: StyleParam.Orientation.Horizontal, EntryWidth: 0,
+            VerticalAlign: StyleParam.VerticalAlign.Bottom,
+            XAnchor: StyleParam.XAnchorPosition.Center,
+            YAnchor: StyleParam.YAnchorPosition.Top,
+            Font: Font.init(null, 16, null)
+        ); 
+        public static Legend DefaultLegend24 => Legend.init(X: 0.5, Y: -0.2, Orientation: StyleParam.Orientation.Horizontal, EntryWidth: 0,
             VerticalAlign: StyleParam.VerticalAlign.Bottom,
             XAnchor: StyleParam.XAnchorPosition.Center,
             YAnchor: StyleParam.YAnchorPosition.Top,
@@ -43,8 +52,8 @@ namespace Plotting.Util
 
         public static Layout DefaultLayoutWithLegendLargerText => Layout.init<string>(
             ShowLegend: true,
-            Legend: DefaultLegend,
-            Font: Font.init(null, 20, null));
+            Legend: DefaultLegend24, 
+            Font: Font.init(null, 24, null));
         public static Layout DefaultLayoutNoLegend => Layout.init<string>(
             PaperBGColor: Color.fromKeyword(ColorKeyword.White),
             PlotBGColor: Color.fromKeyword(ColorKeyword.White),

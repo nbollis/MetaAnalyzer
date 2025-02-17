@@ -32,6 +32,7 @@
         public static string ComparativeFileResults_TargetDecoyAbsolute => "AllResults_ComparingPRs_TargetDecoy_Absolute";
         public static string ComparativeFileResults_TargetDecoyRelative => "AllResults_ComparingPRs_TargetDecoy_Relative";
         public static string ComparativeTopDownResults => "AllResults_TopDownSummary.png";
+        public static string TargetDecoyCurveFigure => "AllResults_TopDownSummary.png";
 
 
 

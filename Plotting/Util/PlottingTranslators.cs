@@ -472,24 +472,30 @@ public static class PlottingTranslators
     {
 
         // MM General
-        { "MetaMorpheusWithChimeras_105_ChimericLibrary_Rep1", "MetaMorpheus⠀" },
-        { "MetaMorpheusWithChimeras_105_ChimericLibrary_Rep2", "MetaMorpheus⠀" },
-        { "MetaMorpheusWithChimeras_105_ChimericLibrary_Rep3", "MetaMorpheus⠀" },
         { "MetaMorpheus_106_Rep1", "MetaMorpheus" },
         { "MetaMorpheus_106_Rep2", "MetaMorpheus" },
         { "MetaMorpheus_106_Rep3", "MetaMorpheus" },
-        { "MetaMorpheusNoChimeras_105_NonChimericLibrary_Rep1", "MetaMorpheus No Chimeras" },
-        { "MetaMorpheusNoChimeras_105_NonChimericLibrary_Rep2", "MetaMorpheus No Chimeras" },
-        { "MetaMorpheusNoChimeras_105_NonChimericLibrary_Rep3", "MetaMorpheus No Chimeras" },
-        { "MetaMorpheusWithChimeras_105_NonChimericLibrary_Rep1", "MetaMorpheus Chimeras (Non-chimeric library)" },
-        { "MetaMorpheusWithChimeras_105_NonChimericLibrary_Rep2", "MetaMorpheus Chimeras (Non-chimeric library)" },
-        { "MetaMorpheusWithChimeras_105_NonChimericLibrary_Rep3", "MetaMorpheus Chimeras (Non-chimeric library)" },
+        { "MetaMorpheusWithChimeras_105_ChimericLibrary", "MetaMorpheus\u2800" },
+        { "MetaMorpheusWithChimeras_105_ChimericLibrary_Rep1", "MetaMorpheus\u2800" },
+        { "MetaMorpheusWithChimeras_105_ChimericLibrary_Rep2", "MetaMorpheus\u2800" },
+        { "MetaMorpheusWithChimeras_105_ChimericLibrary_Rep3", "MetaMorpheus\u2800" },
+        { "MetaMorpheusWithChimeras_106_ChimericLibrary", "MetaMorpheus\u2800" },
         { "MetaMorpheusWithChimeras_106_ChimericLibrary_Rep1", "MetaMorpheus\u2800" },
         { "MetaMorpheusWithChimeras_106_ChimericLibrary_Rep2", "MetaMorpheus\u2800" },
         { "MetaMorpheusWithChimeras_106_ChimericLibrary_Rep3", "MetaMorpheus\u2800" },
+        { "MetaMorpheusNoChimeras_105_NonChimericLibrary1", "MetaMorpheus No Chimeras" },
+        { "MetaMorpheusNoChimeras_105_NonChimericLibrary_Rep1", "MetaMorpheus No Chimeras" },
+        { "MetaMorpheusNoChimeras_105_NonChimericLibrary_Rep2", "MetaMorpheus No Chimeras" },
+        { "MetaMorpheusNoChimeras_105_NonChimericLibrary_Rep3", "MetaMorpheus No Chimeras" },
+        { "MetaMorpheusNoChimeras_106_NonChimericLibrary", "MetaMorpheus No Chimeras" },
         { "MetaMorpheusNoChimeras_106_NonChimericLibrary_Rep1", "MetaMorpheus No Chimeras" },
         { "MetaMorpheusNoChimeras_106_NonChimericLibrary_Rep2", "MetaMorpheus No Chimeras" },
         { "MetaMorpheusNoChimeras_106_NonChimericLibrary_Rep3", "MetaMorpheus No Chimeras" },
+        { "MetaMorpheusWithChimeras_105_NonChimericLibrary", "MetaMorpheus Chimeras (Non-chimeric library)" },
+        { "MetaMorpheusWithChimeras_105_NonChimericLibrary_Rep1", "MetaMorpheus Chimeras (Non-chimeric library)" },
+        { "MetaMorpheusWithChimeras_105_NonChimericLibrary_Rep2", "MetaMorpheus Chimeras (Non-chimeric library)" },
+        { "MetaMorpheusWithChimeras_105_NonChimericLibrary_Rep3", "MetaMorpheus Chimeras (Non-chimeric library)" },
+        { "MetaMorpheusWithChimeras_106_NonChimericLibrary", "MetaMorpheus Chimeras (Non-chimeric library)" },
         { "MetaMorpheusWithChimeras_106_NonChimericLibrary_Rep1", "MetaMorpheus Chimeras (Non-chimeric library)" },
         { "MetaMorpheusWithChimeras_106_NonChimericLibrary_Rep2", "MetaMorpheus Chimeras (Non-chimeric library)" },
         { "MetaMorpheusWithChimeras_106_NonChimericLibrary_Rep3", "MetaMorpheus Chimeras (Non-chimeric library)" },
@@ -584,12 +590,12 @@ public static class PlottingTranslators
 
     public static IEnumerable<string> ConvertConditionNames(this IEnumerable<string> conditions)
     {
-        return conditions.Select(p => ConditionNameConversionDictionary.ContainsKey(p) ? ConditionNameConversionDictionary[p] : p);
+        return conditions.Select(p => ConditionNameConversionDictionary.GetValueOrDefault(p, p));
     }
 
     public static string ConvertConditionName(this string condition)
     {
-        return ConditionNameConversionDictionary.ContainsKey(condition) ? ConditionNameConversionDictionary[condition] : condition;
+        return ConditionNameConversionDictionary.GetValueOrDefault(condition, condition);
     }
 
     public static Color ConvertConditionToColor(this string condition)
@@ -621,7 +627,7 @@ public static class PlottingTranslators
 
     public static IEnumerable<Color> ConvertConditionsToColors(this IEnumerable<string> conditions)
     {
-        return conditions.Select(p => ConditionToColorDictionary.ContainsKey(p) ? ConditionToColorDictionary[p] : Color.fromKeyword(ColorKeyword.Black));
+        return conditions.Select(p => ConditionToColorDictionary.TryGetValue(p, out var value) ? value : Color.fromKeyword(ColorKeyword.Black));
     }
 
     #endregion

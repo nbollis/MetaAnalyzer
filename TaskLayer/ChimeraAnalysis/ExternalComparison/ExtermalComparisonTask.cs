@@ -574,6 +574,8 @@ namespace TaskLayer.ChimeraAnalysis
 
         #region Plotting
 
+        public static int AxisLabelFontSize = 18;
+
         public static void PlotProteinCountingCharts(List<ProteinCountingRecord> records, bool isTopDown, string? directory = null)
         {
             directory ??= Path.Combine(BulkFigureDirectory, "ProteinSummary");
@@ -658,10 +660,11 @@ namespace TaskLayer.ChimeraAnalysis
                 toCombine.Add(softwareChart);
             }
 
-            var finalChart = Chart.Combine(toCombine.ToArray()).WithTitle($"1% FDR {Labels.GetLabel(isTopDown, resultType)}")
-                .WithXAxisStyle(Title.init("File"))
-                .WithYAxisStyle(Title.init("Count"))
-                .WithLayout(PlotlyBase.DefaultLayoutWithLegendLargeText)
+            var finalChart = Chart.Combine(toCombine.ToArray())
+                .WithTitle($"1% FDR {Labels.GetLabel(isTopDown, resultType)}")
+                .WithXAxisStyle(Title.init("File", Font: Font.init(Size: PlotlyBase.AxisTitleFontSize)))
+                .WithYAxisStyle(Title.init("Count", Font: Font.init(Size: PlotlyBase.AxisTitleFontSize)))
+                .WithLayout(PlotlyBase.DefaultLayoutWithLegendLargerText)
                 .WithSize(800, 600);
 
             return finalChart;
@@ -697,10 +700,11 @@ namespace TaskLayer.ChimeraAnalysis
                 toCombine.Add(softwareChart);
             }
 
-            var finalChart = Chart.Combine(toCombine.ToArray()).WithTitle($"1% FDR {Labels.GetLabel(isTopDown, resultType)}")
-                .WithXAxisStyle(Title.init("File"))
-                .WithYAxisStyle(Title.init("Count"))
-                .WithLayout(PlotlyBase.DefaultLayoutWithLegendLargeText)
+            var finalChart = Chart.Combine(toCombine.ToArray())
+                .WithTitle($"1% FDR {Labels.GetLabel(isTopDown, resultType)}")
+                .WithXAxisStyle(Title.init("File", Font: Font.init(Size: PlotlyBase.AxisTitleFontSize)))
+                .WithYAxisStyle(Title.init("Count", Font: Font.init(Size: PlotlyBase.AxisTitleFontSize)))
+                .WithLayout(PlotlyBase.DefaultLayoutWithLegendLargerText)
                 .WithSize(800, 600);
 
             return finalChart;
