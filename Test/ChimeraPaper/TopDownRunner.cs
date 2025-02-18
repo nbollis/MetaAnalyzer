@@ -107,14 +107,14 @@ namespace Test.ChimeraPaper
                 //    //mm.ExportCombinedChimeraTargetDecoyExploration(mm.FigureDirectory, mm.Condition);
                 //}
 
-                cellLine.PlotIndividualFileResults();
-                cellLine.PlotCellLineSpectralSimilarity();
-                cellLine.PlotCellLineChimeraBreakdown();
-                cellLine.PlotCellLineChimeraBreakdown_TargetDecoy();
+                //cellLine.PlotIndividualFileResults();
+                //cellLine.PlotCellLineSpectralSimilarity();
+                //cellLine.PlotCellLineChimeraBreakdown();
+                //cellLine.PlotCellLineChimeraBreakdown_TargetDecoy();
             }
 
-            //AllResults.PlotInternalMMComparison();
-            AllResults.PlotBulkResultComparisons();
+            AllResults.PlotInternalMMComparison();
+            //AllResults.PlotBulkResultComparisons();
             //AllResults.PlotStackedIndividualFileComparison();
             //AllResults.PlotBulkResultChimeraBreakDown();
             //AllResults.PlotBulkResultChimeraBreakDown_TargetDecoy();

@@ -127,13 +127,13 @@ namespace Analyzer.Plotting.ComparativePlots
                 //    labels, null, "Others", MarkerColor: ConditionToColorDictionary[others.First().Condition])
             });
             var smLabel = allResults.First().First().IsTopDown ? "PrSMs" : "PSMs";
-            psmChart.WithTitle($"MetaMorpheus 1% FDR {smLabel}")
-                .WithXAxisStyle(Title.init("Cell Line"))
-                .WithYAxisStyle(Title.init("Count"))
-                .WithLayout(PlotlyBase.DefaultLayoutWithLegend);
+            psmChart.WithTitle($"MetaMorpheus 1% FDR {smLabel}", Plotly.NET.Font.init(Size: PlotlyBase.TitleSize))
+                .WithXAxisStyle(Title.init("Cell Line", Font: Font.init(Size: PlotlyBase.AxisTitleFontSize)))
+                .WithYAxisStyle(Title.init("Count", Font: Font.init(Size: PlotlyBase.AxisTitleFontSize)))
+                .WithLayout(PlotlyBase.DefaultLayoutWithLegendLargerText);
             string psmOutpath = Path.Combine(allResults.GetChimeraPaperFigureDirectory(),
                 $"InternalMetaMorpheusComparison_{smLabel}");
-            psmChart.SavePNG(psmOutpath);
+            psmChart.SavePNG(psmOutpath, null, 800, 800);
 
             var peptideChart = Chart.Combine(new[]
             {
@@ -146,13 +146,13 @@ namespace Analyzer.Plotting.ComparativePlots
                 //Chart2D.Chart.Column<int, string, string, int, int>(others.Select(chimeraGroup => chimeraGroup.OnePercentPeptideCount),
                 //    labels, null, "Others", MarkerColor: ConditionToColorDictionary[others.First().Condition])
             });
-            peptideChart.WithTitle($"MetaMorpheus 1% FDR {allResults.First().First().ResultType}s")
-                .WithXAxisStyle(Title.init("Cell Line"))
-                .WithYAxisStyle(Title.init("Count"))
-                .WithLayout(PlotlyBase.DefaultLayoutWithLegend);
+            peptideChart.WithTitle($"MetaMorpheus 1% FDR {allResults.First().First().ResultType}s", Plotly.NET.Font.init(Size: PlotlyBase.TitleSize))
+                .WithXAxisStyle(Title.init("Cell Line", Font: Font.init(Size: PlotlyBase.AxisTitleFontSize)))
+                .WithYAxisStyle(Title.init("Count", Font: Font.init(Size: PlotlyBase.AxisTitleFontSize)))
+                .WithLayout(PlotlyBase.DefaultLayoutWithLegendLargerText);
             string peptideOutpath = Path.Combine(allResults.GetChimeraPaperFigureDirectory(),
                 $"InternalMetaMorpheusComparison_{allResults.First().First().ResultType}s");
-            peptideChart.SavePNG(peptideOutpath);
+            peptideChart.SavePNG(peptideOutpath, null, 800, 800);
 
             var proteinChart = Chart.Combine(new[]
             {
@@ -167,13 +167,13 @@ namespace Analyzer.Plotting.ComparativePlots
                 //Chart2D.Chart.Column<int, string, string, int, int>(others.Select(chimeraGroup => chimeraGroup.OnePercentProteinGroupCount),
                 //    labels, null, "Chimeras", MarkerColor: ConditionToColorDictionary[others.First().Condition]),
             });
-            proteinChart.WithTitle("MetaMorpheus 1% FDR Proteins")
-                .WithXAxisStyle(Title.init("Cell Line"))
-                .WithYAxisStyle(Title.init("Count"))
-                .WithLayout(PlotlyBase.DefaultLayoutWithLegend);
+            proteinChart.WithTitle("MetaMorpheus 1% FDR Proteins", Plotly.NET.Font.init(Size: PlotlyBase.TitleSize))
+                .WithXAxisStyle(Title.init("Cell Line", Font: Font.init(Size: PlotlyBase.AxisTitleFontSize)))
+                .WithYAxisStyle(Title.init("Count", Font: Font.init(Size: PlotlyBase.AxisTitleFontSize)))
+                .WithLayout(PlotlyBase.DefaultLayoutWithLegendLargerText);
             string proteinOutpath = Path.Combine(allResults.GetChimeraPaperFigureDirectory(),
                 "InternalMetaMorpheusComparison_Proteins");
-            proteinChart.SavePNG(proteinOutpath);
+            proteinChart.SavePNG(proteinOutpath, null, 800, 800);
         }
 
         public static void PlotBulkResultComparisons(this AllResults allResults, string? outputDirectory = null, bool filterByCondition = true)

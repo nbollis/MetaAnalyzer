@@ -1498,8 +1498,6 @@ namespace Analyzer.SearchType
             allPeptides = null;
             allPsms = null;
 
-            AllPsms.Clear();
-            AllPeptides.Clear();
             IndividualFileResults.ForEach(p => p.Dispose());
             base.Dispose();
         }
@@ -1613,10 +1611,6 @@ namespace Analyzer.SearchType
             _allPsms = null;
             _filteredPsms = null;
             _allPeptides = null;
-
-            AllPsms.Clear();
-            AllPeptides.Clear();
-            FilteredPsms.Clear();
         }
     }
 }

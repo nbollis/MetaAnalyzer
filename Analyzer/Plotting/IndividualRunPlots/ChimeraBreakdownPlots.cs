@@ -10,6 +10,7 @@ using Plotly.NET.ImageExport;
 using Analyzer.Interfaces;
 using Plotting.Util;
 using ResultAnalyzerUtil;
+using MathNet.Numerics;
 
 namespace Analyzer.Plotting.IndividualRunPlots
 {
@@ -203,11 +204,11 @@ namespace Analyzer.Plotting.IndividualRunPlots
                     total, parentPercent + decoysPercent + uniqueProteinPercent + uniqueFormsPercent);
                 // Scale percentages so that each bar's height is based on its total value
                 return (p.IdsPerSpectra,
-                    parentPercent,
-                    uniqueProteinPercent,
-                    uniqueFormsPercent,
-                    decoysPercent,
-                    duplicatesPercent);
+                    parentPercent.Round(0),
+                    uniqueProteinPercent.Round(0),
+                    uniqueFormsPercent.Round(0),
+                    decoysPercent.Round(0),
+                    duplicatesPercent.Round(0));
             }).ToArray();
 
 
@@ -235,7 +236,7 @@ namespace Analyzer.Plotting.IndividualRunPlots
 
             var chart = Chart.Combine(charts)
                 .WithXAxisStyle(Title.init($"1% {Labels.GetLabel(isTopDown, resultType)} per Spectrum", Font: Font.init(Size: PlotlyBase.AxisTitleFontSize)))
-                //.WithYAxis(LinearAxis.init<int, int, int, int, int, int>(AxisType: StyleParam.AxisType.Log))
+                .WithYAxis(LinearAxis.init<int, int, int, int, int, int>(AxisType: StyleParam.AxisType.Log))
                 .WithYAxisStyle(Title.init("Count of Spectra", Font: Font.init(Size: PlotlyBase.AxisTitleFontSize)))
                 .WithLayout(PlotlyBase.DefaultLayoutWithLegendLargerText);
           

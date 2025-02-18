@@ -37,8 +37,8 @@ namespace Analyzer.Plotting
                         MeanLine: MeanLine.init(true,  "No Chimeras".ConvertConditionToColor()), ShowLegend: false)
 
                 })
-                .WithTitle($"{identifier} Spectral Angle Distribution (1% {label})")
-                .WithYAxisStyle(Title.init("Spectral Angle"))
+                .WithTitle($"{identifier} Spectral Angle Distribution (1% {label})", TitleFont: Font.init(Size: PlotlyBase.TitleSize))
+                .WithYAxisStyle(Title.init("Spectral Angle", Font: Font.init(Size: PlotlyBase.AxisTitleFontSize)))
                 .WithLayout(PlotlyBase.DefaultLayout)
                 .WithSize(1000, 600);
             return violin;
