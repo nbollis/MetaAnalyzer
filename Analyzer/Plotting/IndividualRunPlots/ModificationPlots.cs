@@ -156,11 +156,30 @@ namespace Analyzer.Plotting.IndividualRunPlots
                     "Count", false, false);
                 toCombine.Add(plot);
             }
-            
+
+
+            Legend legend = Legend.init(X: 0.5, Y: -1.4, Orientation: StyleParam.Orientation.Horizontal, EntryWidth: 0,
+                VerticalAlign: StyleParam.VerticalAlign.Bottom,
+                XAnchor: StyleParam.XAnchorPosition.Center,
+                YAnchor: StyleParam.YAnchorPosition.Top,
+                Font: Font.init(null, 20, null)
+            );
+            Layout layout = Layout.init<string>(
+                PaperBGColor: Color.fromKeyword(ColorKeyword.White),
+                PlotBGColor: Color.fromKeyword(ColorKeyword.White),
+                ShowLegend: true,
+                Legend: legend,
+                Font: Font.init(null, 20, null));
+
             var combined = Chart.Combine(toCombine)
-                .WithTitle($"1% {Labels.GetLabel(isTopDown, resultType)} Modification Distribution")
-                .WithSize(900, 600)
-                .WithLayout(PlotlyBase.DefaultLayoutWithLegend);
+                    .WithTitle($"1% {Labels.GetLabel(isTopDown, resultType)} Modification Distribution", Plotly.NET.Font.init(Size: PlotlyBase.TitleSize))
+                    .WithSize(1200, 1000)
+                    .WithLayout(layout);
+
+            var logged = combined
+                .WithYAxis(LinearAxis.init<int, int, int, int, int, int>(AxisType: StyleParam.AxisType.Log));
+            logged.Show();
+
             return combined;
         }
 
@@ -214,7 +233,7 @@ namespace Analyzer.Plotting.IndividualRunPlots
 
             var finalPlot = Chart.Combine(toCombine)
                 .WithTitle($"1% {Labels.GetLabel(isTopDown, ResultType.Psm)}  Modification Distribution")
-                .WithSize(900, 600)
+                .WithSize(1200, 1000)
                 .WithLayout(PlotlyBase.DefaultLayoutWithLegend);
 
             return finalPlot;

@@ -133,8 +133,35 @@ namespace Test.ChimeraPaper
             //a549.PlotChronologerDeltaKernelPDF();
         }
 
-
         [Test]
+        public static void TopDownComparison()
+        {
+            List<SingleRunResults> metaMorpheusResults = [];
+            List<SingleRunResults> msPathFinderResults = [];
+            List<SingleRunResults> proteomeDiscovererResults = [];
+
+            foreach (var cellLine in AllResults)
+            {
+                foreach (var result in cellLine)
+                {
+                    if (result is MetaMorpheusResult mm)
+                        metaMorpheusResults.Add(mm);
+                    else if (result is MsPathFinderTResults mspt)
+                        msPathFinderResults.Add(mspt);
+                    else if (result is ProteomeDiscovererResult pd)
+                        proteomeDiscovererResults.Add(pd);
+                }
+            }
+
+
+
+
+
+
+
+        }
+
+            [Test]
         public static void MsPathTDatasetInfoGenerator()
         {
 

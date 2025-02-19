@@ -8,7 +8,6 @@ using Analyzer.Plotting.Util;
 using Analyzer.SearchType;
 using Easy.Common.Extensions;
 using Plotly.NET;
-using Plotting.Util;
 using ResultAnalyzerUtil;
 using TaskLayer.ChimeraAnalysis;
 using UsefulProteomicsDatabases;
@@ -181,10 +180,44 @@ namespace Test.ChimeraPaper
         }
 
 
-
-
-
         [Test]
+        public static void RunModDistributionPlot()
+        {
+            List<SingleRunResults> simpleMMResults = [];
+            List<SingleRunResults> fullMMresults = [];
+            List<SingleRunResults> chimerys = [];
+            List<SingleRunResults> msFragger = AllResults.CellLineResults.SelectMany(p => p.Where(m => m.Condition.Contains("MsFraggerDDA+") && !m.Condition.Contains("ase"))).ToList();
+            
+            foreach (var cellLineDirectory in Directory.GetDirectories(@"B:\Users\Nic\Chimeras\ExternalMMAnalysis\Mann_11cell_lines")
+                         .Where(p => !p.Contains("Generate") && !p.Contains("Figure")))
+            {
+                foreach (var runDirectory in Directory.GetDirectories(cellLineDirectory).Where(p => !p.Contains("Figure")))
+                {
+                    if (runDirectory.Contains("107") || runDirectory.Contains("106_Rep1"))
+                        simpleMMResults.Add(new MetaMorpheusResult(runDirectory));
+                    else if (runDirectory.Contains("Chimerys"))
+                        chimerys.Add(new ProteomeDiscovererResult(runDirectory));
+                }
+            }
+            var mmResultsToAdd = AllResults.SelectMany(cellLine => cellLine.Results.Where(result =>
+                    result.Condition == "MetaMorpheusWithLibrary"
+                    && result is MetaMorpheusResult).Cast<MetaMorpheusResult>())
+                .ToList();
+            fullMMresults.AddRange(mmResultsToAdd);
+
+            simpleMMResults.ForEach(p => p.Condition = "Reduced MetaMorpheus");
+            fullMMresults.ForEach(p => p.Condition = "Full MetaMorpheus");
+            msFragger.ForEach(p => p.Condition = "MsFragger DDA+");
+
+            List<SingleRunResults> temp = [fullMMresults.First()];
+            temp.GetModificationDistribution().Show();
+
+            var allResults = simpleMMResults.Concat(fullMMresults).Concat(chimerys).Concat(msFragger).ToList();
+            allResults.GetModificationDistribution().Show();
+            allResults.GetModificationDistribution(ResultType.Peptide).Show();
+        }
+
+            [Test]
         public static void WeekendRunner()
         {
             //RunProformaForAllInMann11ResultDirectory();

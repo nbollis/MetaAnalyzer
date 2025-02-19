@@ -141,10 +141,39 @@ namespace Test.ChimeraPaper
             }
         }
 
+        [Test]
+        public static void Overnighter()
+        {
+            InternalMetaMorpheusAnalysisTask.Version = "105";
+            var path = BottomUpRunner.DirectoryPath;
+            var dataDirectoryPath = InternalMetaMorpheusAnalysisTask.Mann11DataFileDirectory;
+            var outputDir = InternalMetaMorpheusAnalysisTask.Mann11OutputDirectory;
+            var dbPath = InternalMetaMorpheusAnalysisTask.UniprotHumanProteomeAndReviewedXml;
+
+            var parameters = new InternalMetaMorpheusAnalysisParameters(path, outputDir, dataDirectoryPath, dbPath, @"C:\Program Files\MetaMorpheus");
+            var task = new InternalMetaMorpheusAnalysisTask(parameters);
+            task.Run().Wait();
+
+            InternalMetaMorpheusAnalysisTask.Version = "106";
+            task = new InternalMetaMorpheusAnalysisTask(parameters);
+            task.Run().Wait();
+
+            InternalMetaMorpheusAnalysisTask.Version = "106";
+            path = TopDownRunner.DirectoryPath;
+            dataDirectoryPath = InternalMetaMorpheusAnalysisTask.JurkatTopDownDataFileDirectory;
+            outputDir = InternalMetaMorpheusAnalysisTask.JurkatTopDownOutputDirectory;
+            dbPath = InternalMetaMorpheusAnalysisTask.UniprotHumanProteomeAndReviewedXml;
+
+            parameters = new InternalMetaMorpheusAnalysisParameters(path, outputDir, dataDirectoryPath, dbPath, @"C:\Program Files\MetaMorpheus");
+            task = new InternalMetaMorpheusAnalysisTask(parameters);
+            task.Run().Wait();
+        }
+
 
         [Test]
         public static void RunInternalMMComparison()
         {
+            InternalMetaMorpheusAnalysisTask.Version = "105";
             var path = BottomUpRunner.DirectoryPath;
             var dataDirectoryPath = InternalMetaMorpheusAnalysisTask.Mann11DataFileDirectory;
             var outputDir = InternalMetaMorpheusAnalysisTask.Mann11OutputDirectory;
@@ -158,6 +187,7 @@ namespace Test.ChimeraPaper
         [Test]
         public static void RunInternalMMComparison_TopDown()
         {
+            InternalMetaMorpheusAnalysisTask.Version = "106";
             var path = TopDownRunner.DirectoryPath;
             var dataDirectoryPath = InternalMetaMorpheusAnalysisTask.JurkatTopDownDataFileDirectory;
             var outputDir = InternalMetaMorpheusAnalysisTask.JurkatTopDownOutputDirectory;
@@ -398,16 +428,7 @@ namespace Test.ChimeraPaper
         [Test]
         public static void EdwinTest()
         {
-            var psmPath = @"B:\Users\Edwin\AllPSMs.psmtsv";
-            var psms = FileReader.ReadFile<PsmFromTsvFile>(psmPath)
-                .Results.Where(x => x.AmbiguityLevel == "1" & x.DecoyContamTarget == "T").ToList();
-
-            List<(double?, double?)> actualPrediction = new();
-            for (int i = 0; i < psms.Count; i++)
-            {
-                var predictedRetentionTime = ChronologerEstimator.PredictRetentionTime(psms[i].BaseSeq, psms[i].FullSequence);
-                actualPrediction.Add((psms[i].RetentionTime, predictedRetentionTime ?? double.NaN));
-            }
+            
         }
 
         [Test]

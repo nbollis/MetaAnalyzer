@@ -35,7 +35,7 @@ public static class PlottingTranslators
         {"ReviewdDatabaseNoPhospho_MsFraggerDDA", Color.fromKeyword(ColorKeyword.LightAkyBlue) },
         {"ReviewdDatabaseNoPhospho_MsFragger", Color.fromKeyword(ColorKeyword.LightAkyBlue) },
         {"ReviewdDatabaseNoPhospho_MsFraggerDDA+", Color.fromKeyword(ColorKeyword.RoyalBlue) },
-        {"Chimerys", Color.fromKeyword(ColorKeyword.Green) },
+        {"Chimerys", Color.fromKeyword(ColorKeyword.Lime) },
 
         // General
         {"Chimeras", Color.fromKeyword(ColorKeyword.Purple) }, // (128,0,128)
@@ -60,6 +60,8 @@ public static class PlottingTranslators
 
         // Top Down
         {"MetaMorpheus", Color.fromKeyword(ColorKeyword.Purple) }, // ecoli
+        {"Full MetaMorpheus", Color.fromKeyword(ColorKeyword.Purple) },
+        {"Reduced MetaMorpheus", Color.fromKeyword(ColorKeyword.Plum) },
         {"MetaMorpheus\u2800", Color.fromKeyword(ColorKeyword.Purple) }, // ecoli
         {"MetaMorpheusNoChimeras", Color.fromKeyword(ColorKeyword.SeaGreen) }, // shared
         {"MetaMorpheus No Chimeras", Color.fromKeyword(ColorKeyword.SeaGreen) }, // shared

@@ -130,12 +130,15 @@ namespace Plotting
                              .Select(mod => System.Text.RegularExpressions.Regex.Replace(mod, @".*?:", "").Trim()
                                  .Replace("Accetyl", "Acetyl"))))
             {
+                string finalMod = mod;
                 if (!displayCarbamimidoMethyl && mod.StartsWith("Carbamidometh"))
                     continue;
+                if (mod.EndsWith('I') && mod.Contains('[') && !mod.Contains(']'))
+                    finalMod += "]";
 
-                if (!modDict.TryAdd(mod, 1))
+                if (!modDict.TryAdd(finalMod, 1))
                 {
-                    modDict[mod]++;
+                    modDict[finalMod]++;
                 }
             }
 
@@ -162,11 +165,10 @@ namespace Plotting
                 .ToDictionary(p => p.Key, p => p.Value);
 
             var chart = Chart.Column<double, string, string>(modDict.Values, modDict.Keys, title, MarkerColor: title.ConvertConditionToColor())
-                .WithSize(900, 600)
-                .WithTitle(title)
-                .WithXAxisStyle(Title.init(xTitle))
-                .WithYAxisStyle(Title.init(yTitle))
-                .WithLayout(PlotlyBase.DefaultLayoutWithLegend);
+                .WithSize(1200, 1000)
+                .WithTitle(title, Plotly.NET.Font.init(Size: PlotlyBase.TitleSize))
+                .WithXAxisStyle(Title.init(xTitle, Font: Font.init(Size: PlotlyBase.AxisTitleFontSize-2)))
+                .WithYAxisStyle(Title.init(yTitle, Font: Font.init(Size: PlotlyBase.AxisTitleFontSize)));
             return chart;
         }
     }

@@ -189,47 +189,49 @@ namespace Analyzer.Plotting.IndividualRunPlots
                         .ToArray();
 
             // Step 2: Calculate the percentages and scale them
-            data = data.Select(p =>
-            {
-                var total = p.Parent + p.UniqueProtein + p.UniqueForms + p.Decoys + p.Duplicates;
-                double parentPercent = InterperateVals(p.Parent,
-                    total);
-                double decoysPercent = InterperateVals(p.Parent + p.Decoys,
-                    total, parentPercent);
-                double uniqueProteinPercent = InterperateVals(p.Parent + p.Decoys + p.UniqueProtein,
-                    total, parentPercent + decoysPercent);
-                double uniqueFormsPercent = InterperateVals(p.Parent + p.Decoys + p.UniqueProtein + p.UniqueForms,
-                    total, parentPercent + decoysPercent + uniqueProteinPercent);
-                double duplicatesPercent = InterperateVals(p.Parent + p.Decoys + p.UniqueProtein + p.UniqueForms + p.Duplicates,
-                    total, parentPercent + decoysPercent + uniqueProteinPercent + uniqueFormsPercent);
-                // Scale percentages so that each bar's height is based on its total value
-                return (p.IdsPerSpectra,
-                    parentPercent.Round(0),
-                    uniqueProteinPercent.Round(0),
-                    uniqueFormsPercent.Round(0),
-                    decoysPercent.Round(0),
-                    duplicatesPercent.Round(0));
-            }).ToArray();
 
+            (int IdsPerSpectra, double Parent, double UniqueProtein, double UniqueForms, double Decoys, double Duplicates)[]
+                scaledPercentData = data;
+            scaledPercentData = data.Select(p =>
+                {
+                    double total = p.Parent + p.UniqueProtein + p.UniqueForms + p.Decoys + p.Duplicates;
+                    double parentPercent = InterperateVals(p.Parent,
+                        total);
+                    double decoysPercent = InterperateVals(p.Parent + p.Decoys,
+                        total, parentPercent);
+                    double uniqueProteinPercent = InterperateVals(p.Parent + p.Decoys + p.UniqueProtein,
+                        total, parentPercent + decoysPercent);
+                    double uniqueFormsPercent = InterperateVals(p.Parent + p.Decoys + p.UniqueProtein + p.UniqueForms,
+                        total, parentPercent + decoysPercent + uniqueProteinPercent);
+                    double duplicatesPercent = InterperateVals(p.Parent + p.Decoys + p.UniqueProtein + p.UniqueForms + p.Duplicates,
+                        total, parentPercent + decoysPercent + uniqueProteinPercent + uniqueFormsPercent);
+                    // Scale percentages so that each bar's height is based on its total value
+                    return (p.IdsPerSpectra,
+                        parentPercent.Round(0),
+                        uniqueProteinPercent.Round(0),
+                        uniqueFormsPercent.Round(0),
+                        decoysPercent.Round(0),
+                        duplicatesPercent.Round(0));
+                }).ToArray();
 
             var form = Labels.GetDifferentFormLabel(isTopDown); var keys = data.Select(p => p.IdsPerSpectra).ToArray();
             var charts = new[]
             {
-                Chart.StackedColumn<double, int, string>(data.Select(p => p.Parent).ToArray(), keys, "Isolated Species",
+                Chart.StackedColumn<double, int, string>(scaledPercentData.Select(p => p.Parent).ToArray(), keys, "Isolated Species",
                     MarkerColor: "Isolated Species".ConvertConditionToColor(), 
                     MultiText: data.Select(p => p.Parent.ToString()).ToArray()),
-                Chart.StackedColumn<double, int, string>(data.Select(p => p.Decoys), keys, "Decoys",
+                Chart.StackedColumn<double, int, string>(scaledPercentData.Select(p => p.Decoys), keys, "Decoys",
                     MarkerColor: "Decoys".ConvertConditionToColor(),
                     MultiText: data.Select(p => p.Decoys.ToString()).ToArray()),
-                Chart.StackedColumn<double, int, string>(data.Select(p => p.UniqueProtein), keys, $"Unique Protein",
+                Chart.StackedColumn<double, int, string>(scaledPercentData.Select(p => p.UniqueProtein), keys, $"Unique Protein",
                     MarkerColor: "Unique Protein".ConvertConditionToColor(),
                     MultiText: data.Select(p => p.UniqueProtein.ToString()).ToArray()),
-                Chart.StackedColumn<double, int, string>(data.Select(p => p.UniqueForms), keys, $"Unique {form}",
+                Chart.StackedColumn<double, int, string>(scaledPercentData.Select(p => p.UniqueForms), keys, $"Unique {form}",
                     MarkerColor: $"Unique {form}".ConvertConditionToColor(),
                     MultiText: data.Select(p => p.UniqueForms.ToString()).ToArray()),
             };
             if (data.Any(p => p.Duplicates > 0) && results.Any(p => !p.Condition.Contains("MetaM")))
-                charts = charts.Append(Chart.StackedColumn<double, int, string>(data.Select(p => p.Duplicates), keys,
+                charts = charts.Append(Chart.StackedColumn<double, int, string>(scaledPercentData.Select(p => p.Duplicates), keys,
                     "Duplicates",
                     MarkerColor: "Duplicates".ConvertConditionToColor(),
                     MultiText: data.Select(p => p.Duplicates.ToString()).ToArray())).ToArray();

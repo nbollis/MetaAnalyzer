@@ -83,7 +83,7 @@ namespace TaskLayer.ChimeraAnalysis
 
         #endregion
 
-        public static string Version => "105";
+        public static string Version { get; set; } = "105";
         private static string NonChimericDescriptor => "MetaMorpheusNoChimeras";
         private static string ChimericDescriptor => "MetaMorpheusWithChimeras";
         private static string BulkFigureDirectory { get; set; }
@@ -135,59 +135,59 @@ namespace TaskLayer.ChimeraAnalysis
             // Run MM Task basic processing 
             object plottingLock = new();
             int degreesOfParallelism = (int)(MaxWeight / 0.25);
-            //Parallel.ForEach(cellLineDict.SelectMany(p => p.Value),
-            //    new ParallelOptions() { MaxDegreeOfParallelism = Math.Max(degreesOfParallelism, 1) },
-            //    mmResult =>
-            //    {
-            //        Log($"Processing {mmResult.DatasetName} {mmResult.Condition}", 1);
+            Parallel.ForEach(cellLineDict.SelectMany(p => p.Value),
+                new ParallelOptions() { MaxDegreeOfParallelism = Math.Max(degreesOfParallelism, 1) },
+                mmResult =>
+                {
+                    Log($"Processing {mmResult.DatasetName} {mmResult.Condition}", 1);
 
-            //        Log($"Tabulating Result Counts: {mmResult.DatasetName} {mmResult.Condition}", 2);
-            //        _ = mmResult.GetIndividualFileComparison();
-            //        _ = mmResult.GetBulkResultCountComparisonFile();
+                    Log($"Tabulating Result Counts: {mmResult.DatasetName} {mmResult.Condition}", 2);
+                    _ = mmResult.GetIndividualFileComparison();
+                    _ = mmResult.GetBulkResultCountComparisonFile();
 
-            //        Log($"Counting Chimeric Psms/Peptides: {mmResult.DatasetName} {mmResult.Condition}", 2);
-            //        mmResult.CountChimericPsms();
-            //        mmResult.CountChimericPeptides();
+                    Log($"Counting Chimeric Psms/Peptides: {mmResult.DatasetName} {mmResult.Condition}", 2);
+                    mmResult.CountChimericPsms();
+                    mmResult.CountChimericPeptides();
 
-            //        Log($"Running Chimera Breakdown Analysis: {mmResult.DatasetName} {mmResult.Condition}", 2);
-            //        var sw = Stopwatch.StartNew();
-            //        _ = mmResult.GetChimeraBreakdownFile();
-            //        sw.Stop();
+                    Log($"Running Chimera Breakdown Analysis: {mmResult.DatasetName} {mmResult.Condition}", 2);
+                    var sw = Stopwatch.StartNew();
+                    _ = mmResult.GetChimeraBreakdownFile();
+                    sw.Stop();
 
-            //        // if it takes less than one minute to get the breakdown, and we are not overriding, do not plot
-            //        if (sw.Elapsed.Minutes < 1 && !parameters.Override)
-            //            return;
-            //        lock (plottingLock)
-            //        {
-            //            mmResult.PlotChimeraBreakDownStackedColumn_Scaled(ResultType.Psm);
-            //            mmResult.PlotChimeraBreakDownStackedColumn_Scaled(ResultType.Peptide);
-            //        }
-            //    });
+                    // if it takes less than one minute to get the breakdown, and we are not overriding, do not plot
+                    if (sw.Elapsed.Minutes < 1 && !Parameters.Override)
+                        return;
+                    lock (plottingLock)
+                    {
+                        mmResult.PlotChimeraBreakDownStackedColumn_Scaled(ResultType.Psm);
+                        mmResult.PlotChimeraBreakDownStackedColumn_Scaled(ResultType.Peptide);
+                    }
+                });
 
-            //Log($"Running Chimeric Spectrum Summaries", 0);
-            //foreach (var cellLineDictEntry in cellLineDict)
-            //{
-            //    var cellLine = Path.GetFileNameWithoutExtension(cellLineDictEntry.Key);
-            //    Log($"Processing Cell Line {cellLine}", 1);
-            //    List<CmdProcess> summaryTasks = new();
-            //    foreach (var mmResult in cellLineDictEntry.Value)
-            //    {
-            //        var summaryParams =
-            //            new SingleRunAnalysisParameters(mmResult.DirectoryPath, parameters.Override, false, mmResult);
-            //        var summaryTask = new SingleRunChimericSpectrumSummaryTask(summaryParams);
-            //        summaryTasks.Add(new ResultAnalyzerTaskToCmdProcessAdaptor(summaryTask, "Chimeric Spectrum Summary", 0.5,
-            //            mmResult.DirectoryPath));
-            //    }
+            Log($"Running Chimeric Spectrum Summaries", 0);
+            foreach (var cellLineDictEntry in cellLineDict)
+            {
+                var cellLine = Path.GetFileNameWithoutExtension(cellLineDictEntry.Key);
+                Log($"Processing Cell Line {cellLine}", 1);
+                List<CmdProcess> summaryTasks = new();
+                foreach (var mmResult in cellLineDictEntry.Value)
+                {
+                    var summaryParams =
+                        new SingleRunAnalysisParameters(mmResult.DirectoryPath, Parameters.Override, false, mmResult);
+                    var summaryTask = new SingleRunChimericSpectrumSummaryTask(summaryParams);
+                    summaryTasks.Add(new ResultAnalyzerTaskToCmdProcessAdaptor(summaryTask, "Chimeric Spectrum Summary", 0.5,
+                        mmResult.DirectoryPath));
+                }
 
-            //    try
-            //    {
-            //        await RunProcesses(summaryTasks);
-            //    }
-            //    catch (Exception e)
-            //    {
-            //        Warn($"Error Running Chimeric Spectrum Summary for {cellLine}: {e.Message}");
-            //    }
-            //}
+                try
+                {
+                    RunProcesses(summaryTasks).Wait();
+                }
+                catch (Exception e)
+                {
+                    Warn($"Error Running Chimeric Spectrum Summary for {cellLine}: {e.Message}");
+                }
+            }
 
             //if (!isTopDown)
             //{
@@ -224,36 +224,36 @@ namespace TaskLayer.ChimeraAnalysis
             //    }
             //}
 
-            //Log($"Running Spectral Angle Comparisons", 0);
-            //foreach (var cellLineDictEntry in cellLineDict)
-            //{
-            //    var cellLine = Path.GetFileNameWithoutExtension(cellLineDictEntry.Key);
+            Log($"Running Spectral Angle Comparisons", 0);
+            foreach (var cellLineDictEntry in cellLineDict)
+            {
+                var cellLine = Path.GetFileNameWithoutExtension(cellLineDictEntry.Key);
 
-            //    List<CmdProcess> summaryTasks = new();
-            //    Log($"Processing Cell Line {cellLine}", 1);
-            //    foreach (var mmResult in cellLineDictEntry.Value)
-            //    {
-            //        if (mmResult.DirectoryPath.Contains(NonChimericDescriptor))
-            //            continue;
-            //        foreach (var distribPlotTypes in Enum.GetValues<DistributionPlotTypes>())
-            //        {
-            //            var summaryParams =
-            //                new SingleRunAnalysisParameters(mmResult.DirectoryPath, parameters.Override, false, mmResult, distribPlotTypes);
-            //            var summaryTask = new SingleRunSpectralAngleComparisonTask(summaryParams);
-            //            summaryTasks.Add(new ResultAnalyzerTaskToCmdProcessAdaptor(summaryTask, "Spectral Angle Comparisons", 0.25,
-            //                mmResult.DirectoryPath));
-            //        }
-            //    }
+                List<CmdProcess> summaryTasks = new();
+                Log($"Processing Cell Line {cellLine}", 1);
+                foreach (var mmResult in cellLineDictEntry.Value)
+                {
+                    if (mmResult.DirectoryPath.Contains(NonChimericDescriptor))
+                        continue;
+                    foreach (var distribPlotTypes in Enum.GetValues<DistributionPlotTypes>())
+                    {
+                        var summaryParams =
+                            new SingleRunAnalysisParameters(mmResult.DirectoryPath, Parameters.Override, false, mmResult, distribPlotTypes);
+                        var summaryTask = new SingleRunSpectralAngleComparisonTask(summaryParams);
+                        summaryTasks.Add(new ResultAnalyzerTaskToCmdProcessAdaptor(summaryTask, "Spectral Angle Comparisons", 0.25,
+                            mmResult.DirectoryPath));
+                    }
+                }
 
-            //    try
-            //    {
-            //        await RunProcesses(summaryTasks);
-            //    }
-            //    catch (Exception e)
-            //    {
-            //        Warn($"Error Running Spectral Angle Comparisons for {cellLine}: {e.Message}");
-            //    }
-            //}
+                try
+                {
+                    RunProcesses(summaryTasks).Wait();
+                }
+                catch (Exception e)
+                {
+                    Warn($"Error Running Spectral Angle Comparisons for {cellLine}: {e.Message}");
+                }
+            }
             //PlotSpectralAnglePlots(cellLineDict);
 
 
@@ -360,13 +360,13 @@ namespace TaskLayer.ChimeraAnalysis
             //ExternalComparisonTask.PlotProteinCountingCharts(countingRecords, isTopDown, BulkFigureDirectory);
 
             var resultsForInternalComparison = cellLineDict
-                .SelectMany(p => p.Value.ToList())
+                .SelectMany(p => p.Value.Take(1).ToList())
                 .Where(p => !p.DirectoryPath.Contains($"{ChimericDescriptor}_{Version}_NonChimericLibrary"))
                 .ToList();
 
-            //GetResultCountFile(resultsForInternalComparison);
-            //Log($"Plotting Bulk Internal Comparison", 0);
-            //PlotCellLineBarCharts(resultsForInternalComparison);
+            GetResultCountFile(resultsForInternalComparison);
+            Log($"Plotting Bulk Internal Comparison", 0);
+            PlotCellLineBarCharts(resultsForInternalComparison);
 
             resultsForInternalComparison = resultsForInternalComparison
                 .Where(p => p.Condition.Contains($"{ChimericDescriptor}_{Version}_ChimericLibrary"))
@@ -693,7 +693,7 @@ namespace TaskLayer.ChimeraAnalysis
         static void PlotChimeraBreakdownBarChart(List<MetaMorpheusResult> results)
         {
             Log($"Chimera Breakdown", 1);
-            string tempTitleLeader = "";
+            string tempTitleLeader = "E.Coli ";
             bool isTopDown = results.First().IsTopDown;
             var resultsToPlot = results.SelectMany(p => p.ChimeraBreakdownFile)
                 .ToList();
