@@ -1,4 +1,5 @@
-﻿using Analyzer.Interfaces;
+﻿using Analyzer.FileTypes.Internal;
+using Analyzer.Interfaces;
 using Analyzer.Plotting.AggregatePlots;
 using Analyzer.Plotting.ComparativePlots;
 using Analyzer.Plotting.IndividualRunPlots;
@@ -136,28 +137,82 @@ namespace Test.ChimeraPaper
         [Test]
         public static void TopDownComparison()
         {
-            List<SingleRunResults> metaMorpheusResults = [];
-            List<SingleRunResults> msPathFinderResults = [];
-            List<SingleRunResults> proteomeDiscovererResults = [];
+            List<MetaMorpheusResult> metaMorpheusResults = [];
+            List<MsPathFinderTResults> msPathFinderResults = [];
+            List<ProteomeDiscovererResult> proteomeDiscovererResults = [];
 
-            foreach (var cellLine in AllResults)
+            // load relevant data only
+            foreach (var cellLine in AllResults.Skip(1))
             {
+                var cellLineLabel = cellLine.ToString();
                 foreach (var result in cellLine)
                 {
-                    if (result is MetaMorpheusResult mm)
-                        metaMorpheusResults.Add(mm);
-                    else if (result is MsPathFinderTResults mspt)
-                        msPathFinderResults.Add(mspt);
-                    else if (result is ProteomeDiscovererResult pd)
-                        proteomeDiscovererResults.Add(pd);
+                    switch (result)
+                    {
+                        case MetaMorpheusResult mm when (mm.Condition == "MetaMorpheus" && cellLineLabel == "Jurkat") || (mm.Condition == "MetaMorpheus" && cellLineLabel == "Ecoli"):
+                            metaMorpheusResults.Add(mm);
+                            break;
+                        case MsPathFinderTResults mspt when mspt.Condition == "MsPathFinderTWithMods_15Rep2_Final":
+                            msPathFinderResults.Add(mspt);
+                            break;
+                        case ProteomeDiscovererResult { Condition: "ProsightPdChimeras_Rep2_15_10ppm" } pd when cellLineLabel == "Jurkat":
+                        case ProteomeDiscovererResult { Condition: "ProsightPDChimeras_15" } when cellLineLabel == "Ecoli":
+                            proteomeDiscovererResults.Add(result as ProteomeDiscovererResult);
+                            break;
+                    }
                 }
             }
 
+            // reduce to only rep2
+            metaMorpheusResults.First().IndividualFileResults = metaMorpheusResults.First().IndividualFileResults.Where(p => p.FileName.Contains("rep2")).ToList();
+            msPathFinderResults.First().IndividualFileResults = msPathFinderResults.First().IndividualFileResults.Where(p => p.RawFilePath.Contains("rep2")).ToList();
+
+            List<SingleRunResults> allResults = metaMorpheusResults.Concat(msPathFinderResults.Cast<SingleRunResults>()).Concat(proteomeDiscovererResults).ToList();
+            string outDir = @"B:\Users\Nic\Chimeras\TopDown_Analysis\Figures";
+            var chimeraCountingPath = Path.Combine(outDir, "ChimeraCountingResults.csv");
+
+            var file = new ChimeraCountingFile(chimeraCountingPath);
+            file.Results.GetChimeraCountingPlot(true);
 
 
 
+            // parse
+            ChimeraCountingFile? chimeraCountingResults = null!;
+            foreach (var result in allResults)
+            {
+                string software = result switch
+                {
+                    MetaMorpheusResult => "MetaMorpheus",
+                    MsPathFinderTResults => "MsPathFinderT",
+                    ProteomeDiscovererResult => "ProteomeDiscoverer",
+                    _ => throw new ArgumentOutOfRangeException()
+                };
+
+                // TODO: remove this
+                if (software.StartsWith("M"))
+                    continue;
+
+                result.Override = true;
+                //var chimericPsms = result.CountChimericPsms();
+                //if (chimeraCountingResults == null)
+                //{
+                //    chimeraCountingResults = chimericPsms;
+                //}
+                //else
+                //{
+                //    chimeraCountingResults.Results.AddRange(chimericPsms.Results);
+                //}
+
+                var proforma = result.ToPsmProformaFile();
+                result.Override = false;
 
 
+
+                var proformaPath = Path.Combine(outDir, $"{software}_JurkatRep2_Proforma.tsv");
+                proforma.WriteResults(proformaPath);
+            }
+
+            chimeraCountingResults.WriteResults(chimeraCountingPath);
 
         }
 

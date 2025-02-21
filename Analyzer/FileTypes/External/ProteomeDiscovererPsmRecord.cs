@@ -39,7 +39,7 @@ namespace Analyzer.FileTypes.External
 
         #region ISpectralMatch Members
 
-        [Ignore] public int OneBasedScanNumber => int.Parse(Ms2ScanNumber);
+        [Ignore] public int OneBasedScanNumber => int.Parse(Ms2ScanNumber.Split(';')[0]);
         [Ignore] public double RetentionTime => RT;
 
         [Ignore] private string? _fullSequence;

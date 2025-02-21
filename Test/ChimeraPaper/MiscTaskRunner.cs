@@ -154,9 +154,7 @@ namespace Test.ChimeraPaper
             var task = new InternalMetaMorpheusAnalysisTask(parameters);
             task.Run().Wait();
 
-            InternalMetaMorpheusAnalysisTask.Version = "106";
-            task = new InternalMetaMorpheusAnalysisTask(parameters);
-            task.Run().Wait();
+
 
             InternalMetaMorpheusAnalysisTask.Version = "106";
             path = TopDownRunner.DirectoryPath;

@@ -81,7 +81,7 @@ namespace Plotting.RadicalFragmentation
         {
             try
             {
-                width ??= StandardWidth;
+                width ??= StandardWidth+200;
                 height ??= StandardHeight;
                 if (!Directory.Exists(outDir))
                     Directory.CreateDirectory(outDir);
@@ -216,7 +216,7 @@ namespace Plotting.RadicalFragmentation
         {
             try
             {
-                width ??= StandardWidth;
+                width ??= StandardWidth+200;
                 height ??= StandardHeight;
                 if (!Directory.Exists(outDir))
                     Directory.CreateDirectory(outDir);
@@ -373,12 +373,12 @@ namespace Plotting.RadicalFragmentation
 
             var combined = Chart.Combine(toCombine)
                 .WithTitle(
-                    $"{GetLabel(type, missedMono, tolerance)}: {GetAmbigLabel(ambigLevel)}s Identified by Number of Fragments")
-                .WithXAxisStyle(Title.init($"Fragment Ions Required"))
+                    $"{GetLabel(type, missedMono, tolerance)}: {GetAmbigLabel(ambigLevel)}s Identified by Number of Fragments", Plotly.NET.Font.init(Size: PlotlyBase.TitleSize))
+                .WithXAxisStyle(Title.init($"Fragment Ions Required", Font: Font.init(Size: PlotlyBase.AxisTitleFontSize-2)))
                 .WithXAxis(LinearAxis.init<int, int, int, int, int, int>(Tick0: 0, DTick: 1))
-                .WithLayout(PlotlyBase.JustLegend)
+                .WithLayout(PlotlyBase.DefaultLayoutWithLegendLargerText)
                 .WithSize(StandardWidth, StandardHeight)
-                .WithYAxisStyle(Title.init($"Percent of {GetAmbigLabel(ambigLevel)}s Identified"),
+                .WithYAxisStyle(Title.init($"Percent {GetAmbigLabel(ambigLevel)}s Identified", Font: Font.init(Size: PlotlyBase.AxisTitleFontSize)),
                     MinMax: new FSharpOption<Tuple<IConvertible, IConvertible>>(new(0, 100)));
 
             return combined;

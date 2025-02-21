@@ -354,19 +354,25 @@ namespace Analyzer.SearchType
                                 GlobalVariables.AllModsKnownDictionary).AllModsOneIsNterminus
                             .Sum(p => (int)p.Value.MonoisotopicMass!.RoundedDouble(0)!);
 
-                    var record = new ProformaRecord()
-                    {
-                        Condition = condition,
-                        FileName = fileName,
-                        BaseSequence = psmResult.BaseSequence,
-                        FullSequence = psmResult.FullSequence,
-                        ModificationMass = modMass,
-                        PrecursorCharge = psmResult.Charge,
-                        ProteinAccession = psmResult.ProteinAccession.Replace(';', '|'),
-                        ScanNumber = psmResult.OneBasedScanNumber,
-                    };
 
-                    records.Add(record);
+                    foreach (var scanNum in psmResult.Ms2ScanNumber.Split(';'))
+                    {
+                        var num = int.Parse(scanNum);
+                        var record = new ProformaRecord()
+                        {
+                            Condition = condition,
+                            FileName = fileName,
+                            BaseSequence = psmResult.BaseSequence,
+                            FullSequence = psmResult.FullSequence,
+                            ModificationMass = modMass,
+                            PrecursorCharge = psmResult.Charge,
+                            ProteinAccession = psmResult.ProteinAccession.Replace(';', '|'),
+                            ScanNumber = num,
+                        };
+
+                        records.Add(record);
+                    }
+
                 }
             }
 

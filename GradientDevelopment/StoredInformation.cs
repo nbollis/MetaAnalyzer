@@ -1,82 +1,279 @@
-﻿using MzLibUtil;
+﻿using CsvHelper;
+using GradientDevelopment.Temporary;
+using MassSpectrometry;
+using MzLibUtil;
+using Readers;
+using System.Data;
+using SpectrumMatchTsvReader = GradientDevelopment.Temporary.SpectrumMatchTsvReader;
 
 namespace GradientDevelopment;
+
+public enum ExperimentalGroup
+{
+    OldRuns,
+    InitialDevelopment,
+    DifferentialMethylFluc
+}
 
 public static class StoredInformation
 {
     internal static string GradientDirectory = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Gradients");
     internal static string GradientDevelopmentDataDirectory = @"B:\Users\Nic\RNA\FLuc\GradientDevelopment";
     internal static string FluxMethDataDirectory = @"B:\Users\Nic\RNA\FLuc\FLuc Methylation Experiment\m5C_transcription";
-    internal static string GradientDevelopmentBigSearch = Path.Combine(GradientDevelopmentDataDirectory, @"Round8Search\Task1-RnaSearchTask\AllOSMs.osmtsv");
 
-    public static List<RunInformation> RunInformationList = new List<RunInformation>()
+    internal static string MixedMethylDirectory = @"B:\Users\Nic\RNA\FLuc\250220_FlucDifferentialMethylations";
+    internal static string Round9Search = Path.Combine(MixedMethylDirectory, @"Searches\HalfMethylC_ModSearches\Task2-SearchVariableMeth\AllOSMs.osmtsv");
+
+
+    internal static string GradientDevelopmentBigSearch = Path.Combine(GradientDevelopmentDataDirectory, @"Searches\Round8Search\Task1-RnaSearchTask\AllOSMs.osmtsv");
+
+
+    private static List<ExperimentalBatch>? _experimentalBatches;
+    public static List<ExperimentalBatch> ExpBatches => _experimentalBatches ??=
+        ExperimentalBatches.Select(p => new ExperimentalBatch(p.Key.ToString(), p.Value.First().ParentDirectory, p.Value)).ToList();
+
+    private static List<RunInformation>? _runInformationList;
+    public static List<RunInformation> RunInformationList => _runInformationList ??= ExperimentalBatches.SelectMany(p => p.Value).ToList();
+
+
+    public static Dictionary<ExperimentalGroup, List<RunInformation>> ExperimentalBatches = new()
     {
-        // old runs
-        new(Path.Combine(FluxMethDataDirectory, "241025_FLuc_dig_A.raw"),
-            Path.Combine(GradientDirectory, "itwStandard.csv"), GradientDevelopmentBigSearch, "ACN", new DoubleRange(0, 85)),
-        new(Path.Combine(FluxMethDataDirectory, "241025_FLuc_dig_B.raw"),
-            Path.Combine(GradientDirectory, "itwStandard.csv"), GradientDevelopmentBigSearch, "ACN", new DoubleRange(0, 85)),
-        new(Path.Combine(FluxMethDataDirectory, "241025_FLuc_dig_C.raw"),
-            Path.Combine(GradientDirectory, "itwStandard.csv"), GradientDevelopmentBigSearch, "ACN", new DoubleRange(0, 85)),
+        { ExperimentalGroup.OldRuns, [
+                new(Path.Combine(FluxMethDataDirectory, "241025_FLuc_dig_A.raw"),
+                    Path.Combine(GradientDirectory, "itwStandard.csv"), GradientDevelopmentBigSearch,
+                    Path.Combine(GradientDevelopmentDataDirectory, "TopFD", "241025_FLuc_dig_A_ms1.feature"),
+                    "ACN", new DoubleRange(0, 85)),
 
-        // Controls
-        new(Path.Combine(GradientDevelopmentDataDirectory, "241031_FLuc_15digAAwash_80ACNB_std-grad.raw"),
-            Path.Combine(GradientDirectory, "itwStandard.csv"), GradientDevelopmentBigSearch, "ACN", new DoubleRange(0, 101)),
-        new(Path.Combine(GradientDevelopmentDataDirectory, "241031_FLuc_15dig_AAwash_80Met_std-grad1.raw"),
-            Path.Combine(GradientDirectory, "itwStandard.csv"), GradientDevelopmentBigSearch, "MeOH", new DoubleRange(12, 125)),
-        new(Path.Combine(GradientDevelopmentDataDirectory, "241031_FLuc_90dig_AAwash_80Met_std-grad2.raw"),
-            Path.Combine(GradientDirectory, "itwStandard.csv"), GradientDevelopmentBigSearch, "MeOH", new DoubleRange(12, 125)),
+                new(Path.Combine(FluxMethDataDirectory, "241025_FLuc_dig_B.raw"),
+                    Path.Combine(GradientDirectory, "itwStandard.csv"), GradientDevelopmentBigSearch,
+                    Path.Combine(GradientDevelopmentDataDirectory, "TopFD", "241025_FLuc_dig_B_ms1.feature"),
+                    "ACN", new DoubleRange(0, 85)),
 
-        // Day 1
-        new(Path.Combine(GradientDevelopmentDataDirectory, "241031_FLuc_15dig_AAwash_80Met_Pfizer.raw"),
-            Path.Combine(GradientDirectory, "Pfizer1.csv"), GradientDevelopmentBigSearch, "MeOH", new DoubleRange(15, 260)),
-        new(Path.Combine(GradientDevelopmentDataDirectory, "241101_FLuc_88dig_AAwash_80Met_185MinPfizer.raw"),
-            Path.Combine(GradientDirectory, "Pfizer2.csv"), GradientDevelopmentBigSearch, "MeOH", new DoubleRange(10, 165)),
-        new(Path.Combine(GradientDevelopmentDataDirectory, "241101_FLuc_88dig_AAwash_80Met_205MinPfizer.raw"),
-            Path.Combine(GradientDirectory, "Pfizer3.csv"), GradientDevelopmentBigSearch, "MeOH", new DoubleRange(8, 200)),
-        new(Path.Combine(GradientDevelopmentDataDirectory, "241101_FLuc_88dig_AAwash_80Met_290MinPfizer_SourceVoltageToggle.raw"),
-            Path.Combine(GradientDirectory, "Pfizer1.csv"), GradientDevelopmentBigSearch, "MeOH", new DoubleRange(15, 260)),
-        new(Path.Combine(GradientDevelopmentDataDirectory, "241101_FLuc_88dig_AAwash_80Met_70MinPfizer.raw"),
-            Path.Combine(GradientDirectory, "Pfizer4.csv"), GradientDevelopmentBigSearch, "MeOH", new DoubleRange(25, 70)),
+                new(Path.Combine(FluxMethDataDirectory, "241025_FLuc_dig_C.raw"),
+                    Path.Combine(GradientDirectory, "itwStandard.csv"), GradientDevelopmentBigSearch,
+                    Path.Combine(GradientDevelopmentDataDirectory, "TopFD", "241025_FLuc_dig_C_ms1.feature"),
+                    "ACN", new DoubleRange(0, 85))
 
-        // Round 6
-        new(Path.Combine(GradientDevelopmentDataDirectory, "241104_FLuc_15Dig_TEAAandAA_NoSpike_2ug_120MinPfizer5.raw"),
-            Path.Combine(GradientDirectory, "Pfizer5.csv"), GradientDevelopmentBigSearch, "MeOH", new DoubleRange(10, 95)),
-        new(Path.Combine(GradientDevelopmentDataDirectory, "241104_FLuc_15Dig_TEAAandAA_Spike_2ug_120MinPfizer5.raw"),
-            Path.Combine(GradientDirectory, "Pfizer5.csv"), GradientDevelopmentBigSearch, "MeOH", new DoubleRange(10, 100)),
-        new(Path.Combine(GradientDevelopmentDataDirectory, "241104_FLuc_15Dig_TEAAandAA_NoSpike_3ug_110MinPfizer6.raw"),
-            Path.Combine(GradientDirectory, "Pfizer6.csv"), GradientDevelopmentBigSearch, "MeOH", new DoubleRange(12, 80)),
-        new(Path.Combine(GradientDevelopmentDataDirectory, "241104_FLuc_15Dig_TEAAandAA_Spike_3ug_110MinPfizer6.raw"),
-            Path.Combine(GradientDirectory, "Pfizer6.csv"), GradientDevelopmentBigSearch, "MeOH", new DoubleRange(10, 80)),
-        new(Path.Combine(GradientDevelopmentDataDirectory, "241104_FLuc_15Dig_TEAAandAA_Spike_3ug_110MinPfizer6_2.raw"),
-            Path.Combine(GradientDirectory, "Pfizer6.csv"), GradientDevelopmentBigSearch, "MeOH", new DoubleRange(10, 80)),
+            ]
+        },
 
-        // Round 7
-        new(Path.Combine(GradientDevelopmentDataDirectory, "241105_FLuc_45Dig_TEAAandAA_Spike_6ug_120-3Pfizer8.raw"),
-            Path.Combine(GradientDirectory, "Pfizer8.csv"), GradientDevelopmentBigSearch, "MeOH", new DoubleRange(10, 100)),
-        new(Path.Combine(GradientDevelopmentDataDirectory, "241105_FLuc_45Dig_TEAAandAA_Spike_6ug_120-2Pfizer9.raw"),
-            Path.Combine(GradientDirectory, "Pfizer9.csv"), GradientDevelopmentBigSearch, "MeOH", new DoubleRange(10, 100)),
+        { ExperimentalGroup.InitialDevelopment, [
+                new(Path.Combine(GradientDevelopmentDataDirectory, "241031_FLuc_15digAAwash_80ACNB_std-grad.raw"),
+                    Path.Combine(GradientDirectory, "itwStandard.csv"), GradientDevelopmentBigSearch,
+                    Path.Combine(GradientDevelopmentDataDirectory, "TopFD",
+                        "241031_FLuc_15digAAwash_80ACNB_std-grad_ms1.feature"), "ACN",
+                    new DoubleRange(0, 101)),
 
-        // Round 8
-        new(Path.Combine(GradientDevelopmentDataDirectory, "241105_FLuc_45Dig_TEAAandAA_Spike_6ug_130Pfizer10.raw"),
-            Path.Combine(GradientDirectory, "Pfizer10.csv"), GradientDevelopmentBigSearch, "MeOH", new DoubleRange(30, 110)),
-        new(Path.Combine(GradientDevelopmentDataDirectory, "241105_FLuc_45Dig_TEAAandAA_Spike_6ug_210-2Pfizer11.raw"),
-            Path.Combine(GradientDirectory, "Pfizer11.csv"), GradientDevelopmentBigSearch, "MeOH", new DoubleRange(10, 165)),
-        new(Path.Combine(GradientDevelopmentDataDirectory, "241105_FLuc_45Dig_TEAAandAA_Spike_12ug_290Pfizer1.raw"),
-            Path.Combine(GradientDirectory, "Pfizer1.csv"), GradientDevelopmentBigSearch, "MeOH", new DoubleRange(20, 260)),
-    };
+                new(Path.Combine(GradientDevelopmentDataDirectory, "241031_FLuc_15dig_AAwash_80Met_std-grad1.raw"),
+                    Path.Combine(GradientDirectory, "itwStandard.csv"), GradientDevelopmentBigSearch,
+                    Path.Combine(GradientDevelopmentDataDirectory, "TopFD",
+                        "241031_FLuc_15dig_AAwash_80Met_std-grad1_ms1.feature"), "MeOH",
+                    new DoubleRange(12, 125)),
+
+                new(Path.Combine(GradientDevelopmentDataDirectory, "241031_FLuc_90dig_AAwash_80Met_std-grad2.raw"),
+                    Path.Combine(GradientDirectory, "itwStandard.csv"), GradientDevelopmentBigSearch,
+                    Path.Combine(GradientDevelopmentDataDirectory, "TopFD",
+                        "241031_FLuc_90dig_AAwash_80Met_std-grad2_ms1.feature"), "MeOH",
+                    new DoubleRange(12, 125)),
+
+                // Day 1
+
+                new(Path.Combine(GradientDevelopmentDataDirectory, "241031_FLuc_15dig_AAwash_80Met_Pfizer.raw"),
+                    Path.Combine(GradientDirectory, "Pfizer1.csv"), GradientDevelopmentBigSearch,
+                    Path.Combine(GradientDevelopmentDataDirectory, "TopFD",
+                        "241031_FLuc_15dig_AAwash_80Met_Pfizer_ms1.feature"), "MeOH",
+                    new DoubleRange(15, 260)),
+
+                new(
+                    Path.Combine(GradientDevelopmentDataDirectory,
+                        "241101_FLuc_88dig_AAwash_80Met_185MinPfizer.raw"),
+                    Path.Combine(GradientDirectory, "Pfizer2.csv"), GradientDevelopmentBigSearch,
+                    Path.Combine(GradientDevelopmentDataDirectory, "TopFD",
+                        "241101_FLuc_88dig_AAwash_80Met_185MinPfizer_ms1.feature"), "MeOH",
+                    new DoubleRange(10, 165)),
+
+                new(
+                    Path.Combine(GradientDevelopmentDataDirectory,
+                        "241101_FLuc_88dig_AAwash_80Met_205MinPfizer.raw"),
+                    Path.Combine(GradientDirectory, "Pfizer3.csv"), GradientDevelopmentBigSearch,
+                    Path.Combine(GradientDevelopmentDataDirectory, "TopFD",
+                        "241101_FLuc_88dig_AAwash_80Met_205MinPfizer_ms1.feature"), "MeOH",
+                    new DoubleRange(8, 200)),
+
+                new(
+                    Path.Combine(GradientDevelopmentDataDirectory,
+                        "241101_FLuc_88dig_AAwash_80Met_290MinPfizer_SourceVoltageToggle.raw"),
+                    Path.Combine(GradientDirectory, "Pfizer1.csv"), GradientDevelopmentBigSearch,
+                    Path.Combine(GradientDevelopmentDataDirectory, "TopFD",
+                        "241101_FLuc_88dig_AAwash_80Met_290MinPfizer_SourceVoltageToggle_ms1.feature"), "MeOH",
+                    new DoubleRange(15, 260)),
+
+                new(
+                    Path.Combine(GradientDevelopmentDataDirectory,
+                        "241101_FLuc_88dig_AAwash_80Met_70MinPfizer.raw"),
+                    Path.Combine(GradientDirectory, "Pfizer4.csv"), GradientDevelopmentBigSearch,
+                    Path.Combine(GradientDevelopmentDataDirectory, "TopFD",
+                        "241101_FLuc_88dig_AAwash_80Met_70MinPfizer_ms1.feature"), "MeOH",
+                    new DoubleRange(25, 70)),
+
+                // Round 6
+
+                new(
+                    Path.Combine(GradientDevelopmentDataDirectory,
+                        "241104_FLuc_15Dig_TEAAandAA_NoSpike_2ug_120MinPfizer5.raw"),
+                    Path.Combine(GradientDirectory, "Pfizer5.csv"), GradientDevelopmentBigSearch,
+                    Path.Combine(GradientDevelopmentDataDirectory, "TopFD",
+                        "241104_FLuc_15Dig_TEAAandAA_NoSpike_2ug_120MinPfizer5_ms1.feature"), "MeOH",
+                    new DoubleRange(10, 95)),
+
+                new(
+                    Path.Combine(GradientDevelopmentDataDirectory,
+                        "241104_FLuc_15Dig_TEAAandAA_Spike_2ug_120MinPfizer5.raw"),
+                    Path.Combine(GradientDirectory, "Pfizer5.csv"), GradientDevelopmentBigSearch,
+                    Path.Combine(GradientDevelopmentDataDirectory, "TopFD",
+                        "241104_FLuc_15Dig_TEAAandAA_Spike_2ug_120MinPfizer5_ms1.feature"), "MeOH",
+                    new DoubleRange(10, 100)),
+
+                new(
+                    Path.Combine(GradientDevelopmentDataDirectory,
+                        "241104_FLuc_15Dig_TEAAandAA_NoSpike_3ug_110MinPfizer6.raw"),
+                    Path.Combine(GradientDirectory, "Pfizer6.csv"), GradientDevelopmentBigSearch,
+                    Path.Combine(GradientDevelopmentDataDirectory, "TopFD",
+                        "241104_FLuc_15Dig_TEAAandAA_NoSpike_3ug_110MinPfizer6_ms1.feature"), "MeOH",
+                    new DoubleRange(12, 80)),
+
+                new(
+                    Path.Combine(GradientDevelopmentDataDirectory,
+                        "241104_FLuc_15Dig_TEAAandAA_Spike_3ug_110MinPfizer6.raw"),
+                    Path.Combine(GradientDirectory, "Pfizer6.csv"), GradientDevelopmentBigSearch,
+                    Path.Combine(GradientDevelopmentDataDirectory, "TopFD",
+                        "241104_FLuc_15Dig_TEAAandAA_Spike_3ug_110MinPfizer6_ms1.feature"), "MeOH",
+                    new DoubleRange(10, 80)),
+
+                new(
+                    Path.Combine(GradientDevelopmentDataDirectory,
+                        "241104_FLuc_15Dig_TEAAandAA_Spike_3ug_110MinPfizer6_2.raw"),
+                    Path.Combine(GradientDirectory, "Pfizer6.csv"), GradientDevelopmentBigSearch,
+                    Path.Combine(GradientDevelopmentDataDirectory, "TopFD",
+                        "241104_FLuc_15Dig_TEAAandAA_Spike_3ug_110MinPfizer6_2_ms1.feature"), "MeOH",
+                    new DoubleRange(10, 80)),
+
+                // Round 7
+
+                new(
+                    Path.Combine(GradientDevelopmentDataDirectory,
+                        "241105_FLuc_45Dig_TEAAandAA_Spike_6ug_120-3Pfizer8.raw"),
+                    Path.Combine(GradientDirectory, "Pfizer8.csv"), GradientDevelopmentBigSearch,
+                    Path.Combine(GradientDevelopmentDataDirectory, "TopFD",
+                        "241105_FLuc_45Dig_TEAAandAA_Spike_6ug_120-3Pfizer8_ms1.feature"), "MeOH",
+                    new DoubleRange(10, 100)),
+
+                new(
+                    Path.Combine(GradientDevelopmentDataDirectory,
+                        "241105_FLuc_45Dig_TEAAandAA_Spike_6ug_120-2Pfizer9.raw"),
+                    Path.Combine(GradientDirectory, "Pfizer9.csv"), GradientDevelopmentBigSearch,
+                    Path.Combine(GradientDevelopmentDataDirectory, "TopFD",
+                        "241105_FLuc_45Dig_TEAAandAA_Spike_6ug_120-2Pfizer9_ms1.feature"), "MeOH",
+                    new DoubleRange(10, 100)),
+
+                // Round 8
+
+                new(
+                    Path.Combine(GradientDevelopmentDataDirectory,
+                        "241105_FLuc_45Dig_TEAAandAA_Spike_6ug_130Pfizer10.raw"),
+                    Path.Combine(GradientDirectory, "Pfizer10.csv"), GradientDevelopmentBigSearch,
+                    Path.Combine(GradientDevelopmentDataDirectory, "TopFD",
+                        "241105_FLuc_45Dig_TEAAandAA_Spike_6ug_130Pfizer10_ms1.feature"), "MeOH",
+                    new DoubleRange(30, 110)),
+
+                new(
+                    Path.Combine(GradientDevelopmentDataDirectory,
+                        "241105_FLuc_45Dig_TEAAandAA_Spike_6ug_210-2Pfizer11.raw"),
+                    Path.Combine(GradientDirectory, "Pfizer11.csv"), GradientDevelopmentBigSearch,
+                    Path.Combine(GradientDevelopmentDataDirectory, "TopFD",
+                        "241105_FLuc_45Dig_TEAAandAA_Spike_6ug_210-2Pfizer11_ms1.feature"), "MeOH",
+                    new DoubleRange(10, 165)),
+
+                new(
+                    Path.Combine(GradientDevelopmentDataDirectory,
+                        "241105_FLuc_45Dig_TEAAandAA_Spike_12ug_290Pfizer1.raw"),
+                    Path.Combine(GradientDirectory, "Pfizer1.csv"), GradientDevelopmentBigSearch,
+                    Path.Combine(GradientDevelopmentDataDirectory, "TopFD",
+                        "241105_FLuc_45Dig_TEAAandAA_Spike_12ug_290Pfizer1_ms1.feature"), "MeOH",
+                    new DoubleRange(20, 260))
+
+            ]
+        },
+
+        { ExperimentalGroup.DifferentialMethylFluc, new List<RunInformation>
+            {
+                new(Path.Combine(MixedMethylDirectory, "250219_fluc_Halfm5C_Pfizer12.raw"),
+                    Path.Combine(GradientDirectory, "Pfizer12.csv"), Round9Search,
+                    Path.Combine(MixedMethylDirectory, "TopFD", "250219_fluc_Halfm5C_Pfizer12_ms1.feature"),
+                    "MeOH",
+                    new DoubleRange(20, 100)),
+
+                new(Path.Combine(MixedMethylDirectory, "250219_Fluc_Halfm5C_PfizerGrad.raw"),
+                    Path.Combine(GradientDirectory, "Pfizer1.csv"), Round9Search,
+                    Path.Combine(MixedMethylDirectory, "TopFD", "250219_Fluc_Halfm5C_PfizerGrad_ms1.feature"),
+                    "MeOH", new DoubleRange(20, 260)),
+
+                new(Path.Combine(MixedMethylDirectory, "250219_Fluc_Halfm5C_Pflizer11.raw"),
+                    Path.Combine(GradientDirectory, "Pfizer11.csv"), Round9Search,
+                    Path.Combine(MixedMethylDirectory, "TopFD", "250219_Fluc_Halfm5C_Pflizer11_ms1.feature"),
+                    "MeOH",
+                    new DoubleRange(20, 160)),
+
+                new(Path.Combine(MixedMethylDirectory, "250219_Fluc_Nom5C_Gradient13.raw"),
+                    Path.Combine(GradientDirectory, "Gradient13.csv"), Round9Search,
+                    Path.Combine(MixedMethylDirectory, "TopFD", "250219_Fluc_Nom5C_Gradient13_ms1.feature"),
+                    "MeOH", new DoubleRange(20, 100)),
+
+                new(Path.Combine(MixedMethylDirectory, "250219_Fluc_Allm5C_Gradient13.raw"),
+                    Path.Combine(GradientDirectory, "Gradient13.csv"), Round9Search,
+                    Path.Combine(MixedMethylDirectory, "TopFD", "250219_Fluc_Allm5C_Gradient13_ms1.feature"),
+                    "MeOH", new DoubleRange(20, 100)),
+
+                new(Path.Combine(MixedMethylDirectory, "250219_Fluc_Nom5C_Gradient14.raw"),
+                    Path.Combine(GradientDirectory, "Gradient14.csv"), Round9Search,
+                    Path.Combine(MixedMethylDirectory, "TopFD", "250219_Fluc_Nom5C_Gradient14_ms1.feature"),
+                    "MeOH", new DoubleRange(20, 100)),
+
+                new(Path.Combine(MixedMethylDirectory, "250219_Fluc_Allm5C_Gradient14.raw"),
+                    Path.Combine(GradientDirectory, "Gradient14.csv"), Round9Search,
+                    Path.Combine(MixedMethylDirectory, "TopFD", "250219_Fluc_Allm5C_Gradient14_ms1.feature"),
+                    "MeOH", new DoubleRange(20, 100)),
+
+                new(Path.Combine(MixedMethylDirectory, "250219_Fluc_Mixedm5C_Gradient13.raw"),
+                    Path.Combine(GradientDirectory, "Gradient13.csv"), Round9Search,
+                    Path.Combine(MixedMethylDirectory, "TopFD", "250219_Fluc_Mixedm5C_Gradient13_ms1.feature"),
+                    "MeOH", new DoubleRange(20, 100)),
+
+                new(Path.Combine(MixedMethylDirectory, "250219_Fluc_Mixedm5C_Gradient14.raw"),
+                    Path.Combine(GradientDirectory, "Gradient14.csv"), Round9Search,
+                    Path.Combine(MixedMethylDirectory, "TopFD", "250219_Fluc_Mixedm5C_Gradient14_ms1.feature"),
+                    "MeOH", new DoubleRange(20, 100)),
+
+                //new(Path.Combine(MixedMethylDirectory, "250219_Fluc_Halfm5C_Gradient14.raw"),
+                //    Path.Combine(GradientDirectory, "Gradient14.csv"), Round9Search,
+                //    Path.Combine(MixedMethylDirectory, "TopFD", "250219_Fluc_Halfm5C_Gradient14_ms1.feature"),
+                //    "MeOH", new DoubleRange(20, 100))
 
 
-    public static void UpdateTimesToDisplay(this List<ExtractedInformation> infos)
-    {
-        foreach (var info in infos)
-        {
-            var run = RunInformationList.First(p => p.DataFileName == info.DataFileName);
-            if (run.MinMaxToDisplay is null)
-                continue;
-
-            info.MinRtToDisplay = run.MinMaxToDisplay.Minimum;
-            info.MaxRtToDisplay = run.MinMaxToDisplay.Maximum;
+            }
         }
-    }
+    };
 }
+
+    //public static void UpdateTimesToDisplay(this List<ExtractedInformation> infos)
+    //{
+    //    foreach (var info in infos)
+    //    {
+    //        var run = RunInformationList.First(p => p.DataFileName == info.DataFileName);
+    //        if (run.MinMaxToDisplay is null)
+    //            continue;
+
+    //        info.MinRtToDisplay = run.MinMaxToDisplay.Minimum;
+    //        info.MaxRtToDisplay = run.MinMaxToDisplay.Maximum;
+    //    }
+    //}

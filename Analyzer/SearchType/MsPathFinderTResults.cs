@@ -129,7 +129,13 @@ namespace Analyzer.SearchType
 
             var prsms = CombinedTargetResults.GroupBy(p => p, CustomComparerExtensions.MsPathFinderTChimeraComparer)
                 .GroupBy(m => m.Count()).ToDictionary(p => p.Key, p => p.Count());
-            var filtered = CombinedTargetResults.FilteredResults.GroupBy(p => p, CustomComparerExtensions.MsPathFinderTChimeraComparer)
+
+
+            var filtered = CombinedTargetResults
+
+                .Where(p => p.FileNameWithoutExtension.Contains("rep2"))
+
+                .GroupBy(p => p, CustomComparerExtensions.MsPathFinderTChimeraComparer)
                 .GroupBy(m => m.Count()).ToDictionary(p => p.Key, p => p.Count());
 
             var results = prsms.Keys.Select(count => new ChimeraCountingResult(count, prsms[count],

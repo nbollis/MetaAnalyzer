@@ -254,11 +254,11 @@ namespace TaskLayer.ChimeraAnalysis
                     Warn($"Error Running Spectral Angle Comparisons for {cellLine}: {e.Message}");
                 }
             }
-            //PlotSpectralAnglePlots(cellLineDict);
+            PlotSpectralAnglePlots(cellLineDict);
 
 
             Log($"Plotting Target Decoy Curves", 0);
-            //PlotFdrPlots(cellLineDict);
+            PlotFdrPlots(cellLineDict);
 
 
             //TODO: Change retention time alignment to operate on the grouped runs

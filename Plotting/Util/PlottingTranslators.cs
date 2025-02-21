@@ -69,14 +69,15 @@ public static class PlottingTranslators
         {"MetaMorpheus_Rep2_WithLibrary_NewPEP_NoNorm", Color.fromKeyword(ColorKeyword.Purple)},
         {"MetaMorpheus_NewPEP_NoNormNoMult", Color.fromKeyword(ColorKeyword.Purple)},
 
-        {"MsPathFinderTWithModsNoChimeras", Color.fromKeyword(ColorKeyword.Moccasin)}, // ecoli
-        {"MsPathFinderT_NoChimeras", Color.fromKeyword(ColorKeyword.Moccasin)}, // ecoli
-        {"MsPathFinderTWithMods_7", Color.fromKeyword(ColorKeyword.Gold)},
-        {"MsPathFinderT_7", Color.fromKeyword(ColorKeyword.Gold)},
+        {"MsPathFinderTWithModsNoChimeras", Color.fromKeyword(ColorKeyword.GoldenRod)}, // ecoli
+        {"MsPathFinderT_NoChimeras", Color.fromKeyword(ColorKeyword.GoldenRod)}, // ecoli
+        {"MsPathFinderTWithMods_7", Color.fromKeyword(ColorKeyword.GoldenRod)},
+        {"MsPathFinderT_7", Color.fromKeyword(ColorKeyword.GoldenRod)},
         {"MsPathFinderTWithMods_15", Color.fromKeyword(ColorKeyword.GoldenRod)},
         {"MsPathFinderT_15", Color.fromKeyword(ColorKeyword.GoldenRod)},
-        {"MsPathFinderTWithModsNoChimerasRep2", Color.fromKeyword(ColorKeyword.Moccasin)}, // jurkat
-        {"MsPathFinderTWithMods_7Rep2", Color.fromKeyword(ColorKeyword.Gold)},
+        {"MsPathFinderT", Color.fromKeyword(ColorKeyword.GoldenRod)},
+        {"MsPathFinderTWithModsNoChimerasRep2", Color.fromKeyword(ColorKeyword.GoldenRod)}, // jurkat
+        {"MsPathFinderTWithMods_7Rep2", Color.fromKeyword(ColorKeyword.GoldenRod)},
         {"MsPathFinderTWithMods_15Rep2", Color.fromKeyword(ColorKeyword.GoldenRod)},
 
         {"ProsightPDNoChimeras", Color.fromKeyword(ColorKeyword.PaleVioletRed)}, // ecoli
@@ -88,6 +89,7 @@ public static class PlottingTranslators
         {"ProsightPDChimeras_Rep2", Color.fromKeyword(ColorKeyword.IndianRed)},
         {"ProsightPDChimeras_Rep2_7", Color.fromKeyword(ColorKeyword.IndianRed)},
         {"ProsightPD_7", Color.fromKeyword(ColorKeyword.IndianRed)},
+        {"ProsightPD", Color.fromHex("#008000")},
         {"ProsightPDChimeras_Rep2_7_10ppm", Color.fromKeyword(ColorKeyword.IndianRed)},
         {"ProsightPDChimeras_Rep2_15", Color.fromKeyword(ColorKeyword.DarkRed)},
         {"ProsightPD_15", Color.fromKeyword(ColorKeyword.DarkRed)},
@@ -538,6 +540,7 @@ public static class PlottingTranslators
         { "MsPathFinderT_7", "MsPathFinderT \u28007" },
         { "MsPathFinderTWithMods_15", "MsPathFinderT\u280015" },
         { "MsPathFinderTWithMods_15Rep2", "MsPathFinderT\u280015" },
+        { "MsPathFinderTWithMods_15Rep2_Final", "MsPathFinderT" },
         { "MsPathFinderT_15", "MsPathFinderT\u280015" },
 
         {"ProsightPDNoChimeras", "ProsightPD  No Chimeras"},
@@ -548,7 +551,7 @@ public static class PlottingTranslators
         {"ProsightPD_7", "ProsightPD \u28007 Chimeras"},
         {"ProsightPDChimeras_7", "ProsightPD \u28007 Chimeras"},
         {"ProsightPDChimeras_15", "ProsightPD\u280015 Chimeras"},
-        {"ProsightPdChimeras_Rep2_15_10ppm", "ProsightPD\u280015 Chimeras"},
+        {"ProsightPdChimeras_Rep2_15_10ppm", "ProsightPD"},
         {"ProsightPD_15", "ProsightPD\u280015 Chimeras"},
     };
 

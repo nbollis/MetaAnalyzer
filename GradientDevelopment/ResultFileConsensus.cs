@@ -11,49 +11,57 @@ namespace GradientDevelopment
             ParsedConsensusDictionary = new Dictionary<string, List<ResultFileConsensusRecord>>();
         }
 
-        public static List<ResultFileConsensusRecord> GetConsensusIds(string osmPath, int toReturn)
+        public static List<ResultFileConsensusRecord> GetConsensusIds(List<OsmFromTsv> spectralMatches, int toReturn)
         {
-            if (ParsedConsensusDictionary.TryGetValue(osmPath, out var consensusRecords))
-                return consensusRecords;
-
-            // Open file and set up
-            var spectralMatches = SpectrumMatchTsvReader.ReadOsmTsv(osmPath, out var warnings);
-            var distinctFileNames = spectralMatches.Select(p => p.FileNameWithoutExtension)
-                .Distinct()
-                .ToArray();
-
-            // Find the Id's with the lowest q values represented in at least 80% portion of the file names
-            var lowestQValueIds = spectralMatches
-                .GroupBy(p => p.FullSequence)
-                .Select(g => new
-                {
-                    FullSequence = g.Key,
-                    MinQValue = g.Min(p => p.QValue),
-                    FileCount = g.Select(p => p.FileNameWithoutExtension).Distinct().Count(),
-                    OSMs = g.ToList()
-                })
-                .Where(p => p.FileCount >= distinctFileNames.Length * 0.8)
-                .OrderByDescending(p => p.FileCount)
-                .ThenBy(p => p.OSMs.Average(m => m.QValue))
-                .Take(toReturn)
-                .ToList();
-
-            // Create consensus records
-            var consensusRecordsList = lowestQValueIds.Select(p => new ResultFileConsensusRecord
+            List<ResultFileConsensusRecord> records = new();
+            foreach (var fileNameGroup in spectralMatches.GroupBy(p => p.FileNameWithoutExtension))
             {
-                FullSequence = p.FullSequence,
-                MinQValue = p.MinQValue,
-                FileCount = p.FileCount,
-                MaxFileCount = distinctFileNames.Length,
-                AverageRT = p.OSMs.WeightedAverage(z => z.RetentionTime!.Value, z => 1 - z.QValue),
-                SpectralMatchesByFileName = p.OSMs.Cast<SpectrumMatchFromTsv>().GroupBy(p => p.FileNameWithoutExtension)
-                    .ToDictionary(q => q.Key, q => q.OrderBy(n => n.RetentionTime).ToList())
-            }).ToList();
+                var fileName = fileNameGroup.Key; 
+                if (ParsedConsensusDictionary.TryGetValue(fileName, out var consensusRecords))
+                {
+                    records.AddRange(consensusRecords);
+                    continue;
+                }
 
-            // Add to dictionary
-            ParsedConsensusDictionary[osmPath] = consensusRecordsList;
+                // Open file and set up
+                var distinctFileNames = spectralMatches.Select(p => p.FileNameWithoutExtension)
+                    .Distinct()
+                    .ToArray();
 
-            return consensusRecordsList;
+                // Find the Id's with the lowest q values represented in at least 80% portion of the file names
+                var lowestQValueIds = spectralMatches
+                    .GroupBy(p => p.FullSequence)
+                    .Select(g => new
+                    {
+                        FullSequence = g.Key,
+                        MinQValue = g.Min(p => p.QValue),
+                        FileCount = g.Select(p => p.FileNameWithoutExtension).Distinct().Count(),
+                        OSMs = g.ToList()
+                    })
+                    .Where(p => p.FileCount >= distinctFileNames.Length * 0.8)
+                    .OrderByDescending(p => p.FileCount)
+                    .ThenBy(p => p.OSMs.Average(m => m.QValue))
+                    .Take(toReturn)
+                    .ToList();
+
+                // Create consensus records
+                var consensusRecordsList = lowestQValueIds.Select(p => new ResultFileConsensusRecord
+                {
+                    FullSequence = p.FullSequence,
+                    MinQValue = p.MinQValue,
+                    FileCount = p.FileCount,
+                    MaxFileCount = distinctFileNames.Length,
+                    AverageRT = p.OSMs.WeightedAverage(z => z.RetentionTime!.Value, z => 1 - z.QValue),
+                    SpectralMatchesByFileName = p.OSMs.Cast<SpectrumMatchFromTsv>().GroupBy(p => p.FileNameWithoutExtension)
+                        .ToDictionary(q => q.Key, q => q.OrderBy(n => n.RetentionTime).ToList())
+                }).ToList();
+
+                // Add to dictionary
+                records.AddRange(consensusRecordsList);
+                ParsedConsensusDictionary[fileName] = consensusRecordsList;
+            }
+
+            return records;
         }
 
         public static double WeightedAverage(this IEnumerable<OsmFromTsv> source, Func<OsmFromTsv, double> valueSelector, Func<OsmFromTsv, double> weightSelector)

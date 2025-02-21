@@ -138,7 +138,7 @@ namespace Test
             precursorCompetitionSummary.WriteResults(precursorCompetitionOutPath);
         }
 
-        [Test]
+        [Test] // Use this one to generate ALL figures
         public static void UseSummaryRecordsForAllFigures()
         {
             var baseDirPath = @"B:\Users\Nic\RadicalFragmentation_Greedy";

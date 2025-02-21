@@ -105,8 +105,8 @@ namespace Plotting.GradientDevelopment
             var curves = new List<GenericChart.GenericChart>();
             if (deconResultsDirectory is not null && Directory.Exists(deconResultsDirectory))
             {
-                var osmPath = StoredInformation.RunInformationList.First(p => p.DataFileName == run.DataFileName)
-                    .SearchResultPath;
+                var osms = StoredInformation.RunInformationList.First(p => p.DataFileName == run.DataFileName)
+                    .OsmFromTsv;
 
                 var featurePath = Directory.GetFiles(deconResultsDirectory, "*_ms1.feature")
                     .FirstOrDefault(p => p.Contains(run.DataFileName));
@@ -115,7 +115,7 @@ namespace Plotting.GradientDevelopment
 
                 // Get feature file and OSMs that were found in a majority of samples
                 var featureFile = new Ms1FeatureFile(featurePath);
-                var consensus = ResultFileConsensus.GetConsensusIds(osmPath, featuresToMap);
+                var consensus = ResultFileConsensus.GetConsensusIds(osms, featuresToMap);
                 var tolerance = new AbsoluteTolerance(20);
                 foreach (var consensusRecord in consensus)
                 {

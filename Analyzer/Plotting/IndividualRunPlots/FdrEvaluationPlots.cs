@@ -187,7 +187,7 @@ namespace Analyzer.Plotting.IndividualRunPlots
 
             var targetDecoyChart = Chart.Combine([
                     Chart.Spline<double, int, string>(chimericXValues, chimericTargetValues, Name: "Chimeric Targets", LineColor: "Chimeric".ConvertConditionToColor(), LineWidth: 3, Smoothing: 0.5),
-                    Chart.Spline<double, int, string>(chimericXValues, chimericDecoyValues, Name: "Chimeric Decoys", LineColor: "Non-Chimeric".ConvertConditionToColor(), LineWidth: 3, Smoothing: 0.5),
+                    Chart.Spline<double, int, string>(chimericXValues, chimericDecoyValues, Name: "Chimeric Decoys", LineColor: Color.fromKeyword(ColorKeyword.Orange), LineWidth: 3, Smoothing: 0.5),
                     Chart.Spline<double, int, string>(nonChimericXValues, nonChimericTargetValues, Name: "All Targets", LineColor: Color.fromKeyword(ColorKeyword.Blue), LineWidth: 3, Smoothing: 0.5),
                     Chart.Spline<double, int, string>(nonChimericXValues, nonChimericDecoyValues, Name: "All Decoys", LineColor: Color.fromKeyword(ColorKeyword.Red), LineWidth: 3, Smoothing: 0.5),
                     Chart.Line<double, int, string>(new List<double>() { 5 }, new List<int>(){0, nonChimericTargetValues.Max() }, Name: "Score Cutoff", MarkerColor: Color.fromKeyword(ColorKeyword.Black), ShowLegend: false)
