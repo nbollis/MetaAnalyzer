@@ -39,5 +39,27 @@ namespace Test.GradientDevelopment
             Assert.That(result.localMethylatedCCount, Is.EqualTo(expectedMethylated));
             Assert.That(result.localUnmethylatedCCount, Is.EqualTo(expectedUnmethylated));
         }
+
+        [Test]
+        public void CountCytosines_CorrectlyCountsCytosinesInSequences()
+        {
+            var sequences = new List<string>
+            {
+                "CAAAAAAAAUUAC[Biological:Methylation on C]CAAUAAUC[Biological:Methylation on C]GAC",
+                "AAAACUCUCUUC[Biological:Methylation on C]AAUUCUUUAUG",
+                "AAAACUCUC[Biological:Methylation on C]UUC[Biological:Methylation on C]AAUUCUUUAUG",
+                "AAAAUUC[Biological:Methylation on C]UUAAUUUUUAUG",
+                "AAAAUUCUUAAUUUUUAUG"
+            };
+
+            var result = RunInformation.CountCytosines(sequences);
+
+            Assert.That(result.total, Is.EqualTo(17));
+            Assert.That(result.methylated, Is.EqualTo(6));
+            Assert.That(result.unmethylated, Is.EqualTo(11));
+            Assert.That(result.totalGreaterThanOne, Is.EqualTo(15));
+            Assert.That(result.methylatedGreaterThanOne, Is.EqualTo(5));
+            Assert.That(result.unmethylatedGreaterThanOne, Is.EqualTo(10));
+        }
     }
 }
