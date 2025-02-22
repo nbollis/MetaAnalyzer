@@ -12,7 +12,11 @@ public class CytosineInformation(
     int methylatedTargetCystosines,
     int methylatedDecoyCystosines,
     int unmethylatedTargetCytosines,
-    int unmethylatedDecoyCytosines)
+    int unmethylatedDecoyCytosines,
+    double targetMethylPercent,
+    double decoyMethylPercent,
+    double targetMethylPercentGreaterThanOne,
+    double decoyMethylPercentGreaterThanOne)
 {
     public static CsvConfiguration CsvConfiguration = new CsvConfiguration(CultureInfo.InvariantCulture)
     {
@@ -29,6 +33,11 @@ public class CytosineInformation(
 
     public int UnmethylatedTargetCytosines { get; set; } = unmethylatedTargetCytosines;
     public int UnmethylatedDecoyCytosines { get; set; } = unmethylatedDecoyCytosines;
+
+    public double TargetMethylPercent { get; set; } = targetMethylPercent;
+    public double DecoyMethylPercent { get; set; } = decoyMethylPercent;
+    public double TargetMethylPercentGreaterThanOne { get; set; } = targetMethylPercentGreaterThanOne;
+    public double DecoyMethylPercentGreaterThanOne { get; set; } = decoyMethylPercentGreaterThanOne;
 }
 
 public class CytosineInformationFile : ResultFile<CytosineInformation>, IResultFile

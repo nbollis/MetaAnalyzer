@@ -12,7 +12,8 @@ public enum ExperimentalGroup
 {
     OldRuns,
     InitialDevelopment,
-    DifferentialMethylFluc
+    DifferentialMethylFluc,
+    Gradient14,
 }
 
 public static class StoredInformation
@@ -23,7 +24,7 @@ public static class StoredInformation
 
     internal static string MixedMethylDirectory = @"B:\Users\Nic\RNA\FLuc\250220_FlucDifferentialMethylations";
     internal static string Round9Search = Path.Combine(MixedMethylDirectory, @"Searches\HalfMethylC_ModSearches\Task2-SearchVariableMeth\AllOSMs.osmtsv");
-
+    internal static string Gradient14Search = Path.Combine(MixedMethylDirectory, @"Searches\AllGrad14_MethOnlyGptmd_VariableMeth\Task2-SearchVariableMeth\AllOSMs.osmtsv");
 
     internal static string GradientDevelopmentBigSearch = Path.Combine(GradientDevelopmentDataDirectory, @"Searches\Round8Search\Task1-RnaSearchTask\AllOSMs.osmtsv");
 
@@ -261,7 +262,32 @@ public static class StoredInformation
 
 
             }
-        }
+        },
+
+        {ExperimentalGroup.Gradient14,
+            new()
+            {
+                new(Path.Combine(MixedMethylDirectory, "250219_Fluc_Nom5C_Gradient14.raw"),
+                    Path.Combine(GradientDirectory, "Gradient14.csv"), Gradient14Search,
+                    Path.Combine(MixedMethylDirectory, "TopFD", "250219_Fluc_Nom5C_Gradient14_ms1.feature"),
+                    "MeOH", null),
+
+                new(Path.Combine(MixedMethylDirectory, "250219_Fluc_Allm5C_Gradient14.raw"),
+                    Path.Combine(GradientDirectory, "Gradient14.csv"), Gradient14Search,
+                    Path.Combine(MixedMethylDirectory, "TopFD", "250219_Fluc_Allm5C_Gradient14_ms1.feature"),
+                    "MeOH", null),
+
+                new(Path.Combine(MixedMethylDirectory, "250219_Fluc_Mixedm5C_Gradient14.raw"),
+                    Path.Combine(GradientDirectory, "Gradient14.csv"), Gradient14Search,
+                    Path.Combine(MixedMethylDirectory, "TopFD", "250219_Fluc_Mixedm5C_Gradient14_ms1.feature"),
+                    "MeOH", null),
+
+                new(Path.Combine(MixedMethylDirectory, "250219_Fluc_Halfm5C_Gradient14.raw"),
+                    Path.Combine(GradientDirectory, "Gradient14.csv"), Gradient14Search,
+                    Path.Combine(MixedMethylDirectory, "TopFD", "250219_Fluc_Halfm5C_Gradient14_ms1.feature"),
+                    "MeOH", null)
+
+            } }
     };
 }
 

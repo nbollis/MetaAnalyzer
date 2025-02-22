@@ -31,10 +31,14 @@ namespace Test
         [Test]
         public static void NewStruct()
         {
-            var experiments = StoredInformation.ExperimentalBatches[ExperimentalGroup.DifferentialMethylFluc];
-            var batch = new ExperimentalBatch("Differential Methyl Fluc", experiments.First().ParentDirectory, experiments);
+            string identifier = ExperimentalGroup.Gradient14.ToString();
+            var experiments = StoredInformation.ExperimentalBatches[ExperimentalGroup.Gradient14];
+            var parentDir = experiments.First().ParentDirectory;
+            var resultDir = Path.Combine(parentDir, "ProcessedResults", identifier);
 
+            var batch = new ExperimentalBatch(identifier, resultDir, experiments);
             var info = batch.ExtractedInformationFile;
+            var cys = batch.CytosineInformationFile;
 
 
         }

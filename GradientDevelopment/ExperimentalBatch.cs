@@ -14,6 +14,8 @@ public class ExperimentalBatch
     public List<RunInformation> AllRuns { get; init; }
     public ExtractedInformationFile ExtractedInformationFile => _extractedInformationFile ??= GetExtractedInformation();
 
+    public CytosineInformationFile CytosineInformationFile => _cytosineInformationFile ??= GetCytosineInformation();
+
     public ExperimentalBatch(string identifier, string directoryPath, List<RunInformation> allRuns)
     {
         Identifier = identifier;
@@ -21,6 +23,7 @@ public class ExperimentalBatch
         AllRuns = allRuns;
 
         _extractedInfoPath = Path.Combine(directoryPath, "ExtractedGradientData.tsv");
+        _cytosineMethylPath = Path.Combine(directoryPath, "CytosineMethylData.csv");
     }
 
     private ExtractedInformationFile GetExtractedInformation()
@@ -71,10 +74,10 @@ public class ExperimentalBatch
     {
         bool wasUpdated = false;
         CytosineInformationFile file = null!;
-        if (File.Exists(_extractedInfoPath))
+        if (File.Exists(_cytosineMethylPath))
         {
             // load in file
-            file = new CytosineInformationFile(_extractedInfoPath);
+            file = new CytosineInformationFile(_cytosineMethylPath);
 
             // check if any runs are not in file
             List<CytosineInformation> toAppend = [];
@@ -83,8 +86,8 @@ public class ExperimentalBatch
                 if (file.Any(p => p.DataFileName == run.DataFileName))
                     continue;
 
-                var extractedInfo = run.ExtractMethylationInformation();
-                toAppend.Add(extractedInfo);
+                var methylInfo = run.ExtractMethylationInformation();
+                toAppend.Add(methylInfo);
             }
 
 
@@ -98,7 +101,7 @@ public class ExperimentalBatch
         else // create from nothing
         {
             wasUpdated = true;
-            file = new CytosineInformationFile(_extractedInfoPath)
+            file = new CytosineInformationFile(_cytosineMethylPath)
             {
                 Results = AllRuns.Select(p => p.ExtractMethylationInformation()).ToList()
             };
@@ -106,7 +109,7 @@ public class ExperimentalBatch
 
         // overwrite if updated
         if (wasUpdated)
-            file.WriteResults(_extractedInfoPath);
+            file.WriteResults(_cytosineMethylPath);
 
         return file;
     }

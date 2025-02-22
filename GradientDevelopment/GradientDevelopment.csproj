@@ -14,7 +14,11 @@
   <ItemGroup>
     <ProjectReference Include="..\ResultAnalyzerUtil\ResultAnalyzerUtil.csproj" />
   </ItemGroup>
-
+	
+	<ItemGroup>
+		<InternalsVisibleTo Include="Test" />
+	</ItemGroup>
+	
   <ItemGroup>
     <None Update="Gradients\itwStandard.csv">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>

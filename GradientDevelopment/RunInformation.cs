@@ -51,8 +51,10 @@ namespace GradientDevelopment
 
         public ExtractedInformation GetExtractedRunInformation()
         {
-            var resultsTxtPath = Directory.GetParent(_osmPath)!.GetFiles( "results.txt").First();
+            var resultsTxtPath = Directory.GetParent(_osmPath)!.GetFiles("results.txt").First();
             
+  
+
             // Result file lines
             var lines = File.ReadAllLines(resultsTxtPath.FullName);
             var relevant = lines.Where(p => p.Contains(DataFileName)).ToArray();
@@ -146,61 +148,94 @@ namespace GradientDevelopment
         }
 
 
-        public CytosineInformation ExtractMethylationInformation() 
+        public CytosineInformation ExtractMethylationInformation()
         {
-            int totalCytosinesTargets = 0;
-            int methylatedCytosinesTargets = 0;
-            int unmethylatedCytosinesTargets = 0;
+            var targetCounts = CountCytosines(OsmFromTsv.Where(p => p.QValue <= qValueCutoff && p.DecoyContamTarget == "T").Select(p => p.FullSequence));
+            var decoyCounts = CountCytosines(OsmFromTsv.Where(p => p.QValue <= qValueCutoff && p.DecoyContamTarget == "D").Select(p => p.FullSequence));
 
-            int totalCytosinesDecoys = 0;
-            int methylatedCytosinesDecoys = 0;
-            int unmethylatedCytosinesDecoys = 0;
+            double percentMethylatedTargets = CalculatePercentage(targetCounts.methylated, targetCounts.total);
+            double percentMethylatedDecoys = CalculatePercentage(decoyCounts.methylated, decoyCounts.total);
+            double percentMethylatedTargetsGreaterThanOne = CalculatePercentage(targetCounts.methylatedGreaterThanOne, targetCounts.totalGreaterThanOne);
+            double percentMethylatedDecoysGreaterThanOne = CalculatePercentage(decoyCounts.methylatedGreaterThanOne, decoyCounts.totalGreaterThanOne);
 
+            return new CytosineInformation(DataFileName, targetCounts.total, decoyCounts.total,
+                targetCounts.methylated, decoyCounts.methylated,
+                targetCounts.unmethylated, decoyCounts.unmethylated, percentMethylatedTargets,
+                percentMethylatedDecoys, percentMethylatedTargetsGreaterThanOne, percentMethylatedDecoysGreaterThanOne);
+        }
 
-            foreach (var osmToCheck in OsmFromTsv.Where(p => p.QValue <= qValueCutoff))
+        internal static (int total, int methylated, int unmethylated, int totalGreaterThanOne, int methylatedGreaterThanOne, int unmethylatedGreaterThanOne)
+            CountCytosines(IEnumerable<string> fullSequences)
+        {
+            int totalCytosines = 0;
+            int methylatedCytosines = 0;
+            int unmethylatedCytosines = 0;
+            int totalCytosinesGreaterThanOne = 0;
+            int methylatedCytosinesGreaterThanOne = 0;
+            int unmethylatedCytosinesGreaterThanOne = 0;
+
+            foreach (var sequence in fullSequences)
             {
-                string sequence = osmToCheck.FullSequence;
-                bool inBracket = false;
-                bool isDecoy = osmToCheck.DecoyContamTarget == "D";
+                var (localCCount, localMethylatedCCount, localUnmethylatedCCount) = CountCytosinesInSequence(sequence);
 
-                for (int i = 0; i < sequence.Length; i++)
+                totalCytosines += localCCount;
+                methylatedCytosines += localMethylatedCCount;
+                unmethylatedCytosines += localUnmethylatedCCount;
+
+                if (localCCount > 1)
                 {
-                    if (sequence[i] == '[')
-                    {
-                        inBracket = true;
-                    }
-                    else if (sequence[i] == ']')
-                    {
-                        inBracket = false;
-                    }
-                    else if (sequence[i] == 'C')
-                    {
-                        if (isDecoy)
-                            totalCytosinesDecoys++;
-                        else
-                            totalCytosinesTargets++;
-
-                        if (inBracket)
-                        {
-                            if (isDecoy)
-                                methylatedCytosinesDecoys++;
-                            else
-                                methylatedCytosinesTargets++;
-                        }
-                        else
-                        {
-                            if (isDecoy)
-                                unmethylatedCytosinesDecoys++;
-                            else
-                                unmethylatedCytosinesTargets++;
-                        }
-                    }
+                    totalCytosinesGreaterThanOne += localCCount;
+                    methylatedCytosinesGreaterThanOne += localMethylatedCCount;
+                    unmethylatedCytosinesGreaterThanOne += localUnmethylatedCCount;
                 }
             }
 
-            return new CytosineInformation(DataFileName, totalCytosinesTargets, totalCytosinesDecoys,
-                methylatedCytosinesTargets, methylatedCytosinesDecoys,
-                unmethylatedCytosinesTargets, unmethylatedCytosinesDecoys);
+            return (totalCytosines, methylatedCytosines, unmethylatedCytosines, totalCytosinesGreaterThanOne, methylatedCytosinesGreaterThanOne, unmethylatedCytosinesGreaterThanOne);
+        }
+
+        internal static (int localCCount, int localMethylatedCCount, int localUnmethylatedCCount) CountCytosinesInSequence(string sequence)
+        {
+            bool inBracket = false;
+
+            int localCCount = 0;
+            int localMethylatedCCount = 0;
+            int localUnmethylatedCCount = 0;
+
+            for (int i = 0; i < sequence.Length; i++)
+            {
+                // we are inside a modification annotation, move on. 
+                if (inBracket && sequence[i] != ']')
+                    continue;
+
+                switch (sequence[i])
+                {
+                    case '[': // enter mod annotaiton
+                        inBracket = true;
+                        break;
+                    case ']': // exit mod annotation
+                        inBracket = false;
+                        break;
+                    case 'C' when i == sequence.Length - 1: // this C is the very last character in the full sequence, we are done
+                        localCCount++;
+                        localUnmethylatedCCount++;
+                        break;
+                    case 'C' when sequence[i + 1] == '[': // next character starts a mod annotation
+                        localCCount++;
+                        localMethylatedCCount++;
+                        break;
+                    case 'C': // Normal not modified C in the middle of the sequence
+                        localCCount++;
+                        localUnmethylatedCCount++;
+                        break;
+                }
+            }
+
+            return (localCCount, localMethylatedCCount, localUnmethylatedCCount);
+        }
+
+        internal static double CalculatePercentage(int part, int whole)
+        {
+            return whole == 0 ? 0 : (double)part / whole;
         }
     }
 }
