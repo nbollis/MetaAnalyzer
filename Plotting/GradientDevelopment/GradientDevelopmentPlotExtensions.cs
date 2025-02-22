@@ -15,12 +15,28 @@ using GenericChartExtensions = Plotly.NET.CSharp.GenericChartExtensions;
 using Plotting.Util;
 using ResultAnalyzerUtil;
 using MathNet.Numerics.Distributions;
+using Plotly.NET.ImageExport;
 
 namespace Plotting.GradientDevelopment
 {
     public static class GradientDevelopmentPlotExtensions
     {
-        public static GenericChart.GenericChart GetPlotHist(this ExtractedInformation run, string? deconResultsDirectory = null,
+        public static void SavePlotHists(this ExperimentalBatch batch, int featuresToMap = 30)
+        {
+            var outDir = batch.ProcessedResultsDirectory;
+            foreach (var run in batch)
+            {
+                var extractedInfo = batch.ExtractedInformationFile.First(p => p.DataFileName == run.DataFileName);
+                var plot = GetPlotHist(extractedInfo, run.Ms1FeatureFile, featuresToMap);
+                var path = Path.Combine(outDir,
+                            $"{FileIdentifiers.GradientFigure}_{run.DataFileName}_{run.Gradient.Name}");
+
+                plot.SavePNG(path, null, 1200, 700);
+            }
+        }
+
+
+        public static GenericChart.GenericChart GetPlotHist(this ExtractedInformation run, Ms1FeatureFile? featureFile = null,
             int featuresToMap = 5)
         {
             int multiplier = 10;
@@ -103,18 +119,11 @@ namespace Plotting.GradientDevelopment
             };
 
             var curves = new List<GenericChart.GenericChart>();
-            if (deconResultsDirectory is not null && Directory.Exists(deconResultsDirectory))
+            if (featureFile is not null)
             {
                 var osms = StoredInformation.RunInformationList.First(p => p.DataFileName == run.DataFileName)
                     .OsmFromTsv;
 
-                var featurePath = Directory.GetFiles(deconResultsDirectory, "*_ms1.feature")
-                    .FirstOrDefault(p => p.Contains(run.DataFileName));
-                if (featurePath is null)
-                    goto PlotIt;
-
-                // Get feature file and OSMs that were found in a majority of samples
-                var featureFile = new Ms1FeatureFile(featurePath);
                 var consensus = ResultFileConsensus.GetConsensusIds(osms, featuresToMap);
                 var tolerance = new AbsoluteTolerance(20);
                 foreach (var consensusRecord in consensus)

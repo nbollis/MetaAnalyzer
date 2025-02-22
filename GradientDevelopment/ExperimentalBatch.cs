@@ -1,36 +1,47 @@
-﻿using System.Collections.Generic;
+﻿using System.Collections;
+using System.Collections.Generic;
 
 namespace GradientDevelopment;
 
-public class ExperimentalBatch
+public class ExperimentalBatch : IEnumerable<RunInformation>
 {
-    private string _extractedInfoPath;
-    private string _cytosineMethylPath;
+    private readonly bool _overrideParsedResults;
+    private readonly string _extractedInfoPath;
+    private readonly string _cytosineMethylPath;
     private ExtractedInformationFile? _extractedInformationFile;
     private CytosineInformationFile? _cytosineInformationFile;
 
     public string Identifier { get; init; }
-    public string DirectoryPath { get; init; }
+    public string ProcessedResultsDirectory { get; init; }
     public List<RunInformation> AllRuns { get; init; }
     public ExtractedInformationFile ExtractedInformationFile => _extractedInformationFile ??= GetExtractedInformation();
 
     public CytosineInformationFile CytosineInformationFile => _cytosineInformationFile ??= GetCytosineInformation();
 
-    public ExperimentalBatch(string identifier, string directoryPath, List<RunInformation> allRuns)
+    public ExperimentalBatch(string identifier, string processedResultsDirectory, List<RunInformation> allRuns, bool overrideParsedResults = false)
     {
         Identifier = identifier;
-        DirectoryPath = directoryPath;
+        ProcessedResultsDirectory = processedResultsDirectory;
         AllRuns = allRuns;
 
-        _extractedInfoPath = Path.Combine(directoryPath, "ExtractedGradientData.tsv");
-        _cytosineMethylPath = Path.Combine(directoryPath, "CytosineMethylData.csv");
+        _extractedInfoPath = Path.Combine(processedResultsDirectory, "ExtractedGradientData.tsv");
+        _cytosineMethylPath = Path.Combine(processedResultsDirectory, "CytosineMethylData.csv");
+        _overrideParsedResults = overrideParsedResults;
     }
 
     private ExtractedInformationFile GetExtractedInformation()
     {
         bool wasUpdated = false;
         ExtractedInformationFile file = null!;
-        if (File.Exists(_extractedInfoPath))
+        if (!File.Exists(_extractedInfoPath) || _overrideParsedResults) // create from nothing or ovverwrite
+        {
+            wasUpdated = true;
+            file = new ExtractedInformationFile(_extractedInfoPath)
+            {
+                Results = AllRuns.Select(p => p.GetExtractedRunInformation()).ToList()
+            };
+        }
+        else 
         {
             // load in file
             file = new ExtractedInformationFile(_extractedInfoPath);
@@ -54,14 +65,6 @@ public class ExperimentalBatch
                 file.Results.AddRange(toAppend);
             }
         }
-        else // create from nothing
-        {
-            wasUpdated = true;
-            file = new ExtractedInformationFile(_extractedInfoPath)
-            {
-                Results = AllRuns.Select(p => p.GetExtractedRunInformation()).ToList()
-            };
-        }
 
         // overwrite if updated
         if (wasUpdated)
@@ -74,7 +77,15 @@ public class ExperimentalBatch
     {
         bool wasUpdated = false;
         CytosineInformationFile file = null!;
-        if (File.Exists(_cytosineMethylPath))
+        if (!File.Exists(_cytosineMethylPath) || _overrideParsedResults)// create from nothing or overwrite
+        {
+            wasUpdated = true;
+            file = new CytosineInformationFile(_cytosineMethylPath)
+            {
+                Results = AllRuns.Select(p => p.ExtractMethylationInformation()).ToList()
+            };
+        }
+        else
         {
             // load in file
             file = new CytosineInformationFile(_cytosineMethylPath);
@@ -90,7 +101,6 @@ public class ExperimentalBatch
                 toAppend.Add(methylInfo);
             }
 
-
             // add runs not infile
             if (toAppend.Any())
             {
@@ -98,19 +108,21 @@ public class ExperimentalBatch
                 file.Results.AddRange(toAppend);
             }
         }
-        else // create from nothing
-        {
-            wasUpdated = true;
-            file = new CytosineInformationFile(_cytosineMethylPath)
-            {
-                Results = AllRuns.Select(p => p.ExtractMethylationInformation()).ToList()
-            };
-        }
 
         // overwrite if updated
         if (wasUpdated)
             file.WriteResults(_cytosineMethylPath);
 
         return file;
+    }
+
+    public IEnumerator<RunInformation> GetEnumerator()
+    {
+        return AllRuns.GetEnumerator();
+    }
+
+    IEnumerator IEnumerable.GetEnumerator()
+    {
+        return GetEnumerator();
     }
 }

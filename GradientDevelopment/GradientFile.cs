@@ -28,8 +28,12 @@ namespace GradientDevelopment
 
     public class Gradient : ResultFile<GradientPoint>, IResultFile
     {
+        public string Name { get; init; }
         public (double, double)[] GetGradient() => Results.Select(p => (p.Time, p.PercentBSolvent)).ToArray();
-        public Gradient(string path) : base(path) { } // Add constructor to set FilePath
+        public Gradient(string path) : base(path) 
+        {
+            Name = Path.GetFileNameWithoutExtension(path);
+        } // Add constructor to set FilePath
 
         public override void LoadResults()
         {

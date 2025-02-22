@@ -200,16 +200,16 @@ namespace TaskLayer.ChimeraAnalysis
             //        Log($"Processing Cell Line {cellLine}", 1);
             //        foreach (var mmResult in cellLineDictEntry.Value)
             //        {
-            //            if (mmResult.DirectoryPath.Contains(NonChimericDescriptor))
+            //            if (mmResult.ProcessedResultsDirectory.Contains(NonChimericDescriptor))
             //                continue;
 
             //            foreach (var distribPlotTypes in Enum.GetValues<DistributionPlotTypes>())
             //            {
             //                var summaryParams =
-            //                    new SingleRunAnalysisParameters(mmResult.DirectoryPath, parameters.Override, false, mmResult, distribPlotTypes);
+            //                    new SingleRunAnalysisParameters(mmResult.ProcessedResultsDirectory, parameters.Override, false, mmResult, distribPlotTypes);
             //                var summaryTask = new SingleRunChimeraRetentionTimeDistribution(summaryParams);
             //                summaryTasks.Add(new ResultAnalyzerTaskToCmdProcessAdaptor(summaryTask, "Retention Time Plots", 0.25,
-            //                    mmResult.DirectoryPath));
+            //                    mmResult.ProcessedResultsDirectory));
             //            }
             //        }
 
@@ -298,7 +298,7 @@ namespace TaskLayer.ChimeraAnalysis
             //    Log($"Processing Cell Line {cellLine}", 1);
             //    foreach (var mmResult in cellLineDictEntry.Value)
             //    {
-            //        if (mmResult.DirectoryPath.Contains(NonChimericDescriptor))
+            //        if (mmResult.ProcessedResultsDirectory.Contains(NonChimericDescriptor))
             //            continue;
 
             //        mmResult.ToPsmProformaFile();
@@ -331,7 +331,7 @@ namespace TaskLayer.ChimeraAnalysis
             //    Log($"Processing Cell Line {cellLine}", 1);
             //    foreach (var mmResult in cellLineDictEntry.Value)
             //    {
-            //        if (mmResult.DirectoryPath.Contains(NonChimericDescriptor))
+            //        if (mmResult.ProcessedResultsDirectory.Contains(NonChimericDescriptor))
             //            continue;
 
             //        mmResult.CountProteins();

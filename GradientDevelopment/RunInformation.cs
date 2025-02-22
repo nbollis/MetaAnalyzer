@@ -150,8 +150,12 @@ namespace GradientDevelopment
 
         public CytosineInformation ExtractMethylationInformation()
         {
-            var targetCounts = CountCytosines(OsmFromTsv.Where(p => p.QValue <= qValueCutoff && p.DecoyContamTarget == "T").Select(p => p.FullSequence));
-            var decoyCounts = CountCytosines(OsmFromTsv.Where(p => p.QValue <= qValueCutoff && p.DecoyContamTarget == "D").Select(p => p.FullSequence));
+            var targetCounts = CountCytosines(OsmFromTsv
+                .Where(p => p.FileNameWithoutExtension == DataFileName && p.QValue <= qValueCutoff && p.DecoyContamTarget == "T")
+                .Select(p => p.FullSequence));
+            var decoyCounts = CountCytosines(OsmFromTsv
+                .Where(p => p.FileNameWithoutExtension == DataFileName && p.QValue <= qValueCutoff && p.DecoyContamTarget == "D")
+                .Select(p => p.FullSequence));
 
             double percentMethylatedTargets = CalculatePercentage(targetCounts.methylated, targetCounts.total);
             double percentMethylatedDecoys = CalculatePercentage(decoyCounts.methylated, decoyCounts.total);

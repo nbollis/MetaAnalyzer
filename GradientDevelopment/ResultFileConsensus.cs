@@ -11,12 +11,18 @@ namespace GradientDevelopment
             ParsedConsensusDictionary = new Dictionary<string, List<ResultFileConsensusRecord>>();
         }
 
+        /// <summary>
+        /// Gets the consensus IDs from the provided spectral matches.
+        /// </summary>
+        /// <param name="spectralMatches">The list of spectral matches.</param>
+        /// <param name="toReturn">The number of consensus records to return.</param>
+        /// <returns>A list of consensus records.</returns>
         public static List<ResultFileConsensusRecord> GetConsensusIds(List<OsmFromTsv> spectralMatches, int toReturn)
         {
             List<ResultFileConsensusRecord> records = new();
             foreach (var fileNameGroup in spectralMatches.GroupBy(p => p.FileNameWithoutExtension))
             {
-                var fileName = fileNameGroup.Key; 
+                var fileName = fileNameGroup.Key;
                 if (ParsedConsensusDictionary.TryGetValue(fileName, out var consensusRecords))
                 {
                     records.AddRange(consensusRecords);

@@ -28,7 +28,7 @@ namespace Analyzer.SearchType
         {
             PsmPath = Path.Combine(DirectoryPath, "Combined_psm.tsv");
             PeptidePath = Path.Combine(DirectoryPath, "combined_peptide.tsv");
-            //_peptideBaseSeqPath = Path.Combine(DirectoryPath, "Combined_BaseSequence_peptide.tsv");
+            //_peptideBaseSeqPath = Path.Combine(ProcessedResultsDirectory, "Combined_BaseSequence_peptide.tsv");
             ProteinPath = Path.Combine(DirectoryPath, "combined_protein.tsv");
 
             IndividualFileResults = new List<MsFraggerIndividualFileResult>();

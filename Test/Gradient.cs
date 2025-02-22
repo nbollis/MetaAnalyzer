@@ -29,17 +29,13 @@ namespace Test
 
 
         [Test]
-        public static void NewStruct()
+        public static void GetTheInformationYouWant()
         {
-            string identifier = ExperimentalGroup.Gradient14.ToString();
-            var experiments = StoredInformation.ExperimentalBatches[ExperimentalGroup.Gradient14];
-            var parentDir = experiments.First().ParentDirectory;
-            var resultDir = Path.Combine(parentDir, "ProcessedResults", identifier);
+            var batch = StoredInformation.ExperimentalBatches[ExperimentalGroup.Gradient14];
 
-            var batch = new ExperimentalBatch(identifier, resultDir, experiments);
             var info = batch.ExtractedInformationFile;
             var cys = batch.CytosineInformationFile;
-
+            batch.SavePlotHists();
 
         }
 
@@ -61,7 +57,7 @@ namespace Test
             var outPath = GradientDevelopmentParsedInfo;
 
             var results = new List<ExtractedInformation>();
-            foreach (var runInformation in StoredInformation.ExperimentalBatches.SelectMany(p => p.Value))
+            foreach (var runInformation in StoredInformation.RunInformationList)
             {
                 var info = runInformation.GetExtractedRunInformation();
                 if (info.FivePercentIds.Any())
@@ -82,30 +78,30 @@ namespace Test
             }
 
             resultFile.WriteResults(outPath);
-            PlotOne();
+            //PlotOne();
         }
 
-        [Test]
-        public static void PlotOne()
-        {
-            var outPath = GradientDevelopmentParsedInfo;
-            var results = new ExtractedInformationFile(outPath).Results;
-            //var topFdPath = @"B:\Users\Nic\RNA\FLuc\GradientDevelopment\TopFD";
-            var topFdPath = @"B:\Users\Nic\RNA\FLuc\250220_FlucDifferentialMethylations\TopFD";
-            //results.UpdateTimesToDisplay();
+        //[Test]
+        //public static void PlotOne()
+        //{
+        //    var outPath = GradientDevelopmentParsedInfo;
+        //    var results = new ExtractedInformationFile(outPath).Results;
+        //    //var topFdPath = @"B:\Users\Nic\RNA\FLuc\GradientDevelopment\TopFD";
+        //    var topFdPath = @"B:\Users\Nic\RNA\FLuc\250220_FlucDifferentialMethylations\TopFD";
+        //    //results.UpdateTimesToDisplay();
 
-            foreach (var run in results.TakeLast(3))
-            {
-                var path = Path.Combine(GradientDevelopmentFigureDirectory,
-                    $"{FileIdentifiers.GradientFigure}_{run.DataFileName}_{run.GradientName}");
-                var plot2 = run.GetPlotHist(topFdPath, 30);
-                if (plot2 is null)
-                    continue;
+        //    foreach (var run in results.TakeLast(3))
+        //    {
+        //        var path = Path.Combine(GradientDevelopmentFigureDirectory,
+        //            $"{FileIdentifiers.GradientFigure}_{run.DataFileName}_{run.GradientName}");
+        //        var plot2 = run.GetPlotHist(topFdPath, 30);
+        //        if (plot2 is null)
+        //            continue;
 
-                //plot2.Show();
-                plot2.SavePNG(path, null, 1200, 700);
-            } 
-        }
+        //        //plot2.Show();
+        //        plot2.SavePNG(path, null, 1200, 700);
+        //    } 
+        //}
     }
 
 

@@ -19,25 +19,35 @@ public enum ExperimentalGroup
 public static class StoredInformation
 {
     internal static string GradientDirectory = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Gradients");
+
+    // Gradient Development
     internal static string GradientDevelopmentDataDirectory = @"B:\Users\Nic\RNA\FLuc\GradientDevelopment";
     internal static string FluxMethDataDirectory = @"B:\Users\Nic\RNA\FLuc\FLuc Methylation Experiment\m5C_transcription";
-
-    internal static string MixedMethylDirectory = @"B:\Users\Nic\RNA\FLuc\250220_FlucDifferentialMethylations";
-    internal static string Round9Search = Path.Combine(MixedMethylDirectory, @"Searches\HalfMethylC_ModSearches\Task2-SearchVariableMeth\AllOSMs.osmtsv");
-    internal static string Gradient14Search = Path.Combine(MixedMethylDirectory, @"Searches\AllGrad14_MethOnlyGptmd_VariableMeth\Task2-SearchVariableMeth\AllOSMs.osmtsv");
-
     internal static string GradientDevelopmentBigSearch = Path.Combine(GradientDevelopmentDataDirectory, @"Searches\Round8Search\Task1-RnaSearchTask\AllOSMs.osmtsv");
 
+    // DifferentialMethylFluc
+    internal static string MixedMethylDirectory = @"B:\Users\Nic\RNA\FLuc\250220_FlucDifferentialMethylations";
+    internal static string DifferentialMethylBigSearch = Path.Combine(MixedMethylDirectory, @"Searches\AllFiles_MethOnlyGPTMD_VariableMeth\Task2-SearchVariableMeth\AllOSMs.osmtsv");
 
-    private static List<ExperimentalBatch>? _experimentalBatches;
-    public static List<ExperimentalBatch> ExpBatches => _experimentalBatches ??=
-        ExperimentalBatches.Select(p => new ExperimentalBatch(p.Key.ToString(), p.Value.First().ParentDirectory, p.Value)).ToList();
+    // Gradient14 only
+    internal static string Gradient14Search = Path.Combine(MixedMethylDirectory, @"Searches\AllGrad14_MethOnlyGptmd_VariableMeth\Task2-SearchVariableMeth\AllOSMs.osmtsv");
+
+    // Gradient13 Only
 
     private static List<RunInformation>? _runInformationList;
-    public static List<RunInformation> RunInformationList => _runInformationList ??= ExperimentalBatches.SelectMany(p => p.Value).ToList();
+    public static List<RunInformation> RunInformationList => _runInformationList ??= rawInputDictionary.SelectMany(p => p.Value).ToList();
 
 
-    public static Dictionary<ExperimentalGroup, List<RunInformation>> ExperimentalBatches = new()
+    private static Dictionary<ExperimentalGroup, ExperimentalBatch>? _experimentalBatches = null!;
+
+    public static Dictionary<ExperimentalGroup, ExperimentalBatch> ExperimentalBatches => _experimentalBatches ??=
+        rawInputDictionary.ToDictionary(p => p.Key,
+            p => new ExperimentalBatch(p.Key.ToString(),
+                Path.Combine(p.Value.First().ParentDirectory, "ProcessedResults", p.Key.ToString()), p.Value));
+    
+    
+    
+    private static Dictionary<ExperimentalGroup, List<RunInformation>> rawInputDictionary = new()
     {
         { ExperimentalGroup.OldRuns, [
                 new(Path.Combine(FluxMethDataDirectory, "241025_FLuc_dig_A.raw"),
@@ -206,66 +216,65 @@ public static class StoredInformation
             ]
         },
 
-        { ExperimentalGroup.DifferentialMethylFluc, new List<RunInformation>
+        { 
+            ExperimentalGroup.DifferentialMethylFluc, new List<RunInformation>
             {
-                new(Path.Combine(MixedMethylDirectory, "250219_fluc_Halfm5C_Pfizer12.raw"),
-                    Path.Combine(GradientDirectory, "Pfizer12.csv"), Round9Search,
+                new(Path.Combine(MixedMethylDirectory, "250219_Fluc_Halfm5C_Pfizer12.raw"),
+                    Path.Combine(GradientDirectory, "Pfizer12.csv"), DifferentialMethylBigSearch,
                     Path.Combine(MixedMethylDirectory, "TopFD", "250219_fluc_Halfm5C_Pfizer12_ms1.feature"),
                     "MeOH",
                     new DoubleRange(20, 100)),
 
                 new(Path.Combine(MixedMethylDirectory, "250219_Fluc_Halfm5C_PfizerGrad.raw"),
-                    Path.Combine(GradientDirectory, "Pfizer1.csv"), Round9Search,
+                    Path.Combine(GradientDirectory, "Pfizer1.csv"), DifferentialMethylBigSearch,
                     Path.Combine(MixedMethylDirectory, "TopFD", "250219_Fluc_Halfm5C_PfizerGrad_ms1.feature"),
                     "MeOH", new DoubleRange(20, 260)),
 
                 new(Path.Combine(MixedMethylDirectory, "250219_Fluc_Halfm5C_Pflizer11.raw"),
-                    Path.Combine(GradientDirectory, "Pfizer11.csv"), Round9Search,
+                    Path.Combine(GradientDirectory, "Pfizer11.csv"), DifferentialMethylBigSearch,
                     Path.Combine(MixedMethylDirectory, "TopFD", "250219_Fluc_Halfm5C_Pflizer11_ms1.feature"),
                     "MeOH",
                     new DoubleRange(20, 160)),
 
                 new(Path.Combine(MixedMethylDirectory, "250219_Fluc_Nom5C_Gradient13.raw"),
-                    Path.Combine(GradientDirectory, "Gradient13.csv"), Round9Search,
+                    Path.Combine(GradientDirectory, "Gradient13.csv"), DifferentialMethylBigSearch,
                     Path.Combine(MixedMethylDirectory, "TopFD", "250219_Fluc_Nom5C_Gradient13_ms1.feature"),
                     "MeOH", new DoubleRange(20, 100)),
 
                 new(Path.Combine(MixedMethylDirectory, "250219_Fluc_Allm5C_Gradient13.raw"),
-                    Path.Combine(GradientDirectory, "Gradient13.csv"), Round9Search,
+                    Path.Combine(GradientDirectory, "Gradient13.csv"), DifferentialMethylBigSearch,
                     Path.Combine(MixedMethylDirectory, "TopFD", "250219_Fluc_Allm5C_Gradient13_ms1.feature"),
                     "MeOH", new DoubleRange(20, 100)),
 
                 new(Path.Combine(MixedMethylDirectory, "250219_Fluc_Nom5C_Gradient14.raw"),
-                    Path.Combine(GradientDirectory, "Gradient14.csv"), Round9Search,
+                    Path.Combine(GradientDirectory, "Gradient14.csv"), DifferentialMethylBigSearch,
                     Path.Combine(MixedMethylDirectory, "TopFD", "250219_Fluc_Nom5C_Gradient14_ms1.feature"),
                     "MeOH", new DoubleRange(20, 100)),
 
                 new(Path.Combine(MixedMethylDirectory, "250219_Fluc_Allm5C_Gradient14.raw"),
-                    Path.Combine(GradientDirectory, "Gradient14.csv"), Round9Search,
+                    Path.Combine(GradientDirectory, "Gradient14.csv"), DifferentialMethylBigSearch,
                     Path.Combine(MixedMethylDirectory, "TopFD", "250219_Fluc_Allm5C_Gradient14_ms1.feature"),
                     "MeOH", new DoubleRange(20, 100)),
 
                 new(Path.Combine(MixedMethylDirectory, "250219_Fluc_Mixedm5C_Gradient13.raw"),
-                    Path.Combine(GradientDirectory, "Gradient13.csv"), Round9Search,
+                    Path.Combine(GradientDirectory, "Gradient13.csv"), DifferentialMethylBigSearch,
                     Path.Combine(MixedMethylDirectory, "TopFD", "250219_Fluc_Mixedm5C_Gradient13_ms1.feature"),
                     "MeOH", new DoubleRange(20, 100)),
 
                 new(Path.Combine(MixedMethylDirectory, "250219_Fluc_Mixedm5C_Gradient14.raw"),
-                    Path.Combine(GradientDirectory, "Gradient14.csv"), Round9Search,
+                    Path.Combine(GradientDirectory, "Gradient14.csv"), DifferentialMethylBigSearch,
                     Path.Combine(MixedMethylDirectory, "TopFD", "250219_Fluc_Mixedm5C_Gradient14_ms1.feature"),
                     "MeOH", new DoubleRange(20, 100)),
 
-                //new(Path.Combine(MixedMethylDirectory, "250219_Fluc_Halfm5C_Gradient14.raw"),
-                //    Path.Combine(GradientDirectory, "Gradient14.csv"), Round9Search,
-                //    Path.Combine(MixedMethylDirectory, "TopFD", "250219_Fluc_Halfm5C_Gradient14_ms1.feature"),
-                //    "MeOH", new DoubleRange(20, 100))
-
-
+                new(Path.Combine(MixedMethylDirectory, "250219_Fluc_Halfm5C_Gradient14.raw"),
+                    Path.Combine(GradientDirectory, "Gradient14.csv"), DifferentialMethylBigSearch,
+                    Path.Combine(MixedMethylDirectory, "TopFD", "250219_Fluc_Halfm5C_Gradient14_ms1.feature"),
+                    "MeOH", new DoubleRange(20, 100))
             }
         },
 
-        {ExperimentalGroup.Gradient14,
-            new()
+        {
+            ExperimentalGroup.Gradient14, new()
             {
                 new(Path.Combine(MixedMethylDirectory, "250219_Fluc_Nom5C_Gradient14.raw"),
                     Path.Combine(GradientDirectory, "Gradient14.csv"), Gradient14Search,
