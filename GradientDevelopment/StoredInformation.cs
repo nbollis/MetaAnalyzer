@@ -222,54 +222,52 @@ public static class StoredInformation
                 new(Path.Combine(MixedMethylDirectory, "250219_Fluc_Halfm5C_Pfizer12.raw"),
                     Path.Combine(GradientDirectory, "Pfizer12.csv"), DifferentialMethylBigSearch,
                     Path.Combine(MixedMethylDirectory, "TopFD", "250219_fluc_Halfm5C_Pfizer12_ms1.feature"),
-                    "MeOH",
-                    new DoubleRange(20, 100)),
+                    "MeOH", new DoubleRange(20, 100)),
 
                 new(Path.Combine(MixedMethylDirectory, "250219_Fluc_Halfm5C_PfizerGrad.raw"),
                     Path.Combine(GradientDirectory, "Pfizer1.csv"), DifferentialMethylBigSearch,
                     Path.Combine(MixedMethylDirectory, "TopFD", "250219_Fluc_Halfm5C_PfizerGrad_ms1.feature"),
-                    "MeOH", new DoubleRange(20, 260)),
+                    "MeOH", new DoubleRange(0, 270)),
 
                 new(Path.Combine(MixedMethylDirectory, "250219_Fluc_Halfm5C_Pflizer11.raw"),
                     Path.Combine(GradientDirectory, "Pfizer11.csv"), DifferentialMethylBigSearch,
                     Path.Combine(MixedMethylDirectory, "TopFD", "250219_Fluc_Halfm5C_Pflizer11_ms1.feature"),
-                    "MeOH",
-                    new DoubleRange(20, 160)),
+                    "MeOH", new DoubleRange(0, 170)),
 
                 new(Path.Combine(MixedMethylDirectory, "250219_Fluc_Nom5C_Gradient13.raw"),
                     Path.Combine(GradientDirectory, "Gradient13.csv"), DifferentialMethylBigSearch,
                     Path.Combine(MixedMethylDirectory, "TopFD", "250219_Fluc_Nom5C_Gradient13_ms1.feature"),
-                    "MeOH", new DoubleRange(20, 100)),
+                    "MeOH", new DoubleRange(0, 180)),
 
                 new(Path.Combine(MixedMethylDirectory, "250219_Fluc_Allm5C_Gradient13.raw"),
                     Path.Combine(GradientDirectory, "Gradient13.csv"), DifferentialMethylBigSearch,
                     Path.Combine(MixedMethylDirectory, "TopFD", "250219_Fluc_Allm5C_Gradient13_ms1.feature"),
-                    "MeOH", new DoubleRange(20, 100)),
+                    "MeOH", null),
 
                 new(Path.Combine(MixedMethylDirectory, "250219_Fluc_Nom5C_Gradient14.raw"),
                     Path.Combine(GradientDirectory, "Gradient14.csv"), DifferentialMethylBigSearch,
                     Path.Combine(MixedMethylDirectory, "TopFD", "250219_Fluc_Nom5C_Gradient14_ms1.feature"),
-                    "MeOH", new DoubleRange(20, 100)),
+                    "MeOH", new DoubleRange(0, 105)),
 
                 new(Path.Combine(MixedMethylDirectory, "250219_Fluc_Allm5C_Gradient14.raw"),
                     Path.Combine(GradientDirectory, "Gradient14.csv"), DifferentialMethylBigSearch,
                     Path.Combine(MixedMethylDirectory, "TopFD", "250219_Fluc_Allm5C_Gradient14_ms1.feature"),
-                    "MeOH", new DoubleRange(20, 100)),
+                    "MeOH", new DoubleRange(0, 105)),
 
                 new(Path.Combine(MixedMethylDirectory, "250219_Fluc_Mixedm5C_Gradient13.raw"),
                     Path.Combine(GradientDirectory, "Gradient13.csv"), DifferentialMethylBigSearch,
                     Path.Combine(MixedMethylDirectory, "TopFD", "250219_Fluc_Mixedm5C_Gradient13_ms1.feature"),
-                    "MeOH", new DoubleRange(20, 100)),
+                    "MeOH", new DoubleRange(0, 180)),
 
                 new(Path.Combine(MixedMethylDirectory, "250219_Fluc_Mixedm5C_Gradient14.raw"),
                     Path.Combine(GradientDirectory, "Gradient14.csv"), DifferentialMethylBigSearch,
                     Path.Combine(MixedMethylDirectory, "TopFD", "250219_Fluc_Mixedm5C_Gradient14_ms1.feature"),
-                    "MeOH", new DoubleRange(20, 100)),
+                    "MeOH", new DoubleRange(0, 105)),
 
                 new(Path.Combine(MixedMethylDirectory, "250219_Fluc_Halfm5C_Gradient14.raw"),
                     Path.Combine(GradientDirectory, "Gradient14.csv"), DifferentialMethylBigSearch,
                     Path.Combine(MixedMethylDirectory, "TopFD", "250219_Fluc_Halfm5C_Gradient14_ms1.feature"),
-                    "MeOH", new DoubleRange(20, 100))
+                    "MeOH", new DoubleRange(0, 105))
             }
         },
 
@@ -279,23 +277,22 @@ public static class StoredInformation
                 new(Path.Combine(MixedMethylDirectory, "250219_Fluc_Nom5C_Gradient14.raw"),
                     Path.Combine(GradientDirectory, "Gradient14.csv"), Gradient14Search,
                     Path.Combine(MixedMethylDirectory, "TopFD", "250219_Fluc_Nom5C_Gradient14_ms1.feature"),
-                    "MeOH", null),
+                    "MeOH", new DoubleRange(0, 105)),
 
                 new(Path.Combine(MixedMethylDirectory, "250219_Fluc_Allm5C_Gradient14.raw"),
                     Path.Combine(GradientDirectory, "Gradient14.csv"), Gradient14Search,
                     Path.Combine(MixedMethylDirectory, "TopFD", "250219_Fluc_Allm5C_Gradient14_ms1.feature"),
-                    "MeOH", null),
+                    "MeOH", new DoubleRange(0, 105)),
 
                 new(Path.Combine(MixedMethylDirectory, "250219_Fluc_Mixedm5C_Gradient14.raw"),
                     Path.Combine(GradientDirectory, "Gradient14.csv"), Gradient14Search,
                     Path.Combine(MixedMethylDirectory, "TopFD", "250219_Fluc_Mixedm5C_Gradient14_ms1.feature"),
-                    "MeOH", null),
+                    "MeOH", new DoubleRange(0, 105)),
 
                 new(Path.Combine(MixedMethylDirectory, "250219_Fluc_Halfm5C_Gradient14.raw"),
                     Path.Combine(GradientDirectory, "Gradient14.csv"), Gradient14Search,
                     Path.Combine(MixedMethylDirectory, "TopFD", "250219_Fluc_Halfm5C_Gradient14_ms1.feature"),
-                    "MeOH", null)
-
+                    "MeOH", new DoubleRange(0, 105))
             } }
     };
 }

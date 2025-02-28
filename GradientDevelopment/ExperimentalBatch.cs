@@ -3,6 +3,10 @@ using System.Collections.Generic;
 
 namespace GradientDevelopment;
 
+
+/// <summary>
+/// Class representing a batch of experimental data to be parsed and compared as one. 
+/// </summary>
 public class ExperimentalBatch : IEnumerable<RunInformation>
 {
     private readonly bool _overrideParsedResults;
@@ -20,13 +24,16 @@ public class ExperimentalBatch : IEnumerable<RunInformation>
 
     public ExperimentalBatch(string identifier, string processedResultsDirectory, List<RunInformation> allRuns, bool overrideParsedResults = false)
     {
-        Identifier = identifier;
-        ProcessedResultsDirectory = processedResultsDirectory;
-        AllRuns = allRuns;
-
         _extractedInfoPath = Path.Combine(processedResultsDirectory, "ExtractedGradientData.tsv");
         _cytosineMethylPath = Path.Combine(processedResultsDirectory, "CytosineMethylData.csv");
         _overrideParsedResults = overrideParsedResults;
+
+        Identifier = identifier;
+        AllRuns = allRuns;
+        ProcessedResultsDirectory = processedResultsDirectory;
+
+        if (!Directory.Exists(processedResultsDirectory))
+            Directory.CreateDirectory(processedResultsDirectory);
     }
 
     private ExtractedInformationFile GetExtractedInformation()

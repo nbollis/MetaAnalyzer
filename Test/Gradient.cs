@@ -31,7 +31,7 @@ namespace Test
         [Test]
         public static void GetTheInformationYouWant()
         {
-            var batch = StoredInformation.ExperimentalBatches[ExperimentalGroup.Gradient14];
+            var batch = StoredInformation.ExperimentalBatches[ExperimentalGroup.DifferentialMethylFluc];
 
             var info = batch.ExtractedInformationFile;
             var cys = batch.CytosineInformationFile;

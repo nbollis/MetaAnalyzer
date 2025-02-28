@@ -7,6 +7,9 @@ using ResultAnalyzerUtil;
 
 namespace GradientDevelopment
 {
+    /// <summary>
+    /// Class representing Gradient, Mass Spec, and Search result information for a single LC/MS run
+    /// </summary>
     public class ExtractedInformation
     {
         public static CsvConfiguration CsvConfiguration = new CsvConfiguration(CultureInfo.InvariantCulture)

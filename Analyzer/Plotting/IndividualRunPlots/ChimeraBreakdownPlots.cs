@@ -192,27 +192,27 @@ namespace Analyzer.Plotting.IndividualRunPlots
 
             (int IdsPerSpectra, double Parent, double UniqueProtein, double UniqueForms, double Decoys, double Duplicates)[]
                 scaledPercentData = data;
-            scaledPercentData = data.Select(p =>
-                {
-                    double total = p.Parent + p.UniqueProtein + p.UniqueForms + p.Decoys + p.Duplicates;
-                    double parentPercent = InterperateVals(p.Parent,
-                        total);
-                    double decoysPercent = InterperateVals(p.Parent + p.Decoys,
-                        total, parentPercent);
-                    double uniqueProteinPercent = InterperateVals(p.Parent + p.Decoys + p.UniqueProtein,
-                        total, parentPercent + decoysPercent);
-                    double uniqueFormsPercent = InterperateVals(p.Parent + p.Decoys + p.UniqueProtein + p.UniqueForms,
-                        total, parentPercent + decoysPercent + uniqueProteinPercent);
-                    double duplicatesPercent = InterperateVals(p.Parent + p.Decoys + p.UniqueProtein + p.UniqueForms + p.Duplicates,
-                        total, parentPercent + decoysPercent + uniqueProteinPercent + uniqueFormsPercent);
-                    // Scale percentages so that each bar's height is based on its total value
-                    return (p.IdsPerSpectra,
-                        parentPercent.Round(0),
-                        uniqueProteinPercent.Round(0),
-                        uniqueFormsPercent.Round(0),
-                        decoysPercent.Round(0),
-                        duplicatesPercent.Round(0));
-                }).ToArray();
+            //scaledPercentData = data.Select(p =>
+            //    {
+            //        double total = p.Parent + p.UniqueProtein + p.UniqueForms + p.Decoys + p.Duplicates;
+            //        double parentPercent = InterperateVals(p.Parent,
+            //            total);
+            //        double decoysPercent = InterperateVals(p.Parent + p.Decoys,
+            //            total, parentPercent);
+            //        double uniqueProteinPercent = InterperateVals(p.Parent + p.Decoys + p.UniqueProtein,
+            //            total, parentPercent + decoysPercent);
+            //        double uniqueFormsPercent = InterperateVals(p.Parent + p.Decoys + p.UniqueProtein + p.UniqueForms,
+            //            total, parentPercent + decoysPercent + uniqueProteinPercent);
+            //        double duplicatesPercent = InterperateVals(p.Parent + p.Decoys + p.UniqueProtein + p.UniqueForms + p.Duplicates,
+            //            total, parentPercent + decoysPercent + uniqueProteinPercent + uniqueFormsPercent);
+            //        // Scale percentages so that each bar's height is based on its total value
+            //        return (p.IdsPerSpectra,
+            //            parentPercent.Round(0),
+            //            uniqueProteinPercent.Round(0),
+            //            uniqueFormsPercent.Round(0),
+            //            decoysPercent.Round(0),
+            //            duplicatesPercent.Round(0));
+            //    }).ToArray();
 
             var form = Labels.GetDifferentFormLabel(isTopDown); var keys = data.Select(p => p.IdsPerSpectra).ToArray();
             var charts = new[]
@@ -238,7 +238,7 @@ namespace Analyzer.Plotting.IndividualRunPlots
 
             var chart = Chart.Combine(charts)
                 .WithXAxisStyle(Title.init($"1% {Labels.GetLabel(isTopDown, resultType)} per Spectrum", Font: Font.init(Size: PlotlyBase.AxisTitleFontSize)))
-                .WithYAxis(LinearAxis.init<int, int, int, int, int, int>(AxisType: StyleParam.AxisType.Log))
+                //.WithYAxis(LinearAxis.init<int, int, int, int, int, int>(AxisType: StyleParam.AxisType.Log))
                 .WithYAxisStyle(Title.init("Count of Spectra", Font: Font.init(Size: PlotlyBase.AxisTitleFontSize)))
                 .WithLayout(PlotlyBase.DefaultLayoutWithLegendLargerText);
           

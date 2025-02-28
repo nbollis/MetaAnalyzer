@@ -2,42 +2,75 @@
 using CsvHelper.Configuration;
 using Readers;
 using System.Globalization;
+using CsvHelper.Configuration.Attributes;
 
 namespace GradientDevelopment;
 
-public class CytosineInformation(
-    string dataFileName,
-    int totalTargetCytosines,
-    int totalDecoyCytosines,
-    int methylatedTargetCystosines,
-    int methylatedDecoyCystosines,
-    int unmethylatedTargetCytosines,
-    int unmethylatedDecoyCytosines,
-    double targetMethylPercent,
-    double decoyMethylPercent,
-    double targetMethylPercentGreaterThanOne,
-    double decoyMethylPercentGreaterThanOne)
+/// <summary>
+/// Class representing the differential methylation patterns of a single LC/MS run
+/// </summary>
+public class CytosineInformation
 {
+    public CytosineInformation(string dataFileName, int totalTargetCytosines, int totalDecoyCytosines,
+        int methylatedTargetCystosines, int methylatedDecoyCystosines, int unmethylatedTargetCytosines,
+        int unmethylatedDecoyCytosines, double targetMethylPercent, double decoyMethylPercent,
+        double targetMethylPercentGreaterThanOne, double decoyMethylPercentGreaterThanOne)
+    {
+        DataFileName = dataFileName;
+        TotalTargetCytosines = totalTargetCytosines;
+        TotalDecoyCytosines = totalDecoyCytosines;
+        MethylatedTargetCystosines = methylatedTargetCystosines;
+        MethylatedDecoyCystosines = methylatedDecoyCystosines;
+        UnmethylatedTargetCytosines = unmethylatedTargetCytosines;
+        UnmethylatedDecoyCytosines = unmethylatedDecoyCytosines;
+        TargetMethylPercent = targetMethylPercent;
+        DecoyMethylPercent = decoyMethylPercent;
+        TargetMethylPercentGreaterThanOne = targetMethylPercentGreaterThanOne;
+        DecoyMethylPercentGreaterThanOne = decoyMethylPercentGreaterThanOne;
+    }
+
+    public CytosineInformation() { }
+
     public static CsvConfiguration CsvConfiguration = new CsvConfiguration(CultureInfo.InvariantCulture)
     {
         Delimiter = ",",
         HasHeaderRecord = true,
+        HeaderValidated = null,
+        MissingFieldFound = null, 
     };
 
-    public string DataFileName { get; set; } = dataFileName;
-    public int TotalTargetCytosines { get; set; } = totalTargetCytosines;
-    public int TotalDecoyCytosines { get; set; } = totalDecoyCytosines;
+    [Name("DataFileName")]
+    public string DataFileName { get; set; }
 
-    public int MethylatedTargetCystosines { get; set; } = methylatedTargetCystosines;
-    public int MethylatedDecoyCystosines { get; set; } = methylatedDecoyCystosines;
+    [Name("TotalTargetCytosines")]
+    public int TotalTargetCytosines { get; set; }
 
-    public int UnmethylatedTargetCytosines { get; set; } = unmethylatedTargetCytosines;
-    public int UnmethylatedDecoyCytosines { get; set; } = unmethylatedDecoyCytosines;
+    [Name("TotalDecoyCytosines")]
+    public int TotalDecoyCytosines { get; set; }
 
-    public double TargetMethylPercent { get; set; } = targetMethylPercent;
-    public double DecoyMethylPercent { get; set; } = decoyMethylPercent;
-    public double TargetMethylPercentGreaterThanOne { get; set; } = targetMethylPercentGreaterThanOne;
-    public double DecoyMethylPercentGreaterThanOne { get; set; } = decoyMethylPercentGreaterThanOne;
+    [Name("MethylatedTargetCystosines")]
+    public int MethylatedTargetCystosines { get; set; }
+
+    [Name("MethylatedDecoyCystosines")]
+    public int MethylatedDecoyCystosines { get; set; }
+
+    [Name("UnmethylatedTargetCytosines")]
+    public int UnmethylatedTargetCytosines { get; set; }
+
+    [Name("UnmethylatedDecoyCytosines")]
+    public int UnmethylatedDecoyCytosines { get; set; }
+
+    [Name("TargetMethylPercent")]
+    public double TargetMethylPercent { get; set; }
+
+    [Name("DecoyMethylPercent")]
+    public double DecoyMethylPercent { get; set; }
+
+    [Name("TargetMethylPercentGreaterThanOne")]
+    public double TargetMethylPercentGreaterThanOne { get; set; }
+
+    [Name("DecoyMethylPercentGreaterThanOne")]
+    public double DecoyMethylPercentGreaterThanOne { get; set; }
 }
 
 public class CytosineInformationFile : ResultFile<CytosineInformation>, IResultFile

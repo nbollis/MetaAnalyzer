@@ -4,31 +4,34 @@ using MathNet.Numerics;
 using MzLibUtil;
 using Readers;
 using Ms1FeatureFile = GradientDevelopment.Temporary.Ms1FeatureFile;
-using Range = System.Range;
 using SpectrumMatchTsvReader = GradientDevelopment.Temporary.SpectrumMatchTsvReader;
 using StreamReader = System.IO.StreamReader;
 
 namespace GradientDevelopment
 {
+
+    /// <summary>
+    /// Class representing a single LC/MS run with all relevant data for parsing. 
+    /// </summary>
     public class RunInformation
     {
-        private static double qValueCutoff = 0.05;
-
-        private string _featureFilePath;
+        private static readonly double qValueCutoff = 0.05;
+        private readonly string _featureFilePath;
+        private readonly string _gradientFilePath;
+        private readonly string _dataFilePath;
+        private readonly string _osmPath;
         private Ms1FeatureFile? _featureFile;
-        private string _gradientFilePath;
         private Gradient _gradient = null!;
-        private string _dataFilePath;
-        private MsDataFile msDataFile = null!;
-        private string _osmPath;
-        private List<OsmFromTsv> osmFromTsvs = null!;
+        private MsDataFile _msDataFile = null!;
+        private List<OsmFromTsv> _osmFromTsvs = null!;
 
         internal string MobilePhaseB { get; init; }
         public string DataFileName { get; init; }
 
+        
         public Gradient Gradient => _gradient ??= new Gradient(_gradientFilePath);
-        public List<OsmFromTsv> OsmFromTsv => osmFromTsvs ??= SpectrumMatchTsvReader.ReadOsmTsv(_osmPath, out _);
-        public MsDataFile MsDataFile => msDataFile ??= MsDataFileReader.GetDataFile(_dataFilePath).LoadAllStaticData();
+        public List<OsmFromTsv> OsmFromTsv => _osmFromTsvs ??= SpectrumMatchTsvReader.ReadOsmTsv(_osmPath, out _);
+        public MsDataFile MsDataFile => _msDataFile ??= MsDataFileReader.GetDataFile(_dataFilePath).LoadAllStaticData();
         public Ms1FeatureFile Ms1FeatureFile => _featureFile ??= new Ms1FeatureFile(_featureFilePath);
 
 
@@ -40,6 +43,7 @@ namespace GradientDevelopment
             _dataFilePath = dataFilePath;
             _gradientFilePath = gradientPath;
             _osmPath = searchResultPath;
+            _featureFilePath = featurePath;
 
             MobilePhaseB = mobilePhaseB;
             DataFileName = Path.GetFileNameWithoutExtension(dataFilePath);
