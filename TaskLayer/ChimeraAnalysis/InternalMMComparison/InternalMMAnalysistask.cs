@@ -13,6 +13,7 @@ using Plotting;
 using Plotting.Util;
 using ResultAnalyzerUtil;
 using Proteomics.PSM;
+using ResultAnalyzerUtil.CommandLine;
 
 namespace TaskLayer.ChimeraAnalysis
 {

@@ -1,4 +1,4 @@
-﻿namespace TaskLayer.CMD;
+﻿namespace ResultAnalyzerUtil.CommandLine;
 
 public abstract class CmdProcess
 {
@@ -8,7 +8,7 @@ public abstract class CmdProcess
     public double Weight { get; }
     public string WorkingDirectory { get; init; }
     public string ProgramExe { get; init; }
-    public TaskCompletionSource<string> CompletionSource { get; } = new TaskCompletionSource<string>();
+    public TaskCompletionSource<string> CompletionSource { get; } = new();
     public TaskCompletionSource<string>? Dependency { get; private set; }
 
     protected CmdProcess(string summaryText, double weight, string workingDir, string? quickName = null,
