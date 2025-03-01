@@ -20,9 +20,9 @@ namespace Test.ChimeraPaper
             var manager = new TaskManager();
             string dataDir = @"B:\RawSpectraFiles\Mann_11cell_lines";
             
-            string dbPath = @"";
-            string caliToml = @"";
-            string averagingToml = @"";
+            string dbPath = @"B:\Users\Nic\Chimeras\Mann_11cell_analysis\uniprotkb_human_proteome_AND_reviewed_t_2024_03_22.xml";
+            string caliToml = @"B:\RawSpectraFiles\Mann_11cell_lines\107_CalibratedAveraged\Task Settings\Task1-CalibrateTaskconfig.toml";
+            string averagingToml = @"B:\Users\Nic\Chimeras\TopDown_Analysis\Jurkat\Task2-AveragingTaskconfig.toml";
 
             // Aggregate raw files in their replicates
             var cellLines = Directory.GetDirectories(dataDir).Where(p => !p.Contains("107")).ToList();
