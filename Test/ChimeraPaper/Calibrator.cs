@@ -21,7 +21,7 @@ namespace Test.ChimeraPaper
             string dataDir = @"B:\RawSpectraFiles\Mann_11cell_lines";
             
             string dbPath = @"B:\Users\Nic\Chimeras\Mann_11cell_analysis\uniprotkb_human_proteome_AND_reviewed_t_2024_03_22.xml";
-            string caliToml = @"B:\RawSpectraFiles\Mann_11cell_lines\107_CalibratedAveraged\Task Settings\Task1-CalibrateTaskconfig.toml";
+            string caliToml = "\"B:\\RawSpectraFiles\\Mann_11cell_lines\\107_CalibratedAveraged\\Task Settings\\Task1-CalibrateTaskconfig.toml\"";
             string averagingToml = @"B:\Users\Nic\Chimeras\TopDown_Analysis\Jurkat\Task2-AveragingTaskconfig.toml";
 
             // Aggregate raw files in their replicates
@@ -46,7 +46,7 @@ namespace Test.ChimeraPaper
             List<CmdProcess> calibrationProcesses = new();
             foreach (var repRawFiles in cellLineRepRawFiles)
             {
-                string calibOutDir = Path.Combine(dataDir, repRawFiles.Key.Item1, $"{repRawFiles.Key.Item2}_{Version}_Calibrated");
+                string calibOutDir = Path.Combine(dataDir, repRawFiles.Key.Item1, $"{repRawFiles.Key.Item2}-{Version}_Calibrated");
                 string[] specPaths = repRawFiles.Value.ToArray();
                 var caliProcess = new MetaMorpheusCalibrationCmdProcess(specPaths, dbPath, caliToml, calibOutDir, $"Calibrating {repRawFiles.Key.Item2}" , 0.5, MetaMorpheusPath);
 
@@ -60,10 +60,10 @@ namespace Test.ChimeraPaper
             List<CmdProcess> averagingProcesses = new();
             foreach (var repRawFiles in cellLineRepRawFiles)
             {
-                string calibOutDir = Path.Combine(dataDir, repRawFiles.Key.Item1, $"{repRawFiles.Key.Item2}_{Version}_Calibrated");
+                string calibOutDir = Path.Combine(dataDir, repRawFiles.Key.Item1, $"{repRawFiles.Key.Item2}-{Version}_Calibrated");
                 var calibratedFiles = Directory.GetFiles(calibOutDir, $"*.mzML");
 
-                string averagedOutDir = Path.Combine(dataDir, repRawFiles.Key.Item1, $"{repRawFiles.Key.Item2}_{Version}_CalibratedAveraged");
+                string averagedOutDir = Path.Combine(dataDir, repRawFiles.Key.Item1, $"{repRawFiles.Key.Item2}-{Version}_CalibratedAveraged");
 
                 var avgProcess = new MetaMorpheusAveragingCmdProcess(calibratedFiles, dbPath, averagingToml, averagedOutDir, $"Averaging {repRawFiles.Key.Item2}", 0.5, MetaMorpheusPath);
                 averagingProcesses.Add(avgProcess);
