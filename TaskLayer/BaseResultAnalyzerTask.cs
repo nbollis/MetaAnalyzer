@@ -156,7 +156,7 @@ namespace TaskLayer
                     Console.WriteLine($"Previous Completion Detected: {process.SummaryText}");
 
                     // TODO: add functionality to determine if a task has others depending on it
-                    if (process is InternalMetaMorpheusCmdProcess imm && imm.SearchTask.Contains("Build"))
+                    if (process is MetaMorpheusGptmdSearchCmdProcess { IsLibraryCreator: true } imm)
                     {
                         var filePath = Directory.GetFiles(imm.OutputDirectory, "*.msp", SearchOption.AllDirectories).FirstOrDefault();
                         if (filePath != null)
