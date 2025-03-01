@@ -46,7 +46,7 @@ namespace Test.ChimeraPaper
             List<CmdProcess> calibrationProcesses = new();
             foreach (var repRawFiles in cellLineRepRawFiles)
             {
-                string calibOutDir = Path.Combine(dataDir, repRawFiles.Key.Item1, $"{repRawFiles.Key.Item2}-{Version}_Calibrated");
+                string calibOutDir = Path.Combine(dataDir, repRawFiles.Key.Item1, $"{Version}_Calibrated-{repRawFiles.Key.Item2}");
                 string[] specPaths = repRawFiles.Value.ToArray();
                 var caliProcess = new MetaMorpheusCalibrationCmdProcess(specPaths, dbPath, caliToml, calibOutDir, $"Calibrating {repRawFiles.Key.Item2}" , 0.5, MetaMorpheusPath);
 
@@ -60,10 +60,10 @@ namespace Test.ChimeraPaper
             List<CmdProcess> averagingProcesses = new();
             foreach (var repRawFiles in cellLineRepRawFiles)
             {
-                string calibOutDir = Path.Combine(dataDir, repRawFiles.Key.Item1, $"{repRawFiles.Key.Item2}-{Version}_Calibrated");
+                string calibOutDir = Path.Combine(dataDir, repRawFiles.Key.Item1, $"{Version}_Calibrated-{repRawFiles.Key.Item2}");
                 var calibratedFiles = Directory.GetFiles(calibOutDir, $"*.mzML");
 
-                string averagedOutDir = Path.Combine(dataDir, repRawFiles.Key.Item1, $"{repRawFiles.Key.Item2}-{Version}_CalibratedAveraged");
+                string averagedOutDir = Path.Combine(dataDir, repRawFiles.Key.Item1, $"{Version}_CalibratedAveraged-{repRawFiles.Key.Item2}");
 
                 var avgProcess = new MetaMorpheusAveragingCmdProcess(calibratedFiles, dbPath, averagingToml, averagedOutDir, $"Averaging {repRawFiles.Key.Item2}", 0.5, MetaMorpheusPath);
                 averagingProcesses.Add(avgProcess);
