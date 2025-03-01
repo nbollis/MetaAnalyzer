@@ -1,8 +1,8 @@
 ﻿namespace ResultAnalyzerUtil.CommandLine;
 
-public class MetaMorpheusAveragingCmdProcess(string[] spectraPaths, string dbPath, 
-    string averagingTomlPath, string outputPath, string summaryText, double weight, 
-    string workingDir, string? quickName = null) 
+public class MetaMorpheusAveragingCmdProcess(string[] spectraPaths, string dbPath,
+    string averagingTomlPath, string outputPath, string summaryText, double weight,
+    string workingDir, string? quickName = null)
     : MetaMorpheusCmdProcess(spectraPaths, dbPath, [averagingTomlPath], outputPath, summaryText, weight, workingDir, quickName)
 {
     public override bool IsCompleted()

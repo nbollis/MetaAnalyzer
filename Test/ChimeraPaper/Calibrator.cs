@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using ResultAnalyzerUtil.CommandLine;
+using ResultAnalyzerUtil.CommandLine;
 using TaskLayer.CMD;
 
 namespace Test.ChimeraPaper

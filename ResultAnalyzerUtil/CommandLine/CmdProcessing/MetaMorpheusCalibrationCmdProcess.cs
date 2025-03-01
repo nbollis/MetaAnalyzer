@@ -1,8 +1,8 @@
 ﻿namespace ResultAnalyzerUtil.CommandLine;
 
-public class MetaMorpheusCalibrationCmdProcess(string[] spectraPaths, string dbPath, 
+public class MetaMorpheusCalibrationCmdProcess(string[] spectraPaths, string dbPath,
     string calibTomlPath, string outputPath, string summaryText, double weight,
-    string workingDir, string? quickName = null) 
+    string workingDir, string? quickName = null)
     : MetaMorpheusCmdProcess(spectraPaths, dbPath, [calibTomlPath], outputPath, summaryText, weight, workingDir, quickName)
 {
     public override bool IsCompleted()
