@@ -360,6 +360,7 @@ namespace Analyzer.SearchType
                         IdsPerSpectra = chimeraGroup.Length,
                         TargetCount = chimeraGroup.Count(p => p.DecoyContamTarget == "T"),
                         DecoyCount = chimeraGroup.Count(p => p.DecoyContamTarget == "D"),
+                        EntrapmentCount = chimeraGroup.Count(p => p.Accession.StartsWith(GlobalVariables.EntrapmentIdentifier)),
                         PsmCharges = chimeraGroup.Select(p => p.PrecursorCharge).ToArray(),
                         PsmMasses = chimeraGroup.Select(p => p.PrecursorMass).ToArray()
                     };
@@ -446,6 +447,7 @@ namespace Analyzer.SearchType
                         IdsPerSpectra = chimeraGroup.Length,
                         TargetCount = chimeraGroup.Count(p => p.DecoyContamTarget == "T"),
                         DecoyCount = chimeraGroup.Count(p => p.DecoyContamTarget == "D"),
+                        EntrapmentCount = chimeraGroup.Count(p => p.Accession.StartsWith(GlobalVariables.EntrapmentIdentifier)),
                         PeptideCharges = chimeraGroup.Select(p => p.PrecursorCharge).ToArray(),
                         PeptideMasses = chimeraGroup.Select(p => p.PrecursorMass).ToArray()
                     };

@@ -426,7 +426,11 @@ namespace Test.ChimeraPaper
         [Test]
         public static void EdwinTest()
         {
-            
+            string path = @"D:\Projects\ADP-Ribosylation\Searches\";
+            var mm = new MetaMorpheusResult(path, "Mann11", "FastaEntrapment");
+            mm.PlotChimeraBreakDownStackedColumn_Scaled(ResultType.Psm);
+            mm.PlotChimeraBreakDownStackedColumn_Scaled(ResultType.Peptide);
+
         }
 
         [Test]

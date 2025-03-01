@@ -32,6 +32,7 @@ namespace Analyzer.FileTypes.Internal
         [Optional] public int TargetCount { get; set; }
         [Optional] public int DecoyCount { get; set; }
         [Optional] public int DuplicateCount { get; set; }
+        [Optional] public int EntrapmentCount { get; set; }
 
         [Optional]
         [TypeConverter(typeof(SemiColonDelimitedToDoubleArrayConverter.SemiColonDelimitedToIntegerArrayConverter ))]

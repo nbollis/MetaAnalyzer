@@ -109,6 +109,7 @@ public static class PlottingTranslators
         {"Targets", Color.fromKeyword(ColorKeyword.LightAkyBlue)},
         {"Decoys", Color.fromKeyword(ColorKeyword.Gold)},
         {"Duplicates", Color.fromKeyword(ColorKeyword.RoyalBlue)},
+        {"Entrapment", Color.fromKeyword(ColorKeyword.Red)},
 
         // PEP testing
         {"MetaMorpheus_Rep1_BuildLibrary", Color.fromKeyword(ColorKeyword.LightAkyBlue)},

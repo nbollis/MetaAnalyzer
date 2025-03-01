@@ -8,6 +8,12 @@ namespace ResultAnalyzerUtil
 {
     public static class GlobalVariables
     {
+
+        public static string EntrapmentIdentifier { get; set; } = "NTRAP";
+        public static string DecoyIdentifier { get; set; } = "DECOY";
+
+
+
         public static string DataDir { get; private set; }
         private static List<Modification> _AllModsKnown;
         private static HashSet<string> _AllModTypesKnown;

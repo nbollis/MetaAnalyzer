@@ -175,7 +175,7 @@ namespace Analyzer.Plotting.IndividualRunPlots
             bool isTopDown = false)
         {
 
-            (int IdsPerSpectra, double Parent, double UniqueProtein, double UniqueForms, double Decoys, double Duplicates)[] data = 
+            (int IdsPerSpectra, double Parent, double UniqueProtein, double UniqueForms, double Decoys, double Duplicates, double Entrapment)[] data = 
                 results.Where(p => p.Type == resultType)
                         .GroupBy(p => p.IdsPerSpectra)
                         .OrderBy(p => p.Key)
@@ -185,34 +185,38 @@ namespace Analyzer.Plotting.IndividualRunPlots
                                 (double)p.Sum(m => m.UniqueProteins),
                                 (double)p.Sum(m => m.UniqueForms),
                                 (double)p.Sum(m => m.DecoyCount),
-                                (double)p.Sum(m => m.DuplicateCount)))
+                                (double)p.Sum(m => m.DuplicateCount),
+                                (double)p.Sum(m => m.EntrapmentCount)))
                         .ToArray();
 
             // Step 2: Calculate the percentages and scale them
 
-            (int IdsPerSpectra, double Parent, double UniqueProtein, double UniqueForms, double Decoys, double Duplicates)[]
+            (int IdsPerSpectra, double Parent, double UniqueProtein, double UniqueForms, double Decoys, double Duplicates, double Entrapment)[]
                 scaledPercentData = data;
-            //scaledPercentData = data.Select(p =>
-            //    {
-            //        double total = p.Parent + p.UniqueProtein + p.UniqueForms + p.Decoys + p.Duplicates;
-            //        double parentPercent = InterperateVals(p.Parent,
-            //            total);
-            //        double decoysPercent = InterperateVals(p.Parent + p.Decoys,
-            //            total, parentPercent);
-            //        double uniqueProteinPercent = InterperateVals(p.Parent + p.Decoys + p.UniqueProtein,
-            //            total, parentPercent + decoysPercent);
-            //        double uniqueFormsPercent = InterperateVals(p.Parent + p.Decoys + p.UniqueProtein + p.UniqueForms,
-            //            total, parentPercent + decoysPercent + uniqueProteinPercent);
-            //        double duplicatesPercent = InterperateVals(p.Parent + p.Decoys + p.UniqueProtein + p.UniqueForms + p.Duplicates,
-            //            total, parentPercent + decoysPercent + uniqueProteinPercent + uniqueFormsPercent);
-            //        // Scale percentages so that each bar's height is based on its total value
-            //        return (p.IdsPerSpectra,
-            //            parentPercent.Round(0),
-            //            uniqueProteinPercent.Round(0),
-            //            uniqueFormsPercent.Round(0),
-            //            decoysPercent.Round(0),
-            //            duplicatesPercent.Round(0));
-            //    }).ToArray();
+            scaledPercentData = data.Select(p =>
+                {
+                    double total = p.Parent + p.UniqueProtein + p.UniqueForms + p.Decoys + p.Duplicates;
+                    double parentPercent = InterperateVals(p.Parent,
+                        total);
+                    double decoysPercent = InterperateVals(p.Parent + p.Decoys,
+                        total, parentPercent);
+                    double uniqueProteinPercent = InterperateVals(p.Parent + p.Decoys + p.UniqueProtein,
+                        total, parentPercent + decoysPercent);
+                    double uniqueFormsPercent = InterperateVals(p.Parent + p.Decoys + p.UniqueProtein + p.UniqueForms,
+                        total, parentPercent + decoysPercent + uniqueProteinPercent);
+                    double duplicatesPercent = InterperateVals(p.Parent + p.Decoys + p.UniqueProtein + p.UniqueForms + p.Duplicates,
+                        total, parentPercent + decoysPercent + uniqueProteinPercent + uniqueFormsPercent);
+                    double entrapmentPercent = InterperateVals(p.Parent + p.Decoys + p.UniqueProtein + p.UniqueForms + p.Duplicates + p.Entrapment,
+                        total, parentPercent + decoysPercent + uniqueProteinPercent + uniqueFormsPercent + duplicatesPercent);
+                    // Scale percentages so that each bar's height is based on its total value
+                    return (p.IdsPerSpectra,
+                        parentPercent.Round(0),
+                        uniqueProteinPercent.Round(0),
+                        uniqueFormsPercent.Round(0),
+                        decoysPercent.Round(0),
+                        duplicatesPercent.Round(0),
+                        entrapmentPercent.Round(0));
+                }).ToArray();
 
             var form = Labels.GetDifferentFormLabel(isTopDown); var keys = data.Select(p => p.IdsPerSpectra).ToArray();
             var charts = new[]
@@ -235,10 +239,14 @@ namespace Analyzer.Plotting.IndividualRunPlots
                     "Duplicates",
                     MarkerColor: "Duplicates".ConvertConditionToColor(),
                     MultiText: data.Select(p => p.Duplicates.ToString()).ToArray())).ToArray();
-
+            if (data.Any(p => p.Entrapment > 0))
+                charts = charts.Append(Chart.StackedColumn<double, int, string>(scaledPercentData.Select(p => p.Entrapment), keys,
+                    "Entrapment",
+                    MarkerColor: "Entrapment".ConvertConditionToColor(),
+                    MultiText: data.Select(p => p.Entrapment.ToString()).ToArray())).ToArray();
             var chart = Chart.Combine(charts)
                 .WithXAxisStyle(Title.init($"1% {Labels.GetLabel(isTopDown, resultType)} per Spectrum", Font: Font.init(Size: PlotlyBase.AxisTitleFontSize)))
-                //.WithYAxis(LinearAxis.init<int, int, int, int, int, int>(AxisType: StyleParam.AxisType.Log))
+                .WithYAxis(LinearAxis.init<int, int, int, int, int, int>(AxisType: StyleParam.AxisType.Log))
                 .WithYAxisStyle(Title.init("Count of Spectra", Font: Font.init(Size: PlotlyBase.AxisTitleFontSize)))
                 .WithLayout(PlotlyBase.DefaultLayoutWithLegendLargerText);
           
