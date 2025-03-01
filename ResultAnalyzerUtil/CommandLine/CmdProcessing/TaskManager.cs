@@ -2,8 +2,8 @@
 public class TaskManager
 {
     private static SemaphoreSlim semaphore = new SemaphoreSlim(1, 1);
-    private static double CurrentWeight;
-    private static double MaxWeight;
+    protected static double CurrentWeight;
+    protected static double MaxWeight;
 
     static TaskManager()
     {
@@ -47,7 +47,7 @@ public class TaskManager
         }
     }
 
-    public static async Task RunProcesses(List<CmdProcess> processes)
+    public async Task RunProcesses(List<CmdProcess> processes)
     {
         List<Task> runningTasks = new List<Task>();
 
@@ -68,7 +68,7 @@ public class TaskManager
         await Task.WhenAll(runningTasks);
     }
 
-    private static async Task RunProcess(CmdProcess process)
+    private async Task RunProcess(CmdProcess process)
     {
         string dependencyResult = null;
 
@@ -133,20 +133,27 @@ public class TaskManager
                 Console.WriteLine($"\tUsing dependency result: {result} in {process.QuickName}");
             }
 
-            var proc = new System.Diagnostics.Process
+            if (!process.IsCmdTask)
             {
-                StartInfo = new System.Diagnostics.ProcessStartInfo
+                await process.RunTask();
+            }
+            else
+            {
+                var proc = new System.Diagnostics.Process
                 {
-                    FileName = process.ProgramExe,
-                    Arguments = process.Prompt,
-                    UseShellExecute = true,
-                    CreateNoWindow = false,
-                    WorkingDirectory = process.WorkingDirectory,
-                    ErrorDialog = true,
-                }
-            };
-            proc.Start();
-            await proc.WaitForExitAsync();
+                    StartInfo = new System.Diagnostics.ProcessStartInfo
+                    {
+                        FileName = process.ProgramExe,
+                        Arguments = process.Prompt,
+                        UseShellExecute = true,
+                        CreateNoWindow = false,
+                        WorkingDirectory = process.WorkingDirectory,
+                        ErrorDialog = true,
+                    }
+                };
+                proc.Start();
+                await proc.WaitForExitAsync();
+            }
 
             Console.WriteLine($"Completed process: {process.SummaryText}");
         }
@@ -157,4 +164,5 @@ public class TaskManager
             semaphore.Release();
         }
     }
+
 }

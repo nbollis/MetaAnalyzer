@@ -1,14 +1,11 @@
 ﻿using System.Diagnostics;
-using Analyzer.Plotting;
 using Analyzer.Plotting.IndividualRunPlots;
 using Analyzer.SearchType;
 using Analyzer.Util;
 using Plotly.NET;
 using Plotly.NET.ImageExport;
-using TaskLayer.CMD;
 using Analyzer.FileTypes.Internal;
 using Easy.Common.Extensions;
-using Analyzer;
 using Plotting;
 using Plotting.Util;
 using ResultAnalyzerUtil;

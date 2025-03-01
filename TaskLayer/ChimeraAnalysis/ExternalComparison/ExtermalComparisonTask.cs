@@ -55,17 +55,15 @@ namespace TaskLayer.ChimeraAnalysis
                 Directory.CreateDirectory(BulkFigureDirectory);
         }
 
-        protected override void RunSpecific() => RunSpecificAsync(Parameters).Wait();
-
-        private static Task RunSpecificAsync(ExternalComparisonParameters parameters)
+        protected override void RunSpecific()
         {
-            var processes = BuildProcesses(parameters);
+            var processes = BuildProcesses(Parameters);
             RunProcesses(processes).Wait();
 
 
-            var isTopDown = !parameters.InputDirectoryPath.Contains("Mann");
+            var isTopDown = !Parameters.InputDirectoryPath.Contains("Mann");
             Dictionary<string, List<string>> cellLineDict = new();
-            foreach (var cellLineDirectory in Directory.GetDirectories(parameters.OutputDirectory)
+            foreach (var cellLineDirectory in Directory.GetDirectories(Parameters.OutputDirectory)
                          .Where(p => !p.Contains("Generate") && !p.Contains("Figure")))
             {
                 cellLineDict.Add(cellLineDirectory, new());
@@ -97,7 +95,7 @@ namespace TaskLayer.ChimeraAnalysis
                     sw.Stop();
 
                     // if it takes less than one minute to get the breakdown, and we are not overriding, do not plot
-                    if (sw.Elapsed.Minutes < 1 && !parameters.Override)
+                    if (sw.Elapsed.Minutes < 1 && !Parameters.Override)
                         return;
                     lock(plottingLock)
                     {
@@ -115,7 +113,7 @@ namespace TaskLayer.ChimeraAnalysis
                 foreach (var singleRunPath in cellLineDictEntry.Value)
                 {
                     var summaryParams =
-                        new SingleRunAnalysisParameters(singleRunPath, parameters.Override, false);
+                        new SingleRunAnalysisParameters(singleRunPath, Parameters.Override, false);
                     var summaryTask = new SingleRunChimericSpectrumSummaryTask(summaryParams);
                     summaryTasks.Add(new ResultAnalyzerTaskToCmdProcessAdaptor(summaryTask, "Chimeric Spectrum Summary", 0.5,
                         singleRunPath));
@@ -132,7 +130,7 @@ namespace TaskLayer.ChimeraAnalysis
             }
 
             // Pull in Other software results to add to plots
-            var otherSearchResults = GetOtherSearches(isTopDown, parameters);
+            var otherSearchResults = GetOtherSearches(isTopDown, Parameters);
             foreach (var runGroup in otherSearchResults
                 .GroupBy(p => p.Condition.ConvertConditionName()))
             {
@@ -220,7 +218,6 @@ namespace TaskLayer.ChimeraAnalysis
 
             var countingRecords = proteinGroups.SelectMany(p => p.Value.SelectMany(m => m.CountProteins().Results)).ToList();
             PlotProteinCountingCharts(countingRecords, isTopDown);
-            return Task.CompletedTask;
         }
 
 

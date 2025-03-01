@@ -31,4 +31,14 @@ public abstract class CmdProcess
     // If completion source is needed, be sure to set that before returning true
     public abstract bool IsCompleted();
 
+
+
+
+
+    // for adaptors, not a good pattern, but here we are. 
+    public bool IsCmdTask { get; protected set; } = true;
+    public virtual Task RunTask()
+    {
+        return Task.CompletedTask;
+    }
 }

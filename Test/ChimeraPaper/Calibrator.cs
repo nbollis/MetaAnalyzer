@@ -5,7 +5,6 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using ResultAnalyzerUtil.CommandLine;
-using ResultAnalyzerUtil.CommandLine;
 using TaskLayer.CMD;
 
 namespace Test.ChimeraPaper
@@ -14,11 +13,11 @@ namespace Test.ChimeraPaper
     {
         static string MetaMorpheusPath = @"C:\Program Files\MetaMorpheus";
         static string Version = "107";
-        static string CalibSuffix = "-calib.mzML";
 
         [Test]
         public static void RunCalibrations()
         {
+            var manager = new TaskManager();
             string dataDir = @"B:\RawSpectraFiles\Mann_11cell_lines";
             
             string dbPath = @"";
@@ -44,7 +43,7 @@ namespace Test.ChimeraPaper
 
 
             // Create calibration tasks
-            List<MetaMorpheusCmdProcess> calibrationProcesses = new();
+            List<CmdProcess> calibrationProcesses = new();
             foreach (var repRawFiles in cellLineRepRawFiles)
             {
                 string calibOutDir = Path.Combine(dataDir, repRawFiles.Key.Item1, $"{repRawFiles.Key.Item2}_{Version}_Calibrated");
@@ -55,10 +54,10 @@ namespace Test.ChimeraPaper
             }
 
             // run calibrations
-
+            manager.RunProcesses(calibrationProcesses).Wait();
 
             // Create averaging tasks
-            List<MetaMorpheusCmdProcess> averagingProcesses = new();
+            List<CmdProcess> averagingProcesses = new();
             foreach (var repRawFiles in cellLineRepRawFiles)
             {
                 string calibOutDir = Path.Combine(dataDir, repRawFiles.Key.Item1, $"{repRawFiles.Key.Item2}_{Version}_Calibrated");
@@ -71,7 +70,7 @@ namespace Test.ChimeraPaper
             }
 
             // run averaging
-
+            manager.RunProcesses(averagingProcesses).Wait();
         }
     }
 }
