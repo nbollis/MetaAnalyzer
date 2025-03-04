@@ -14,6 +14,8 @@ using Readers;
 using ResultAnalyzerUtil;
 using RetentionTimePrediction;
 using TaskLayer.ChimeraAnalysis;
+using Analyzer.Plotting.ComparativePlots;
+using UsefulProteomicsDatabases;
 
 namespace Test.ChimeraPaper
 {
@@ -426,11 +428,9 @@ namespace Test.ChimeraPaper
         [Test]
         public static void EdwinTest()
         {
-            string path = @"D:\Projects\ADP-Ribosylation\Searches\";
-            var mm = new MetaMorpheusResult(path, "Mann11", "FastaEntrapment");
-            mm.PlotChimeraBreakDownStackedColumn_Scaled(ResultType.Psm);
-            mm.PlotChimeraBreakDownStackedColumn_Scaled(ResultType.Peptide);
+            var dbPath = @"B:\Users\Nic\Chimeras\TopDown_Analysis\Jurkat\uniprotkb_human_proteome_AND_reviewed_t_2024_03_22.xml";
 
+            var proteins = ProteinDbLoader.LoadProteinXML(dbPath, true, DecoyType.Reverse, GlobalVariables.AllModsKnown, false, null, out _);
         }
 
         [Test]

@@ -1472,12 +1472,20 @@ namespace Analyzer.SearchType
             var proteinDbPaths = ProseFile.DatabasePaths.Select(p => p.Replace("Z:", "B:")).ToList();
             foreach (var dbPath in proteinDbPaths)
             {
-                if (dbPath.EndsWith(".msp"))
+                string path = dbPath;
+                if (dbPath.EndsWith(".gz"))
+                {
+                    var decompressedPath = dbPath.Replace(".gz", "");
+                    if (!File.Exists(decompressedPath))
+                        GzipHandler.DecompressGzipToFile(dbPath);
+                    path = decompressedPath;
+                }
+                if (path.EndsWith(".msp"))
                     continue;
-                if (dbPath.EndsWith(".fasta"))
-                    proteins.AddRange(ProteinDbLoader.LoadProteinFasta(dbPath, true, DecoyType.None, false, out _));
-                else if (dbPath.EndsWith(".xml"))
-                    proteins.AddRange(ProteinDbLoader.LoadProteinXML(dbPath, true, 0,
+                if (path.EndsWith(".fasta"))
+                    proteins.AddRange(ProteinDbLoader.LoadProteinFasta(path, true, DecoyType.None, false, out _));
+                else if (path.EndsWith(".xml"))
+                    proteins.AddRange(ProteinDbLoader.LoadProteinXML(path, true, 0,
                         GlobalVariables.AllModsKnown, false, new List<string>(), out _));
                 else
                     throw new Exception("Unknown protein database type");
