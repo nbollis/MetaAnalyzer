@@ -25,7 +25,7 @@ public class TaskManager
             }
             else if (dir.Contains("Smith Lab")) // Beefy Boi
             {
-                MaxWeight = 2;
+                MaxWeight = 2.5;
                 Console.WriteLine($"Detected Beefy Boi: Max Weight = {MaxWeight}");
             }
             else if (dir.Contains("Michael Shortreed"))
