@@ -92,47 +92,98 @@ internal class CellLineFileManager
         }
     }
 
+    // When they were calibrated and averaged all together. 
+    //public CellLineFileManager(string cellLine, string dataDirectoryPath, bool useSetPrecursor = false)
+    //{
+    //    CellLine = cellLine;
+    //    DataDirectoryPath = dataDirectoryPath;
+
+    //    Replicates = new();
+    //    var calibratedAveragedDir = Path.Combine(dataDirectoryPath, $"{InternalMetaMorpheusAnalysisTask.Version}_CalibratedAveraged");
+    //    var calibAveragedSetPrecursorDir = Path.Combine(dataDirectoryPath, "CalibratedAveragedSetPrecursor");
+
+    //    // top-down jurkat
+    //    if (useSetPrecursor)
+    //    {
+    //        var calibratedFiles = Directory.GetFiles(calibratedAveragedDir, "*.mzML");
+    //        var calibratedSetPrecursorFiles = Directory.GetFiles(calibAveragedSetPrecursorDir, "*.mzML");
+
+    //        List<(string original, string setPrecursor)> files = new();
+    //        foreach (var item in calibratedFiles.Zip(calibratedSetPrecursorFiles, (calibrated, setPrecursor) => (calibrated, setPrecursor)))
+    //        {
+    //            files.Add((item.Item1, item.Item2));
+    //        }
+
+    //        foreach (var replicateFileGroup in files.GroupBy(p =>
+    //                     int.Parse(Path.GetFileNameWithoutExtension(p.Item1).ConvertFileName().Split('_')[0])))
+    //        {
+    //            if (replicateFileGroup.Count() != 10)
+    //                Debugger.Break();
+
+    //            Replicates.Add(new ReplicateFileManager(replicateFileGroup.Key,
+    //                replicateFileGroup.Select(p => p.original).ToArray(),
+    //                replicateFileGroup.Select(p => p.setPrecursor).ToArray()));
+    //        }
+    //    }
+    //    else
+    //    {
+    //        foreach (var calibAvgRepGroup in Directory.GetFiles(calibratedAveragedDir, "*.mzML")
+    //                     .GroupBy(p => int.Parse(Path.GetFileNameWithoutExtension(p).ConvertFileName().Split('_')[1])))
+    //        {
+    //            if (calibAvgRepGroup.Count() != 6)
+    //                Debugger.Break();
+
+    //            Replicates.Add(new ReplicateFileManager(calibAvgRepGroup.Key, calibAvgRepGroup.ToArray()));
+    //        }
+    //    }
+    //}
+
+    // when they were calibrated and averaged in their replicates. 
     public CellLineFileManager(string cellLine, string dataDirectoryPath, bool useSetPrecursor = false)
     {
         CellLine = cellLine;
         DataDirectoryPath = dataDirectoryPath;
 
         Replicates = new();
-        var calibratedAveragedDir = Path.Combine(dataDirectoryPath, "CalibratedAveraged");
+        var calibratedAveragedDirs = Directory.GetDirectories(dataDirectoryPath, "*_CalibratedAveraged*");
+        var toUse = calibratedAveragedDirs.Where(p => p.Contains($"{InternalMetaMorpheusAnalysisTask.Version}")).ToList();
         var calibAveragedSetPrecursorDir = Path.Combine(dataDirectoryPath, "CalibratedAveragedSetPrecursor");
 
         // top-down jurkat
         if (useSetPrecursor)
         {
-            var calibratedFiles = Directory.GetFiles(calibratedAveragedDir, "*.mzML");
-            var calibratedSetPrecursorFiles = Directory.GetFiles(calibAveragedSetPrecursorDir, "*.mzML");
+            //var calibratedFiles = Directory.GetFiles(calibratedAveragedDir, "*.mzML");
+            //var calibratedSetPrecursorFiles = Directory.GetFiles(calibAveragedSetPrecursorDir, "*.mzML");
 
-            List<(string original, string setPrecursor)> files = new();
-            foreach (var item in calibratedFiles.Zip(calibratedSetPrecursorFiles, (calibrated, setPrecursor) => (calibrated, setPrecursor)))
-            {
-                files.Add((item.Item1, item.Item2));
-            }
+            //List<(string original, string setPrecursor)> files = new();
+            //foreach (var item in calibratedFiles.Zip(calibratedSetPrecursorFiles, (calibrated, setPrecursor) => (calibrated, setPrecursor)))
+            //{
+            //    files.Add((item.Item1, item.Item2));
+            //}
 
-            foreach (var replicateFileGroup in files.GroupBy(p =>
-                         int.Parse(Path.GetFileNameWithoutExtension(p.Item1).ConvertFileName().Split('_')[0])))
-            {
-                if (replicateFileGroup.Count() != 10)
-                    Debugger.Break();
+            //foreach (var replicateFileGroup in files.GroupBy(p =>
+            //             int.Parse(Path.GetFileNameWithoutExtension(p.Item1).ConvertFileName().Split('_')[0])))
+            //{
+            //    if (replicateFileGroup.Count() != 10)
+            //        Debugger.Break();
 
-                Replicates.Add(new ReplicateFileManager(replicateFileGroup.Key,
-                    replicateFileGroup.Select(p => p.original).ToArray(),
-                    replicateFileGroup.Select(p => p.setPrecursor).ToArray()));
-            }
+            //    Replicates.Add(new ReplicateFileManager(replicateFileGroup.Key,
+            //        replicateFileGroup.Select(p => p.original).ToArray(),
+            //        replicateFileGroup.Select(p => p.setPrecursor).ToArray()));
+            //}
         }
         else
         {
-            foreach (var calibAvgRepGroup in Directory.GetFiles(calibratedAveragedDir, "*.mzML")
-                         .GroupBy(p => int.Parse(Path.GetFileNameWithoutExtension(p).ConvertFileName().Split('_')[1])))
-            {
-                if (calibAvgRepGroup.Count() != 6)
-                    Debugger.Break();
+            if (toUse.Count != 3)
+                Debugger.Break();
 
-                Replicates.Add(new ReplicateFileManager(calibAvgRepGroup.Key, calibAvgRepGroup.ToArray()));
+            foreach (var calibAverageReplicateDir in toUse)
+            {
+                int replicate = int.Parse(calibAverageReplicateDir.Split('_').Last());
+                var files = Directory.GetFiles(calibAverageReplicateDir, "*.mzML", SearchOption.AllDirectories);
+                if (files.Length != 6)
+                    Debugger.Break();
+                Replicates.Add(new ReplicateFileManager(replicate, files));
             }
         }
     }
