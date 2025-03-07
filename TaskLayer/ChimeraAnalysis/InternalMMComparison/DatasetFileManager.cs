@@ -1,4 +1,5 @@
 ﻿using System.Diagnostics;
+using MassSpectrometry;
 using Plotting.Util;
 
 namespace TaskLayer.ChimeraAnalysis;
@@ -152,25 +153,32 @@ internal class CellLineFileManager
         // top-down jurkat
         if (useSetPrecursor)
         {
-            //var calibratedFiles = Directory.GetFiles(calibratedAveragedDir, "*.mzML");
-            //var calibratedSetPrecursorFiles = Directory.GetFiles(calibAveragedSetPrecursorDir, "*.mzML");
+            //if (toUse.Count != 3)
+            //    Debugger.Break();
 
-            //List<(string original, string setPrecursor)> files = new();
-            //foreach (var item in calibratedFiles.Zip(calibratedSetPrecursorFiles, (calibrated, setPrecursor) => (calibrated, setPrecursor)))
-            //{
-            //    files.Add((item.Item1, item.Item2));
-            //}
+            var calibratedSetPrecursorFiles = Directory.GetFiles(calibAveragedSetPrecursorDir, "*.mzML");
 
-            //foreach (var replicateFileGroup in files.GroupBy(p =>
-            //             int.Parse(Path.GetFileNameWithoutExtension(p.Item1).ConvertFileName().Split('_')[0])))
-            //{
-            //    if (replicateFileGroup.Count() != 10)
-            //        Debugger.Break();
+            foreach (var calibAverageReplicateDir in toUse)
+            {
+                int replicate = int.Parse(calibAverageReplicateDir.Split('_').Last().Replace("Rep",""));
+                var msDataFiles = Directory.GetFiles(calibAverageReplicateDir, "*.mzML", SearchOption.AllDirectories);
 
-            //    Replicates.Add(new ReplicateFileManager(replicateFileGroup.Key,
-            //        replicateFileGroup.Select(p => p.original).ToArray(),
-            //        replicateFileGroup.Select(p => p.setPrecursor).ToArray()));
-            //}
+                if (msDataFiles.Length != 10)
+                    Debugger.Break();
+
+                List<string> setPrecursorFiles = new(10);
+                foreach (var file in calibratedSetPrecursorFiles)
+                {
+                    var fileName = Path.GetFileNameWithoutExtension(file).Replace("_SetPrecursor", "").ConvertFileName();
+ 
+                    if (fileName.StartsWith(replicate.ToString()))
+                        setPrecursorFiles.Add(file);
+                }
+                if (setPrecursorFiles.Count != 10)
+                    Debugger.Break();
+
+                Replicates.Add(new ReplicateFileManager(replicate, msDataFiles, setPrecursorFiles.ToArray()));
+            }
         }
         else
         {
