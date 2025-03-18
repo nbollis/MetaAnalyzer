@@ -8,6 +8,7 @@ using static Plotly.NET.StyleParam.DrawingStyle;
 using Transcriptomics;
 using SpectrumMatchTsvReader = GradientDevelopment.Temporary.SpectrumMatchTsvReader;
 using System.Diagnostics;
+using Analyzer.SearchType;
 
 namespace Test
 {
@@ -31,12 +32,12 @@ namespace Test
         [Test]
         public static void GetTheInformationYouWant()
         {
-            var batch = StoredInformation.ExperimentalBatches[ExperimentalGroup.DifferentialMethylFluc];
+            var batch = StoredInformation.ExperimentalBatches[ExperimentalGroup.DifferentialMethylFlucRound2];
 
-            var info = batch.ExtractedInformationFile;
             var cys = batch.CytosineInformationFile;
+            //var fdr = batch.CytosineInformationByFdrFile;
+            var info = batch.ExtractedInformationFile;
             batch.SavePlotHists();
-
         }
 
 
@@ -81,27 +82,16 @@ namespace Test
             //PlotOne();
         }
 
-        //[Test]
-        //public static void PlotOne()
-        //{
-        //    var outPath = GradientDevelopmentParsedInfo;
-        //    var results = new ExtractedInformationFile(outPath).Results;
-        //    //var topFdPath = @"B:\Users\Nic\RNA\FLuc\GradientDevelopment\TopFD";
-        //    var topFdPath = @"B:\Users\Nic\RNA\FLuc\250220_FlucDifferentialMethylations\TopFD";
-        //    //results.UpdateTimesToDisplay();
+        [Test]
+        public static void PlotOne()
+        {
+            string path = @"D:\Projects\Chimeras\UniqueIonsRequired\FirstTest";
+            var mmResult = new MetaMorpheusResult(path, "Jurkat", "DiffCutoffs");
 
-        //    foreach (var run in results.TakeLast(3))
-        //    {
-        //        var path = Path.Combine(GradientDevelopmentFigureDirectory,
-        //            $"{FileIdentifiers.GradientFigure}_{run.DataFileName}_{run.GradientName}");
-        //        var plot2 = run.GetPlotHist(topFdPath, 30);
-        //        if (plot2 is null)
-        //            continue;
+            mmResult.GetIndividualFileComparison();
 
-        //        //plot2.Show();
-        //        plot2.SavePNG(path, null, 1200, 700);
-        //    } 
-        //}
+
+        }
     }
 
 

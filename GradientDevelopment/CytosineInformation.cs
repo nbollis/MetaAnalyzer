@@ -11,12 +11,13 @@ namespace GradientDevelopment;
 /// </summary>
 public class CytosineInformation
 {
-    public CytosineInformation(string dataFileName, int totalTargetCytosines, int totalDecoyCytosines,
+    public CytosineInformation(string dataFileName, double fdrCutoff, int totalTargetCytosines, int totalDecoyCytosines,
         int methylatedTargetCystosines, int methylatedDecoyCystosines, int unmethylatedTargetCytosines,
         int unmethylatedDecoyCytosines, double targetMethylPercent, double decoyMethylPercent,
         double targetMethylPercentGreaterThanOne, double decoyMethylPercentGreaterThanOne)
     {
         DataFileName = dataFileName;
+        FdrCutoff = fdrCutoff;
         TotalTargetCytosines = totalTargetCytosines;
         TotalDecoyCytosines = totalDecoyCytosines;
         MethylatedTargetCystosines = methylatedTargetCystosines;
@@ -27,6 +28,24 @@ public class CytosineInformation
         DecoyMethylPercent = decoyMethylPercent;
         TargetMethylPercentGreaterThanOne = targetMethylPercentGreaterThanOne;
         DecoyMethylPercentGreaterThanOne = decoyMethylPercentGreaterThanOne;
+
+        ExpectedMethylPercent = -1;
+        try
+        {
+            var splits = dataFileName.Split('_');
+            var relevantSplit = splits.FirstOrDefault(p => p.Contains("Met"));
+            if (relevantSplit is null) return;
+
+            var percentString = relevantSplit.Split('M')[0];
+            var converted = percentString.Replace('-', '.');
+            if (double.TryParse(converted, out var percent))
+            {
+                ExpectedMethylPercent = percent;
+            }
+        }
+        catch
+        {  // do nothing
+        }
     }
 
     public CytosineInformation() { }
@@ -41,6 +60,14 @@ public class CytosineInformation
 
     [Name("DataFileName")]
     public string DataFileName { get; set; }
+
+    [Name("Fdr Cutoff")]
+    [Optional] [Default(0.05)]
+    public double FdrCutoff { get; set; }
+
+    [Name("Expected Percent")]
+    [Optional] [Default(-1)]
+    public double ExpectedMethylPercent { get; set; }
 
     [Name("TotalTargetCytosines")]
     public int TotalTargetCytosines { get; set; }

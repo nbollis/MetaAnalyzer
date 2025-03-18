@@ -152,25 +152,29 @@ namespace GradientDevelopment
         }
 
 
-        public CytosineInformation ExtractMethylationInformation()
+        public CytosineInformation ExtractMethylationInformation(double? fdrCutoff = null)
         {
-            var targetCounts = CountCytosines(OsmFromTsv
-                .Where(p => p.FileNameWithoutExtension == DataFileName && p.QValue <= qValueCutoff && p.DecoyContamTarget == "T")
-                .Select(p => p.FullSequence));
-            var decoyCounts = CountCytosines(OsmFromTsv
-                .Where(p => p.FileNameWithoutExtension == DataFileName && p.QValue <= qValueCutoff && p.DecoyContamTarget == "D")
-                .Select(p => p.FullSequence));
+            double cutoff = fdrCutoff ?? qValueCutoff;
+            var targets = OsmFromTsv.Where(p => p.FileNameWithoutExtension == DataFileName && p.QValue <= cutoff && IsMajorityTarget(p));
+            var decoys = OsmFromTsv.Where(p => p.FileNameWithoutExtension == DataFileName && p.QValue <= cutoff && !IsMajorityTarget(p));
+
+            var targetCounts = CountCytosines(targets.Select(p => p.FullSequence));
+            var decoyCounts = CountCytosines(decoys.Select(p => p.FullSequence));
 
             double percentMethylatedTargets = CalculatePercentage(targetCounts.methylated, targetCounts.total);
             double percentMethylatedDecoys = CalculatePercentage(decoyCounts.methylated, decoyCounts.total);
             double percentMethylatedTargetsGreaterThanOne = CalculatePercentage(targetCounts.methylatedGreaterThanOne, targetCounts.totalGreaterThanOne);
             double percentMethylatedDecoysGreaterThanOne = CalculatePercentage(decoyCounts.methylatedGreaterThanOne, decoyCounts.totalGreaterThanOne);
 
-            return new CytosineInformation(DataFileName, targetCounts.total, decoyCounts.total,
+            return new CytosineInformation(DataFileName, cutoff, targetCounts.total, decoyCounts.total,
                 targetCounts.methylated, decoyCounts.methylated,
                 targetCounts.unmethylated, decoyCounts.unmethylated, percentMethylatedTargets,
                 percentMethylatedDecoys, percentMethylatedTargetsGreaterThanOne, percentMethylatedDecoysGreaterThanOne);
         }
+
+
+
+
 
         internal static (int total, int methylated, int unmethylated, int totalGreaterThanOne, int methylatedGreaterThanOne, int unmethylatedGreaterThanOne)
             CountCytosines(IEnumerable<string> fullSequences)
@@ -244,6 +248,13 @@ namespace GradientDevelopment
         internal static double CalculatePercentage(int part, int whole)
         {
             return whole == 0 ? 0 : (double)part / whole;
+        }
+
+        internal static bool IsMajorityTarget(OsmFromTsv osm)
+        {
+            int countT = osm.DecoyContamTarget.Count(c => c == 'T');
+            int countD = osm.DecoyContamTarget.Count(c => c == 'D');
+            return countT > countD;
         }
     }
 }

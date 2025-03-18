@@ -14,6 +14,8 @@ public enum ExperimentalGroup
     InitialDevelopment,
     DifferentialMethylFluc,
     Gradient14,
+    DifferentialMethylFlucRound2,
+    DifferentialMethylFlucRound3
 }
 
 public static class StoredInformation
@@ -28,6 +30,12 @@ public static class StoredInformation
     // DifferentialMethylFluc
     internal static string MixedMethylDirectory = @"B:\Users\Nic\RNA\FLuc\250220_FlucDifferentialMethylations";
     internal static string DifferentialMethylBigSearch = Path.Combine(MixedMethylDirectory, @"Searches\AllFiles_MethOnlyGPTMD_VariableMeth\Task2-SearchVariableMeth\AllOSMs.osmtsv");
+
+    internal static string MixedMethylDirectory2 = @"B:\Users\Nic\RNA\FLuc\250313_FLucDifferentialMethylations_More";
+    internal static string DifferentialMethylBigSearch2 = Path.Combine(MixedMethylDirectory2, @"Searches\SearcheAllFiles_MethMetalGPTMD_VariableMeth\Task2-RnaSearchTask\AllOSMs.osmtsv");
+
+    internal static string MixedMethylDirectory3 = @"B:\Users\Nic\RNA\FLuc\250317_FlucDifferentialMethylations";
+    internal static string DifferentialMethylBigSearch3 = Path.Combine(MixedMethylDirectory3, @"Searches\SearcheAllFiles_MethMetalGPTMD_VariableMeth\Task2-RnaSearchTask\AllOSMs.osmtsv");
 
     // Gradient14 only
     internal static string Gradient14Search = Path.Combine(MixedMethylDirectory, @"Searches\AllGrad14_MethOnlyGptmd_VariableMeth\Task2-SearchVariableMeth\AllOSMs.osmtsv");
@@ -216,7 +224,7 @@ public static class StoredInformation
             ]
         },
 
-        { 
+        {
             ExperimentalGroup.DifferentialMethylFluc, new List<RunInformation>
             {
                 new(Path.Combine(MixedMethylDirectory, "250219_Fluc_Halfm5C_Pfizer12.raw"),
@@ -293,7 +301,81 @@ public static class StoredInformation
                     Path.Combine(GradientDirectory, "Gradient14.csv"), Gradient14Search,
                     Path.Combine(MixedMethylDirectory, "TopFD", "250219_Fluc_Halfm5C_Gradient14_ms1.feature"),
                     "MeOH", new DoubleRange(0, 105))
-            } }
+            } },
+
+        {
+            ExperimentalGroup.DifferentialMethylFlucRound2, new()
+            {
+                new(Path.Combine(MixedMethylDirectory2, "250313_RNA_FLuc_0-5Met_T1_Grad14_Rep1.raw"),
+                    Path.Combine(GradientDirectory, "Gradient14_2.csv"), DifferentialMethylBigSearch2,
+                    Path.Combine(MixedMethylDirectory2, "TopFD", "250313_RNA_FLuc_0-5Met_T1_Grad14_Rep1_ms1.feature"),
+                    "MeOH", new DoubleRange(30, 70)),
+                new(Path.Combine(MixedMethylDirectory2, "250313_RNA_FLuc_0-25Met_T1_Grad14_Rep1.raw"),
+                    Path.Combine(GradientDirectory, "Gradient14_2.csv"), DifferentialMethylBigSearch2,
+                    Path.Combine(MixedMethylDirectory2, "TopFD", "250313_RNA_FLuc_0-25Met_T1_Grad14_Rep1_ms1.feature"),
+                    "MeOH", new DoubleRange(30, 70)),
+                new(Path.Combine(MixedMethylDirectory2, "250313_RNA_FLuc_0-75Met_T1_Grad14_Rep1.raw"),
+                    Path.Combine(GradientDirectory, "Gradient14_2.csv"), DifferentialMethylBigSearch2,
+                    Path.Combine(MixedMethylDirectory2, "TopFD", "250313_RNA_FLuc_0-75Met_T1_Grad14_Rep1_ms1.feature"),
+                    "MeOH", new DoubleRange(30, 70)),
+                new(Path.Combine(MixedMethylDirectory2, "250313_RNA_FLuc_1Met_T1_Grad14_Rep1.raw"),
+                    Path.Combine(GradientDirectory, "Gradient14_2.csv"), DifferentialMethylBigSearch2,
+                    Path.Combine(MixedMethylDirectory2, "TopFD", "250313_RNA_FLuc_1Met_T1_Grad14_Rep1_ms1.feature"),
+                    "MeOH", new DoubleRange(30, 70)),
+                new(Path.Combine(MixedMethylDirectory2, "250313_RNA_FLuc_0Met_T1_Grad14_Rep1.raw"),
+                    Path.Combine(GradientDirectory, "Gradient14_2.csv"), DifferentialMethylBigSearch2,
+                    Path.Combine(MixedMethylDirectory2, "TopFD", "250313_RNA_FLuc_0Met_T1_Grad14_Rep1_ms1.feature"),
+                    "MeOH", new DoubleRange(30, 70)),
+            } },
+        {
+            ExperimentalGroup.DifferentialMethylFlucRound3, new()
+            {
+                new(Path.Combine(MixedMethylDirectory3, "250315_RNA_FLuc_0-5Met_T1_Grad14_Rep1.raw"),
+                    Path.Combine(GradientDirectory, "Gradient14_2.csv"), DifferentialMethylBigSearch3,
+                    Path.Combine(MixedMethylDirectory3, "TopFD", "250315_RNA_FLuc_0-5Met_T1_Grad14_Rep1_ms1.feature"),
+                    "MeOH", new DoubleRange(30, 70)),
+                new(Path.Combine(MixedMethylDirectory3, "250315_RNA_FLuc_0-5Met_T1_Grad14_Rep2.raw"),
+                    Path.Combine(GradientDirectory, "Gradient14_2.csv"), DifferentialMethylBigSearch3,
+                    Path.Combine(MixedMethylDirectory3, "TopFD", "250315_RNA_FLuc_0-5Met_T1_Grad14_Rep2_ms1.feature"),
+                    "MeOH", new DoubleRange(30, 70)),
+                new(Path.Combine(MixedMethylDirectory3, "250315_RNA_FLuc_0-5Met_T1_Grad14_Rep3.raw"),
+                    Path.Combine(GradientDirectory, "Gradient14_2.csv"), DifferentialMethylBigSearch3,
+                    Path.Combine(MixedMethylDirectory3, "TopFD", "250315_RNA_FLuc_0-5Met_T1_Grad14_Rep3_ms1.feature"),
+                    "MeOH", new DoubleRange(30, 70)),
+                new(Path.Combine(MixedMethylDirectory3, "250315_RNA_FLuc_0-25Met_T1_Grad14_Rep1.raw"),
+                    Path.Combine(GradientDirectory, "Gradient14_2.csv"), DifferentialMethylBigSearch3,
+                    Path.Combine(MixedMethylDirectory3, "TopFD", "250315_RNA_FLuc_0-25Met_T1_Grad14_Rep1_ms1.feature"),
+                    "MeOH", new DoubleRange(30, 70)),
+                new(Path.Combine(MixedMethylDirectory3, "250315_RNA_FLuc_0-25Met_T1_Grad14_Rep2.raw"),
+                    Path.Combine(GradientDirectory, "Gradient14_2.csv"), DifferentialMethylBigSearch3,
+                    Path.Combine(MixedMethylDirectory3, "TopFD", "250315_RNA_FLuc_0-25Met_T1_Grad14_Rep2_ms1.feature"),
+                    "MeOH", new DoubleRange(30, 70)),
+                new(Path.Combine(MixedMethylDirectory3, "250315_RNA_FLuc_0-25Met_T1_Grad14_Rep3.raw"),
+                    Path.Combine(GradientDirectory, "Gradient14_2.csv"), DifferentialMethylBigSearch3,
+                    Path.Combine(MixedMethylDirectory3, "TopFD", "250315_RNA_FLuc_0-25Met_T1_Grad14_Rep3_ms1.feature"),
+                    "MeOH", new DoubleRange(30, 70)),
+                new(Path.Combine(MixedMethylDirectory3, "250315_RNA_FLuc_0-75Met_T1_Grad14_Rep1.raw"),
+                    Path.Combine(GradientDirectory, "Gradient14_2.csv"), DifferentialMethylBigSearch3,
+                    Path.Combine(MixedMethylDirectory3, "TopFD", "250315_RNA_FLuc_0-75Met_T1_Grad14_Rep1_ms1.feature"),
+                    "MeOH", new DoubleRange(30, 70)),
+                new(Path.Combine(MixedMethylDirectory3, "250315_RNA_FLuc_0-75Met_T1_Grad14_Rep2.raw"),
+                    Path.Combine(GradientDirectory, "Gradient14_2.csv"), DifferentialMethylBigSearch3,
+                    Path.Combine(MixedMethylDirectory3, "TopFD", "250315_RNA_FLuc_0-75Met_T1_Grad14_Rep2_ms1.feature"),
+                    "MeOH", new DoubleRange(30, 70)),
+                new(Path.Combine(MixedMethylDirectory3, "250315_RNA_FLuc_0Met_T1_Grad14_Rep1.raw"),
+                    Path.Combine(GradientDirectory, "Gradient14_2.csv"), DifferentialMethylBigSearch3,
+                    Path.Combine(MixedMethylDirectory3, "TopFD", "250315_RNA_FLuc_0Met_T1_Grad14_Rep1_ms1.feature"),
+                    "MeOH", new DoubleRange(30, 70)),
+                new(Path.Combine(MixedMethylDirectory3, "250315_RNA_FLuc_0Met_T1_Grad14_Rep2.raw"),
+                    Path.Combine(GradientDirectory, "Gradient14_2.csv"), DifferentialMethylBigSearch3,
+                    Path.Combine(MixedMethylDirectory3, "TopFD", "250315_RNA_FLuc_0Met_T1_Grad14_Rep2_ms1.feature"),
+                    "MeOH", new DoubleRange(30, 70)),
+                new(Path.Combine(MixedMethylDirectory3, "250315_RNA_FLuc_0Met_T1_Grad14_Rep3.raw"),
+                    Path.Combine(GradientDirectory, "Gradient14_2.csv"), DifferentialMethylBigSearch3,
+                    Path.Combine(MixedMethylDirectory3, "TopFD", "250315_RNA_FLuc_0Met_T1_Grad14_Rep3_ms1.feature"),
+                    "MeOH", new DoubleRange(30, 70)),
+            }
+        }
     };
 }
 

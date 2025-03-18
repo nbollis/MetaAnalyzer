@@ -37,7 +37,7 @@ namespace GradientDevelopment
 
         public override void LoadResults()
         {
-            using var csv = new CsvReader(new StreamReader(FilePath), GradientPoint.CsvConfiguration);
+           using var csv = new CsvReader(new StreamReader(FilePath), GradientPoint.CsvConfiguration);
             Results = csv.GetRecords<GradientPoint>().ToList();
         }
 

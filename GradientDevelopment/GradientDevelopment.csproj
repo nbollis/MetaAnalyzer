@@ -20,6 +20,12 @@
 	</ItemGroup>
 	
   <ItemGroup>
+    <None Update="Gradients\Gradient15.csv">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="Gradients\Gradient14_2.csv">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Update="Gradients\itwStandard.csv">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
