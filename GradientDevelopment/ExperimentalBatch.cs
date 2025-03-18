@@ -24,7 +24,8 @@ public class ExperimentalBatch : IEnumerable<RunInformation>
     public CytosineInformationFile CytosineInformationFile => _cytosineInformationFile ??= GetCytosineInformation();
     public CytosineInformationFile CytosineInformationByFdrFile => _cytosineInformationByFdrFile ??= GetCysteineInformationFileByFdr();
 
-    public ExperimentalBatch(string identifier, string processedResultsDirectory, List<RunInformation> allRuns, bool overrideParsedResults = false)
+    public ExperimentalBatch(string identifier, string processedResultsDirectory, List<RunInformation> allRuns, 
+        bool overrideParsedResults = false)
     {
         _extractedInfoPath = Path.Combine(processedResultsDirectory, "ExtractedGradientData.tsv");
         _cytosineMethylPath = Path.Combine(processedResultsDirectory, "CytosineMethylData.csv");
@@ -43,12 +44,12 @@ public class ExperimentalBatch : IEnumerable<RunInformation>
     {
         bool wasUpdated = false;
         ExtractedInformationFile file = null!;
-        if (!File.Exists(_extractedInfoPath) || _overrideParsedResults) // create from nothing or ovverwrite
+        if (!File.Exists(_extractedInfoPath) || _overrideParsedResults) // create from nothing or overwrite
         {
             wasUpdated = true;
             file = new ExtractedInformationFile(_extractedInfoPath)
             {
-                Results = AllRuns.Select(p => p.GetExtractedRunInformation()).ToList()
+                Results = AllRuns.Select(p => p.GetExtractedRunInformation(Identifier)).ToList()
             };
         }
         else 
@@ -63,7 +64,7 @@ public class ExperimentalBatch : IEnumerable<RunInformation>
                 if (file.Any(p => p.DataFileName == run.DataFileName))
                     continue;
 
-                var extractedInfo = run.GetExtractedRunInformation();
+                var extractedInfo = run.GetExtractedRunInformation(Identifier);
                 toAppend.Add(extractedInfo);
             }
 

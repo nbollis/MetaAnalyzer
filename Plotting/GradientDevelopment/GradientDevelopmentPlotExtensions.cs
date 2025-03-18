@@ -121,8 +121,8 @@ namespace Plotting.GradientDevelopment
             var curves = new List<GenericChart.GenericChart>();
             if (featureFile is not null)
             {
-                var osms = StoredInformation.RunInformationList.First(p => p.DataFileName == run.DataFileName)
-                    .OsmFromTsv;
+                var osms = StoredInformation.ExperimentalBatches[run.Group!.Value]
+                    .First(p => p.DataFileName == run.DataFileName).OsmFromTsv;
 
                 var consensus = ResultFileConsensus.GetConsensusIds(osms, featuresToMap);
                 var tolerance = new AbsoluteTolerance(20);

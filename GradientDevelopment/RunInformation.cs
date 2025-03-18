@@ -53,7 +53,7 @@ namespace GradientDevelopment
             ParentDirectory = Path.GetDirectoryName(dataFilePath)!;
         }
 
-        public ExtractedInformation GetExtractedRunInformation()
+        public ExtractedInformation GetExtractedRunInformation(string? identifier = null)
         {
             var resultsTxtPath = Directory.GetParent(_osmPath)!.GetFiles("results.txt").First();
             
@@ -117,10 +117,16 @@ namespace GradientDevelopment
                 .Select(p => (p.Key, (double)p.Count()))
                 .ToArray();
 
+            ExperimentalGroup? id = null;
+            if (identifier is not null && Enum.TryParse<ExperimentalGroup>(identifier, out var attempt))
+            {
+                id = attempt;
+            }
+
             var gradName = Path.GetFileNameWithoutExtension(_gradientFilePath);
             var info = new ExtractedInformation(DataFileName, MobilePhaseB, gradName, tic, grad, 
                 allOsms, filteredOsms, ms2ScanCount, precursorCount, osmCount, 
-                oligoCount, MinMaxToDisplay?.Minimum, MinMaxToDisplay?.Maximum);
+                oligoCount, MinMaxToDisplay?.Minimum, MinMaxToDisplay?.Maximum, id);
             return info;
         }
 

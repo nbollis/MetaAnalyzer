@@ -30,9 +30,10 @@ public class CytosineInformation
         DecoyMethylPercentGreaterThanOne = decoyMethylPercentGreaterThanOne;
 
         ExpectedMethylPercent = -1;
+
+        var splits = dataFileName.Split('_');
         try
         {
-            var splits = dataFileName.Split('_');
             var relevantSplit = splits.FirstOrDefault(p => p.Contains("Met"));
             if (relevantSplit is null) return;
 
@@ -41,6 +42,19 @@ public class CytosineInformation
             if (double.TryParse(converted, out var percent))
             {
                 ExpectedMethylPercent = percent;
+            }
+        }
+        catch
+        {  // do nothing
+        }
+
+        try
+        {
+            var relevantSplit = splits.Last();
+            var repChar = relevantSplit.Last();
+            if (char.IsDigit(repChar))
+            {
+                Replicate = int.Parse(repChar.ToString());
             }
         }
         catch
@@ -68,6 +82,10 @@ public class CytosineInformation
     [Name("Expected Percent")]
     [Optional] [Default(-1)]
     public double ExpectedMethylPercent { get; set; }
+
+    [Name("Replicate")]
+    [Optional] [Default(-1)]
+    public double Replicate { get; set; }
 
     [Name("TotalTargetCytosines")]
     public int TotalTargetCytosines { get; set; }

@@ -32,12 +32,22 @@ namespace Test
         [Test]
         public static void GetTheInformationYouWant()
         {
-            var batch = StoredInformation.ExperimentalBatches[ExperimentalGroup.DifferentialMethylFlucRound2];
+            var batch = StoredInformation.ExperimentalBatches[ExperimentalGroup.DifferentialMethylFlucRound3];
 
             var cys = batch.CytosineInformationFile;
-            //var fdr = batch.CytosineInformationByFdrFile;
+            var fdr = batch.CytosineInformationByFdrFile;
             var info = batch.ExtractedInformationFile;
             batch.SavePlotHists();
+
+
+            //foreach (var groupIdentifier in Enum.GetValues<ExperimentalGroup>().Where(p => p.ToString().Contains("Round3_")))
+            //{
+            //    var batch2 = StoredInformation.ExperimentalBatches[groupIdentifier];
+            //    var cys2 = batch2.CytosineInformationFile;
+            //    var fdr2 = batch2.CytosineInformationByFdrFile;
+            //    var info2 = batch2.ExtractedInformationFile;
+            //    batch2.SavePlotHists();
+            //}
         }
 
 
