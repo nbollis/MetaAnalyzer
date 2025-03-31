@@ -40,7 +40,8 @@ public static class StoredInformation
     internal static string DifferentialMethylBigSearch2 = Path.Combine(MixedMethylDirectory2, @"Searches\SearcheAllFiles_MethMetalGPTMD_VariableMeth\Task2-RnaSearchTask\AllOSMs.osmtsv");
 
     internal static string MixedMethylDirectory3 = @"B:\Users\Nic\RNA\FLuc\250317_FlucDifferentialMethylations";
-    internal static string DifferentialMethylBigSearch3 = Path.Combine(MixedMethylDirectory3, @"Searches\SearchAllFiles_MethMetalGPTMD_VariableMeth\Task2-RnaSearchTask\AllOSMs.osmtsv");
+    //internal static string DifferentialMethylBigSearch3 = Path.Combine(MixedMethylDirectory3, @"Searches\SearchAllFiles_MethMetalGPTMD_VariableMeth\Task2-RnaSearchTask\AllOSMs.osmtsv");
+    internal static string DifferentialMethylBigSearch3 = Path.Combine(MixedMethylDirectory3, @"Searches\SearchAllFiles_MetalGPTMD_VariableMeth\Task2-RnaSearchTask\AllOSMs.osmtsv");
     internal static string DifferentialMethylBigSearch3_0 = Path.Combine(MixedMethylDirectory3, @"Searches\0_MethMetalGPTMD_VariableMeth\Task2-RnaSearchTask\AllOSMs.osmtsv");
     internal static string DifferentialMethylBigSearch3_25 = Path.Combine(MixedMethylDirectory3, @"Searches\0-25_MethMetalGPTMD_VariableMeth\Task2-RnaSearchTask\AllOSMs.osmtsv");
     internal static string DifferentialMethylBigSearch3_5 = Path.Combine(MixedMethylDirectory3, @"Searches\0-5_MethMetalGPTMD_VariableMeth\Task2-RnaSearchTask\AllOSMs.osmtsv");

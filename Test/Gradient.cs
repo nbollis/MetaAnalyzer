@@ -51,6 +51,23 @@ namespace Test
         }
 
 
+        [Test]
+        public static void GetTheInformationYouWant2()
+        {
+
+            var results = new List<CytosineInformation>();
+            foreach (var groupIdentifier in Enum.GetValues<ExperimentalGroup>().Where(p => p.ToString().Contains("Round3_")))
+            {
+                var batch2 = StoredInformation.ExperimentalBatches[groupIdentifier];
+                results.AddRange(batch2.CytosineInformationByFdrFile);
+            }
+
+            var file = new CytosineInformationFile(@"B:\Users\Nic\RNA\FLuc\250317_FlucDifferentialMethylations\ProcessedResults\Round3SearchedAlone_CytosineMethylDataByFdr.csv", results);
+            file.WriteResults(file.FilePath);
+        
+        }
+
+
 
 
 

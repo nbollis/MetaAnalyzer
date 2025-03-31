@@ -1,4 +1,5 @@
-﻿using System.Numerics;
+﻿using System.Configuration;
+using System.Numerics;
 using Analyzer;
 using Analyzer.Interfaces;
 using Analyzer.Plotting;
@@ -532,7 +533,20 @@ namespace Test.ChimeraPaper
 
 
 
+        [Test]
+        public static void MiscOneOff()
+        {
+            string path = @"B:\RawSpectraFiles\WideWindow";
+            List<SingleRunResults> results = new();
+            foreach (var dir in Directory.GetDirectories(path).Where(p => !p.Contains("Figure")))
+            {
+                results.Add(new MetaMorpheusResult(dir));
+            }
 
+            var temp = new CellLineResults(path, results);
+            temp.GetIndividualFileComparison();
+            temp.PlotIndividualFileResults();
+        }
 
 
 

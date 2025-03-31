@@ -147,4 +147,8 @@ public class CytosineInformationFile : ResultFile<CytosineInformation>, IResultF
         if (cytosineInformation is not null)
             Results = cytosineInformation;
     }
+
+    public CytosineInformationFile() : base()
+    {
+    }
 }
