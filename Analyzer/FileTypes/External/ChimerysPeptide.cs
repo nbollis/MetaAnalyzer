@@ -8,6 +8,8 @@ namespace Analyzer.FileTypes.External;
 /// </summary>
 public class ChimerysPeptide
 {
+    public bool PassesConfidenceFilter => QValue <= 0.01;
+
     [Name("PEPTIDE_ID")]
     public long PeptideId { get; set; }
 

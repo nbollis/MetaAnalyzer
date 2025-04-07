@@ -7,6 +7,8 @@ namespace Analyzer.FileTypes.External;
 /// </summary>
 public class ChimerysProteinGroup
 {
+    public bool PassesConfidenceFilter => GlobalQValue <= 0.01;
+
     [Name("PROTEIN_IDS")]
     [TypeConverter(typeof(SemicolonDelimitedToIntegerArrayConverter))]
     public int[] ProteinIds { get; set; }

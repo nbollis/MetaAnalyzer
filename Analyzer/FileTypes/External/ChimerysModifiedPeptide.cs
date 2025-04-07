@@ -1,5 +1,7 @@
 ﻿using Analyzer.Util.TypeConverters;
 using CsvHelper.Configuration.Attributes;
+using Omics.Modifications;
+using System.Text;
 
 namespace Analyzer.FileTypes.External;
 
@@ -8,6 +10,76 @@ namespace Analyzer.FileTypes.External;
 /// </summary>
 public class ChimerysModifiedPeptide
 {
+    [Ignore] public int Charge => 0;
+    [Ignore] public string ProteinAccession { get; }
+
+    [Ignore] private string? _fileNameWithoutExtensions;
+    [Ignore] public string FileNameWithoutExtension => _fileNameWithoutExtensions ??= Path.GetFileNameWithoutExtension(RawFileName);
+    [Ignore] public double ConfidenceMetric => QValue;
+    [Ignore] public double SecondaryConfidenceMetric => 1 - Pep;
+    [Ignore] public bool PassesConfidenceFilter => QValue <= 0.01;
+
+    [Ignore] private string? _fullSequence;
+    [Ignore]
+    public string FullSequence
+    {
+        get
+        {
+            if (_fullSequence != null)
+                return _fullSequence;
+            if (!OneBasedModificationDictionary.Any())
+                return _fullSequence = BaseSequence;
+
+            var sb = new StringBuilder();
+
+            if (OneBasedModificationDictionary.Any(p => p.Key == 0))
+            {
+                var mmMod = OneBasedModificationDictionary.FirstOrDefault(p => p.Key == 0).Value;
+                if (mmMod is not null)
+                {
+                    string category = mmMod.ModificationType switch
+                    {
+                        "Unimod" when mmMod.OriginalId.Contains("Carbamido") => "Common Fixed",
+                        "Unimod" when mmMod.OriginalId.Contains("Oxidation") => "Common Variable",
+                        "Unimod" when mmMod.OriginalId.Contains("Phosphoryl") => "Common Biological",
+                        "Unimod" when mmMod.OriginalId.Contains("Acetyl") => "Common Biological",
+                        "Unimod" when mmMod.OriginalId.Contains("Methy") => "Common Biological",
+                        _ => mmMod.ModificationType
+                    };
+
+                    sb.Append($"[{category}:{mmMod.OriginalId} on {mmMod.Target}]");
+                }
+            }
+            for (int i = 0; i < BaseSequence.Length; i++)
+            {
+                var residue = BaseSequence[i];
+                sb.Append(residue);
+
+                var mmMod = OneBasedModificationDictionary.FirstOrDefault(p => p.Key == i + 1).Value;
+                if (mmMod is null) continue;
+
+                string category = mmMod.ModificationType switch
+                {
+                    "Unimod" when mmMod.OriginalId.Contains("Carbamido") => "Common Fixed",
+                    "Unimod" when mmMod.OriginalId.Contains("Oxidation") => "Common Variable",
+                    "Unimod" when mmMod.OriginalId.Contains("Phosphoryl") => "Common Biological",
+                    "Unimod" when mmMod.OriginalId.Contains("Acetyl") => "Common Biological",
+                    "Unimod" when mmMod.OriginalId.Contains("Methy") => "Common Biological",
+                    _ => mmMod.ModificationType
+                };
+                sb.Append($"[{category}:{mmMod.OriginalId} on {mmMod.Target}]");
+            }
+
+            return _fullSequence = sb.ToString();
+
+        }
+    }
+
+
+    [Name("MODIFIED_SEQUENCE")]
+    [TypeConverter(typeof(ChimerysFullSequenceToModificationConverter))]
+    public Dictionary<int, Modification> OneBasedModificationDictionary { get; set; }
+
     [Name("MODIFIED_PEPTIDE_ID")]
     public long ModifiedPeptideId { get; set; }
 
