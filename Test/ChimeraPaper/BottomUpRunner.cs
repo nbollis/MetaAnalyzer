@@ -548,7 +548,13 @@ namespace Test.ChimeraPaper
             temp.PlotIndividualFileResults();
         }
 
-
+        [Test]
+        public static void ChimerysLoading()
+        {
+            string path = @"B:\Users\Nic\Chimeras\ExternalMMAnalysis\Mann_11cell_lines\A549\Chimerys_MSAID_Rep2";
+            var chim = new ChimerysResult(path);
+            chim.ChimerysResultDirectory.PsmFile.LoadResults();
+        }
 
         static double LogFactorial(int n)
         {
