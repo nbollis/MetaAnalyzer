@@ -16,6 +16,7 @@ public class ResultAnalyzerTaskToCmdProcessAdaptor : CmdProcess
         : base(summaryText, weight, workingDir, quickName, programExe)
     {
         _hasStarted = false;
+        IsCmdTask = false;
 
         Prompt = "";
         Task = task;

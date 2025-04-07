@@ -29,6 +29,7 @@ namespace TaskLayer.ChimeraAnalysis
 
         protected override void RunSpecific()
         {
+            Log("Starting Chimeric Spectrum Summary Task");
             MetaMorpheusResult mm;
             switch (Parameters.RunResult)
             {
@@ -54,7 +55,8 @@ namespace TaskLayer.ChimeraAnalysis
             // Run the parsing
             RunResult = mm;
             var sw = Stopwatch.StartNew();
-            mm.Override = Parameters.Override; 
+            mm.Override = Parameters.Override;
+            Log("Creating Feature Count Plots");
             var summary = mm.GetChimericSpectrumSummaryFile();
             mm.Override = false;
             if (sw.Elapsed.TotalMinutes <= 1)

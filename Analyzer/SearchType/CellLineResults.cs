@@ -95,8 +95,12 @@ public class CellLineResults : IEnumerable<SingleRunResults>, IDisposable
             else if (Directory.GetFiles(directory, "*.fp-manifest", SearchOption.AllDirectories).Any())
                 Results.Add(new MsFraggerResult(directory));
             else if (Directory.GetFiles(directory, "*.tdReport").Any())
+            {
                 if (Directory.GetFiles(directory, "*.txt").Length is 4 or 5)
                     Results.Add(new ProteomeDiscovererResult(directory));
+            }
+            else if (Directory.GetFiles(directory, "*_wide.tsv").Any())
+                    Results.Add(new ChimerysResult(directory));
         }
     }
 

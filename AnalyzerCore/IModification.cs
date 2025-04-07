@@ -5,6 +5,7 @@ using ResultAnalyzerUtil;
 using Chemistry;
 using MathNet.Numerics;
 using System.Collections.Concurrent;
+using System.Reflection.PortableExecutable;
 
 namespace AnalyzerCore
 {
@@ -34,6 +35,50 @@ namespace AnalyzerCore
         }
 
         private static readonly ConcurrentDictionary<(string, char), Modification> _modificationCache = new();
+
+        public static Modification GetClosestMod(int uniModId, char modifiedResidue, IList<Modification> allKnownMods)
+        {
+            var cacheKey = ($"{uniModId}-{modifiedResidue}", modifiedResidue);
+            if (_modificationCache.TryGetValue(cacheKey, out var cachedModification))
+            {
+                return cachedModification;
+            }
+
+            var unimodMods = allKnownMods.Where(p => p.ModificationType.Contains("Unimod", StringComparison.InvariantCultureIgnoreCase)).ToList();
+
+            var idMatching = unimodMods.Where(p => p.DatabaseReference.First().Value.First() == $"{uniModId}").ToHashSet();
+            var motifMatching = unimodMods.Where(p => p.IdWithMotif.Contains($" on {modifiedResidue}") || p.IdWithMotif.Contains(" on X")).ToHashSet();
+
+            if (idMatching.Count == 1)
+            {
+                cachedModification = idMatching.First();
+            }
+            else if (idMatching.Count > 1)
+            {
+                var intersect = idMatching.Intersect(motifMatching).ToList();
+                if (intersect.Count == 1)
+                {
+                    cachedModification = intersect.First();
+                }
+                else if (intersect.Count > 1)
+                {
+                    var exactMatch = intersect.FirstOrDefault(p => p.IdWithMotif.Contains($" on {modifiedResidue}"));
+                    if (exactMatch is not null)
+                        cachedModification = exactMatch;
+                    else
+                    {
+                        var ambiguousMatch = intersect.FirstOrDefault(p => p.IdWithMotif.Contains(" on X"));
+                        if (ambiguousMatch is not null)
+                            cachedModification = ambiguousMatch;
+                    }
+                }
+            }
+
+            _modificationCache[cacheKey] = cachedModification;
+            return cachedModification;
+        }
+
+
         public static Modification GetClosestMod(string name, char modifiedResidue, IList<Modification> allKnownMods)
         {
             var cacheKey = (name, modifiedResidue);
