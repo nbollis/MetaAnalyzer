@@ -1,5 +1,6 @@
 ﻿using Analyzer.Util.TypeConverters;
 using CsvHelper.Configuration.Attributes;
+using Easy.Common.Extensions;
 
 namespace Analyzer.FileTypes.External;
 /// <summary>
@@ -8,39 +9,82 @@ namespace Analyzer.FileTypes.External;
 public class ChimerysProteinGroup
 {
     public bool PassesConfidenceFilter => GlobalQValue <= 0.01;
+    public ChimerysProteinGroup()
+    {
+        FileSpecificInformation = [];
+    }
 
-    [Name("PROTEIN_IDS")]
-    [TypeConverter(typeof(SemicolonDelimitedToIntegerArrayConverter))]
-    public int[] ProteinIds { get; set; }
+    #region Wide File Handlers
+
+    public int CountOfFilesIdentifiedIn => FileSpecificInformation.Count;
+    internal List<ChimerysFileSpecificProteinGroupInfo> FileSpecificInformation { get; init; }
+
+    /// <summary>
+    /// Creates a ChimerysProteinGroup object from a ChimerysProteinGroup and a ChimerysFileSpecificProteinGroupInfo object.
+    /// Used for translation from wide format to long format
+    /// </summary>
+    /// <param name="proteinGroup">the wide format proteinGroup</param>
+    /// <param name="fileSpecificInfo">the file specific id information</param>
+    private ChimerysProteinGroup(ChimerysProteinGroup proteinGroup, ChimerysFileSpecificProteinGroupInfo fileSpecificInfo)
+    {
+        ProteinGroupId = proteinGroup.ProteinGroupId;
+        GlobalQValue = proteinGroup.GlobalQValue;
+        GlobalSearchEngineScore = proteinGroup.GlobalSearchEngineScore;
+        IsDecoy = proteinGroup.IsDecoy;
+
+        ProteinIds = fileSpecificInfo.ProteinIds;
+        FastaHeaders = fileSpecificInfo.FastaHeaders;
+        GeneNames = fileSpecificInfo.GeneNames;
+        ProteinIdentifiers = fileSpecificInfo.ProteinIdentifiers;
+        TaxonomyIds = fileSpecificInfo.TaxonomyIds;
+        Organisms = fileSpecificInfo.Organisms;
+        RawFileName = fileSpecificInfo.RawFileName;
+        SampleName = fileSpecificInfo.SampleName;
+        PsmIds = fileSpecificInfo.PsmIds;
+        PrecursorIds = fileSpecificInfo.PrecursorIds;
+        ModifiedPeptideIds = fileSpecificInfo.ModifiedPeptideIds;
+        PeptideIds = fileSpecificInfo.PeptideIds;
+        CountPsms = fileSpecificInfo.CountPsms;
+        CountPrecursors = fileSpecificInfo.CountPrecursors;
+        CountModifiedPeptides = fileSpecificInfo.CountModifiedPeptides;
+        CountPeptides = fileSpecificInfo.CountPeptides;
+        Quantification = fileSpecificInfo.Quantification;
+        FileSpecificInformation = [fileSpecificInfo];
+    }
+
+    private List<ChimerysProteinGroup>? _cachedLongFormatProteinGroups;
+    public IEnumerable<ChimerysProteinGroup> ToLongFormat(bool cache = false)
+    {
+        if (_cachedLongFormatProteinGroups != null)
+        {
+            foreach (var peptide in _cachedLongFormatProteinGroups)
+                yield return peptide;
+            yield break;
+        }
+
+        var longFormatPeptides = new List<ChimerysProteinGroup>();
+
+        // Identified in one file only
+        if (CountOfFilesIdentifiedIn == 1)
+            longFormatPeptides.Add(this);
+        // Identified in more than one file
+        else
+            foreach (var file in FileSpecificInformation)
+                longFormatPeptides.Add(new (this, file));
+
+        if (cache)
+            _cachedLongFormatProteinGroups = longFormatPeptides;
+
+        foreach (var peptide in longFormatPeptides)
+            yield return peptide;
+    }
+
+    #endregion
+
+    #region In both wide and long formats
 
     [Name("PROTEIN_GROUP_ID")]
     public int ProteinGroupId { get; set; }
-
-    [Name("FASTA_HEADERS")]
-    [TypeConverter(typeof(SemicolonDelimitedToStringArrayConverter))]
-    public string[] FastaHeaders { get; set; }
-
-    [Name("GENE_NAMES")]
-    [TypeConverter(typeof(SemicolonDelimitedToStringArrayConverter))]
-    public string[] GeneNames { get; set; }
-
-    [Name("PROTEIN_IDENTIFIERS")]
-    [TypeConverter(typeof(SemicolonDelimitedToStringArrayConverter))]
-    public string[] ProteinIdentifiers { get; set; }
-
-    [Name("TAXONOMY_IDS")]
-    [TypeConverter(typeof(SemicolonDelimitedToStringArrayConverter))]
-    public string[] TaxonomyIds { get; set; }
-
-    [Name("ORGANISMS")]
-    [TypeConverter(typeof(SemicolonDelimitedToStringArrayConverter))]
-    public string[] Organisms { get; set; }
-
-    [Name("RAW_FILE_NAME")]
-    public string RawFileName { get; set; }
-
-    [Name("SAMPLE_NAME")]
-    public string SampleName { get; set; }
 
     [Name("GLOBAL_Q_VALUE")]
     public double GlobalQValue { get; set; }
@@ -51,34 +95,108 @@ public class ChimerysProteinGroup
     [Name("DECOY")]
     public bool IsDecoy { get; set; }
 
+    #endregion
+
+    #region Separated into different columns in Wide Format
+
+    [Name("PROTEIN_IDS")]
+    [Optional]
+    [TypeConverter(typeof(SemicolonDelimitedToIntegerArrayConverter))]
+    public int[] ProteinIds { get; set; }
+
+    [Name("FASTA_HEADERS")]
+    [Optional]
+    [TypeConverter(typeof(SemicolonDelimitedToStringArrayConverter))]
+    public string[] FastaHeaders { get; set; }
+
+    [Name("GENE_NAMES")]
+    [Optional]
+    [TypeConverter(typeof(SemicolonDelimitedToStringArrayConverter))]
+    public string[] GeneNames { get; set; }
+
+    [Name("PROTEIN_IDENTIFIERS")]
+    [Optional]
+    [TypeConverter(typeof(SemicolonDelimitedToStringArrayConverter))]
+    public string[] ProteinIdentifiers { get; set; }
+
+    [Name("TAXONOMY_IDS")]
+    [Optional]
+    [TypeConverter(typeof(SemicolonDelimitedToStringArrayConverter))]
+    public string[] TaxonomyIds { get; set; }
+
+    [Name("ORGANISMS")]
+    [Optional]
+    [TypeConverter(typeof(SemicolonDelimitedToStringArrayConverter))]
+    public string[] Organisms { get; set; }
+
+    [Name("RAW_FILE_NAME")]
+    [Optional]
+    public string RawFileName { get; set; }
+
+    [Name("SAMPLE_NAME")]
+    [Optional]
+    public string SampleName { get; set; }
+
     [Name("PSM_IDS")]
+    [Optional]
     [TypeConverter(typeof(SemicolonDelimitedToLongArrayConverter))]
     public long[] PsmIds { get; set; }
 
     [Name("PRECURSOR_IDS")]
+    [Optional]
     [TypeConverter(typeof(SemicolonDelimitedToLongArrayConverter))]
     public long[] PrecursorIds { get; set; }
 
     [Name("MODIFIED_PEPTIDE_IDS")]
+    [Optional]
     [TypeConverter(typeof(SemicolonDelimitedToIntegerArrayConverter))]
     public int[] ModifiedPeptideIds { get; set; }
 
     [Name("PEPTIDE_IDS")]
+    [Optional]
     [TypeConverter(typeof(SemicolonDelimitedToIntegerArrayConverter))]
     public int[] PeptideIds { get; set; }
 
     [Name("COUNT_PSMS")]
+    [Optional]
     public int CountPsms { get; set; }
 
     [Name("COUNT_PRECURSORS")]
+    [Optional]
     public int CountPrecursors { get; set; }
 
     [Name("COUNT_MODIFIED_PEPTIDES")]
+    [Optional]
     public int CountModifiedPeptides { get; set; }
 
     [Name("COUNT_PEPTIDES")]
+    [Optional]
     public int CountPeptides { get; set; }
 
     [Name("QUANTIFICATION")]
+    [Optional]
+    public double Quantification { get; set; }
+
+    #endregion
+}
+
+internal class ChimerysFileSpecificProteinGroupInfo
+{
+    public string RawFileName { get; set; }
+    public string SampleName { get; set; }
+    public int[] ProteinIds { get; set; }
+    public string[] FastaHeaders { get; set; }
+    public string[] GeneNames { get; set; }
+    public string[] ProteinIdentifiers { get; set; }
+    public string[] TaxonomyIds { get; set; }
+    public string[] Organisms { get; set; }
+    public long[] PsmIds { get; set; }
+    public long[] PrecursorIds { get; set; }
+    public int[] ModifiedPeptideIds { get; set; }
+    public int[] PeptideIds { get; set; }
+    public int CountPsms { get; set; }
+    public int CountPrecursors { get; set; }
+    public int CountModifiedPeptides { get; set; }
+    public int CountPeptides { get; set; }
     public double Quantification { get; set; }
 }

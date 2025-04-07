@@ -1,5 +1,6 @@
 ﻿using Analyzer.Util.TypeConverters;
 using CsvHelper.Configuration.Attributes;
+using Easy.Common.Extensions;
 using Omics.Modifications;
 using System.Text;
 
@@ -76,9 +77,82 @@ public class ChimerysModifiedPeptide
     }
 
 
-    [Name("MODIFIED_SEQUENCE")]
-    [TypeConverter(typeof(ChimerysFullSequenceToModificationConverter))]
-    public Dictionary<int, Modification> OneBasedModificationDictionary { get; set; }
+    #region Wide File Members 
+    public int CountOfFilesIdentifiedIn => FileSpecificInformation.Count;
+    internal List<ChimerysFileSpecificModifiedPeptideInfo> FileSpecificInformation { get; init; }
+
+    /// <summary>
+    /// Creates a ChimerysModifiedPeptide object from a ChimerysModifiedPeptide and a ChimerysFileSpecificModifiedPeptideInfo object.
+    /// Used for translation from wide format to long format
+    /// </summary>
+    /// <param name="peptide">the wide format peptide</param>
+    /// <param name="fileSpecificInfo">the file specific id information</param>
+    private ChimerysModifiedPeptide(ChimerysModifiedPeptide peptide, ChimerysFileSpecificModifiedPeptideInfo fileSpecificInfo)
+    {
+        ModifiedPeptideId = peptide.ModifiedPeptideId;
+        PeptideId = peptide.PeptideId;
+        BaseSequence = peptide.BaseSequence;
+        ModifiedSequence = peptide.ModifiedSequence;
+        MissedCleavages = peptide.MissedCleavages;
+        MonoisotopicMass = peptide.MonoisotopicMass;
+        Length = peptide.Length;
+        IsAmbiguous = peptide.IsAmbiguous;
+        GlobalQValue = peptide.GlobalQValue;
+        GlobalSearchEngineScore = peptide.GlobalSearchEngineScore;
+        GlobalPep = peptide.GlobalPep;
+        IsDecoy = peptide.IsDecoy;
+        PositionInProteinIds = peptide.PositionInProteinIds;
+        ProteinIds = peptide.ProteinIds;
+
+        RawFileName = fileSpecificInfo.RawFileName;
+        SampleName = fileSpecificInfo.SampleName;
+        MaxSpectralAngle = fileSpecificInfo.MaxSpectralAngle;
+        MaxCtp = fileSpecificInfo.MaxCtp;
+        QValue = fileSpecificInfo.QValue;
+        SearchEngineScore = fileSpecificInfo.SearchEngineScore;
+        Pep = fileSpecificInfo.Pep;
+        IsIdentifiedByMbr = fileSpecificInfo.IsIdentifiedByMbr;
+        PsmIds = fileSpecificInfo.PsmIds;
+        PrecursorIds = fileSpecificInfo.PrecursorIds;
+        LocalizationSequence = fileSpecificInfo.LocalizationSequence;
+        LocalizationScore = fileSpecificInfo.LocalizationScore;
+        ProteinSites = fileSpecificInfo.ProteinSites;
+        CountPsms = fileSpecificInfo.CountPsms;
+        CountPrecursors = fileSpecificInfo.CountPrecursors;
+        Quantification = fileSpecificInfo.Quantification;
+        FileSpecificInformation = [fileSpecificInfo];
+    }
+
+    private List<ChimerysModifiedPeptide>? _cachedLongFormatPeptides;
+    public IEnumerable<ChimerysModifiedPeptide> ToLongFormat(bool cache = false)
+    {
+        if (_cachedLongFormatPeptides != null)
+        {
+            foreach (var peptide in _cachedLongFormatPeptides)
+                yield return peptide;
+            yield break;
+        }
+
+        var longFormatPeptides = new List<ChimerysModifiedPeptide>();
+
+        // Identified in one file only
+        if (CountOfFilesIdentifiedIn == 1)
+            longFormatPeptides.Add(this);
+        // Identified in more than one file
+        else
+            foreach (var file in FileSpecificInformation)
+                longFormatPeptides.Add(new ChimerysModifiedPeptide(this, file));
+
+        if (cache)
+            _cachedLongFormatPeptides = longFormatPeptides;
+
+        foreach (var peptide in longFormatPeptides)
+            yield return peptide;
+    }
+
+    #endregion
+
+    #region In both Wide and Long Formats
 
     [Name("MODIFIED_PEPTIDE_ID")]
     public long ModifiedPeptideId { get; set; }
@@ -98,29 +172,8 @@ public class ChimerysModifiedPeptide
     [Name("LENGTH")]
     public int Length { get; set; }
 
-    [Name("MAX_SPECTRAL_ANGLE")]
-    public double MaxSpectralAngle { get; set; }
-
-    [Name("MAX_CTP")]
-    public double MaxCtp { get; set; }
-
     [Name("IS_AMBIGUOUS")]
     public bool IsAmbiguous { get; set; }
-
-    [Name("RAW_FILE_NAME")]
-    public string RawFileName { get; set; }
-
-    [Name("SAMPLE_NAME")]
-    public string SampleName { get; set; }
-
-    [Name("Q_VALUE")]
-    public double QValue { get; set; }
-
-    [Name("SE_SCORE")]
-    public double SearchEngineScore { get; set; }
-
-    [Name("PEP")]
-    public double Pep { get; set; }
 
     [Name("GLOBAL_Q_VALUE")]
     public double GlobalQValue { get; set; }
@@ -134,19 +187,8 @@ public class ChimerysModifiedPeptide
     [Name("DECOY")]
     public bool IsDecoy { get; set; }
 
-    [Name("IS_IDENTIFIED_BY_MBR")]
-    public bool IsIdentifiedByMbr { get; set; }
-
     [Name("PEPTIDE_ID")]
     public int PeptideId { get; set; }
-
-    [Name("PSM_IDS")]
-    [TypeConverter(typeof(SemicolonDelimitedToLongArrayConverter))]
-    public long[] PsmIds { get; set; }
-
-    [Name("PRECURSOR_IDS")]
-    [TypeConverter(typeof(SemicolonDelimitedToLongArrayConverter))]
-    public long[] PrecursorIds { get; set; }
 
     [Name("POSITION_IN_PROTEIN_IDS")]
     [TypeConverter(typeof(SemicolonDelimitedToIntegerArrayConverter))]
@@ -156,21 +198,103 @@ public class ChimerysModifiedPeptide
     [TypeConverter(typeof(SemicolonDelimitedToLongArrayConverter))]
     public long[] ProteinIds { get; set; }
 
+    #endregion
+
+    #region Separated into different columns in Wide Format
+
+    [Name("RAW_FILE_NAME")]
+    [Optional]
+    public string RawFileName { get; set; }
+
+    [Name("SAMPLE_NAME")]
+    [Optional]
+    public string SampleName { get; set; }
+
+    [Name("MAX_SPECTRAL_ANGLE")]
+    [Optional]
+    public double MaxSpectralAngle { get; set; }
+
+    [Name("MAX_CTP")]
+    [Optional]
+    public double MaxCtp { get; set; }
+
+    [Name("Q_VALUE")]
+    [Optional]
+    public double QValue { get; set; }
+
+    [Name("SE_SCORE")]
+    [Optional]
+    public double SearchEngineScore { get; set; }
+
+    [Name("PEP")]
+    [Optional]
+    public double Pep { get; set; }
+
+    [Name("IS_IDENTIFIED_BY_MBR")]
+    [Optional]
+    public bool IsIdentifiedByMbr { get; set; }
+
+    [Name("PSM_IDS")]
+    [Optional]
+    [TypeConverter(typeof(SemicolonDelimitedToLongArrayConverter))]
+    public long[] PsmIds { get; set; }
+
+    [Name("PRECURSOR_IDS")]
+    [Optional]
+    [TypeConverter(typeof(SemicolonDelimitedToLongArrayConverter))]
+    public long[] PrecursorIds { get; set; }
+
     [Name("LOCALIZATION_SEQUENCE")]
+    [Optional]
     public string? LocalizationSequence { get; set; }
 
     [Name("LOCALIZATION_SCORE")]
+    [Optional]
     public double? LocalizationScore { get; set; }
 
     [Name("PROTEIN_SITES")]
+    [Optional]
     public string? ProteinSites { get; set; } // modified site in protein
 
     [Name("COUNT_PSMS")]
+    [Optional]
     public int CountPsms { get; set; }
 
     [Name("COUNT_PRECURSORS")]
+    [Optional]
     public int CountPrecursors { get; set; }
 
     [Name("QUANTIFICATION")]
+    [Optional]
+    public double Quantification { get; set; }
+
+    #endregion
+
+    #region Interpreted Fields 
+
+    [Name("MODIFIED_SEQUENCE")]
+    [TypeConverter(typeof(ChimerysFullSequenceToModificationConverter))]
+    public Dictionary<int, Modification> OneBasedModificationDictionary { get; set; }
+
+    #endregion
+}
+
+internal class ChimerysFileSpecificModifiedPeptideInfo
+{
+    public string RawFileName { get; set; }
+    public string SampleName { get; set; }
+    public double MaxSpectralAngle { get; set; }
+    public double MaxCtp { get; set; }
+    public double QValue { get; set; }
+    public double SearchEngineScore { get; set; }
+    public double Pep { get; set; }
+    public bool IsIdentifiedByMbr { get; set; }
+    public long[] PsmIds { get; set; }
+    public long[] PrecursorIds { get; set; }
+    public string? LocalizationSequence { get; set; } 
+    public double? LocalizationScore { get; set; }
+    public string? ProteinSites { get; set; } 
+    public int CountPsms { get; set; }
+    public int CountPrecursors { get; set; }
     public double Quantification { get; set; }
 }

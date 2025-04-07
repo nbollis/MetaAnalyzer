@@ -32,7 +32,7 @@ public class ChimerysPeptideFile : ResultFile<ChimerysPeptide>, IResultFile
         var results = new List<ChimerysPeptide>();
 
         // if wide file (condensed same IDs from different files)
-        if (headers.Count(p => p.Contains("Q_VALUE")) > 2)
+        if (headers.Count(p => p.Contains(" Q_VALUE")) > 2)
         {
             var headerDicts = new Dictionary<string, Dictionary<string, int>>
             {

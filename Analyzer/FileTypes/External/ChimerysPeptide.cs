@@ -15,13 +15,17 @@ public class ChimerysPeptide
         FileSpecificInformation = [];
     }
 
+    #region Wide File Members
+    public int CountOfFilesIdentifiedIn => FileSpecificInformation.Count;
+    internal List<ChimerysFileSpecificPeptideInfo> FileSpecificInformation { get; init; }
+
     /// <summary>
     /// Creates a ChimerysPeptide object from a ChimerysPeptide and a ChimerysFileSpecificPeptideInfo object.
     /// Used for translation from wide format to long format
     /// </summary>
     /// <param name="peptide">the wide format peptide</param>
     /// <param name="fileSpecificInfo">the file specific id information</param>
-    private ChimerysPeptide(ChimerysPeptide peptide, ChimerysFileSpecificPeptideInfo fileSpecificInfo) 
+    private ChimerysPeptide(ChimerysPeptide peptide, ChimerysFileSpecificPeptideInfo fileSpecificInfo)
     {
         PeptideId = peptide.PeptideId;
         BaseSequence = peptide.BaseSequence;
@@ -33,6 +37,7 @@ public class ChimerysPeptide
         IsDecoy = peptide.IsDecoy;
         PositionInProteinIds = peptide.PositionInProteinIds;
         ProteinIds = peptide.ProteinIds;
+
         RawFileName = fileSpecificInfo.RawFileName;
         SampleName = fileSpecificInfo.SampleName;
         QValue = fileSpecificInfo.QValue;
@@ -48,10 +53,6 @@ public class ChimerysPeptide
         Quantification = fileSpecificInfo.Quantification;
         FileSpecificInformation = [fileSpecificInfo];
     }
-
-    #region Wide File Members
-    public int CountOfFilesIdentifiedIn => FileSpecificInformation.Count;
-    internal List<ChimerysFileSpecificPeptideInfo> FileSpecificInformation { get; init; }
 
     private List<ChimerysPeptide>? _cachedLongFormatPeptides;
     public IEnumerable<ChimerysPeptide> ToLongFormat(bool cache = false)

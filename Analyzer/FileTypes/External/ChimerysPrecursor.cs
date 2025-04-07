@@ -7,6 +7,84 @@ namespace Analyzer.FileTypes.External;
 /// </summary>
 public class ChimerysPrecursor
 {
+    #region Wide File Members 
+    public int CountOfFilesIdentifiedIn => FileSpecificInformation.Count;
+    internal List<ChimerysFileSpecificPrecursorInfo> FileSpecificInformation { get; init; }
+    /// <summary>
+    /// Creates a ChimerysPrecursor object from a ChimerysPrecursor and a ChimerysFileSpecificPrecursorInfo object.
+    /// Used for translation from wide format to long format
+    /// </summary>
+    /// <param name="precursor">the wide format precursor</param>
+    /// <param name="fileSpecificInfo">the file specific id information</param>
+    private ChimerysPrecursor(ChimerysPrecursor precursor, ChimerysFileSpecificPrecursorInfo fileSpecificInfo)
+    {
+        PrecursorId = precursor.PrecursorId;
+        BaseSequence = precursor.BaseSequence;
+        ModifiedSequence = precursor.ModifiedSequence;
+        MissedCleavages = precursor.MissedCleavages;
+        MonoisotopicMass = precursor.MonoisotopicMass;
+        PrecursorCharge = precursor.PrecursorCharge;
+        Length = precursor.Length;
+        Mz = precursor.Mz;
+        IsAmbiguous = precursor.IsAmbiguous;
+        GlobalQValue = precursor.GlobalQValue;
+        GlobalSearchEngineScore = precursor.GlobalSearchEngineScore;
+        GlobalPep = precursor.GlobalPep;
+        IsDecoy = precursor.IsDecoy;
+        ModifiedPeptideId = precursor.ModifiedPeptideId;
+        PeptideId = precursor.PeptideId;
+        PositionInProteinIds = precursor.PositionInProteinIds;
+        ProteinIds = precursor.ProteinIds;
+
+        RawFileName = fileSpecificInfo.RawFileName;
+        SampleName = fileSpecificInfo.SampleName;
+        MinRetentionTime = fileSpecificInfo.MinRetentionTime;
+        MaxRetentionTime = fileSpecificInfo.MaxRetentionTime;
+        MaxSpectralAngle = fileSpecificInfo.MaxSpectralAngle;
+        MaxCtp = fileSpecificInfo.MaxCtp;
+        QValue = fileSpecificInfo.QValue;
+        SearchEngineScore = fileSpecificInfo.SearchEngineScore;
+        Pep = fileSpecificInfo.Pep;
+        IsIdentifiedByMbr = fileSpecificInfo.IsIdentifiedByMbr;
+        PsmIds = fileSpecificInfo.PsmIds;
+        LocalizationSequence = fileSpecificInfo.LocalizationSequence;
+        LocalizationScore = fileSpecificInfo.LocalizationScore;
+        ProteinSites = fileSpecificInfo.ProteinSites;
+        CountPsms = fileSpecificInfo.CountPsms;
+        Quantification = fileSpecificInfo.Quantification;
+        FileSpecificInformation = [fileSpecificInfo];
+    }
+
+    private List<ChimerysPrecursor>? _cachedLongFormatPeptides;
+    public IEnumerable<ChimerysPrecursor> ToLongFormat(bool cache = false)
+    {
+        if (_cachedLongFormatPeptides != null)
+        {
+            foreach (var peptide in _cachedLongFormatPeptides)
+            {
+                yield return peptide;
+            }
+        }
+        var longFormatPrecursors = new List<ChimerysPrecursor>();
+        // Identified in one file only
+        if (CountOfFilesIdentifiedIn == 1)
+            longFormatPrecursors.Add(this);
+        // Identified in more than one file
+        else
+            foreach (var file in FileSpecificInformation)
+                longFormatPrecursors.Add(new ChimerysPrecursor(this, file));
+
+        if (cache)
+            _cachedLongFormatPeptides = longFormatPrecursors;
+
+        foreach (var peptide in longFormatPrecursors)
+            yield return peptide;
+    }
+
+    #endregion
+
+    #region In both Wide and Long Formats
+
     [Name("PRECURSOR_ID")]
     public long PrecursorId { get; set; }
 
@@ -31,35 +109,8 @@ public class ChimerysPrecursor
     [Name("M_Z")]
     public double Mz { get; set; }
 
-    [Name("MIN_RETENTION_TIME")]
-    public double MinRetentionTime { get; set; }
-
-    [Name("MAX_RETENTION_TIME")]
-    public double MaxRetentionTime { get; set; }
-
-    [Name("MAX_SPECTRAL_ANGLE")]
-    public double MaxSpectralAngle { get; set; }
-
-    [Name("MAX_CTP")]
-    public double MaxCtp { get; set; }
-
     [Name("IS_AMBIGUOUS")]
     public bool IsAmbiguous { get; set; }
-
-    [Name("RAW_FILE_NAME")]
-    public string RawFileName { get; set; }
-
-    [Name("SAMPLE_NAME")]
-    public string SampleName { get; set; }
-
-    [Name("Q_VALUE")]
-    public double QValue { get; set; }
-
-    [Name("SE_SCORE")]
-    public double SearchEngineScore { get; set; }
-
-    [Name("PEP")]
-    public double Pep { get; set; }
 
     [Name("GLOBAL_Q_VALUE")]
     public double GlobalQValue { get; set; }
@@ -73,18 +124,11 @@ public class ChimerysPrecursor
     [Name("DECOY")]
     public bool IsDecoy { get; set; }
 
-    [Name("IS_IDENTIFIED_BY_MBR")]
-    public bool IsIdentifiedByMbr { get; set; }
-
     [Name("MODIFIED_PEPTIDE_ID")]
     public long ModifiedPeptideId { get; set; }
 
     [Name("PEPTIDE_ID")]
     public long PeptideId { get; set; }
-
-    [Name("PSM_IDS")]
-    [TypeConverter(typeof(SemicolonDelimitedToLongArrayConverter))]
-    public long[] PsmIds { get; set; }
 
     [Name("POSITION_IN_PROTEIN_IDS")]
     [TypeConverter(typeof(SemicolonDelimitedToIntegerArrayConverter))]
@@ -94,18 +138,93 @@ public class ChimerysPrecursor
     [TypeConverter(typeof(SemicolonDelimitedToLongArrayConverter))]
     public long[] ProteinIds { get; set; }
 
+    #endregion
+
+    #region Separated into different columns in Wide Format
+
+    [Name("RAW_FILE_NAME")]
+    [Optional]
+    public string RawFileName { get; set; }
+
+    [Name("SAMPLE_NAME")]
+    [Optional]
+    public string SampleName { get; set; }
+
+    [Name("MIN_RETENTION_TIME")]
+    [Optional]
+    public double MinRetentionTime { get; set; }
+
+    [Name("MAX_RETENTION_TIME")]
+    [Optional]
+    public double MaxRetentionTime { get; set; }
+
+    [Name("MAX_SPECTRAL_ANGLE")]
+    [Optional]
+    public double MaxSpectralAngle { get; set; }
+
+    [Name("MAX_CTP")]
+    public double MaxCtp { get; set; }
+
+    [Name("Q_VALUE")]
+    [Optional]
+    public double QValue { get; set; }
+
+    [Name("SE_SCORE")]
+    [Optional]
+    public double SearchEngineScore { get; set; }
+
+    [Name("PEP")]
+    [Optional]
+    public double Pep { get; set; }
+
+    [Name("IS_IDENTIFIED_BY_MBR")]
+    [Optional]
+    public bool IsIdentifiedByMbr { get; set; }
+
+    [Name("PSM_IDS")]
+    [Optional]
+    [TypeConverter(typeof(SemicolonDelimitedToLongArrayConverter))]
+    public long[] PsmIds { get; set; }
+
     [Name("LOCALIZATION_SEQUENCE")]
+    [Optional]
     public string? LocalizationSequence { get; set; }
 
     [Name("LOCALIZATION_SCORE")]
+    [Optional]
     public double? LocalizationScore { get; set; }
 
     [Name("PROTEIN_SITES")]
+    [Optional]
     public string? ProteinSites { get; set; }
 
     [Name("COUNT_PSMS")]
+    [Optional]
     public int CountPsms { get; set; }
 
     [Name("QUANTIFICATION")]
+    [Optional]
+    public double Quantification { get; set; }
+
+    #endregion
+}
+
+internal class ChimerysFileSpecificPrecursorInfo
+{
+    public string RawFileName { get; set; }
+    public string SampleName { get; set; }
+    public double MinRetentionTime { get; set; }
+    public double MaxRetentionTime { get; set; }
+    public double MaxSpectralAngle { get; set; }
+    public double MaxCtp { get; set; }
+    public double QValue { get; set; }
+    public double SearchEngineScore { get; set; }
+    public double Pep { get; set; }
+    public bool IsIdentifiedByMbr { get; set; }
+    public long[] PsmIds { get; set; }
+    public string? LocalizationSequence { get; set; }
+    public double? LocalizationScore { get; set; }
+    public string? ProteinSites { get; set; }
+    public int CountPsms { get; set; }
     public double Quantification { get; set; }
 }
