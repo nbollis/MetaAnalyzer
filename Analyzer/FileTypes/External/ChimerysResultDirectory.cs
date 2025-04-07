@@ -28,23 +28,24 @@ public class ChimerysResultDirectory
 
         foreach (var filePath in allFiles)
         {
-            if (filePath.EndsWith("psms.tsv"))
+            var toCheck = filePath.Replace("_wide", "");
+            if (toCheck.EndsWith("psms.tsv"))
             {
                 PsmPath = filePath;
             }
-            else if (filePath.EndsWith("peptides.tsv"))
+            else if (toCheck.EndsWith("peptides.tsv") && !toCheck.Contains("modified"))
             {
                 PeptidePath = filePath;
             }
-            else if (filePath.EndsWith("modified_peptides.tsv"))
+            else if (toCheck.EndsWith("modified_peptides.tsv"))
             {
                 ModifiedPeptidePath = filePath;
             }
-            else if (filePath.EndsWith("protein_groups.tsv"))
+            else if (toCheck.EndsWith("protein_groups.tsv"))
             {
                 ProteinGroupPath = filePath;
             }
-            else if (filePath.EndsWith("precursors.tsv"))
+            else if (toCheck.EndsWith("precursors.tsv"))
             {
                 PrecursorPath = filePath;
             }

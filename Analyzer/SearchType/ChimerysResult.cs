@@ -3,6 +3,7 @@ using Analyzer.FileTypes.Internal;
 using Chemistry;
 using Plotting.Util;
 using Proteomics;
+using Proteomics.AminoAcidPolymer;
 using UsefulProteomicsDatabases;
 
 namespace Analyzer.SearchType;
@@ -26,6 +27,9 @@ public class ChimerysResult : SingleRunResults
     {
         IsTopDown = false;
         ChimerysResultDirectory = new(directoryPath);
+        PsmPath = ChimerysResultDirectory.PsmPath!;
+        PeptidePath = ChimerysResultDirectory.PeptidePath!;
+        ProteinPath = ChimerysResultDirectory.ProteinGroupPath!;
     }
 
     public override BulkResultCountComparisonFile? GetIndividualFileComparison(string path = null)

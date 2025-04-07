@@ -710,7 +710,7 @@ namespace TaskLayer.ChimeraAnalysis
 
         #endregion
 
-        private static SingleRunResults LoadResultFromFilePath(string singleRunPath)
+        public static SingleRunResults LoadResultFromFilePath(string singleRunPath)
         {
             SingleRunResults result;
             if (singleRunPath.Contains("MetaMorpheus"))
@@ -718,7 +718,12 @@ namespace TaskLayer.ChimeraAnalysis
             else if (singleRunPath.Contains("Fragger"))
                 result = new MsFraggerResult(singleRunPath);
             else if (singleRunPath.Contains("Chimerys") || singleRunPath.Contains("ProsightPD"))
-                result = new ProteomeDiscovererResult(singleRunPath);
+            {
+                if (singleRunPath.Contains("MSAID"))
+                    result = new ChimerysResult(singleRunPath);
+                else
+                    result = new ProteomeDiscovererResult(singleRunPath);
+            }
             else if (singleRunPath.Contains("MsPathFinder"))
                 result = new MsPathFinderTResults(singleRunPath);
             else

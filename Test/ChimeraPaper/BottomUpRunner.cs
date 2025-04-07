@@ -1,5 +1,6 @@
 ﻿using System.Configuration;
 using System.Numerics;
+using System.Security.Cryptography.X509Certificates;
 using Analyzer;
 using Analyzer.Interfaces;
 using Analyzer.Plotting;
@@ -551,9 +552,55 @@ namespace Test.ChimeraPaper
         [Test]
         public static void ChimerysLoading()
         {
-            string path = @"B:\Users\Nic\Chimeras\ExternalMMAnalysis\Mann_11cell_lines\A549\Chimerys_MSAID_Rep2";
-            var chim = new ChimerysResult(path);
-            chim.ChimerysResultDirectory.PsmFile.LoadResults();
+            //string path = @"B:\Users\Nic\Chimeras\ExternalMMAnalysis\Mann_11cell_lines\A549\Chimerys_MSAID_Rep2";
+            //var chim = new ChimerysResult(path);
+            //chim.ChimerysResultDirectory.PsmFile.LoadResults();
+
+
+
+            string cellLinePath = @"B:\Users\Nic\Chimeras\ExternalMMAnalysis\Mann_11cell_lines\A549";
+            List<SingleRunResults> results = new();
+            foreach (var dir in Directory.GetDirectories(cellLinePath)
+                .Where(p => !p.Contains("Figure")))
+            {
+                var result = ExternalComparisonTask.LoadResultFromFilePath(dir);
+                results.Add(result);   
+
+                if (result is ChimerysResult cr)
+                {
+                    cr.ChimerysResultDirectory.PeptideFile.LoadResults();
+                    result.GetIndividualFileComparison();
+                    result.GetBulkResultCountComparisonFile();
+                    result.CountChimericPsms();
+                    result.ToPsmProformaFile();
+                    result.CountProteins();
+                }
+            }
+
+            var cellLine = new CellLineResults(cellLinePath, results);
+            cellLine.GetIndividualFileComparison();
+            cellLine.GetBulkResultCountComparisonFile();
+            cellLine.CountChimericPsms();
+
+            try
+            {
+                cellLine.PlotModificationDistribution(ResultType.Psm, false);
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
+            }
+            try
+            {
+                cellLine.PlotModificationDistribution(ResultType.Peptide, false);
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
+            }
+
+
+            cellLine.PlotIndividualFileResults();
         }
 
         static double LogFactorial(int n)
