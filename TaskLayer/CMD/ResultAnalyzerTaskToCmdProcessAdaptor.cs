@@ -36,9 +36,6 @@ public class ResultAnalyzerTaskToCmdProcessAdaptor : CmdProcess
 
     public override bool IsCompleted()
     {
-        if (_isComplete) 
-            return _isComplete;
-
         try
         {
             string? pathToCheck = Task switch

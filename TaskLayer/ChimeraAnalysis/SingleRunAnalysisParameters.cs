@@ -21,8 +21,8 @@ public class SingleRunAnalysisParameters : BaseResultAnalyzerTaskParameters
          DistributionPlotTypes distributionPlotType = DistributionPlotTypes.ViolinPlot)
         : base(inputDirectoryPath, overrideFiles, runOnAll)
     {
-        RunResult = null;
         SingleRunResultsDirectoryPath = inputDirectoryPath;
+        RunResult = new MetaMorpheusResult(SingleRunResultsDirectoryPath);
         PlotType = distributionPlotType;
     }
 }

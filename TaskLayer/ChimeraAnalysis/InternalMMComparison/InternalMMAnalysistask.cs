@@ -263,31 +263,34 @@ namespace TaskLayer.ChimeraAnalysis
 
 
             //  TODO: Change retention time alignment to operate on the grouped runs
-            Log($"Running Retention Time Alignment", 0);
-            foreach (var cellLineDictEntry in cellLineDict)
+            if (!isTopDown)
             {
-                var cellLine = Path.GetFileNameWithoutExtension(cellLineDictEntry.Key);
+                Log($"Running Retention Time Alignment", 0);
+                foreach (var cellLineDictEntry in cellLineDict)
+                {
+                    var cellLine = Path.GetFileNameWithoutExtension(cellLineDictEntry.Key);
 
-                List<CmdProcess> summaryTasks = new();
-                Log($"Processing Cell Line {cellLine}", 1);
-                foreach (var singleRunPath in cellLineDictEntry.Value)
-                {
-                    if (singleRunPath.Condition.Contains(NonChimericDescriptor))
-                        continue;
-                    var summaryParams =
-                        new SingleRunAnalysisParameters(singleRunPath.DirectoryPath, Parameters.Override, false);
-                    var summaryTask = new SingleRunRetentionTimeCalibrationTask(summaryParams);
-                    summaryTasks.Add(new ResultAnalyzerTaskToCmdProcessAdaptor(summaryTask, "Retention Time Alignment", 0.25,
-                        singleRunPath.DirectoryPath));
-                }
+                    List<CmdProcess> summaryTasks = new();
+                    Log($"Processing Cell Line {cellLine}", 1);
+                    foreach (var singleRunPath in cellLineDictEntry.Value)
+                    {
+                        if (singleRunPath.Condition.Contains(NonChimericDescriptor))
+                            continue;
+                        var summaryParams =
+                            new SingleRunAnalysisParameters(singleRunPath.DirectoryPath, Parameters.Override, false);
+                        var summaryTask = new SingleRunRetentionTimeCalibrationTask(summaryParams);
+                        summaryTasks.Add(new ResultAnalyzerTaskToCmdProcessAdaptor(summaryTask, "Retention Time Alignment", 0.25,
+                            singleRunPath.DirectoryPath));
+                    }
 
-                try
-                {
-                    RunProcesses(summaryTasks).Wait();
-                }
-                catch (Exception e)
-                {
-                    Warn($"Error Running Retention Time Alignment for {cellLine}: {e.Message}");
+                    try
+                    {
+                        RunProcesses(summaryTasks).Wait();
+                    }
+                    catch (Exception e)
+                    {
+                        Warn($"Error Running Retention Time Alignment for {cellLine}: {e.Message}");
+                    }
                 }
             }
 
