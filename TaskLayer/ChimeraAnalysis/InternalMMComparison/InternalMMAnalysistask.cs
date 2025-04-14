@@ -364,7 +364,7 @@ namespace TaskLayer.ChimeraAnalysis
             ExternalComparisonTask.PlotProteinCountingCharts(countingRecords, isTopDown, BulkFigureDirectory);
 
             var resultsForInternalComparison = cellLineDict
-                .SelectMany(p => p.Value.Skip(1).ToList())
+                .SelectMany(p => p.Value.ToList())
                 .Where(p => !p.DirectoryPath.Contains($"{ChimericDescriptor}_{Version}_NonChimericLibrary"))
                 .ToList();
 
