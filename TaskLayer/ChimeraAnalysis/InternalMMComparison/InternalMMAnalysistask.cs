@@ -412,7 +412,7 @@ namespace TaskLayer.ChimeraAnalysis
                 string gptmd = GetGptmdPath(true, isTopDown);
                 string search = GetSearchPath(true, isTopDown, true);
                 string[] specToRun = allSpectralPaths.SelectMany(p => p.Item1).ToArray();
-                var chimLibPrcess = new MetaMorpheusGptmdSearchCmdProcess(specToRun, parameters.DatabasePath, gptmd, search, chimericOutPath,
+                var chimLibPrcess = new MetaMorpheusGptmdSearchCmdProcess(specToRun, [parameters.DatabasePath], gptmd, search, chimericOutPath,
                     $"Generating Chimeric Library for {descriptor} in {dataset}", 1.5, MetaMorpheusLocation);
                 toReturn.Add(chimLibPrcess);
 
@@ -423,7 +423,7 @@ namespace TaskLayer.ChimeraAnalysis
                 specToRun = isTopDown
                     ? allSpectralPaths.SelectMany(p => p.Item2).ToArray()
                     : allSpectralPaths.SelectMany(p => p.Item1).ToArray();
-                var nonChimLibProcess = new MetaMorpheusGptmdSearchCmdProcess(specToRun, parameters.DatabasePath, gptmd, search,
+                var nonChimLibProcess = new MetaMorpheusGptmdSearchCmdProcess(specToRun, [parameters.DatabasePath], gptmd, search,
                     nonChimericOutPath,
                     $"Generating Non-Chimeric Library for {descriptor} in {dataset}", 1, MetaMorpheusLocation);
                 toReturn.Add(nonChimLibProcess);
@@ -445,7 +445,7 @@ namespace TaskLayer.ChimeraAnalysis
                     gptmd = GetGptmdPath(true, isTopDown);
                     search = GetSearchPath(true, isTopDown, false);
                     string[] spec = allSpec.SelectMany(p => p.Item1).ToArray();
-                    var individualProcess = new MetaMorpheusGptmdSearchCmdProcess(spec, parameters.DatabasePath, gptmd, search,
+                    var individualProcess = new MetaMorpheusGptmdSearchCmdProcess(spec, [parameters.DatabasePath], gptmd, search,
                         chimWithChimOutPath,
                         $"Searching with Chimeric Library for Replicate {i} in {cellLine.CellLine}", 0.5,
                         MetaMorpheusLocation, $"{cellLine.CellLine} rep {i}");
@@ -458,7 +458,7 @@ namespace TaskLayer.ChimeraAnalysis
                     gptmd = GetGptmdPath(true, isTopDown);
                     search = GetSearchPath(true, isTopDown, false);
                     spec = allSpec.SelectMany(p => p.Item1).ToArray();
-                    individualProcess = new MetaMorpheusGptmdSearchCmdProcess(spec, parameters.DatabasePath, gptmd, search,
+                    individualProcess = new MetaMorpheusGptmdSearchCmdProcess(spec, [parameters.DatabasePath], gptmd, search,
                         chimWithNonChimOutPath,
                         $"Searching Chimeric with Non-Chimeric Library for Replicate {i} in {cellLine.CellLine}", 0.5,
                         MetaMorpheusLocation, $"{cellLine.CellLine} rep {i}");
@@ -473,7 +473,7 @@ namespace TaskLayer.ChimeraAnalysis
                     spec = isTopDown
                         ? allSpec.SelectMany(p => p.Item2).ToArray()
                         : allSpec.SelectMany(p => p.Item1).ToArray();
-                    individualProcess = new MetaMorpheusGptmdSearchCmdProcess(spec, parameters.DatabasePath, gptmd, search,
+                    individualProcess = new MetaMorpheusGptmdSearchCmdProcess(spec, [parameters.DatabasePath], gptmd, search,
                         nonChimWithNonChimOutPath,
                         $"Searching Non-Chimeric with Non-Chimeric Library for Replicate {i} in {cellLine.CellLine}", 0.5,
                         MetaMorpheusLocation);

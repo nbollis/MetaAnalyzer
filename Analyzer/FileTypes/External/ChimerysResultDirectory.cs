@@ -1,4 +1,5 @@
-﻿using Readers;
+﻿using Proteomics.AminoAcidPolymer;
+using Readers;
 
 namespace Analyzer.FileTypes.External;
 
@@ -48,6 +49,25 @@ public class ChimerysResultDirectory
             else if (toCheck.EndsWith("precursors.tsv"))
             {
                 PrecursorPath = filePath;
+            }
+        }
+
+        // if we have psms and protein groups, we need to set ProteinAccession in the Psms by ID
+        if (PsmPath != null && ProteinGroupPath != null)
+        {
+            var proteinDictionary = ProteinGroupFile!.Results
+                .SelectMany(pg => pg.ProteinIds.Zip(pg.ProteinIdentifiers, (id, identifier) => new { id, identifier }))
+                .GroupBy(x => x.id)
+                .ToDictionary(g => g.Key, g => g.First().identifier);
+
+            foreach (var psm in PsmFile!.Results)
+            {
+                var proteinAccessions = psm.ProteinIds
+                    .Where(id => proteinDictionary.ContainsKey((int)id))
+                    .Select(id => proteinDictionary[(int)id])
+                    .ToArray();
+
+                psm.ProteinAccession = string.Join(";", proteinAccessions);
             }
         }
     }

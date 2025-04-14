@@ -556,19 +556,38 @@ namespace Test.ChimeraPaper
             //var chim = new ChimerysResult(path);
             //chim.ChimerysResultDirectory.PsmFile.LoadResults();
 
+            var dirPath = @"B:\Users\Nic\Chimeras\Mann_11cell_analysis";
+            var allResults = new AllResults(dirPath, Directory.GetDirectories(dirPath)
+                .Where(p => !p.Contains("Figures") && !p.Contains("ProcessedResults") && !p.Contains("Prosight"))
+                .Select(datasetDirectory => new CellLineResults(datasetDirectory)).ToList());
+            var selector = Selector.GetSelector(Path.GetFileName(dirPath), false);
+            var fraggerResults = allResults.SelectMany(cellLine => cellLine.Results.Where(result =>
+                    result.Condition.Contains("DDA+")
+                    && !result.Condition.Contains("ase_MsF") && result is MsFraggerResult).Cast<MsFraggerResult>())
+                .ToList();
 
+            //var fraggerReviewdWithPhospho = fraggerResults
+            //    .Where(p => !p.Condition.ConvertConditionName().Contains("NoPhospho") && p.Condition != "ReviewdDatabase_MsFraggerDDA+")
+            //    .ToList();
+
+            // Only return one run
+            var fraggerToReturn = fraggerResults
+                .Where(p => selector.Contains(p.Condition, SelectorType.BulkResultComparison))
+                .ToList();
 
             string cellLinePath = @"B:\Users\Nic\Chimeras\ExternalMMAnalysis\Mann_11cell_lines\A549";
-            List<SingleRunResults> results = new();
+            List<SingleRunResults> results = new(); //[fraggerToReturn.First()];
             foreach (var dir in Directory.GetDirectories(cellLinePath)
                 .Where(p => !p.Contains("Figure")))
             {
                 var result = ExternalComparisonTask.LoadResultFromFilePath(dir);
+                if (result is MetaMorpheusResult)
+                    continue;
+                
                 results.Add(result);   
 
                 if (result is ChimerysResult cr)
                 {
-                    cr.ChimerysResultDirectory.PeptideFile.LoadResults();
                     result.GetIndividualFileComparison();
                     result.GetBulkResultCountComparisonFile();
                     result.CountChimericPsms();
@@ -582,25 +601,26 @@ namespace Test.ChimeraPaper
             cellLine.GetBulkResultCountComparisonFile();
             cellLine.CountChimericPsms();
 
-            try
-            {
-                cellLine.PlotModificationDistribution(ResultType.Psm, false);
-            }
-            catch (Exception e)
-            {
-                Console.WriteLine(e);
-            }
-            try
-            {
-                cellLine.PlotModificationDistribution(ResultType.Peptide, false);
-            }
-            catch (Exception e)
-            {
-                Console.WriteLine(e);
-            }
+            //try
+            //{
+            //    cellLine.PlotModificationDistribution(ResultType.Psm, false);
+            //}
+            //catch (Exception e)
+            //{
+            //    Console.WriteLine(e);
+            //}
+            //try
+            //{
+            //    cellLine.PlotModificationDistribution(ResultType.Peptide, false);
+            //}
+            //catch (Exception e)
+            //{
+            //    Console.WriteLine(e);
+            //}
 
-
-            cellLine.PlotIndividualFileResults();
+            cellLine.PlotIndividualFileResults(ResultType.Psm);
+            cellLine.PlotIndividualFileResults(ResultType.Peptide);
+            cellLine.PlotIndividualFileResults(ResultType.Protein);
         }
 
         static double LogFactorial(int n)

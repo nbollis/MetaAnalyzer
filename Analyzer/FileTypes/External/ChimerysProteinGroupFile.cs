@@ -31,7 +31,7 @@ public class ChimerysProteinGroupFile : ResultFile<ChimerysProteinGroup>, IResul
         var results = new List<ChimerysProteinGroup>();
 
         // wide file (condensed same IDs from different files)
-        if (headers.Count(p => p.Contains("Q_VALUE")) > 2)
+        if (headers.Count(p => p.Contains("COUNT_PRECURSORS")) > 2)
         {
             var headerDicts = new Dictionary<string, Dictionary<string, int>>
             {
@@ -54,10 +54,6 @@ public class ChimerysProteinGroupFile : ResultFile<ChimerysProteinGroup>, IResul
 
             var rawFileNames = headerDicts["PROTEIN_IDS"].Keys.Select(p => p.Split(':')[0]).ToArray();
             var sampleNames = headerDicts["PROTEIN_IDS"].Keys.Select(p => p.Split(':')[1]).ToArray();
-            var allValues = headerDicts.ToDictionary(
-                dict => dict.Key,
-                dict => dict.Value.Select(p => csv.GetField(p.Value)).ToArray()
-            );
 
             bool readHeader = false;
             while (csv.Read())
@@ -73,15 +69,21 @@ public class ChimerysProteinGroupFile : ResultFile<ChimerysProteinGroup>, IResul
                 if (record is null)
                     continue;
 
+                var allValues = headerDicts.ToDictionary(
+                    dict => dict.Key,
+                    dict => dict.Value.Select(p => csv.GetField(p.Value)).ToArray()
+                );
+
+                int max = allValues["PROTEIN_IDS"].Length;
                 var nonNullFileEntries = allValues
                     .Select((m, i) =>
                     {
+                        if (i >= max) return null;
                         var peptideCount = (int?)(int.TryParse(allValues["COUNT_PEPTIDES"][i], out var result) ? result : null);
                         var psmCount = (int?)(int.TryParse(allValues["COUNT_PSMS"][i], out var psmResult) ? psmResult : null);
-
                         return new { PeptideCount = peptideCount, PsmCount = psmCount, Index = i };
                     })
-                    .Where(p => p.PeptideCount != null)
+                    .Where(p => p?.PeptideCount != null)
                     .OrderByDescending(p => p.PeptideCount)
                     .ThenByDescending(p => p.PsmCount)
                     .ToList();

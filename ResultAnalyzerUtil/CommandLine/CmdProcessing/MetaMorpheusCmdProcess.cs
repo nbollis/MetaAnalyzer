@@ -4,7 +4,7 @@ namespace ResultAnalyzerUtil.CommandLine;
 
 public abstract class MetaMorpheusCmdProcess(
     string[] spectraPaths,
-    string dbPath,
+    string[] dbPaths,
     string[] taskTomlPaths,
     string outputPath,
     string summaryText,
@@ -21,8 +21,8 @@ public abstract class MetaMorpheusCmdProcess(
             var sb = new StringBuilder();
             sb.Append($" -t {string.Join(" ", TasksTomls)}");
             sb.Append($" -s {string.Join(" ", SpectraPaths)}");
+            sb.Append($" -s {string.Join(" ", DatabasePaths)}");
             sb.Append($" -o {OutputDirectory}");
-            sb.Append($" -d {DatabasePath}");
             if (Dependency != null)
             {
                 sb.Append($" {Dependency.Task.Result}");
@@ -37,7 +37,7 @@ public abstract class MetaMorpheusCmdProcess(
     }
     public string OutputDirectory { get; } = outputPath;
     public string[] SpectraPaths { get; } = spectraPaths;
-    public string DatabasePath { get; } = dbPath;
+    public string[] DatabasePaths { get; } = dbPaths;
     public string[] TasksTomls { get; } = taskTomlPaths;
 
     public override bool HasStarted()

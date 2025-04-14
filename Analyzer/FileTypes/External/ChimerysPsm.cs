@@ -13,7 +13,7 @@ namespace Analyzer.FileTypes.External;
 public class ChimerysPsm : ISpectralMatch
 {
     [Ignore] public int Charge => PrecursorCharge;
-    [Ignore] public string ProteinAccession { get; }
+    [Ignore] public string ProteinAccession { get; internal set; }
 
     [Ignore] private string? _fileNameWithoutExtensions;
     [Ignore] public string FileNameWithoutExtension => _fileNameWithoutExtensions ??= Path.GetFileNameWithoutExtension(RawFileName);

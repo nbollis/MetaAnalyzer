@@ -65,6 +65,7 @@ public class ResultAnalyzerTaskToCmdProcessAdaptor : CmdProcess
             if (File.Exists(pathToCheck))
             {
                 _isComplete = true;
+                CompletionSource.SetResult(pathToCheck);
             }
         }
         catch (Exception)
@@ -72,6 +73,7 @@ public class ResultAnalyzerTaskToCmdProcessAdaptor : CmdProcess
             _isComplete = false;
         }
      
+
         return _isComplete;
        
     }

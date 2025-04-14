@@ -48,7 +48,7 @@ namespace Test.ChimeraPaper
             {
                 string calibOutDir = Path.Combine(dataDir, repRawFiles.Key.Item1, $"{Version}_Calibrated-{repRawFiles.Key.Item2}");
                 string[] specPaths = repRawFiles.Value.ToArray();
-                var caliProcess = new MetaMorpheusCalibrationCmdProcess(specPaths, dbPath, caliToml, calibOutDir, $"Calibrating {repRawFiles.Key.Item2}" , 0.5, MetaMorpheusPath);
+                var caliProcess = new MetaMorpheusCalibrationCmdProcess(specPaths, [dbPath], caliToml, calibOutDir, $"Calibrating {repRawFiles.Key.Item2}" , 0.5, MetaMorpheusPath);
 
                 calibrationProcesses.Add(caliProcess);
             }
@@ -65,7 +65,7 @@ namespace Test.ChimeraPaper
 
                 string averagedOutDir = Path.Combine(dataDir, repRawFiles.Key.Item1, $"{Version}_CalibratedAveraged-{repRawFiles.Key.Item2}");
 
-                var avgProcess = new MetaMorpheusAveragingCmdProcess(calibratedFiles, dbPath, averagingToml, averagedOutDir, $"Averaging {repRawFiles.Key.Item2}", 0.5, MetaMorpheusPath);
+                var avgProcess = new MetaMorpheusAveragingCmdProcess(calibratedFiles, [dbPath], averagingToml, averagedOutDir, $"Averaging {repRawFiles.Key.Item2}", 0.5, MetaMorpheusPath);
                 averagingProcesses.Add(avgProcess);
             }
 

@@ -254,7 +254,7 @@ namespace TaskLayer.ChimeraAnalysis
                     $"GenerateChimericLibrary_{Version}_{descriptor}");
                 string gptmd = GetGptmdPath(isTopDown);
                 string search = GetSearchPath(isTopDown, true);
-                var chimLibPrcess = new MetaMorpheusGptmdSearchCmdProcess(specToRun, parameters.DatabasePath, gptmd, search, chimericOutPath,
+                var chimLibPrcess = new MetaMorpheusGptmdSearchCmdProcess(specToRun, [parameters.DatabasePath], gptmd, search, chimericOutPath,
                     $"Generating Chimeric Library for {descriptor} in {dataset}", 1, MetaMorpheusLocation);
                 toReturn.Add(chimLibPrcess);
 
@@ -274,7 +274,7 @@ namespace TaskLayer.ChimeraAnalysis
                         $"MetaMorpheus_{Version}_Rep{i}");
                     gptmd = GetGptmdPath(isTopDown);
                     search = GetSearchPath(isTopDown, false);
-                    var individualProcess = new MetaMorpheusGptmdSearchCmdProcess(spec, parameters.DatabasePath, gptmd, search,
+                    var individualProcess = new MetaMorpheusGptmdSearchCmdProcess(spec, [parameters.DatabasePath], gptmd, search,
                         chimWithChimOutPath,
                         $"Searching with Chimeric Library for Replicate {i} in {cellLine.CellLine}", 0.5,
                         MetaMorpheusLocation, $"{cellLine.CellLine} rep {i}");
@@ -558,7 +558,7 @@ namespace TaskLayer.ChimeraAnalysis
                 {
                     foreach (var indResultDir in Directory.GetDirectories(cellLineDirectory))
                     {
-                        if (!indResultDir.Contains("Chimerys"))
+                        if (!indResultDir.Contains("Chimerys") || indResultDir.Contains("MSAID"))
                             continue;
 
                         var result = new ProteomeDiscovererResult(indResultDir);

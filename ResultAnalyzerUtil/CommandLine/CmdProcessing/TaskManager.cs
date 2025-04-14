@@ -82,22 +82,8 @@ public class TaskManager
         // if still running, wait until finish and return
         if (process.HasStarted())
         {
-            if (process.IsCompleted())
-            {
-                Console.WriteLine($"Previous Completion Detected: {process.SummaryText}");
-
-                // TODO: add functionality to determine if a task has others depending on it
-                if (process is MetaMorpheusGptmdSearchCmdProcess { IsLibraryCreator: true } imm)
-                {
-                    var filePath = Directory.GetFiles(imm.OutputDirectory, "*.msp", SearchOption.AllDirectories).FirstOrDefault();
-                    if (filePath != null)
-                        process.CompletionSource.SetResult(filePath);
-                }
-            }
-            else
-                Console.WriteLine($"Has Started Elsewhere: {process.SummaryText}");
-
-            while (!process.IsCompleted())
+            Console.WriteLine($"Has Started Elsewhere: {process.SummaryText}");
+            while (!process.IsCompleted()) 
             {
                 await Task.Delay(100000); // Adjust delay as needed
             }

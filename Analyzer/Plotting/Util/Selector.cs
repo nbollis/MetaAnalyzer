@@ -169,6 +169,10 @@ namespace Analyzer.Plotting.Util
 
                     "ReviewdDatabaseNoPhospho_MsFraggerDDA", "ReviewdDatabaseNoPhospho_MsFraggerDDA+", "ReviewdDatabaseNoPhospho_MsFragger",
                     //"Chimerys"
+
+                    "Chimerys_MSAID_Rep1", "Chimerys_Rep1", "MetaMorpheus_106_Rep1",
+                    "Chimerys_MSAID_Rep2", "Chimerys_Rep2", "MetaMorpheus_106_Rep2",
+                    "Chimerys_MSAID_Rep3", "Chimerys_Rep3", "MetaMorpheus_106_Rep3",
                 },
                 InternalMetaMorpheusFileComparisonSelector = new[]
                 {
@@ -181,6 +185,9 @@ namespace Analyzer.Plotting.Util
 
                     "ReviewdDatabaseNoPhospho_MsFraggerDDA+", "ReviewdDatabaseNoPhospho_MsFragger",
                     //"Chimerys"
+                    "Chimerys_MSAID_Rep1", "Chimerys_Rep1", "MetaMorpheus_106_Rep1",
+                    "Chimerys_MSAID_Rep2", "Chimerys_Rep2", "MetaMorpheus_106_Rep2",
+                    "Chimerys_MSAID_Rep3", "Chimerys_Rep3", "MetaMorpheus_106_Rep3",
                 },
                 SingleResultSelector = new[] { "MetaMorpheusWithLibrary" }
             };

@@ -4,6 +4,7 @@ using Chemistry;
 using Plotting.Util;
 using Proteomics;
 using Proteomics.AminoAcidPolymer;
+using Readers.Generated;
 using UsefulProteomicsDatabases;
 
 namespace Analyzer.SearchType;
@@ -40,19 +41,25 @@ public class ChimerysResult : SingleRunResults
 
         // set up result dictionary
         var results = ChimerysResultDirectory.PsmFile
-            .Select(p => p.RawFileName).Distinct()
+            .Select(p => p.RawFileName.ConvertFileName()).Distinct()
             .ToDictionary(fileID => fileID,
                 fileID => new BulkResultCountComparison()
                 {
                     DatasetName = DatasetName,
                     Condition = Condition,
-                    FileName = fileID.ConvertFileName(),
+                    FileName = fileID,
                 });
 
         var targetPeptides = ChimerysResultDirectory.PeptideFile!
-            .Where(p => !p.IsDecoy).ToList();
+            .Where(p => !p.IsDecoy)
+            .SelectMany(p => p.ToLongFormat())
+            .ToList();
+
         var targetProteinGroups = ChimerysResultDirectory.ProteinGroupFile!
-            .Where(p => !p.IsDecoy).ToList();
+            .Where(p => !p.IsDecoy)
+            .SelectMany(p => p.ToLongFormat())
+            .ToList();
+
         foreach (var fileGroupedPsms in ChimerysResultDirectory.PsmFile.GroupBy(p => p.RawFileName.ConvertFileName()))
         {
             var psms = fileGroupedPsms.Where(p => !p.IsDecoy).ToList();
@@ -61,7 +68,7 @@ public class ChimerysResult : SingleRunResults
 
             var peptides = targetPeptides.Where(p => p.RawFileName.ConvertFileName() == fileGroupedPsms.Key).ToList();
             var onePercentPeptideCount = peptides.Count(p => p.QValue <= 0.01);
-            var onePercentPEPPeptides = peptides.Count(p => p.Pep >= 0.00);
+            var onePercentPEPPeptides = peptides.Count(p => p.Pep >= 0.01);
 
             var proteinGroups = targetProteinGroups.Where(p => p.RawFileName.ConvertFileName() == fileGroupedPsms.Key).ToList();
             var onePercentProteins = proteinGroups.Count(p => p.GlobalQValue <= 0.01);
@@ -123,8 +130,9 @@ public class ChimerysResult : SingleRunResults
         return chimeraCountingFile;
     }
 
-    public override BulkResultCountComparisonFile GetBulkResultCountComparisonFile(string path = null)
+    public override BulkResultCountComparisonFile GetBulkResultCountComparisonFile(string? path = null)
     {
+        path ??= _bulkResultCountComparisonPath;
         if (!Override && File.Exists(_bulkResultCountComparisonPath))
             return new BulkResultCountComparisonFile(_bulkResultCountComparisonPath);
 
@@ -143,6 +151,9 @@ public class ChimerysResult : SingleRunResults
         int onePercentSecondaryPsmCount = psms.Count(p => p.SecondaryConfidenceMetric <= 0.01);
         int onePercentSecondaryPeptideCount = peptides.Count(p => p.Pep >= 0.99);
 
+        int onePercentUnambiguousPsmCount = psms.Count(p => p is { PassesConfidenceFilter: true, IsAmbiguous: false });
+        int onePercentUnambiguousPeptideCount = peptides.Count(p => p is { PassesConfidenceFilter: true, IsAmbiguous: false });
+
         var bulkResultCountComparison = new BulkResultCountComparison
         {
             DatasetName = DatasetName,
@@ -154,8 +165,8 @@ public class ChimerysResult : SingleRunResults
             OnePercentPsmCount = onePercentPsmCount,
             OnePercentPeptideCount = onePercentPeptideCount,
             OnePercentProteinGroupCount = onePercentProteinGroupCount,
-            OnePercentUnambiguousPsmCount = 0,
-            OnePercentUnambiguousPeptideCount = 0,
+            OnePercentUnambiguousPsmCount = onePercentUnambiguousPsmCount,
+            OnePercentUnambiguousPeptideCount = onePercentUnambiguousPeptideCount,
             OnePercentSecondary_PsmCount = onePercentSecondaryPsmCount,
             OnePercentSecondary_PeptideCount = onePercentSecondaryPeptideCount
         };

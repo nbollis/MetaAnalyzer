@@ -36,6 +36,7 @@ public static class PlottingTranslators
         {"ReviewdDatabaseNoPhospho_MsFragger", Color.fromKeyword(ColorKeyword.LightAkyBlue) },
         {"ReviewdDatabaseNoPhospho_MsFraggerDDA+", Color.fromKeyword(ColorKeyword.RoyalBlue) },
         {"Chimerys", Color.fromKeyword(ColorKeyword.Lime) },
+        {"Chimerys Platform", Color.fromKeyword(ColorKeyword.DarkOrange) },
 
         // General
         {"Chimeras", Color.fromKeyword(ColorKeyword.Purple) }, // (128,0,128)
@@ -523,6 +524,9 @@ public static class PlottingTranslators
         { "Chimerys_Rep1", "Chimerys"},
         { "Chimerys_Rep2", "Chimerys"},
         { "Chimerys_Rep3", "Chimerys"},
+        { "Chimerys_MSAID_Rep1", "Chimerys Platform"},
+        { "Chimerys_MSAID_Rep2", "Chimerys Platform"},
+        { "Chimerys_MSAID_Rep3", "Chimerys Platform"},
 
         // Top Down
         { "MetaMorpheus", "MetaMorpheus\u2800" },
@@ -570,7 +574,7 @@ public static class PlottingTranslators
 
     public static string ConvertFileName(this string fileName)
     {
-        var name = fileName.Replace("-calib", "").Replace("-averaged", "");
+        var name = fileName.Replace("-calib", "").Replace("-averaged", "").Replace(".raw", "");
 
 
         if (FileNameConversionDictionary.TryGetValue(name, out string? value) && value != null)

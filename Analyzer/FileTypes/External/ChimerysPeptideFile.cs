@@ -1,4 +1,5 @@
-﻿using System.Globalization;
+﻿using System.Diagnostics;
+using System.Globalization;
 using System.Text;
 using CsvHelper;
 using CsvHelper.Configuration;
@@ -32,7 +33,7 @@ public class ChimerysPeptideFile : ResultFile<ChimerysPeptide>, IResultFile
         var results = new List<ChimerysPeptide>();
 
         // if wide file (condensed same IDs from different files)
-        if (headers.Count(p => p.Contains(" Q_VALUE")) > 2)
+        if (headers.Count(p => p.Contains("Q_VALUE")) > 2)
         {
             var headerDicts = new Dictionary<string, Dictionary<string, int>>
             {
@@ -77,6 +78,9 @@ public class ChimerysPeptideFile : ResultFile<ChimerysPeptide>, IResultFile
                     .Where(p => p.Value != null).ToList();
                 var nonNullIndexes = nonNullQValues.Select(p => p.Index).ToList();
                 var bestIndex = nonNullQValues.First().Index;
+
+                if (nonNullIndexes.Count == 0)
+                    Debugger.Break();
 
                 foreach (var indexWhereIdentified in nonNullIndexes)
                 {

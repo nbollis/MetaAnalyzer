@@ -1,9 +1,9 @@
 ﻿namespace ResultAnalyzerUtil.CommandLine;
 
-public class MetaMorpheusCalibrationCmdProcess(string[] spectraPaths, string dbPath,
+public class MetaMorpheusCalibrationCmdProcess(string[] spectraPaths, string[] dbPaths,
     string calibTomlPath, string outputPath, string summaryText, double weight,
     string workingDir, string? quickName = null)
-    : MetaMorpheusCmdProcess(spectraPaths, dbPath, [calibTomlPath], outputPath, summaryText, weight, workingDir, quickName)
+    : MetaMorpheusCmdProcess(spectraPaths, dbPaths, [calibTomlPath], outputPath, summaryText, weight, workingDir, quickName)
 {
     public override bool IsCompleted()
     {
@@ -14,7 +14,7 @@ public class MetaMorpheusCalibrationCmdProcess(string[] spectraPaths, string dbP
         if (files.Length != SpectraPaths.Length)
             return false;
 
-        var calibFiles = files.Count(p => p.Contains("-calib"));
-        return calibFiles == SpectraPaths.Length;
+        CompletionSource.SetResult(string.Join(' ', files));
+        return files.Length == SpectraPaths.Length;
     }
 }
