@@ -1,6 +1,7 @@
 ﻿
 
 using Google.Protobuf.WellKnownTypes;
+using PuppeteerSharp;
 using System.Formats.Asn1;
 using System.Text.Json;
 using System.Text.Json.Serialization;
@@ -24,52 +25,26 @@ public class PepCentricClient
         };
     }
 
-    public async Task<PepCentricResponse> SubmitJobAsync(List<string> peptides, string jobType = "peptide", string enzyme = "enzymatic", string email = "", string jobName = "")
+    public async Task<SubmissionResponse> SubmitJobAsync(List<string> peptides, string jobType = "peptide", string enzyme = "enzymatic", string email = "", string jobName = "")
     {
         string query = string.Join(',', peptides);
         var url = $"{_baseUrl}/submit?email={email}&jobName={jobName}&jobType={jobType}&query={Uri.EscapeDataString(query)}&enzyme={enzyme}";
-        return await GetJsonAsync<PepCentricResponse>(url);
+        return await GetJsonAsync<SubmissionResponse>(url);
     }
 
-    public async Task<PepCentricResponse> SubmitJobAsync(string query, string jobType = "peptide", string enzyme = "enzymatic", string email = "", string jobName = "")
+    public async Task<SubmissionResponse> SubmitJobAsync(string query, string jobType = "peptide", string enzyme = "enzymatic", string email = "", string jobName = "")
     {
         var url = $"{_baseUrl}/submit?email={email}&jobName={jobName}&jobType={jobType}&query={Uri.EscapeDataString(query)}&enzyme={enzyme}";
-        return await GetJsonAsync<PepCentricResponse>(url);
+        return await GetJsonAsync<SubmissionResponse>(url);
     }
 
-    public async Task<JobStatusResponse> GetJobStatusAsync(PepCentricResponse submissionResponse)
+    public async Task<JobStatusResponse> GetJobStatusAsync(SubmissionResponse submissionResponse)
         => await GetJobStatusAsync(submissionResponse.JobIdentifier);
 
     public async Task<JobStatusResponse> GetJobStatusAsync(string jobId)
     {
         var url = $"{_baseUrl}/jobstatus?jobID={jobId}";
         return await GetJsonAsync<JobStatusResponse>(url);
-    }
-
-    public async Task<PepCentricResponse> GetResultAsync(PepCentricResponse submissionResponse) 
-        => await GetResultAsync(submissionResponse.JobIdentifier);
-    public async Task<PepCentricResponse> GetResultAsync(string jobId)
-    {
-        var url = $"{_baseUrl}/result?jobID={jobId}";
-        return await GetJsonAsync<PepCentricResponse>(url);
-    }
-
-    public async Task<PepCentricResponse> GetCompletedResultAsync(PepCentricResponse submissionResponse)
-        => await GetCompletedResultAsync(submissionResponse.JobIdentifier);
-    public async Task<PepCentricResponse> GetCompletedResultAsync(string jobId)
-    {
-        var url = $"{_baseUrl}/result?jobID={jobId}";
-
-        JobStatusResponse status;
-        do
-        {
-            Task.Delay(2000); // wait 2s
-            status = await GetJobStatusAsync(jobId);
-        }
-        while (!status.IsComplete);
-
-        // Get final results
-        return await GetResultAsync(jobId);
     }
 
     public async Task<JobStatusResponse> WaitUntilJobComplete(string jobId)
@@ -84,6 +59,29 @@ public class PepCentricClient
         while (!status.IsComplete);
         return status;
     }
+
+    // Gets all Responses of a peptide from a given protein
+    public async Task<PepCentricShowSequenceResponse> GetSequenceAsync(string jobId, string proteinId, double q = 0.01, double p = 0.01, double e = 0.01, double offset = 0)
+    {
+        var url = $"{_baseUrl}/showSequence?jobID={jobId}&proteinID={proteinId}&q={q}&p={p}&e={e}";
+        _ = await WaitUntilJobComplete(jobId);
+
+        var response = await GetJsonAsync<PepCentricShowSequenceResponse>(url);
+        response.JobIdentifier = jobId;
+        return response;
+    }
+
+    // gets all modified forms of a peptide from a given protein and peptide. 
+    public async Task<PepCentricShowPeptideResponse> GetPeptideAsync(string jobId, string proteinId, int sequenceId, double p = 0.01, double e = 0.01)
+    {
+        var url = $"{_baseUrl}/showPeptide?jobID={jobId}&proteinID={proteinId}&sequenceID={sequenceId}&p={p}&e={e}";
+        _ = await WaitUntilJobComplete(jobId);
+
+        var response = await GetJsonAsync<PepCentricShowPeptideResponse>(url);
+        response.JobIdentifier = jobId;
+        return response;
+    }
+
 
 
     #region Base API Calls - Not used Yet
@@ -125,20 +123,7 @@ public class PepCentricClient
         var response = await _client.GetStringAsync(url);
         var result = JsonSerializer.Deserialize<T>(response, _jsonOptions);
 
-        // set the identifier if we can
-        if (result is PepCentricResponse pepCentricResponse)
-        {
-            var uuid = ExtractUuid(pepCentricResponse.Status);
-            pepCentricResponse.JobIdentifier = uuid;
-        }
-
         return result!;
-    }
-
-    private string ExtractUuid(string text)
-    {
-        var match = Regex.Match(text, "[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}", RegexOptions.IgnoreCase);
-        return match.Success ? match.Value : null;
     }
 }
 

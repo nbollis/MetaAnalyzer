@@ -42,12 +42,19 @@ namespace Test.PepCentricReview
             var toTry = results.Skip(10).Take(2).Select(p => p.FullSequenceWithMassShifts).ToList();
 
             var jobId = await client.SubmitJobAsync(toTry);
-            var result = await client.GetCompletedResultAsync(jobId);
             
             var isComplete = await client.WaitUntilJobComplete(jobId.JobIdentifier);
 
-            var result2 = await client.GetResultAsync(jobId.JobIdentifier);
+            //var result2 = await client.GetResultAsync(jobId.JobIdentifier);
+            //var pep = await client.GetSequenceAsync(jobId.JobIdentifier, "0");
+            //var pep2 = await client.GetPeptideAsync(jobId.JobIdentifier, "0", 0);
 
+
+            var pepi = await client.GetSequenceAsync(jobId.JobIdentifier, "0");
+            var pepiR = await client.ShowSequenceAsync(jobId.JobIdentifier, "0", "0.01", "0.01", "0.01");
+            var pep2i = await client.GetPeptideAsync(jobId.JobIdentifier, "0", 0);
+            var pep2iR = await client.ShowPeptideAsync(jobId.JobIdentifier, "0", "0", "0.01", "0.01");
+       
         }
 
 

@@ -4,10 +4,10 @@ using Chemistry;
 using CsvHelper;
 using CsvHelper.Configuration;
 using Omics.Modifications;
-using Omics;
 using Readers;
 using Proteomics.ProteolyticDigestion;
 using ResultAnalyzerUtil;
+using CsvHelper.Configuration.Attributes;
 
 namespace Test.PepCentricReview;
 
@@ -30,7 +30,13 @@ public class PepCentricReviewRecord
 
     public IdClassification IdClassification { get; set; }
 
-    public static string GetFullSequenceWithMassShift(string fullSequence)
+    [Optional] public int PsmCount { get; set; }
+    [Optional] public int OrganCount { get; set; }
+    [Optional] public int DiseaseCount { get; set; }
+    [Optional] public int DatasetCount { get; set; }
+
+
+    public static string GetFullSequenceWithMassShift(string fullSequence, int decimals = 4)
     {
         var withSetMods = new PeptideWithSetModifications(fullSequence, GlobalVariables.AllModsKnownDictionary);
         var subsequence = new StringBuilder();
@@ -38,7 +44,7 @@ public class PepCentricReviewRecord
         // modification on peptide N-terminus
         if (withSetMods.AllModsOneIsNterminus.TryGetValue(1, out Modification? mod))
         {
-            subsequence.Append($"[{mod.MonoisotopicMass.RoundedDouble(6)}]");
+            subsequence.Append($"[{mod.MonoisotopicMass.RoundedDouble(decimals)}]");
         }
 
         for (int r = 0; r < withSetMods.Length; r++)
@@ -50,11 +56,11 @@ public class PepCentricReviewRecord
             {
                 if (mod.MonoisotopicMass > 0)
                 {
-                    subsequence.Append($"[+{mod.MonoisotopicMass.RoundedDouble(6)}]");
+                    subsequence.Append($"[+{mod.MonoisotopicMass.RoundedDouble(decimals)}]");
                 }
                 else
                 {
-                    subsequence.Append($"[{mod.MonoisotopicMass.RoundedDouble(6)}]");
+                    subsequence.Append($"[{mod.MonoisotopicMass.RoundedDouble(decimals)}]");
                 }
             }
         }
@@ -64,11 +70,11 @@ public class PepCentricReviewRecord
         {
             if (mod.MonoisotopicMass > 0)
             {
-                subsequence.Append($"[+{mod.MonoisotopicMass.RoundedDouble(6)}]");
+                subsequence.Append($"[+{mod.MonoisotopicMass.RoundedDouble(decimals)}]");
             }
             else
             {
-                subsequence.Append($"[{mod.MonoisotopicMass.RoundedDouble(6)}]");
+                subsequence.Append($"[{mod.MonoisotopicMass.RoundedDouble(decimals)}]");
             }
         }
         return subsequence.ToString();

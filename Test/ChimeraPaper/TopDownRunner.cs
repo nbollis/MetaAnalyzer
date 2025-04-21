@@ -49,37 +49,37 @@ namespace Test.ChimeraPaper
         {
             foreach (var cellLine in AllResults)
             {
-                //foreach (var result in cellLine)
-                //{
-                //    //result.Override = true;
-                //    result.CountChimericPsms();
-                //    result.GetBulkResultCountComparisonFile();
-                //    result.GetIndividualFileComparison();
-                //    if (result is IChimeraBreakdownCompatible cb)
-                //        cb.GetChimeraBreakdownFile();
-                //    if (result is IChimeraPeptideCounter pc)
-                //        pc.CountChimericPeptides();
-                //    if (result is MetaMorpheusResult mm)
-                //    {
-                //        //mm.PlotPepFeaturesScatterGrid();
-                //        //mm.ExportCombinedChimeraTargetDecoyExploration(mm.FigureDirectory, mm.Condition);
-                //        //mm.PlotTargetDecoyCurves(ResultType.Psm, TargetDecoyCurveMode.Score, false);
-                //        //mm.PlotTargetDecoyCurves(ResultType.Psm, TargetDecoyCurveMode.Score, true);
-                //        //mm.PlotTargetDecoyCurves(ResultType.Peptide, TargetDecoyCurveMode.Score, false);
-                //        //mm.PlotTargetDecoyCurves(ResultType.Peptide, TargetDecoyCurveMode.Score, true);
-                //    }
-                //    result.Override = false;
-                //}
+                foreach (var result in cellLine)
+                {
+                    //result.Override = true;
+                    result.CountChimericPsms();
+                    result.GetBulkResultCountComparisonFile();
+                    result.GetIndividualFileComparison();
+                    if (result is IChimeraBreakdownCompatible cb)
+                        cb.GetChimeraBreakdownFile();
+                    if (result is IChimeraPeptideCounter pc)
+                        pc.CountChimericPeptides();
+                    if (result is MetaMorpheusResult mm)
+                    {
+                        //mm.PlotPepFeaturesScatterGrid();
+                        //mm.ExportCombinedChimeraTargetDecoyExploration(mm.FigureDirectory, mm.Condition);
+                        //mm.PlotTargetDecoyCurves(ResultType.Psm, TargetDecoyCurveMode.Score, false);
+                        //mm.PlotTargetDecoyCurves(ResultType.Psm, TargetDecoyCurveMode.Score, true);
+                        //mm.PlotTargetDecoyCurves(ResultType.Peptide, TargetDecoyCurveMode.Score, false);
+                        //mm.PlotTargetDecoyCurves(ResultType.Peptide, TargetDecoyCurveMode.Score, true);
+                    }
+                    result.Override = false;
+                }
 
-                //cellLine.Override = true;
-                //cellLine.GetIndividualFileComparison();
-                //cellLine.GetBulkResultCountComparisonFile();
-                //cellLine.CountChimericPsms();
-                //cellLine.CountChimericPeptides();
-                //cellLine.Override = false;
+                cellLine.Override = true;
+                cellLine.GetIndividualFileComparison();
+                cellLine.GetBulkResultCountComparisonFile();
+                cellLine.CountChimericPsms();
+                cellLine.CountChimericPeptides();
+                cellLine.Override = false;
 
-                //cellLine.PlotIndividualFileResults();
-                //cellLine.PlotCellLineSpectralSimilarity();
+                cellLine.PlotIndividualFileResults();
+                cellLine.PlotCellLineSpectralSimilarity();
                 cellLine.PlotCellLineChimeraBreakdown();
                 //cellLine.PlotCellLineChimeraBreakdown_TargetDecoy();
                 cellLine.PlotModificationDistribution(ResultType.Psm, false);
