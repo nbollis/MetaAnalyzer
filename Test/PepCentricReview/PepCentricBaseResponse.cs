@@ -65,3 +65,10 @@ public class PepCentricShowPeptideResponse : PepCentricBaseResponse
     [JsonPropertyName("results")]
     public List<PepCentricPeptide> Results { get; set; }
 }
+
+public class PepCentricProteinResponse : PepCentricBaseResponse
+{
+
+    [JsonPropertyName("results")]
+    public List<PepCentricProtein> Results { get; set; }
+}

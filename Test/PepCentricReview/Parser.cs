@@ -61,20 +61,21 @@ namespace Test.PepCentricReview
         {
             var client = new PepCentricClient();
             var file = new PepCentricReviewFile(ParsedFilepath);
-            var results = file.OrderBy(p => p.FullSequence).ToHashSet();
+            var results = file.OrderBy(p => p.FullSequenceWithMassShifts).ToHashSet();
 
             List<string> toProcess = new();
             foreach (var item in file)
             {
-                toProcess.Add(item.FullSequence);
+                toProcess.Add(item.FullSequenceWithMassShifts);
 
                 if (toProcess.Count >= 10)
                 {
                     var peptideResponses = client.GetPeptidesFromFullSequences(toProcess).Result;
 
-                    foreach (var peptide in peptideResponses.SelectMany(p => p.Results))
+                    foreach (var peptide in peptideResponses)
                     {
-                        var record = results.FirstOrDefault(r => r.FullSequenceWithMassShifts == peptide.FullSequenceWithMassShifts);
+                        var record = results.FirstOrDefault(r => 
+                        r.FullSequenceWithMassShifts == peptide.FullSequenceWithMassShifts.Replace("n[", "["));
                         if (record != null)
                         {
                             record.SetValuesFromPepCentric(peptide);

@@ -10,6 +10,9 @@ public abstract class PepCentricRecord
     [JsonPropertyName("dataset_count")]
     public int DatasetCount { get; set; }
 
+    [JsonIgnore]
+    public abstract int ID { get; set; }
+
     [JsonPropertyName("diseases")]
     [JsonConverter(typeof(SemicolonDelimitedStringToHashSetConverter))]
     public HashSet<string> Diseases { get; set; }
@@ -46,7 +49,7 @@ public class PepCentricSequence : PepCentricRecord
     public string BaseSequence { get; set; }
 
     [JsonPropertyName("sequence_id")]
-    public int SequenceId { get; set; }
+    public override int ID { get; set; }
 }
 
 public class PepCentricPeptide : PepCentricRecord
@@ -55,5 +58,14 @@ public class PepCentricPeptide : PepCentricRecord
     public string FullSequenceWithMassShifts { get; set; }
 
     [JsonPropertyName("peptide_id")]
-    public int PeptideId { get; set; }
+    public override int ID { get; set; }
+}
+
+public class PepCentricProtein : PepCentricRecord
+{
+    [JsonPropertyName("protein_id")]
+    public override int ID { get; set; }
+
+    [JsonPropertyName("best_sequence")]
+    public string BestBaseSequence { get; set; }
 }

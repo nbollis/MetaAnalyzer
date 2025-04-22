@@ -99,26 +99,31 @@ public class PepCentricClient
         var peptideResponses = new List<PepCentricShowPeptideResponse>();
         foreach (var sequence in response.Results)
         {
-            var peptideResponse = await GetPeptideAsync(jobId, proteinId, sequence.SequenceId, p, e);
+            var peptideResponse = await GetPeptideAsync(jobId, proteinId, sequence.ID, p, e);
             peptideResponse.JobIdentifier = jobId;
             peptideResponses.Add(peptideResponse);
         }
         return peptideResponses;
     }
 
-    public async Task<List<PepCentricShowPeptideResponse>> GetPeptidesFromFullSequences(List<string> peptides, string jobType = "peptide", string enzyme = "enzymatic", string email = "", string jobName = "")
+    public async Task<List<PepCentricPeptide>> GetPeptidesFromFullSequences(List<string> peptides, string jobType = "peptide", string enzyme = "enzymatic", string email = "", string jobName = "")
     {
         var submission = await SubmitJobAsync(peptides, jobType, enzyme, email, jobName);
-        var finished = await WaitUntilJobComplete(jobName);
+        var finished = await WaitUntilJobComplete(submission.JobIdentifier);
 
-        var jobId = submission.JobIdentifier;
-        var allResults = await GetResultAsync(submission.JobIdentifier);
-        var allPeptides = new List<PepCentricShowPeptideResponse>();
-        //foreach (var protein in allResults.Results)
-        //{
-        //    var peptideResponses = await GetPeptidesFromSequence(jobId, protein.ProteinId);
-        //    allPeptides.AddRange(peptideResponses);
-        //}
+        var url = $"{_baseUrl}/result?jobID={submission.JobIdentifier}";
+        var allResults = await GetJsonAsync<PepCentricProteinResponse>(url);
+
+        var allPeptides = new List<PepCentricPeptide>();
+        foreach (var result in allResults.Results)
+        {
+            var sequences = await GetSequenceAsync(submission.JobIdentifier, result.ID.ToString());
+            foreach (var sequence in sequences.Results)
+            {
+                var peps = await GetPeptideAsync(submission.JobIdentifier, result.ID.ToString(), sequence.ID);
+                allPeptides.AddRange(peps.Results);
+            }
+        }
 
 
         return allPeptides; 
