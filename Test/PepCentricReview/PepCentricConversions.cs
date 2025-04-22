@@ -35,7 +35,7 @@ public static class PepCentricConversions
     public static List<Modification> FixedMods { get; set; }
     public static List<Modification> VariableMods { get; set; }
 
-    public static IEnumerable<PepCentricReviewRecord> GetRecordsFromProforma(ProformaFile proformaFile)
+    public static IEnumerable<PepCentricReviewRecord> GetDbOfOriginRecordsFromProforma(ProformaFile proformaFile)
     {
         var temp = proformaFile.GroupBy(p => p.BaseSequence).Select((group) =>
             {
@@ -112,7 +112,6 @@ public static class PepCentricConversions
             yield return peptideWithSetModifications.FullSequence;
         }
     }
-
     public static IEnumerable<string> GetXmlFullSequences()
     {
         var proteins = ProteinDbLoader.LoadProteinXML(XmlPath, true, DecoyType.None, GlobalVariables.AllModsKnown, false, [], out _);
@@ -122,4 +121,6 @@ public static class PepCentricConversions
             yield return peptideWithSetModifications.FullSequence;
         }
     }
+
+
 }

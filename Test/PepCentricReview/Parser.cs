@@ -4,6 +4,7 @@ using Omics;
 using Omics.Modifications;
 using Proteomics.ProteolyticDigestion;
 using ResultAnalyzerUtil;
+using System.Diagnostics;
 using System.Threading.Tasks;
 using UsefulProteomicsDatabases;
 
@@ -18,7 +19,7 @@ namespace Test.PepCentricReview
         {
             // Parse out Mann11 Confident Sequences
             var proformaFile = new ProformaFile(ProformaFilePath);
-            var records = PepCentricConversions.GetRecordsFromProforma(proformaFile).ToList();
+            var records = PepCentricConversions.GetDbOfOriginRecordsFromProforma(proformaFile).ToList();
             
             
             var isFastaCount = records.Count(p => p.IdClassification == IdClassification.Fasta);
@@ -51,12 +52,58 @@ namespace Test.PepCentricReview
 
 
             var pepi = await client.GetSequenceAsync(jobId.JobIdentifier, "0");
-            var pepiR = await client.ShowSequenceAsync(jobId.JobIdentifier, "0", "0.01", "0.01", "0.01");
             var pep2i = await client.GetPeptideAsync(jobId.JobIdentifier, "0", 0);
-            var pep2iR = await client.ShowPeptideAsync(jobId.JobIdentifier, "0", "0", "0.01", "0.01");
-       
         }
 
+
+        [Test]
+        public static void PopulateFileWithApiResponse()
+        {
+            var client = new PepCentricClient();
+            var file = new PepCentricReviewFile(ParsedFilepath);
+            var results = file.OrderBy(p => p.FullSequence).ToHashSet();
+
+            List<string> toProcess = new();
+            foreach (var item in file)
+            {
+                toProcess.Add(item.FullSequence);
+
+                if (toProcess.Count >= 10)
+                {
+                    var peptideResponses = client.GetPeptidesFromFullSequences(toProcess).Result;
+
+                    foreach (var peptide in peptideResponses.SelectMany(p => p.Results))
+                    {
+                        var record = results.FirstOrDefault(r => r.FullSequenceWithMassShifts == peptide.FullSequenceWithMassShifts);
+                        if (record != null)
+                        {
+                            record.SetValuesFromPepCentric(peptide);
+                        }
+                        else
+                            Debugger.Break();
+                    }
+
+                    toProcess.Clear();
+                }
+            }
+
+            // Process any remaining items
+            if (toProcess.Count > 0)
+            {
+                var peptideResponses = client.GetPeptidesFromFullSequences(toProcess).Result;
+
+                foreach (var peptide in peptideResponses.SelectMany(p => p.Results))
+                {
+                    var record = results.FirstOrDefault(r => r.FullSequenceWithMassShifts == peptide.FullSequenceWithMassShifts);
+                    if (record != null)
+                    {
+                        record.SetValuesFromPepCentric(peptide);
+                    }
+                }
+            }
+
+            file.WriteResults(ParsedFilepath);
+        }
 
 
 

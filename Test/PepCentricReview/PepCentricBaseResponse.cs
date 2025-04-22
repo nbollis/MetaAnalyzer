@@ -45,6 +45,7 @@ public class PepCentricBaseResponse
         if (string.IsNullOrWhiteSpace(raw)) return new();
         return raw.Trim('[', ']').Split(',', System.StringSplitOptions.TrimEntries).ToList();
     }
+
 }
 
 public class PepCentricShowSequenceResponse : PepCentricBaseResponse

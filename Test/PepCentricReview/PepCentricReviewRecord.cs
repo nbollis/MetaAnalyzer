@@ -8,6 +8,7 @@ using Readers;
 using Proteomics.ProteolyticDigestion;
 using ResultAnalyzerUtil;
 using CsvHelper.Configuration.Attributes;
+using Easy.Common.Extensions;
 
 namespace Test.PepCentricReview;
 
@@ -19,7 +20,7 @@ public enum IdClassification
     Unknown,
 }
 
-public class PepCentricReviewRecord
+public class PepCentricReviewRecord : IEquatable<PepCentricPeptide>
 {
     public string BaseSequence { get; set; }
     public string FullSequence { get; set; }
@@ -34,6 +35,16 @@ public class PepCentricReviewRecord
     [Optional] public int OrganCount { get; set; }
     [Optional] public int DiseaseCount { get; set; }
     [Optional] public int DatasetCount { get; set; }
+
+
+    public void SetValuesFromPepCentric(PepCentricPeptide pep)
+    {
+        PsmCount = pep.PsmCount;
+        OrganCount = pep.Organs.Count;
+        DiseaseCount = pep.Diseases.Count;
+        DatasetCount = pep.DatasetCount;
+    }
+
 
 
     public static string GetFullSequenceWithMassShift(string fullSequence, int decimals = 4)
@@ -80,6 +91,15 @@ public class PepCentricReviewRecord
         return subsequence.ToString();
     }
 
+    public bool Equals(PepCentricPeptide? other)
+    {
+        if (other is null) return false;
+        if (ReferenceEquals(this, other)) return true;
+
+        if (other.FullSequenceWithMassShifts != FullSequenceWithMassShifts) return false;
+
+        return true;
+    }
 }
 
 public class PepCentricReviewFile : ResultFile<PepCentricReviewRecord>, IResultFile
