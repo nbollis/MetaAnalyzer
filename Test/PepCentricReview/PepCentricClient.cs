@@ -114,6 +114,9 @@ public class PepCentricClient
         var url = $"{_baseUrl}/result?jobID={submission.JobIdentifier}";
         var allResults = await GetJsonAsync<PepCentricProteinResponse>(url);
 
+        if (allResults.Status.Contains(": no hits"))
+            return [];
+
         var allPeptides = new List<PepCentricPeptide>();
         foreach (var result in allResults.Results)
         {

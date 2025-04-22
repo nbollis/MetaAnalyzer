@@ -91,10 +91,15 @@ namespace Analyzer.SearchType
             {
                 var psmCount = file.TargetResults.Results.Count;
                 var onePercentPsmCount = file.TargetResults.FilteredResults.Count;
+                
+
+
                 var proteoformCount = file.TargetResults.GroupBy(p => p,
                     CustomComparerExtensions.MsPathFinderTDistinctProteoformComparer).Count();
                 var onePercentProteoformCount = file.TargetResults.FilteredResults.GroupBy(p => p,
                     CustomComparerExtensions.MsPathFinderTDistinctProteoformComparer).Count();
+
+
                 var proteinCount = file.TargetResults.GroupBy(p => p,
                     CustomComparerExtensions.MsPathFinderTDistinctProteinComparer).Count();
                 var onePercentProteinCount = file.TargetResults.FilteredResults.GroupBy(p => p,
@@ -232,6 +237,7 @@ namespace Analyzer.SearchType
 
             bool useIsolation;
             List<ChimeraBreakdownRecord> chimeraBreakDownRecords = new();
+            HashSet<double> intactMasses = new();
 
             // PrSMs
             foreach (var individualFileResult in IndividualFileResults)
@@ -303,6 +309,26 @@ namespace Analyzer.SearchType
                                 .ToArray();
                         }
 
+
+                        for (int index = 0; index < orderedChimeras.Length; index++)
+                        {
+                            MsPathFinderTResult? chimera = orderedChimeras[index];
+
+                            if (index == 0)
+                                parent = chimera;
+                            else if (orderedChimeras.Any(p => p.MonoisotopicMass == chimera.MonoisotopicMass && p.MostAbundantIsotopeMz == chimera.MostAbundantIsotopeMz)) 
+                            {
+
+                            }
+                            else if (parent.Accession == chimera.Accession)
+                                record.UniqueForms++;
+                            else
+                                record.UniqueProteins++;
+                        }
+
+
+
+                        
                         foreach (var chimera in orderedChimeras)
                             if (parent is null)
                                 parent = chimera;

@@ -32,6 +32,8 @@ namespace Analyzer.FileTypes.Internal
         [Optional] public int TargetCount { get; set; }
         [Optional] public int DecoyCount { get; set; }
         [Optional] public int DuplicateCount { get; set; }
+        [Optional] public int MissedMonoCount { get; set; }
+        [Optional] public int ZeroSumShiftCount { get; set; }
         [Optional] public int EntrapmentCount { get; set; }
 
         [Optional]

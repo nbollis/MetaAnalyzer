@@ -61,10 +61,16 @@ namespace Test.PepCentricReview
         {
             var client = new PepCentricClient();
             var file = new PepCentricReviewFile(ParsedFilepath);
-            var results = file.OrderBy(p => p.FullSequenceWithMassShifts).ToHashSet();
+            var results = file.ToHashSet();
+
+            Dictionary<string, List<PepCentricReviewRecord>> resultsLookup = results
+                .GroupBy(r => r.FullSequenceWithMassShifts)
+                .ToDictionary(g => g.Key, g => g.ToList()); // Handle duplicates by taking the first record
 
             List<string> toProcess = new();
-            foreach (var item in file)
+            int batchCounter = 5000;
+
+            foreach (var item in results.Skip(50))
             {
                 toProcess.Add(item.FullSequenceWithMassShifts);
 
@@ -74,17 +80,22 @@ namespace Test.PepCentricReview
 
                     foreach (var peptide in peptideResponses)
                     {
-                        var record = results.FirstOrDefault(r => 
-                        r.FullSequenceWithMassShifts == peptide.FullSequenceWithMassShifts.Replace("n[", "["));
-                        if (record != null)
+                        var toLookup = peptide.FullSequenceWithMassShifts.Replace("n[", "[");
+                        if (resultsLookup.TryGetValue(toLookup, out var records))
                         {
-                            record.SetValuesFromPepCentric(peptide);
+                            records.ForEach(p => p.SetValuesFromPepCentric(peptide));
                         }
-                        else
-                            Debugger.Break();
                     }
 
                     toProcess.Clear();
+                }
+
+                // Write intermediate file every 1000 results
+                if (++batchCounter % 1000 == 0)
+                {
+                    var tempFilePath = $"{Path.GetFileNameWithoutExtension(ParsedFilepath)}_temp_{batchCounter / 1000}.tsv";
+                    var tempFile = new PepCentricReviewFile(tempFilePath) { Results = results.ToList() };
+                    tempFile.WriteResults(tempFilePath);
                 }
             }
 
@@ -93,28 +104,18 @@ namespace Test.PepCentricReview
             {
                 var peptideResponses = client.GetPeptidesFromFullSequences(toProcess).Result;
 
-                foreach (var peptide in peptideResponses.SelectMany(p => p.Results))
+                foreach (var peptide in peptideResponses)
                 {
-                    var record = results.FirstOrDefault(r => r.FullSequenceWithMassShifts == peptide.FullSequenceWithMassShifts);
-                    if (record != null)
+                    var toLookup = peptide.FullSequenceWithMassShifts.Replace("n[", "[");
+                    if (resultsLookup.TryGetValue(toLookup, out var records))
                     {
-                        record.SetValuesFromPepCentric(peptide);
+                        records.ForEach(p => p.SetValuesFromPepCentric(peptide));
                     }
                 }
             }
 
+            // Write final results to the main file
             file.WriteResults(ParsedFilepath);
         }
-
-
-
-
-
-        
-
-
-        
-
-       
     }
 }
