@@ -3,15 +3,6 @@ using MzLibUtil;
 
 namespace MonteCarlo;
 
-public interface IPsmScorer
-{
-    int MinFragmentCharge { get; }
-    int MaxFragmentCharge { get; }
-
-    double ScorePeptideSpectralMatch(MzSpectrum spectra, HashSet<double> fragmentMzs);
-}
-
-
 public class MetaMorpheusPsmScorer : IPsmScorer
 {
     public readonly Tolerance FragmentMatchingTolerance;
@@ -39,7 +30,7 @@ public class MetaMorpheusPsmScorer : IPsmScorer
             {
                 if (FragmentMatchingTolerance.Within(mz, fragmentMz))
                 {
-                    score += 1 + (spectra.YArray[peakIndex] / spectra.SumOfAllY);
+                    score += 1 + spectra.YArray[peakIndex] / spectra.SumOfAllY;
                     break;
                 }
             }

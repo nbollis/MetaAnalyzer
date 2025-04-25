@@ -1,16 +1,5 @@
 ﻿namespace MonteCarlo;
 
-public interface ISimulationResultHandler
-{
-    string OutputDirectory { get; }
-    void HandleResult(SimulationResult result);
-}
-
-public class SimulationResult
-{
-    public List<double> AllScores { get; init; }
-}
-
 public class SimulationResultHandler : ISimulationResultHandler
 {
     public string OutputDirectory { get; private set; }
