@@ -14,6 +14,7 @@ using Proteomics.ProteolyticDigestion;
 using Readers;
 using ResultAnalyzerUtil;
 using UsefulProteomicsDatabases;
+using MzLibUtil;
 
 namespace Analyzer.SearchType
 {
@@ -237,7 +238,8 @@ namespace Analyzer.SearchType
 
             bool useIsolation;
             List<ChimeraBreakdownRecord> chimeraBreakDownRecords = new();
-            HashSet<double> intactMasses = new();
+            var tolerance = new PpmTolerance(10);
+            HashSet<MsPathFinderTResult> evaluated = new();
 
             // PrSMs
             foreach (var individualFileResult in IndividualFileResults)
@@ -310,34 +312,39 @@ namespace Analyzer.SearchType
                         }
 
 
+                        // determine composition of chimera group
+                        evaluated.Clear();
                         for (int index = 0; index < orderedChimeras.Length; index++)
                         {
                             MsPathFinderTResult? chimera = orderedChimeras[index];
 
                             if (index == 0)
                                 parent = chimera;
-                            else if (orderedChimeras.Any(p => p.MonoisotopicMass == chimera.MonoisotopicMass && p.MostAbundantIsotopeMz == chimera.MostAbundantIsotopeMz)) 
+                            // Duplicated MS1 Signal
+                            else if (evaluated.Any(assignedChimera => tolerance.Within(assignedChimera.MonoisotopicMass, chimera.MonoisotopicMass)
+                                                                   && tolerance.Within(assignedChimera.MostAbundantIsotopeMz, chimera.MostAbundantIsotopeMz)))
                             {
-
+                                record.ZeroSumShiftCount++;
                             }
-                            else if (parent.Accession == chimera.Accession)
-                                record.UniqueForms++;
-                            else
-                                record.UniqueProteins++;
-                        }
-
-
-
-                        
-                        foreach (var chimera in orderedChimeras)
-                            if (parent is null)
-                                parent = chimera;
-                            else if (parent.BaseSequence == chimera.BaseSequence && parent.Modifications == chimera.Modifications)
+                            // Missed Monoisotopic Error
+                            else if (evaluated.Any(assigned =>
+                            MonoisotopicSimilarityChecker.AreSameSpeciesByMonoisotopicError(assigned.MonoisotopicMass, chimera.MonoisotopicMass,
+                                assigned.MostAbundantIsotopeMz, chimera.MostAbundantIsotopeMz, assigned.Charge, chimera.Charge, tolerance)))
+                            {
+                                record.MissedMonoCount++;
+                            }
+                            else if (evaluated.Any(p => p.FullSequence == chimera.FullSequence))
                                 record.DuplicateCount++;
                             else if (parent.Accession == chimera.Accession)
+                            {
                                 record.UniqueForms++;
+                            }
                             else
+                            {
                                 record.UniqueProteins++;
+                            }
+                            evaluated.Add(chimera);
+                        }
                     }
                     chimeraBreakDownRecords.Add(record);
                 }
@@ -393,15 +400,38 @@ namespace Analyzer.SearchType
                                 .ToArray();
                         }
 
-                        foreach (var chimera in orderedChimeras)
-                            if (parent is null)
+                        evaluated.Clear();
+                        for (int index = 0; index < orderedChimeras.Length; index++)
+                        {
+                            MsPathFinderTResult? chimera = orderedChimeras[index];
+
+                            if (index == 0)
                                 parent = chimera;
-                            else if (parent.BaseSequence == chimera.BaseSequence && parent.Modifications == chimera.Modifications)
+                            // Duplicated MS1 Signal
+                            else if (evaluated.Any(assignedChimera => tolerance.Within(assignedChimera.MonoisotopicMass, chimera.MonoisotopicMass) 
+                                                                   && tolerance.Within(assignedChimera.MostAbundantIsotopeMz, chimera.MostAbundantIsotopeMz)))
+                            {
+                                record.ZeroSumShiftCount++;
+                            }
+                            // Missed Monoisotopic Error
+                            else if (evaluated.Any(assigned =>
+                            MonoisotopicSimilarityChecker.AreSameSpeciesByMonoisotopicError(assigned.MonoisotopicMass, chimera.MonoisotopicMass,
+                                assigned.MostAbundantIsotopeMz, chimera.MostAbundantIsotopeMz, assigned.Charge, chimera.Charge, tolerance)))
+                            {
+                                record.MissedMonoCount++;
+                            }
+                            else if (evaluated.Any(p => p.FullSequence == chimera.FullSequence))
                                 record.DuplicateCount++;
                             else if (parent.Accession == chimera.Accession)
+                            {
                                 record.UniqueForms++;
+                            }
                             else
+                            {
                                 record.UniqueProteins++;
+                            }
+                            evaluated.Add(chimera);
+                        }
                     }
                     chimeraBreakDownRecords.Add(record);
                 }

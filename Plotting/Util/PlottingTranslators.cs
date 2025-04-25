@@ -111,6 +111,8 @@ public static class PlottingTranslators
         {"Decoys", Color.fromKeyword(ColorKeyword.Gold)},
         {"Duplicates", Color.fromKeyword(ColorKeyword.RoyalBlue)},
         {"Entrapment", Color.fromKeyword(ColorKeyword.Red)},
+        {"Monoisotopic Error", Color.fromKeyword(ColorKeyword.Red)},
+        {"Mass Duplicates", Color.fromHex("#332288")},
 
         // PEP testing
         {"MetaMorpheus_Rep1_BuildLibrary", Color.fromKeyword(ColorKeyword.LightAkyBlue)},

@@ -1,5 +1,7 @@
-﻿using System.Diagnostics;
+﻿using System;
+using System.Diagnostics;
 using System.Text.RegularExpressions;
+using Analyzer.FileTypes.External;
 using Analyzer.FileTypes.Internal;
 using Analyzer.Interfaces;
 using Analyzer.Util;
@@ -7,6 +9,7 @@ using Chemistry;
 using Easy.Common.Extensions;
 using MassSpectrometry;
 using MathNet.Numerics;
+using MzLibUtil;
 using Plotting.Util;
 using Proteomics;
 using Proteomics.ProteolyticDigestion;
@@ -323,6 +326,8 @@ namespace Analyzer.SearchType
                 return breakdownFile;
             }
 
+            var tolerance = new PpmTolerance(10);
+            HashSet<PsmFromTsv> evaluated = new();
             bool useIsolation;
             List<ChimeraBreakdownRecord> chimeraBreakDownRecords = new();
             // PSMs or PrSMs
@@ -396,15 +401,32 @@ namespace Analyzer.SearchType
                                 .ToArray();
                         }
 
+                        evaluated.Clear();
                         foreach (var chimericPsm in orderedChimeras)
+                        {
                             if (parent is null)
                                 parent = chimericPsm;
-                            else if (parent.FullSequence == chimericPsm.FullSequence)
+                            else if (evaluated.Any(p => p.FullSequence == chimericPsm.FullSequence))
                                 record.DuplicateCount++;
+                            else if (evaluated.Any(assignedChimera => tolerance.Within(double.Parse(assignedChimera.MonoisotopicMass.Split('|')[0]), double.Parse(chimericPsm.MonoisotopicMass.Split('|')[0]))
+                                                                       && tolerance.Within(assignedChimera.PrecursorMz, chimericPsm.PrecursorMz)))
+                            {
+                                record.ZeroSumShiftCount++;
+                            }
+                            // Missed Monoisotopic Error
+                            else if (evaluated.Any(assigned =>
+                            MonoisotopicSimilarityChecker.AreSameSpeciesByMonoisotopicError(double.Parse(assigned.MonoisotopicMass.Split('|')[0]), double.Parse(chimericPsm.MonoisotopicMass.Split('|')[0]),
+                                assigned.PrecursorMz, chimericPsm.PrecursorMz, assigned.PrecursorCharge, chimericPsm.PrecursorCharge, tolerance)))
+                            {
+                                record.MissedMonoCount++;
+                            }
                             else if (parent.Accession == chimericPsm.Accession)
                                 record.UniqueForms++;
                             else
                                 record.UniqueProteins++;
+
+                            evaluated.Add(chimericPsm);
+                        }
                     }
                     chimeraBreakDownRecords.Add(record);
                 }
@@ -480,15 +502,32 @@ namespace Analyzer.SearchType
                                 .ThenBy(p => Math.Abs(double.Parse(p.MassDiffDa.Split('|')[0]))).ToArray();
                         }
 
+                        evaluated.Clear();
                         foreach (var chimericPsm in orderedChimeras)
+                        {
                             if (parent is null)
                                 parent = chimericPsm;
-                            else if (parent.FullSequence == chimericPsm.FullSequence)
+                            else if (evaluated.Any(p => p.FullSequence == chimericPsm.FullSequence))
                                 record.DuplicateCount++;
+                            else if (evaluated.Any(assignedChimera => tolerance.Within(double.Parse(assignedChimera.MonoisotopicMass.Split('|')[0]), double.Parse(chimericPsm.MonoisotopicMass.Split('|')[0]))
+                                                                       && tolerance.Within(assignedChimera.PrecursorMz, chimericPsm.PrecursorMz)))
+                            {
+                                record.ZeroSumShiftCount++;
+                            }
+                            // Missed Monoisotopic Error
+                            else if (evaluated.Any(assigned =>
+                            MonoisotopicSimilarityChecker.AreSameSpeciesByMonoisotopicError(double.Parse(assigned.MonoisotopicMass.Split('|')[0]), double.Parse(chimericPsm.MonoisotopicMass.Split('|')[0]),
+                                assigned.PrecursorMz, chimericPsm.PrecursorMz, assigned.PrecursorCharge, chimericPsm.PrecursorCharge, tolerance)))
+                            {
+                                record.MissedMonoCount++;
+                            }
                             else if (parent.Accession == chimericPsm.Accession)
                                 record.UniqueForms++;
                             else
                                 record.UniqueProteins++;
+
+                            evaluated.Add(chimericPsm);
+                        }
                     }
                     chimeraBreakDownRecords.Add(record);
                 }

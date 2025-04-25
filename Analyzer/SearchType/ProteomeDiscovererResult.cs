@@ -11,6 +11,8 @@ using Proteomics.ProteolyticDigestion;
 using Proteomics;
 using ResultAnalyzerUtil;
 using UsefulProteomicsDatabases;
+using MzLibUtil;
+using Plotly.NET.LayoutObjects;
 
 namespace Analyzer.SearchType
 {
@@ -217,6 +219,8 @@ namespace Analyzer.SearchType
                 return breakdownFile;
             }
 
+            var tolerance = new PpmTolerance(10);
+            HashSet<ProteomeDiscovererPsmRecord> evaluated = new();
             bool useIsolation = false;
             List<ChimeraBreakdownRecord> chimeraBreakDownRecords = new();
             foreach (var fileGroup in PrsmFile.FilteredResults.GroupBy(p => p.FileID))
@@ -287,15 +291,32 @@ namespace Analyzer.SearchType
                                 .ToArray();
                         }
 
+                        evaluated.Clear();
                         foreach (var chimericPsm in orderedChimeras)
+                        {
                             if (parent is null)
                                 parent = chimericPsm;
                             else if (parent.AnnotatedSequence == chimericPsm.AnnotatedSequence)
                                 record.DuplicateCount++;
+                            else if (evaluated.Any(assignedChimera => tolerance.Within(assignedChimera.MonoisotopicMass, chimericPsm.MonoisotopicMass)
+                                                                       && tolerance.Within(assignedChimera.Mz, chimericPsm.Mz)))
+                            {
+                                record.ZeroSumShiftCount++;
+                            }
+                            // Missed Monoisotopic Error
+                            else if (evaluated.Any(assigned =>
+                            MonoisotopicSimilarityChecker.AreSameSpeciesByMonoisotopicError(assigned.MonoisotopicMass, chimericPsm.MonoisotopicMass,
+                                assigned.Mz, chimericPsm.Mz, assigned.Charge, chimericPsm.Charge, tolerance)))
+                            {
+                                record.MissedMonoCount++;
+                            }
                             else if (parent.ProteinAccessions == chimericPsm.ProteinAccessions)
                                 record.UniqueForms++;
                             else
                                 record.UniqueProteins++;
+
+                            evaluated.Add(chimericPsm);
+                        }
                     }
                     chimeraBreakDownRecords.Add(record);
                 }

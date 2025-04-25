@@ -6,6 +6,7 @@ using Analyzer.Plotting.IndividualRunPlots;
 using Analyzer.Plotting.Util;
 using Analyzer.SearchType;
 using Analyzer.Util;
+using Plotly.NET.ImageExport;
 using Plotting.Util;
 using ResultAnalyzerUtil;
 using System.Diagnostics;
@@ -49,41 +50,48 @@ namespace Test.ChimeraPaper
         {
             foreach (var cellLine in AllResults)
             {
-                foreach (var result in cellLine)
+                foreach (var result in cellLine.Skip(2))
                 {
-                    //result.Override = true;
-                    result.CountChimericPsms();
-                    result.GetBulkResultCountComparisonFile();
-                    result.GetIndividualFileComparison();
-                    if (result is IChimeraBreakdownCompatible cb)
+                    result.Override = true;
+                    //result.CountChimericPsms();
+                    //result.GetBulkResultCountComparisonFile();
+                    //result.GetIndividualFileComparison();
+                    if (result is IChimeraBreakdownCompatible cb){
                         cb.GetChimeraBreakdownFile();
-                    if (result is IChimeraPeptideCounter pc)
-                        pc.CountChimericPeptides();
-                    if (result is MetaMorpheusResult mm)
-                    {
-                        //mm.PlotPepFeaturesScatterGrid();
-                        //mm.ExportCombinedChimeraTargetDecoyExploration(mm.FigureDirectory, mm.Condition);
-                        //mm.PlotTargetDecoyCurves(ResultType.Psm, TargetDecoyCurveMode.Score, false);
-                        //mm.PlotTargetDecoyCurves(ResultType.Psm, TargetDecoyCurveMode.Score, true);
-                        //mm.PlotTargetDecoyCurves(ResultType.Peptide, TargetDecoyCurveMode.Score, false);
-                        //mm.PlotTargetDecoyCurves(ResultType.Peptide, TargetDecoyCurveMode.Score, true);
+                        cb.PlotChimeraBreakDownStackedColumn_Scaled(ResultType.Psm);
+                        try
+                        {
+                            cb.PlotChimeraBreakDownStackedColumn_Scaled(ResultType.Peptide);
+                        } catch { // Ignore
+                        }
                     }
+                    //if (result is IChimeraPeptideCounter pc)
+                    //    pc.CountChimericPeptides();
+                    //if (result is MetaMorpheusResult mm)
+                    //{
+                    //    //mm.PlotPepFeaturesScatterGrid();
+                    //    //mm.ExportCombinedChimeraTargetDecoyExploration(mm.FigureDirectory, mm.Condition);
+                    //    //mm.PlotTargetDecoyCurves(ResultType.Psm, TargetDecoyCurveMode.Score, false);
+                    //    //mm.PlotTargetDecoyCurves(ResultType.Psm, TargetDecoyCurveMode.Score, true);
+                    //    //mm.PlotTargetDecoyCurves(ResultType.Peptide, TargetDecoyCurveMode.Score, false);
+                    //    //mm.PlotTargetDecoyCurves(ResultType.Peptide, TargetDecoyCurveMode.Score, true);
+                    //}
                     result.Override = false;
                 }
 
-                cellLine.Override = true;
-                cellLine.GetIndividualFileComparison();
-                cellLine.GetBulkResultCountComparisonFile();
-                cellLine.CountChimericPsms();
-                cellLine.CountChimericPeptides();
-                cellLine.Override = false;
+                //cellLine.Override = true;
+                //cellLine.GetIndividualFileComparison();
+                //cellLine.GetBulkResultCountComparisonFile();
+                //cellLine.CountChimericPsms();
+                //cellLine.CountChimericPeptides();
+                //cellLine.Override = false;
 
-                cellLine.PlotIndividualFileResults();
-                cellLine.PlotCellLineSpectralSimilarity();
+                //cellLine.PlotIndividualFileResults();
+                //cellLine.PlotCellLineSpectralSimilarity();
                 cellLine.PlotCellLineChimeraBreakdown();
-                //cellLine.PlotCellLineChimeraBreakdown_TargetDecoy();
-                cellLine.PlotModificationDistribution(ResultType.Psm, false);
-                cellLine.PlotModificationDistribution(ResultType.Peptide, false);
+                cellLine.PlotCellLineChimeraBreakdown_TargetDecoy();
+                //cellLine.PlotModificationDistribution(ResultType.Psm, false);
+                //cellLine.PlotModificationDistribution(ResultType.Peptide, false);
 
                 cellLine.Dispose();
             }
@@ -378,5 +386,40 @@ namespace Test.ChimeraPaper
         }
 
 
+        [Test]
+        public static void MsPathFinderTAnalysis()
+        {
+            string dirpath = @"D:\Projects\Chimeras\MsPTVal";
+
+            var pathfinder = new MsPathFinderTResults(dirpath);
+            pathfinder.Override = true;
+            var file = pathfinder.GetChimeraBreakdownFile();
+            pathfinder.Override = false;
+
+            var plot = file.Results.GetChimeraBreakdownStackedColumn_Scaled(ResultType.Psm, true);
+            var outPath = Path.Combine(dirpath, "Figures", "ChimeraBreakdown_Psms_Scaled");
+            plot.SavePNG(outPath, null, 1200, 1200);
+
+            plot = file.Results.GetChimeraBreakDownStackedArea(ResultType.Psm, true, out int width);
+            outPath = Path.Combine(dirpath, "Figures", "ChimeraBreakdown_Psms_Area");
+            plot.SavePNG(outPath, null, 1200, 1200);
+
+            plot = file.Results.GetChimeraBreakDownStackedColumn(ResultType.Psm, true, out width);
+            outPath = Path.Combine(dirpath, "Figures", "ChimeraBreakdown_Psms");
+            plot.SavePNG(outPath, null, 1200, 1200);
+
+
+            plot = file.Results.GetChimeraBreakdownStackedColumn_Scaled(ResultType.Peptide, true);
+            outPath = Path.Combine(dirpath, "Figures", "ChimeraBreakdown_Peptides_Scaled");
+            plot.SavePNG(outPath, null, 1200, 1200);
+
+            plot = file.Results.GetChimeraBreakDownStackedArea(ResultType.Peptide, true, out width);
+            outPath = Path.Combine(dirpath, "Figures", "ChimeraBreakdown_Peptides_Area");
+            plot.SavePNG(outPath, null, 1200, 1200);
+
+            plot = file.Results.GetChimeraBreakDownStackedColumn(ResultType.Peptide, true, out width);
+            outPath = Path.Combine(dirpath, "Figures", "ChimeraBreakdown_Peptides");
+            plot.SavePNG(outPath, null, 1200, 1200);
+        }
     }
 }

@@ -34,6 +34,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Profiling", "Profiling\Prof
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AnalyzerCore", "AnalyzerCore\AnalyzerCore.csproj", "{A72CF3C2-D234-46B0-91EB-861B208D372C}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MonteHall", "MonteHall\MonteHall.csproj", "{B2D227E3-B04C-40D7-BA7D-26229EBFD47D}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -96,6 +98,10 @@ Global
 		{A72CF3C2-D234-46B0-91EB-861B208D372C}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{A72CF3C2-D234-46B0-91EB-861B208D372C}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{A72CF3C2-D234-46B0-91EB-861B208D372C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B2D227E3-B04C-40D7-BA7D-26229EBFD47D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B2D227E3-B04C-40D7-BA7D-26229EBFD47D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B2D227E3-B04C-40D7-BA7D-26229EBFD47D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B2D227E3-B04C-40D7-BA7D-26229EBFD47D}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
