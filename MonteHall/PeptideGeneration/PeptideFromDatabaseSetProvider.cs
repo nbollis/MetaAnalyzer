@@ -19,15 +19,20 @@ public class PeptideFromDatabaseSetProvider : DatabaseSetProvider
         DigestionParams = digestionParams ?? new DigestionParams();
         FixedMods = fixedMods ?? [];
         VariableMods = variableMods ?? [];
+
+        // Initialize the queue and then scramble its order
+        Random rand = new Random();
+        ScrambledBioPolymersQueue = new(GetAllPeptides().OrderBy(_ => rand.Next()));
     }
 
-    public override IEnumerable<IBioPolymerWithSetMods> GetPeptides()
+    public override IEnumerable<IBioPolymerWithSetMods> GetAllPeptides()
     {
         foreach (var bioPolymer in GetBioPolymers())
         {
-            foreach (var withSetMods in bioPolymer.Digest(DigestionParams, VariableMods, FixedMods))
+            var peptideList = bioPolymer.Digest(DigestionParams, FixedMods, VariableMods);
+            foreach (var peptide in peptideList)
             {
-                yield return withSetMods;
+                yield return peptide;
             }
         }
     }

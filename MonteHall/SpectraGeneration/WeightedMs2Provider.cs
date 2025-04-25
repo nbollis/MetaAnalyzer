@@ -6,35 +6,45 @@ public class WeightedMs2Provider : MsDataFileSpectraProvider
 {
     // peak dictionary is key: m/z , value: probability of m/z
     private readonly Dictionary<double, double> _peakDictionary;
-    public WeightedMs2Provider(MsDataFile dataFile, Dictionary<double, double> peakDictionary, int maxToProvide) : base(dataFile, maxToProvide)
+    private readonly int PeaksPerSpectrum = 150;
+    private readonly Random Rand = new();
+
+    public WeightedMs2Provider(MsDataFile dataFile, int spectraPerIteration) : base(dataFile, spectraPerIteration)
     {
-        _peakDictionary = peakDictionary;
+        _peakDictionary = MsDataFileScraper.Scrape(dataFile, 2);
     }
 
+    // use the peak dictionary to generate a spectrum.
+    // We will use the value to determine probaility of selection of said peak and
+    // the key to set the mz of the peak. All intesnities will be set to 1. 
     public override IEnumerable<MzSpectrum> GetSpectra()
     {
-        int count = 0;
-        foreach (var scan in DataFile)
+        for (int i = 0; i < SpectraPerIteration; i++)
         {
-            if (scan.MsnOrder == 2)
+            var selectedPeaks = new List<(double mz, double intensity)>();
+            var totalProbability = _peakDictionary.Values.Sum();
+
+            // Select peaks based on their probability
+            for (int j = 0; j < PeaksPerSpectrum; j++)
             {
-                var spectrum = scan.MassSpectrum;
-                double totalIntensity = 0;
-                foreach (var peak in spectrum.XArray)
+                double randomValue = Rand.NextDouble() * totalProbability;
+                double cumulativeProbability = 0;
+
+                foreach (var peak in _peakDictionary)
                 {
-                    if (_peakDictionary.TryGetValue(peak, out double intensity))
+                    cumulativeProbability += peak.Value;
+                    if (randomValue <= cumulativeProbability)
                     {
-                        totalIntensity += intensity;
+                        selectedPeaks.Add((peak.Key, 1.0)); // Intensity is set to 1.0
+                        break;
                     }
                 }
-                if (totalIntensity > 0)
-                {
-                    yield return spectrum;
-                    count++;
-                }
             }
-            if (count >= MaxToProvide)
-                yield break;
+
+            // Create and yield the spectrum
+            var mzArray = selectedPeaks.Select(p => p.mz).ToArray();
+            var intensityArray = selectedPeaks.Select(p => p.intensity).ToArray();
+            yield return new MzSpectrum(mzArray, intensityArray, true);
         }
     }
 }

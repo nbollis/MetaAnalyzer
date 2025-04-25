@@ -1,4 +1,5 @@
 ﻿using Omics;
+using Proteomics.ProteolyticDigestion;
 using ResultAnalyzerUtil;
 using UsefulProteomicsDatabases;
 
@@ -6,18 +7,30 @@ namespace MonteCarlo;
 
 public abstract class DatabaseSetProvider : IPeptideSetProvider
 {
+    public int PeptidesPerIteration { get; }
     protected readonly string DatabaseFilePath;
-    protected readonly int MaxToReturn;
     protected readonly DecoyType DecoyType;
+    protected Queue<IBioPolymerWithSetMods> ScrambledBioPolymersQueue;
 
-    protected DatabaseSetProvider(string databaseFilePath, int maxToReturn, DecoyType decoyType)
+    protected DatabaseSetProvider(string databaseFilePath, int peptidesPerIteration, DecoyType decoyType)
     {
         DatabaseFilePath = databaseFilePath;
-        MaxToReturn = maxToReturn;
+        PeptidesPerIteration = peptidesPerIteration;
         DecoyType = decoyType;
+        ScrambledBioPolymersQueue = new();
     }
 
-    public abstract IEnumerable<IBioPolymerWithSetMods> GetPeptides();
+    public abstract IEnumerable<IBioPolymerWithSetMods> GetAllPeptides();
+
+    public IEnumerable<IBioPolymerWithSetMods> GetPeptides()
+    {
+        int count = PeptidesPerIteration;
+        while (ScrambledBioPolymersQueue.Count > 0 && count > 0)
+        {
+            yield return ScrambledBioPolymersQueue.Dequeue();
+            count--;
+        }
+    }
 
     public IEnumerable<IBioPolymer> GetBioPolymers()
     {

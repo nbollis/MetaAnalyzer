@@ -3,15 +3,17 @@
 public class SimulationResultHandler : ISimulationResultHandler
 {
     public string OutputDirectory { get; private set; }
+    public Dictionary<int, List<double>> ScoresByIteration { get; }
+
     public SimulationResultHandler(string outputDirectory)
     {
+        ScoresByIteration = new();
         OutputDirectory = outputDirectory;
     }
-    public void HandleResult(SimulationResult result)
+
+    public void HandleResult(SimulationResult result, int iteration)
     {
-        // Handle the result, e.g., save it to a file or process it further
-        var filePath = Path.Combine(OutputDirectory, "simulation_result.txt");
-        File.WriteAllLines(filePath, result.AllScores.Select(score => score.ToString()));
+        ScoresByIteration.Add(iteration, result.AllScores);
     }
 }
 

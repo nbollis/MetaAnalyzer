@@ -35,7 +35,7 @@ public class MonteCarloSimulator
             var result = PerformMatching(spectra, peptides);
 
             // Handle the result
-            _resultHandler.HandleResult(result);
+            _resultHandler.HandleResult(result, i);
         }
     }
 
@@ -53,7 +53,7 @@ public class MonteCarloSimulator
             peptide.Fragment(DissociationType.HCD, FragmentationTerminus.Both, neutralFragments);
             foreach (var fragment in neutralFragments)
             {
-                for (int z = _psmScorer.MinFragmentCharge; z < _psmScorer.MaxFragmentCharge; z++)
+                for (int z = _psmScorer.MinFragmentCharge; z <= _psmScorer.MaxFragmentCharge; z++)
                 {
                     fragmentMzs.Add(fragment.ToMz(z));
                 }

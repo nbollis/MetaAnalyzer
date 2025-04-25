@@ -5,12 +5,12 @@ namespace MonteCarlo;
 public abstract class MsDataFileSpectraProvider : ISpectraProvider
 {
     protected readonly MsDataFile DataFile;
-    public int MaxToProvide { get; }
+    public int SpectraPerIteration { get; } 
 
-    public MsDataFileSpectraProvider(MsDataFile dataFile, int maxToProvide)
+    public MsDataFileSpectraProvider(MsDataFile dataFile, int spectraPerIteration)
     {
-        DataFile = dataFile;
-        MaxToProvide = maxToProvide;
+        DataFile = dataFile.LoadAllStaticData();
+        SpectraPerIteration = spectraPerIteration;
     }
 
     public abstract IEnumerable<MzSpectrum> GetSpectra();
