@@ -1,0 +1,50 @@
+﻿using MassSpectrometry;
+using MzLibUtil;
+
+namespace MonteCarlo;
+
+public interface IPsmScorer
+{
+    int MinFragmentCharge { get; }
+    int MaxFragmentCharge { get; }
+
+    double ScorePeptideSpectralMatch(MzSpectrum spectra, HashSet<double> fragmentMzs);
+}
+
+
+public class MetaMorpheusPsmScorer : IPsmScorer
+{
+    public readonly Tolerance FragmentMatchingTolerance;
+    public int MinFragmentCharge { get; }
+    public int MaxFragmentCharge { get; }
+
+    public MetaMorpheusPsmScorer(int minFragmentCharge, int maxFragmentCharge, Tolerance fragmentMatchingTolerance)
+    {
+        MinFragmentCharge = minFragmentCharge;
+        MaxFragmentCharge = maxFragmentCharge;
+        FragmentMatchingTolerance = fragmentMatchingTolerance;
+    }
+
+    public double ScorePeptideSpectralMatch(MzSpectrum spectra, HashSet<double> fragmentMzs)
+    {
+        double score = 0;
+
+        for (int peakIndex = 0; peakIndex < spectra.XArray.Length; peakIndex++)
+        {
+            if (spectra.YArray[peakIndex] == 0)
+                continue;
+
+            double mz = spectra.XArray[peakIndex];
+            foreach (var fragmentMz in fragmentMzs)
+            {
+                if (FragmentMatchingTolerance.Within(mz, fragmentMz))
+                {
+                    score += 1 + (spectra.YArray[peakIndex] / spectra.SumOfAllY);
+                    break;
+                }
+            }
+        }
+        return score;
+    }
+}
+
