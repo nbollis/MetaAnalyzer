@@ -7,7 +7,8 @@ namespace MonteCarlo;
 
 public abstract class DatabaseSetProvider : IPeptideSetProvider
 {
-    public int PeptidesPerIteration { get; }
+    public int Count => ScrambledBioPolymersQueue.Count;
+    public int PeptidesPerIteration { get; set; }
     protected readonly string DatabaseFilePath;
     protected readonly DecoyType DecoyType;
     protected Queue<IBioPolymerWithSetMods> ScrambledBioPolymersQueue;

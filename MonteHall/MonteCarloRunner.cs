@@ -1,16 +1,57 @@
-﻿namespace MonteCarlo;
+﻿using System.Text;
+
+namespace MonteCarlo;
 
 public class MonteCarloRunner(MonteCarloParameters parameters)
 {
     public MonteCarloParameters Parameters { get; } = parameters;
     public SimulationResultHandler Run()
     {
-        var spectraProvider = SpectraProviderFactory.CreateSpectraProvider(Parameters.SpectraProviderType, Parameters.SpectraPerIteration, Parameters.InputSpectraPath);
-        var peptideSetProvider = PeptideSetFactory.GetPeptideSetProvider(Parameters.PeptideProviderType, Parameters.InputPeptidePath, Parameters.PeptidesPerIteration, Parameters.DecoyType, Parameters.CustomDigestionParams, Parameters.VariableMods, Parameters.FixedMods);
+        var spectraProvider = SpectraProviderFactory.CreateSpectraProvider(Parameters.SpectraProviderType, Parameters.MaximumSpectraPerIteration, Parameters.InputSpectraPaths);
+        var peptideSetProvider = PeptideSetFactory.GetPeptideSetProvider(Parameters.PeptideProviderType, Parameters.InputPeptidePath, Parameters.MaximumPeptidesPerIteration, Parameters.DecoyType, Parameters.CustomDigestionParams, Parameters.VariableMods, Parameters.FixedMods);
         var psmScorer = PsmScoringMethodFactory.GetPsmScorer(PsmScoringMethods.MetaMorpheus, Parameters.MinFragmentCharge, Parameters.MaxFragmentCharge, Parameters.Tolerance);
-        var resultHandler = new SimulationResultHandler(Parameters.OutputDirectory);
+        var resultHandler = new SimulationResultHandler(Parameters.OutputDirectory, Parameters.ConditionIdentifier);
 
-        var simulator = new MonteCarloSimulator(spectraProvider, peptideSetProvider, resultHandler, psmScorer);
+        // Configure peptides and spectra per iteration
+        // - This ensures we will reach our max iterations while sampling the most search space
+        spectraProvider.ConfigureSpectraPerIteration(Parameters.Iterations, Parameters.MaximumSpectraPerIteration);
+        peptideSetProvider.ConfigurePeptidesPerIteration(Parameters.Iterations, Parameters.MaximumPeptidesPerIteration);
+
+        // Start some summary text for logging TODO: Make this a toml or something more reusable. 
+        StringBuilder summary = new();
+        summary.AppendLine("Monte Carlo Simulation Summary");
+        summary.AppendLine($"========== Parameters ==========");
+        summary.AppendLine($"Iterations: {Parameters.Iterations}");
+        summary.AppendLine($"Condition Identifier: {Parameters.ConditionIdentifier}");
+        summary.AppendLine($"Output Directory: {Parameters.OutputDirectory}");
+        summary.AppendLine();
+
+        summary.AppendLine($"========== Spectra Parameters ==========");
+        summary.AppendLine($"Spectra Provider Type: {Parameters.SpectraProviderType}");
+        summary.AppendLine($"Spectra Available: {spectraProvider.Count}");
+        summary.AppendLine($"Spectra Per Iteration: {spectraProvider.SpectraPerIteration}");
+        summary.AppendLine($"Spectra Files Used: {string.Join(", ", Parameters.InputSpectraPaths)}");
+        summary.AppendLine();
+
+        summary.AppendLine($"========== Peptide Parameters ==========");
+        summary.AppendLine($"Peptide Provider Type: {Parameters.PeptideProviderType}");
+        summary.AppendLine($"Decoy Type: {Parameters.DecoyType}");
+        summary.AppendLine($"Peptides Available: {peptideSetProvider.Count}");
+        summary.AppendLine($"Peptides Per Iteration: {peptideSetProvider.PeptidesPerIteration}");
+        summary.AppendLine($"Peptide Files Used: {Parameters.InputPeptidePath}"); 
+        summary.AppendLine($"Variable Mods: {string.Join(", ", Parameters.VariableMods?.Select(mod => mod.IdWithMotif) ?? new List<string>())}");
+        summary.AppendLine($"Fixed Mods: {string.Join(", ", Parameters.FixedMods?.Select(mod => mod.IdWithMotif) ?? new List<string>())}");
+        summary.AppendLine();
+
+
+        summary.AppendLine($"========== Spectral Matching Parameters ==========");
+        summary.AppendLine($"Scoring Method: {psmScorer.GetType().Name}");
+        summary.AppendLine($"Tolerance: {Parameters.Tolerance}");
+        summary.AppendLine($"Min Fragment Charge: {Parameters.MinFragmentCharge}");
+        summary.AppendLine($"Max Fragment Charge: {Parameters.MaxFragmentCharge}");
+        summary.AppendLine();
+
+        var simulator = new MonteCarloSimulator(spectraProvider, peptideSetProvider, resultHandler, psmScorer, summary);
         try
         {
             simulator.RunSimulation(Parameters.Iterations);
@@ -19,6 +60,9 @@ public class MonteCarloRunner(MonteCarloParameters parameters)
         {
             Console.WriteLine($"Error during simulation: {ex.Message}");
         }
+
+        resultHandler.DoPostProcessing();
+        resultHandler.WriteAllResults();
         return resultHandler;
     }
 }

@@ -10,30 +10,32 @@ public class MsDataFileScraper
     /// <param name="dataFile"></param>
     /// <param name="msnOrder"></param>
     /// <returns></returns>
-    public static Dictionary<double, double> Scrape(MsDataFile dataFile, int msnOrder)
+    public static Dictionary<double, double> Scrape(MsDataFile[] dataFiles, int msnOrder)
     {
         Dictionary<double, double> allPeakDictionary = new(128000);
-
-        foreach (var scan in dataFile)
-        {
-            if (scan.MsnOrder != msnOrder)
-                continue;
-
-            var mzArray = scan.MassSpectrum.XArray;
-            var intensityArray = scan.MassSpectrum.YArray;
-            double normalizationFactor = scan.MassSpectrum.SumOfAllY;
-
-            for (int i = 0; i < mzArray.Length; i++)
+        foreach (var dataFile in dataFiles)
+        { 
+            foreach (var scan in dataFile.GetAllScansList())
             {
-                double normalizedIntensity = intensityArray[i] / normalizationFactor;
+                if (scan.MsnOrder != msnOrder)
+                    continue;
 
-                if (allPeakDictionary.TryGetValue(mzArray[i], out double runningSum))
+                var mzArray = scan.MassSpectrum.XArray;
+                var intensityArray = scan.MassSpectrum.YArray;
+                double normalizationFactor = scan.MassSpectrum.SumOfAllY;
+
+                for (int i = 0; i < mzArray.Length; i++)
                 {
-                    allPeakDictionary[mzArray[i]] = runningSum + normalizedIntensity;
-                }
-                else
-                {
-                    allPeakDictionary[mzArray[i]] = normalizedIntensity;
+                    double normalizedIntensity = intensityArray[i] / normalizationFactor;
+
+                    if (allPeakDictionary.TryGetValue(mzArray[i], out double runningSum))
+                    {
+                        allPeakDictionary[mzArray[i]] = runningSum + normalizedIntensity;
+                    }
+                    else
+                    {
+                        allPeakDictionary[mzArray[i]] = normalizedIntensity;
+                    }
                 }
             }
         }

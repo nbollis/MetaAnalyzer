@@ -4,12 +4,14 @@ namespace MonteCarlo;
 
 public class AllMs2Provider : MsDataFileSpectraProvider
 {
+    public override int Count => spectrumQueue.Count;
     protected Queue<MzSpectrum> spectrumQueue = new Queue<MzSpectrum>();
-    public AllMs2Provider(MsDataFile dataFile, int spectraPerIteration) : base(dataFile, spectraPerIteration)
+    public AllMs2Provider(MsDataFile[] dataFile, int spectraPerIteration) : base(dataFile, spectraPerIteration)
     {
         // scramble the order of the spectra randomly
         var random = new Random();
-        var randomOrderSpectra = DataFile.Where(p => p.MsnOrder == 2)
+        var randomOrderSpectra = DataFiles.SelectMany(p => p.GetAllScansList())
+            .Where(p => p.MsnOrder == 2)
             .Select(p => p.MassSpectrum)
             .OrderBy(_ => random.Next());
 

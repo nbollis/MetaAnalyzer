@@ -2,11 +2,13 @@
 using MassSpectrometry;
 using Omics;
 using Omics.Fragmentation;
+using System.Text;
 
 namespace MonteCarlo;
 
 public class MonteCarloSimulator
 {
+    public readonly StringBuilder SummaryText;
     private readonly ISpectraProvider _spectraProvider;
     private readonly IPeptideSetProvider _peptideSetProvider;
     private readonly IPsmScorer _psmScorer;
@@ -16,38 +18,45 @@ public class MonteCarloSimulator
         ISpectraProvider spectraProvider,
         IPeptideSetProvider peptideSetProvider,
         ISimulationResultHandler resultHandler,
-        IPsmScorer psmScorer)
+        IPsmScorer psmScorer, StringBuilder summaryText)
     {
         _spectraProvider = spectraProvider;
         _peptideSetProvider = peptideSetProvider;
         _resultHandler = resultHandler;
         _psmScorer = psmScorer;
+        SummaryText = summaryText;
     }
 
     public void RunSimulation(int iterations)
     {
-        for (int i = 0; i < iterations; i++)
+        int i = 0;
+        for (; i < iterations; i++)
         {
             var spectra = _spectraProvider.GetSpectra();
             var peptides = _peptideSetProvider.GetPeptides();
 
             // Perform matching logic
-            var result = PerformMatching(spectra, peptides);
+            var result = PerformMatching(spectra.ToList(), peptides);
 
             // Handle the result
             _resultHandler.HandleResult(result, i);
         }
+
+        SummaryText.AppendLine($"========== Results ==========");
+        SummaryText.AppendLine($"Simulation completed with {i}/{iterations} iterations.");
+        SummaryText.AppendLine($"Spectra Remaining: {_spectraProvider.Count}");
+        SummaryText.AppendLine($"Peptides Remaining: {_peptideSetProvider.Count}");
+
+        _resultHandler.SummaryText = SummaryText.ToString();
     }
 
-    private SimulationResult PerformMatching(IEnumerable<MzSpectrum> spectra, IEnumerable<IBioPolymerWithSetMods> peptides)
+    private SimulationResult PerformMatching(List<MzSpectrum> spectra, IEnumerable<IBioPolymerWithSetMods> peptides)
     {
         List<double> allScores = new();
-        HashSet<double> fragmentMzs = new();
-        List<Product> neutralFragments = new();
-        foreach (var peptide in peptides)
+        Parallel.ForEach(peptides, peptide =>
         {
-            fragmentMzs.Clear();
-            neutralFragments.Clear();
+            HashSet<double> fragmentMzs = new();
+            List<Product> neutralFragments = new();
 
             // Generate fragments for the peptide
             peptide.Fragment(DissociationType.HCD, FragmentationTerminus.Both, neutralFragments);
@@ -59,14 +68,16 @@ public class MonteCarloSimulator
                 }
             }
 
-            foreach (var spectrum in spectra)
+            foreach (var spectrum in spectra.Where(s => s != null))
             {
                 double psmScore = _psmScorer.ScorePeptideSpectralMatch(spectrum, fragmentMzs);
-                allScores.Add(psmScore);
+                lock (allScores)
+                {
+                    allScores.Add(psmScore);
+                }
             }
-        }
+        });
 
-        // Implement matching logic here
         return new SimulationResult()
         {
             AllScores = allScores

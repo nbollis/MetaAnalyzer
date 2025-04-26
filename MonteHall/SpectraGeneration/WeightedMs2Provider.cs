@@ -6,10 +6,11 @@ public class WeightedMs2Provider : MsDataFileSpectraProvider
 {
     // peak dictionary is key: m/z , value: probability of m/z
     private readonly Dictionary<double, double> _peakDictionary;
-    private readonly int PeaksPerSpectrum = 150;
+    private readonly int PeaksPerSpectrum = 75;
     private readonly Random Rand = new();
+    public override int Count => int.MaxValue;
 
-    public WeightedMs2Provider(MsDataFile dataFile, int spectraPerIteration) : base(dataFile, spectraPerIteration)
+    public WeightedMs2Provider(MsDataFile[] dataFile, int spectraPerIteration) : base(dataFile, spectraPerIteration)
     {
         _peakDictionary = MsDataFileScraper.Scrape(dataFile, 2);
     }

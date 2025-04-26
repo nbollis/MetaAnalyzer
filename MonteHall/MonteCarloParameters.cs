@@ -8,13 +8,14 @@ public class MonteCarloParameters
 {
     // Simulation
     public string OutputDirectory { get; init; }
+    public string ConditionIdentifier { get; init; }
     public int Iterations { get; set; } = 1000;
 
     // Peptide
     public PeptideSetProviderType PeptideProviderType { get; set; }
     public string InputPeptidePath { get; init; }
     public DecoyType DecoyType { get; set; } = DecoyType.None;
-    public int PeptidesPerIteration { get; set; } = 100;
+    public int MaximumPeptidesPerIteration { get; set; } = 12800;
     public double Tolerance { get; set; } = 10;
     public IDigestionParams? CustomDigestionParams { get; set; } = null;
     public List<Modification>? VariableMods { get; set; } = null;
@@ -27,14 +28,15 @@ public class MonteCarloParameters
 
     // Spectra
     public SpectraProviderType SpectraProviderType { get; set; } = SpectraProviderType.AllMs2;
-    public string InputSpectraPath { get; init; }
-    public int SpectraPerIteration { get; set; } = 30;
+    public string[] InputSpectraPaths { get; init; }
+    public int MaximumSpectraPerIteration { get; set; } = 300;
 
-    public MonteCarloParameters(string outputDirectory, string inputPeptidePath, string inputSpectraPath)
+    public MonteCarloParameters(string outputDirectory, string inputPeptidePath, string[] inputSpectraPath, string? conditionIdentifier = null )
     {
         OutputDirectory = outputDirectory;
         InputPeptidePath = inputPeptidePath;
-        InputSpectraPath = inputSpectraPath;
+        InputSpectraPaths = inputSpectraPath;
+        ConditionIdentifier = conditionIdentifier ?? string.Empty;
     }
 }
 

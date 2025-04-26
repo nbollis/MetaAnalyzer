@@ -7,8 +7,15 @@ namespace MonteCarlo;
 
 public interface IPeptideSetProvider
 {
-    int PeptidesPerIteration { get; }
+    int Count { get; }
+    int PeptidesPerIteration { get; protected set; }
     IEnumerable<IBioPolymerWithSetMods> GetPeptides();
+
+    void ConfigurePeptidesPerIteration(int totalIterations, int maxPeptidesPerIteration)
+    {
+        // Maximize peptides per iteration while ensuring we don't exceed the total iterations
+        PeptidesPerIteration = Math.Min(Math.Max(1, Count / totalIterations), maxPeptidesPerIteration);
+    }
 }
 
 public enum PeptideSetProviderType
