@@ -17,10 +17,4 @@
     <ProjectReference Include="..\ResultAnalyzerUtil\ResultAnalyzerUtil.csproj" />
   </ItemGroup>
 
-  <ItemGroup>
-    <None Update="Proteolytic Digestion\proteases.tsv">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-  </ItemGroup>
-
 </Project>

@@ -1,71 +1,21 @@
-﻿using MonteCarlo;
-using Readers;
+﻿using MonteCarlo.IO;
 
-namespace Test.MonteCarlo
+namespace MonteCarlo
 {
-    [TestFixture]
-    public class MontePlayground
+    public class Program
     {
-
-        [Test]
-        public static void SingleRun()
+        public static void Main(string[] args)
         {
-            string dbPath = @"B:\Users\Nic\Chimeras\Mann_11cell_analysis\UP000005640_reviewed.fasta";
-            string[] spectraPath = [@"B:\RawSpectraFiles\Mann_11cell_lines\A549\A549_2\20100721_Velos1_TaGe_SA_A549_04.raw"];
-            string outputDir = @"D:\Projects\MonteCarlo";
-            var parameters = new MonteCarloParameters(outputDir, dbPath, spectraPath)
-            {
-                MaximumPeptidesPerIteration = 20,
-                MaximumSpectraPerIteration = 20,
-            };
-
-            var runner = new MonteCarloRunner(parameters);
-            var results = runner.Run();
-        }
-
-        [Test] 
-        public static void GoHomeRunner() 
-        {
-            //MultiRun();
+            Logger.Log("Starting Bottom-Up...");
             MultiRun_WithOtherOrganisms();
+
+            Logger.Log("Starting Top-Down...");
             MultiRun_WithOtherOrganisms_TD();
+
+            Logger.Log("All runs completed.");
+            Console.ReadLine();
         }
 
-        [Test]
-        public static void MultiRun()
-        {
-            string dbPath = @"B:\Users\Nic\Chimeras\Mann_11cell_analysis\UP000005640_reviewed.fasta";
-            string[] spectraPath = [@"B:\RawSpectraFiles\Mann_11cell_lines\A549\A549_2\20100721_Velos1_TaGe_SA_A549_04.raw"];
-            string outputDir = @"D:\Projects\MonteCarlo\BuFirstPass";
-
-            List<MonteCarloParameters> allparams = new()
-            {
-                new MonteCarloParameters(outputDir, dbPath, spectraPath)
-                {
-                    OutputDirectory = Path.Combine(outputDir, "NoDecoy"),
-                    DecoyType = UsefulProteomicsDatabases.DecoyType.None,
-                    ConditionIdentifier = "Target"
-                },
-                new MonteCarloParameters(outputDir, dbPath, spectraPath)
-                {
-                    OutputDirectory = Path.Combine(outputDir, "ReverseDecoy"),
-                    DecoyType = UsefulProteomicsDatabases.DecoyType.Reverse,
-                    ConditionIdentifier = "Reverse"
-                },
-                new MonteCarloParameters(outputDir, dbPath, spectraPath)
-                {
-                    OutputDirectory = Path.Combine(outputDir, "SlideDecoy"),
-                    DecoyType = UsefulProteomicsDatabases.DecoyType.Slide,
-                    ConditionIdentifier = "Slide"
-                },
-            };
-
-
-            var runner = new MultiMonteCarloRunner(allparams, outputDir);
-            runner.RunAll();
-        }
-
-        [Test]
         public static void MultiRun_WithOtherOrganisms()
         {
             string dbPath = @"D:\Proteomes\uniprotkb_human_proteome_AND_reviewed_t_2024_03_22.xml";
@@ -74,7 +24,7 @@ namespace Test.MonteCarlo
             string yeastDbPath = @"D:\Proteomes\uniprotkb_yeast_proteome_AND_model_orga_2024_03_27.xml";
 
             int peptidesPerIteration = 490;
-            string[] spectraPath = 
+            string[] spectraPath =
                 [
                     @"B:\RawSpectraFiles\Mann_11cell_lines\A549\A549_2\20100721_Velos1_TaGe_SA_A549_04.raw",
                     @"B:\RawSpectraFiles\Mann_11cell_lines\Hela\Hela_2\20100726_Velos1_TaGe_SA_HeLa_4.raw",
@@ -152,7 +102,6 @@ namespace Test.MonteCarlo
 
         }
 
-        [Test]
         public static void MultiRun_WithOtherOrganisms_TD()
         {
             string dbPath = @"D:\Proteomes\uniprotkb_human_proteome_AND_reviewed_t_2024_03_22.xml";
@@ -160,7 +109,7 @@ namespace Test.MonteCarlo
             string horseDbPath = @"D:\Proteomes\horse_reference_organism_id_9796_AND_proteome_2025_02_04.xml";
             string yeastDbPath = @"D:\Proteomes\uniprotkb_yeast_proteome_AND_model_orga_2024_03_27.xml";
 
-            string[] spectraPath = 
+            string[] spectraPath =
                 [
                 @"B:\RawSpectraFiles\JurkatTopDown\02-18-20_jurkat_td_rep2_fract5.raw",
                 @"B:\RawSpectraFiles\JurkatTopDown\02-18-20_jurkat_td_rep2_fract6.raw",
@@ -250,5 +199,10 @@ namespace Test.MonteCarlo
             runner.RunAll();
 
         }
+    }
+
+    public class CommandLineParameters
+    {
+
     }
 }

@@ -50,13 +50,14 @@ namespace Test.ChimeraPaper
         {
             foreach (var cellLine in AllResults)
             {
-                foreach (var result in cellLine.Skip(2))
+                foreach (var result in cellLine)
                 {
                     result.Override = true;
                     //result.CountChimericPsms();
                     //result.GetBulkResultCountComparisonFile();
                     //result.GetIndividualFileComparison();
                     if (result is IChimeraBreakdownCompatible cb){
+                        if (result is MetaMorpheusResult) continue;
                         cb.GetChimeraBreakdownFile();
                         cb.PlotChimeraBreakDownStackedColumn_Scaled(ResultType.Psm);
                         try
