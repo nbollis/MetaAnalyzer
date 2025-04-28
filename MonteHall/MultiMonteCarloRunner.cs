@@ -1,4 +1,6 @@
-﻿namespace MonteCarlo;
+﻿using MonteCarlo.IO;
+
+namespace MonteCarlo;
 
 public class MultiMonteCarloRunner
 {
@@ -32,12 +34,15 @@ public class MultiMonteCarloRunner
 
     public void RunAll()
     {
+        Logger.Log("Running Monte Carlo simulations...");
         List<SimulationResultHandler> resultHandlers = new();
         foreach (var parameters in ParametersToRun)
         {
+            Logger.Log($"Running Monte Carlo simulation with parameters: {parameters.ConditionIdentifier}", 1);
             var runner = new MonteCarloRunner(parameters);
             var results = runner.Run();
             resultHandlers.Add(results);
+            Logger.Log($"Simulation completed for {parameters.ConditionIdentifier}.", 1);
         }
 
         var combinedHistogram = new CsvHelperFile<HistogramRecord>(Path.Combine(OutputDirectory, FileIdentifiers.SimulationResultHistogram))

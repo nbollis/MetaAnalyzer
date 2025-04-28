@@ -8,21 +8,35 @@ namespace MonteCarlo.IO
 {
     public static class Logger
     {
-        public static void Log(string message)
+        private static readonly object _lock = new();
+
+        public static void Log(string message, uint level = 0)
         {
-            Console.WriteLine($"{DateTime.Now}: {message}");
+            var intermediate = level == 0 ? "" : Enumerable.Range(0, (int)level).Select(_ => "  ").Aggregate((a, b) => a + b);
+            lock (_lock)
+            {
+                Console.WriteLine($"[{DateTime.Now:dd HH:mm:ss}]: {intermediate}{message}");
+            }
         }
+
         public static void LogError(string message)
         {
-            Console.WriteLine($"{DateTime.Now}: ERROR: {message}");
+            lock (_lock)
+            {
+                Console.ForegroundColor = ConsoleColor.Red;
+                Console.WriteLine($"[{DateTime.Now:dd HH:mm:ss}] ERROR: {message}");
+                Console.ResetColor();
+            }
         }
+
         public static void LogWarning(string message)
         {
-            Console.WriteLine($"{DateTime.Now}: WARNING: {message}");
-        }
-        public static void LogInfo(string message)
-        {
-            Console.WriteLine($"{DateTime.Now}: INFO: {message}");
+            lock (_lock)
+            {
+                Console.ForegroundColor = ConsoleColor.Yellow;
+                Console.WriteLine($"[{DateTime.Now:dd HH:mm:ss}] WARNING: {message}");
+                Console.ResetColor();
+            }
         }
     }
 }

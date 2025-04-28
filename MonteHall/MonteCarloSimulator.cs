@@ -30,6 +30,7 @@ public class MonteCarloSimulator
     public void RunSimulation(int iterations)
     {
         int i = 0;
+        int searchEvents = 0;
         for (; i < iterations; i++)
         {
             var spectra = _spectraProvider.GetSpectra();
@@ -37,6 +38,7 @@ public class MonteCarloSimulator
 
             // Perform matching logic
             var result = PerformMatching(spectra.ToList(), peptides);
+            searchEvents += spectra.Count() * peptides.Count();
 
             // Handle the result
             _resultHandler.HandleResult(result, i);
@@ -46,6 +48,7 @@ public class MonteCarloSimulator
         SummaryText.AppendLine($"Simulation completed with {i}/{iterations} iterations.");
         SummaryText.AppendLine($"Spectra Remaining: {_spectraProvider.Count}");
         SummaryText.AppendLine($"Peptides Remaining: {_peptideSetProvider.Count}");
+        SummaryText.AppendLine($"Total Search Events: {searchEvents}");
 
         _resultHandler.SummaryText = SummaryText.ToString();
     }
