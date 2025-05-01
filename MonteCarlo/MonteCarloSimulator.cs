@@ -13,18 +13,20 @@ public class MonteCarloSimulator
     private readonly IPeptideSetProvider _peptideSetProvider;
     private readonly IPsmScorer _psmScorer;
     private readonly ISimulationResultHandler _resultHandler;
+    private readonly int _threads;
 
     public MonteCarloSimulator(
         ISpectraProvider spectraProvider,
         IPeptideSetProvider peptideSetProvider,
         ISimulationResultHandler resultHandler,
-        IPsmScorer psmScorer, StringBuilder summaryText)
+        IPsmScorer psmScorer, StringBuilder summaryText, int threads)
     {
         _spectraProvider = spectraProvider;
         _peptideSetProvider = peptideSetProvider;
         _resultHandler = resultHandler;
         _psmScorer = psmScorer;
         SummaryText = summaryText;
+        _threads = threads;
     }
 
     public void RunSimulation(int iterations)
@@ -33,11 +35,11 @@ public class MonteCarloSimulator
         int searchEvents = 0;
         for (; i < iterations; i++)
         {
-            var spectra = _spectraProvider.GetSpectra();
-            var peptides = _peptideSetProvider.GetPeptides();
+            var spectra = _spectraProvider.GetSpectra().ToList();
+            var peptides = _peptideSetProvider.GetPeptides().ToList();
 
             // Perform matching logic
-            var result = PerformMatching(spectra.ToList(), peptides);
+            var result = PerformMatching(spectra, peptides);
             searchEvents += spectra.Count() * peptides.Count();
 
             // Handle the result
@@ -53,31 +55,53 @@ public class MonteCarloSimulator
         _resultHandler.SummaryText = SummaryText.ToString();
     }
 
-    private SimulationResult PerformMatching(List<MzSpectrum> spectra, IEnumerable<IBioPolymerWithSetMods> peptides)
+    private SimulationResult PerformMatching(List<MzSpectrum> spectra, List<IBioPolymerWithSetMods> peptides)
     {
         List<double> allScores = new();
-        Parallel.ForEach(peptides, peptide =>
+        var parallelOptions = new ParallelOptions
         {
-            HashSet<double> fragmentMzs = new();
-            List<Product> neutralFragments = new();
+            MaxDegreeOfParallelism = _threads // Limit the number of threads
+        }; 
+        int rangeSize = (int)Math.Ceiling((double)spectra.Count / _threads); // Divide spectra into ranges
 
-            // Generate fragments for the peptide
-            peptide.Fragment(DissociationType.HCD, FragmentationTerminus.Both, neutralFragments);
-            foreach (var fragment in neutralFragments)
+
+        Parallel.For(0, _threads, parallelOptions, threadIndex =>
+        {
+            int start = threadIndex * rangeSize;
+            int end = Math.Min(start + rangeSize, spectra.Count);
+
+            List<double> localScores = new(); // Thread-local storage for scores
+
+            for (int i = start; i < end; i++)
             {
-                for (int z = _psmScorer.MinFragmentCharge; z <= _psmScorer.MaxFragmentCharge; z++)
+                var spectrum = spectra[i];
+                if (spectrum == null) continue;
+
+                foreach (var peptide in peptides)
                 {
-                    fragmentMzs.Add(fragment.ToMz(z));
+                    HashSet<double> fragmentMzs = new();
+                    List<Product> neutralFragments = new();
+
+                    // Generate fragments for the peptide
+                    peptide.Fragment(DissociationType.HCD, FragmentationTerminus.Both, neutralFragments);
+                    foreach (var fragment in neutralFragments)
+                    {
+                        for (int z = _psmScorer.MinFragmentCharge; z <= _psmScorer.MaxFragmentCharge; z++)
+                        {
+                            fragmentMzs.Add(fragment.ToMz(z));
+                        }
+                    }
+
+                    // Score the peptide-spectral match
+                    double psmScore = _psmScorer.ScorePeptideSpectralMatch(spectrum, fragmentMzs);
+                    localScores.Add(psmScore);
                 }
             }
 
-            foreach (var spectrum in spectra.Where(s => s != null))
+            // Add local scores to the shared list
+            lock (allScores)
             {
-                double psmScore = _psmScorer.ScorePeptideSpectralMatch(spectrum, fragmentMzs);
-                lock (allScores)
-                {
-                    allScores.Add(psmScore);
-                }
+                allScores.AddRange(localScores);
             }
         });
 

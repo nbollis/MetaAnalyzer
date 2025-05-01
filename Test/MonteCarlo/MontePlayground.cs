@@ -76,14 +76,14 @@ namespace Test.MonteCarlo
             string musMusculusPath = @"D:\Proteomes\uniprotkb_MusMusculus_proteome_UP000000589_2025_04_28.xml";
             string panTroglodyteProteomePath = @"D:\Proteomes\uniprotkb_PanTroglodyte_proteome_UP000002277_2025_04_28.xml";
 
-            int peptidesPerIteration = 490;
+            int peptidesPerIteration = 400;
             string[] spectraPath = 
                 [
                     @"B:\RawSpectraFiles\Mann_11cell_lines\A549\A549_2\20100721_Velos1_TaGe_SA_A549_04.raw",
                     @"B:\RawSpectraFiles\Mann_11cell_lines\Hela\Hela_2\20100726_Velos1_TaGe_SA_HeLa_4.raw",
                     @"B:\RawSpectraFiles\Mann_11cell_lines\RKO\rko_1\20100616_Velos1_TaGe_SA_RKO_5.raw",
                 ];
-            string outputDir = @"D:\Projects\MonteCarlo\BU_ManyOrganism_Balanced";
+            string outputDir = @"D:\Projects\MonteCarlo\BU_ManyOrganism_ReBalanced";
 
             List<MonteCarloParameters> allparams = new()
             {
@@ -140,7 +140,6 @@ namespace Test.MonteCarlo
                     OutputDirectory = Path.Combine(outputDir, "Chimp_Target"),
                     DecoyType = UsefulProteomicsDatabases.DecoyType.None,
                     ConditionIdentifier = "Chimp_Target",
-                    PeptideProviderType = PeptideSetProviderType.TopDownFromDatabase,
                     MaximumPeptidesPerIteration = peptidesPerIteration
                 },
                 new MonteCarloParameters(outputDir, panTroglodyteProteomePath, spectraPath)
@@ -148,7 +147,6 @@ namespace Test.MonteCarlo
                     OutputDirectory = Path.Combine(outputDir, "Chimp_Reverse"),
                     DecoyType = UsefulProteomicsDatabases.DecoyType.Reverse,
                     ConditionIdentifier = "Chimp_Reverse",
-                    PeptideProviderType = PeptideSetProviderType.TopDownFromDatabase,
                     MaximumPeptidesPerIteration = peptidesPerIteration
                 },
                 new MonteCarloParameters(outputDir, musMusculusPath, spectraPath)
@@ -156,7 +154,6 @@ namespace Test.MonteCarlo
                     OutputDirectory = Path.Combine(outputDir, "Mouse_Target"),
                     DecoyType = UsefulProteomicsDatabases.DecoyType.None,
                     ConditionIdentifier = "Mouse_Target",
-                    PeptideProviderType = PeptideSetProviderType.TopDownFromDatabase,
                     MaximumPeptidesPerIteration = peptidesPerIteration
                 },
                 new MonteCarloParameters(outputDir, musMusculusPath, spectraPath)
@@ -164,7 +161,6 @@ namespace Test.MonteCarlo
                     OutputDirectory = Path.Combine(outputDir, "Mouse_Reverse"),
                     DecoyType = UsefulProteomicsDatabases.DecoyType.Reverse,
                     ConditionIdentifier = "Mouse_Reverse",
-                    PeptideProviderType = PeptideSetProviderType.TopDownFromDatabase,
                     MaximumPeptidesPerIteration = peptidesPerIteration
                 },
                 new MonteCarloParameters(outputDir, droosophilaProteomePath, spectraPath)
@@ -172,7 +168,6 @@ namespace Test.MonteCarlo
                     OutputDirectory = Path.Combine(outputDir, "FruitFly_Target"),
                     DecoyType = UsefulProteomicsDatabases.DecoyType.None,
                     ConditionIdentifier = "FruitFly_Target",
-                    PeptideProviderType = PeptideSetProviderType.TopDownFromDatabase,
                     MaximumPeptidesPerIteration = peptidesPerIteration
                 },
                 new MonteCarloParameters(outputDir, droosophilaProteomePath, spectraPath)
@@ -180,7 +175,6 @@ namespace Test.MonteCarlo
                     OutputDirectory = Path.Combine(outputDir, "FruitFly_Reverse"),
                     DecoyType = UsefulProteomicsDatabases.DecoyType.Reverse,
                     ConditionIdentifier = "FruitFly_Reverse",
-                    PeptideProviderType = PeptideSetProviderType.TopDownFromDatabase,
                     MaximumPeptidesPerIteration = peptidesPerIteration
                 },
             };
@@ -188,7 +182,6 @@ namespace Test.MonteCarlo
 
             var runner = new MultiMonteCarloRunner(allparams, outputDir);
             runner.RunAll();
-
         }
 
         [Test]
@@ -207,8 +200,11 @@ namespace Test.MonteCarlo
                 @"B:\RawSpectraFiles\JurkatTopDown\02-18-20_jurkat_td_rep2_fract5.raw",
                 @"B:\RawSpectraFiles\JurkatTopDown\02-18-20_jurkat_td_rep2_fract6.raw",
                 @"B:\RawSpectraFiles\JurkatTopDown\02-18-20_jurkat_td_rep2_fract7.raw",
+                @"B:\RawSpectraFiles\JurkatTopDown\02-18-20_jurkat_td_rep1_fract5.raw",
+                @"B:\RawSpectraFiles\JurkatTopDown\02-18-20_jurkat_td_rep1_fract6.raw",
+                @"B:\RawSpectraFiles\JurkatTopDown\02-18-20_jurkat_td_rep1_fract7.raw"
                 ];
-            string outputDir = @"D:\Projects\MonteCarlo\TD_ManyOrganism";
+            string outputDir = @"D:\Projects\MonteCarlo\TD_ManyOrganism_ReBalanced";
 
             int peptidesPerIteration = 200;
             List<MonteCarloParameters> allparams = new()
@@ -322,7 +318,6 @@ namespace Test.MonteCarlo
 
             var runner = new MultiMonteCarloRunner(allparams, outputDir);
             runner.RunAll();
-
         }
     }
 }

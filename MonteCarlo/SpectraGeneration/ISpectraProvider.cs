@@ -8,11 +8,6 @@ public interface ISpectraProvider
     int Count { get; }
     int SpectraPerIteration { get; set; }
     IEnumerable<MzSpectrum> GetSpectra();
-    void ConfigureSpectraPerIteration(int totalIterations, int maxSpectraPerIteration)
-    {
-        // Maximize spectra per iteration while ensuring we don't exceed the total iterations
-        SpectraPerIteration = Math.Min(Math.Max(1, Count / totalIterations), maxSpectraPerIteration);
-    }
 }
 
 public enum SpectraProviderType

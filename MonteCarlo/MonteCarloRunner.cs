@@ -12,11 +12,6 @@ public class MonteCarloRunner(MonteCarloParameters parameters)
         var psmScorer = PsmScoringMethodFactory.GetPsmScorer(PsmScoringMethods.MetaMorpheus, Parameters.MinFragmentCharge, Parameters.MaxFragmentCharge, Parameters.Tolerance);
         var resultHandler = new SimulationResultHandler(Parameters.OutputDirectory, Parameters.ConditionIdentifier);
 
-        // Configure peptides and spectra per iteration
-        // - This ensures we will reach our max iterations while sampling the most search space
-        spectraProvider.ConfigureSpectraPerIteration(Parameters.Iterations, Parameters.MaximumSpectraPerIteration);
-        peptideSetProvider.ConfigurePeptidesPerIteration(Parameters.Iterations, Parameters.MaximumPeptidesPerIteration);
-
         // Start some summary text for logging TODO: Make this a toml or something more reusable. 
         StringBuilder summary = new();
         summary.AppendLine("Monte Carlo Simulation Summary");
@@ -51,7 +46,7 @@ public class MonteCarloRunner(MonteCarloParameters parameters)
         summary.AppendLine($"Max Fragment Charge: {Parameters.MaxFragmentCharge}");
         summary.AppendLine();
 
-        var simulator = new MonteCarloSimulator(spectraProvider, peptideSetProvider, resultHandler, psmScorer, summary);
+        var simulator = new MonteCarloSimulator(spectraProvider, peptideSetProvider, resultHandler, psmScorer, summary, Parameters.Threads);
         try
         {
             simulator.RunSimulation(Parameters.Iterations);
