@@ -58,6 +58,11 @@ namespace Test.ChimeraPaper
                     //result.GetIndividualFileComparison();
                     if (result is IChimeraBreakdownCompatible cb){
                         if (result is MetaMorpheusResult) continue;
+                        if (result is MsPathFinderTResults mspt)
+                        {
+                            if (!mspt.Condition.Contains("WithMods"))
+                                continue;
+                        }
                         cb.GetChimeraBreakdownFile();
                         cb.PlotChimeraBreakDownStackedColumn_Scaled(ResultType.Psm);
                         try

@@ -6,8 +6,8 @@ namespace MonteCarlo
     {
         public static void Main(string[] args)
         {
-            Logger.Log("Starting Bottom-Up...");
-            MultiRun_WithOtherOrganisms();
+            //Logger.Log("Starting Bottom-Up...");
+            //MultiRun_WithOtherOrganisms();
 
             Logger.Log("Starting Top-Down...");
             MultiRun_WithOtherOrganisms_TD();
@@ -38,7 +38,8 @@ namespace MonteCarlo
                 {
                     OutputDirectory = Path.Combine(outputDir, "NoDecoy"),
                     DecoyType = UsefulProteomicsDatabases.DecoyType.None,
-                    ConditionIdentifier = "Human_Target"
+                    ConditionIdentifier = "Human_Target",
+                    MaximumPeptidesPerIteration = peptidesPerIteration
                 },
                 new MonteCarloParameters(outputDir, dbPath, spectraPath)
                 {

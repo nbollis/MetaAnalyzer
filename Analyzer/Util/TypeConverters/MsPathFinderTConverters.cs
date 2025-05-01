@@ -83,6 +83,10 @@ namespace Analyzer.Util.TypeConverters
             var modStrings = text.Split(',');
             foreach (var modString in modStrings)
             {
+                if (!modString.Contains(" "))
+                {
+                    continue;
+                }
                 var modSplits = modString.Split(' ');
                 var name = modSplits[0];
                 var location = int.Parse(modSplits[1]);

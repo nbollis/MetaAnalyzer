@@ -22,7 +22,11 @@ public class PeptideFromDatabaseSetProvider : DatabaseSetProvider
 
         // Initialize the queue and then scramble its order
         Random rand = new Random();
-        ScrambledBioPolymersQueue = new(GetAllPeptides().OrderBy(_ => rand.Next()));
+        ScrambledBioPolymersList = new();
+        foreach (var bioPolymer in GetAllPeptides().OrderBy(_ => rand.Next()))
+        {
+            ScrambledBioPolymersList.Add(bioPolymer);
+        }
     }
 
     public override IEnumerable<IBioPolymerWithSetMods> GetAllPeptides()

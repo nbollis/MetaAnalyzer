@@ -38,7 +38,8 @@ namespace MonteCarlo
                 {
                     OutputDirectory = Path.Combine(outputDir, "NoDecoy"),
                     DecoyType = UsefulProteomicsDatabases.DecoyType.None,
-                    ConditionIdentifier = "Human_Target"
+                    ConditionIdentifier = "Human_Target",
+                    MaximumPeptidesPerIteration = peptidesPerIteration
                 },
                 new MonteCarloParameters(outputDir, dbPath, spectraPath)
                 {
