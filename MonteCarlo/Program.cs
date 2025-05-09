@@ -1,4 +1,6 @@
 ﻿using MonteCarlo.IO;
+using Omics.Modifications;
+using ResultAnalyzerUtil;
 
 namespace MonteCarlo
 {
@@ -7,7 +9,7 @@ namespace MonteCarlo
         public static void Main(string[] args)
         {
             Logger.Log("Starting Bottom-Up...");
-            MultiRun_WithOtherOrganisms();
+            //MultiRun_WithOtherOrganisms();
 
             Logger.Log("Starting Top-Down...");
             MultiRun_WithOtherOrganisms_TD();
@@ -33,99 +35,103 @@ namespace MonteCarlo
                     @"B:\RawSpectraFiles\Mann_11cell_lines\Hela\Hela_2\20100726_Velos1_TaGe_SA_HeLa_4.raw",
                     @"B:\RawSpectraFiles\Mann_11cell_lines\RKO\rko_1\20100616_Velos1_TaGe_SA_RKO_5.raw",
                 ];
-            string outputDir = @"D:\Projects\MonteCarlo\BU_ManyOrganism_ReBalanced";
+            string outputDir = @"D:\Projects\MonteCarlo\BU_ManyOrganism_ReBalanced_WithFixedMods";
 
+
+            var fixedMod = GlobalVariables.AllModsKnown.First(p => p.IdWithMotif == "Carbamidomethyl on C");
+            var fixedMods = new List<Modification>() { fixedMod };
             List<MonteCarloParameters> allparams = new()
             {
                 new MonteCarloParameters(outputDir, dbPath, spectraPath)
                 {
                     OutputDirectory = Path.Combine(outputDir, "NoDecoy"),
                     DecoyType = UsefulProteomicsDatabases.DecoyType.None,
-                    ConditionIdentifier = "Human_Target"
+                    ConditionIdentifier = "Human_Target",
+                    FixedMods = fixedMods,
                 },
                 new MonteCarloParameters(outputDir, dbPath, spectraPath)
                 {
                     OutputDirectory = Path.Combine(outputDir, "ReverseDecoy"),
                     DecoyType = UsefulProteomicsDatabases.DecoyType.Reverse,
                     ConditionIdentifier = "Human_Reverse",
-                    MaximumPeptidesPerIteration = peptidesPerIteration
+                    FixedMods = fixedMods,
                 },
                 new MonteCarloParameters(outputDir, dbPath, spectraPath)
                 {
                     OutputDirectory = Path.Combine(outputDir, "SlideDecoy"),
                     DecoyType = UsefulProteomicsDatabases.DecoyType.Slide,
                     ConditionIdentifier = "Human_Slide",
-                    MaximumPeptidesPerIteration = peptidesPerIteration
+                    FixedMods = fixedMods,
                 },
                 new MonteCarloParameters(outputDir, ecoliDbPath, spectraPath)
                 {
                     OutputDirectory = Path.Combine(outputDir, "Ecoli_NoDecoy"),
                     DecoyType = UsefulProteomicsDatabases.DecoyType.None,
                     ConditionIdentifier = "Ecoli_Target",
-                    MaximumPeptidesPerIteration = peptidesPerIteration
+                    FixedMods = fixedMods
                 },
                 new MonteCarloParameters(outputDir, ecoliDbPath, spectraPath)
                 {
                     OutputDirectory = Path.Combine(outputDir, "Ecoli_ReverseDecoy"),
                     DecoyType = UsefulProteomicsDatabases.DecoyType.Reverse,
                     ConditionIdentifier = "Ecoli_Reverse",
-                    MaximumPeptidesPerIteration = peptidesPerIteration
+                    FixedMods = fixedMods
                 },
                 new MonteCarloParameters(outputDir, yeastDbPath, spectraPath)
                 {
                     OutputDirectory = Path.Combine(outputDir, "Yeast_NoDecoy"),
                     DecoyType = UsefulProteomicsDatabases.DecoyType.None,
                     ConditionIdentifier = "Yeast_Target",
-                    MaximumPeptidesPerIteration = peptidesPerIteration
+                    FixedMods = fixedMods
                 },
                 new MonteCarloParameters(outputDir, yeastDbPath, spectraPath)
                 {
                     OutputDirectory = Path.Combine(outputDir, "Yeast_ReverseDecoy"),
                     DecoyType = UsefulProteomicsDatabases.DecoyType.Reverse,
                     ConditionIdentifier = "Yeast_Reverse",
-                    MaximumPeptidesPerIteration = peptidesPerIteration
+                    FixedMods = fixedMods
                 },
                 new MonteCarloParameters(outputDir, panTroglodyteProteomePath, spectraPath)
                 {
                     OutputDirectory = Path.Combine(outputDir, "Chimp_Target"),
                     DecoyType = UsefulProteomicsDatabases.DecoyType.None,
                     ConditionIdentifier = "Chimp_Target",
-                    MaximumPeptidesPerIteration = peptidesPerIteration
+                    FixedMods = fixedMods
                 },
                 new MonteCarloParameters(outputDir, panTroglodyteProteomePath, spectraPath)
                 {
                     OutputDirectory = Path.Combine(outputDir, "Chimp_Reverse"),
                     DecoyType = UsefulProteomicsDatabases.DecoyType.Reverse,
                     ConditionIdentifier = "Chimp_Reverse",
-                    MaximumPeptidesPerIteration = peptidesPerIteration
+                    FixedMods = fixedMods
                 },
                 new MonteCarloParameters(outputDir, musMusculusPath, spectraPath)
                 {
                     OutputDirectory = Path.Combine(outputDir, "Mouse_Target"),
                     DecoyType = UsefulProteomicsDatabases.DecoyType.None,
                     ConditionIdentifier = "Mouse_Target",
-                    MaximumPeptidesPerIteration = peptidesPerIteration
+                    FixedMods = fixedMods
                 },
                 new MonteCarloParameters(outputDir, musMusculusPath, spectraPath)
                 {
                     OutputDirectory = Path.Combine(outputDir, "Mouse_Reverse"),
                     DecoyType = UsefulProteomicsDatabases.DecoyType.Reverse,
                     ConditionIdentifier = "Mouse_Reverse",
-                    MaximumPeptidesPerIteration = peptidesPerIteration
+                    FixedMods = fixedMods
                 },
                 new MonteCarloParameters(outputDir, droosophilaProteomePath, spectraPath)
                 {
                     OutputDirectory = Path.Combine(outputDir, "FruitFly_Target"),
                     DecoyType = UsefulProteomicsDatabases.DecoyType.None,
                     ConditionIdentifier = "FruitFly_Target",
-                    MaximumPeptidesPerIteration = peptidesPerIteration
+                    FixedMods = fixedMods
                 },
                 new MonteCarloParameters(outputDir, droosophilaProteomePath, spectraPath)
                 {
                     OutputDirectory = Path.Combine(outputDir, "FruitFly_Reverse"),
                     DecoyType = UsefulProteomicsDatabases.DecoyType.Reverse,
                     ConditionIdentifier = "FruitFly_Reverse",
-                    MaximumPeptidesPerIteration = peptidesPerIteration
+                    FixedMods = fixedMods
                 },
             };
 
@@ -152,9 +158,10 @@ namespace MonteCarlo
                 @"B:\RawSpectraFiles\JurkatTopDown\02-18-20_jurkat_td_rep1_fract6.raw",
                 @"B:\RawSpectraFiles\JurkatTopDown\02-18-20_jurkat_td_rep1_fract7.raw"
                 ];
-            string outputDir = @"D:\Projects\MonteCarlo\TD_ManyOrganism_ReBalanced";
+            string outputDir = @"D:\Projects\MonteCarlo\TD_SmallToTestOutput";
 
-            int peptidesPerIteration = 200;
+            int peptidesPerIteration = 20;
+            int spectraPerIteration = 20;
             List<MonteCarloParameters> allparams = new()
             {
                 new MonteCarloParameters(outputDir, dbPath, spectraPath)
@@ -163,104 +170,117 @@ namespace MonteCarlo
                     DecoyType = UsefulProteomicsDatabases.DecoyType.None,
                     ConditionIdentifier = "Human_Target",
                     PeptideProviderType = PeptideSetProviderType.TopDownFromDatabase,
-                    MaximumPeptidesPerIteration = peptidesPerIteration
+                    MaximumPeptidesPerIteration = peptidesPerIteration,
+                    MaximumSpectraPerIteration = spectraPerIteration
                 },
-                new MonteCarloParameters(outputDir, dbPath, spectraPath)
-                {
-                    OutputDirectory = Path.Combine(outputDir, "Reverse"),
-                    DecoyType = UsefulProteomicsDatabases.DecoyType.Reverse,
-                    ConditionIdentifier = "Human_Reverse",
-                    PeptideProviderType = PeptideSetProviderType.TopDownFromDatabase,
-                    MaximumPeptidesPerIteration = peptidesPerIteration
-                },
-                new MonteCarloParameters(outputDir, dbPath, spectraPath)
-                {
-                    OutputDirectory = Path.Combine(outputDir, "Slide"),
-                    DecoyType = UsefulProteomicsDatabases.DecoyType.Slide,
-                    ConditionIdentifier = "Human_Slide",
-                    PeptideProviderType = PeptideSetProviderType.TopDownFromDatabase,
-                    MaximumPeptidesPerIteration = peptidesPerIteration
-                },
-                new MonteCarloParameters(outputDir, ecoliDbPath, spectraPath)
-                {
-                    OutputDirectory = Path.Combine(outputDir, "Ecoli_Target"),
-                    DecoyType = UsefulProteomicsDatabases.DecoyType.None,
-                    ConditionIdentifier = "Ecoli_Target",
-                    PeptideProviderType = PeptideSetProviderType.TopDownFromDatabase,
-                    MaximumPeptidesPerIteration = peptidesPerIteration
-                },
-                new MonteCarloParameters(outputDir, ecoliDbPath, spectraPath)
-                {
-                    OutputDirectory = Path.Combine(outputDir, "Ecoli_Reverse"),
-                    DecoyType = UsefulProteomicsDatabases.DecoyType.Reverse,
-                    ConditionIdentifier = "Ecoli_Reverse",
-                    PeptideProviderType = PeptideSetProviderType.TopDownFromDatabase,
-                    MaximumPeptidesPerIteration = peptidesPerIteration
-                },
-                new MonteCarloParameters(outputDir, yeastDbPath, spectraPath)
-                {
-                    OutputDirectory = Path.Combine(outputDir, "Yeast_Target"),
-                    DecoyType = UsefulProteomicsDatabases.DecoyType.None,
-                    ConditionIdentifier = "Yeast_Target",
-                    PeptideProviderType = PeptideSetProviderType.TopDownFromDatabase,
-                    MaximumPeptidesPerIteration = peptidesPerIteration
-                },
-                new MonteCarloParameters(outputDir, yeastDbPath, spectraPath)
-                {
-                    OutputDirectory = Path.Combine(outputDir, "Yeast_Reverse"),
-                    DecoyType = UsefulProteomicsDatabases.DecoyType.Reverse,
-                    ConditionIdentifier = "Yeast_Reverse",
-                    PeptideProviderType = PeptideSetProviderType.TopDownFromDatabase,
-                    MaximumPeptidesPerIteration = peptidesPerIteration
-                },
-                new MonteCarloParameters(outputDir, panTroglodyteProteomePath, spectraPath)
-                {
-                    OutputDirectory = Path.Combine(outputDir, "Chimp_Target"),
-                    DecoyType = UsefulProteomicsDatabases.DecoyType.None,
-                    ConditionIdentifier = "Chimp_Target",
-                    PeptideProviderType = PeptideSetProviderType.TopDownFromDatabase,
-                    MaximumPeptidesPerIteration = peptidesPerIteration
-                },
-                new MonteCarloParameters(outputDir, panTroglodyteProteomePath, spectraPath)
-                {
-                    OutputDirectory = Path.Combine(outputDir, "Chimp_Reverse"),
-                    DecoyType = UsefulProteomicsDatabases.DecoyType.Reverse,
-                    ConditionIdentifier = "Chimp_Reverse",
-                    PeptideProviderType = PeptideSetProviderType.TopDownFromDatabase,
-                    MaximumPeptidesPerIteration = peptidesPerIteration
-                },
+                //new MonteCarloParameters(outputDir, dbPath, spectraPath)
+                //{
+                //    OutputDirectory = Path.Combine(outputDir, "Reverse"),
+                //    DecoyType = UsefulProteomicsDatabases.DecoyType.Reverse,
+                //    ConditionIdentifier = "Human_Reverse",
+                //    PeptideProviderType = PeptideSetProviderType.TopDownFromDatabase,
+                //    MaximumPeptidesPerIteration = peptidesPerIteration,
+                //    MaximumSpectraPerIteration = spectraPerIteration
+                //},
+                //new MonteCarloParameters(outputDir, dbPath, spectraPath)
+                //{
+                //    OutputDirectory = Path.Combine(outputDir, "Slide"),
+                //    DecoyType = UsefulProteomicsDatabases.DecoyType.Slide,
+                //    ConditionIdentifier = "Human_Slide",
+                //    PeptideProviderType = PeptideSetProviderType.TopDownFromDatabase,
+                //    MaximumPeptidesPerIteration = peptidesPerIteration,
+                //    MaximumSpectraPerIteration = spectraPerIteration
+                //},
+                //new MonteCarloParameters(outputDir, ecoliDbPath, spectraPath)
+                //{
+                //    OutputDirectory = Path.Combine(outputDir, "Ecoli_Target"),
+                //    DecoyType = UsefulProteomicsDatabases.DecoyType.None,
+                //    ConditionIdentifier = "Ecoli_Target",
+                //    PeptideProviderType = PeptideSetProviderType.TopDownFromDatabase,
+                //    MaximumPeptidesPerIteration = peptidesPerIteration,
+                //    MaximumSpectraPerIteration = spectraPerIteration
+                //},
+                //new MonteCarloParameters(outputDir, ecoliDbPath, spectraPath)
+                //{
+                //    OutputDirectory = Path.Combine(outputDir, "Ecoli_Reverse"),
+                //    DecoyType = UsefulProteomicsDatabases.DecoyType.Reverse,
+                //    ConditionIdentifier = "Ecoli_Reverse",
+                //    PeptideProviderType = PeptideSetProviderType.TopDownFromDatabase,
+                //    MaximumPeptidesPerIteration = peptidesPerIteration,
+                //    MaximumSpectraPerIteration = spectraPerIteration
+                //},
+                //new MonteCarloParameters(outputDir, yeastDbPath, spectraPath)
+                //{
+                //    OutputDirectory = Path.Combine(outputDir, "Yeast_Target"),
+                //    DecoyType = UsefulProteomicsDatabases.DecoyType.None,
+                //    ConditionIdentifier = "Yeast_Target",
+                //    PeptideProviderType = PeptideSetProviderType.TopDownFromDatabase,
+                //    MaximumPeptidesPerIteration = peptidesPerIteration,
+                //    MaximumSpectraPerIteration = spectraPerIteration
+                //},
+                //new MonteCarloParameters(outputDir, yeastDbPath, spectraPath)
+                //{
+                //    OutputDirectory = Path.Combine(outputDir, "Yeast_Reverse"),
+                //    DecoyType = UsefulProteomicsDatabases.DecoyType.Reverse,
+                //    ConditionIdentifier = "Yeast_Reverse",
+                //    PeptideProviderType = PeptideSetProviderType.TopDownFromDatabase,
+                //    MaximumPeptidesPerIteration = peptidesPerIteration,
+                //    MaximumSpectraPerIteration = spectraPerIteration
+                //},
+                //new MonteCarloParameters(outputDir, panTroglodyteProteomePath, spectraPath)
+                //{
+                //    OutputDirectory = Path.Combine(outputDir, "Chimp_Target"),
+                //    DecoyType = UsefulProteomicsDatabases.DecoyType.None,
+                //    ConditionIdentifier = "Chimp_Target",
+                //    PeptideProviderType = PeptideSetProviderType.TopDownFromDatabase,
+                //    MaximumPeptidesPerIteration = peptidesPerIteration,
+                //    MaximumSpectraPerIteration = spectraPerIteration
+                //},
+                //new MonteCarloParameters(outputDir, panTroglodyteProteomePath, spectraPath)
+                //{
+                //    OutputDirectory = Path.Combine(outputDir, "Chimp_Reverse"),
+                //    DecoyType = UsefulProteomicsDatabases.DecoyType.Reverse,
+                //    ConditionIdentifier = "Chimp_Reverse",
+                //    PeptideProviderType = PeptideSetProviderType.TopDownFromDatabase,
+                //    MaximumPeptidesPerIteration = peptidesPerIteration,
+                //    MaximumSpectraPerIteration = spectraPerIteration
+                //},
                 new MonteCarloParameters(outputDir, musMusculusPath, spectraPath)
                 {
                     OutputDirectory = Path.Combine(outputDir, "Mouse_Target"),
                     DecoyType = UsefulProteomicsDatabases.DecoyType.None,
                     ConditionIdentifier = "Mouse_Target",
                     PeptideProviderType = PeptideSetProviderType.TopDownFromDatabase,
-                    MaximumPeptidesPerIteration = peptidesPerIteration
+                    MaximumPeptidesPerIteration = peptidesPerIteration,
+                    MaximumSpectraPerIteration = spectraPerIteration
                 },
-                new MonteCarloParameters(outputDir, musMusculusPath, spectraPath)
-                {
-                    OutputDirectory = Path.Combine(outputDir, "Mouse_Reverse"),
-                    DecoyType = UsefulProteomicsDatabases.DecoyType.Reverse,
-                    ConditionIdentifier = "Mouse_Reverse",
-                    PeptideProviderType = PeptideSetProviderType.TopDownFromDatabase,
-                    MaximumPeptidesPerIteration = peptidesPerIteration
-                },
-                new MonteCarloParameters(outputDir, droosophilaProteomePath, spectraPath)
-                {
-                    OutputDirectory = Path.Combine(outputDir, "FruitFly_Target"),
-                    DecoyType = UsefulProteomicsDatabases.DecoyType.None,
-                    ConditionIdentifier = "FruitFly_Target",
-                    PeptideProviderType = PeptideSetProviderType.TopDownFromDatabase,
-                    MaximumPeptidesPerIteration = peptidesPerIteration
-                },
-                new MonteCarloParameters(outputDir, droosophilaProteomePath, spectraPath)
-                {
-                    OutputDirectory = Path.Combine(outputDir, "FruitFly_Reverse"),
-                    DecoyType = UsefulProteomicsDatabases.DecoyType.Reverse,
-                    ConditionIdentifier = "FruitFly_Reverse",
-                    PeptideProviderType = PeptideSetProviderType.TopDownFromDatabase,
-                    MaximumPeptidesPerIteration = peptidesPerIteration
-                },
+                //new MonteCarloParameters(outputDir, musMusculusPath, spectraPath)
+                //{
+                //    OutputDirectory = Path.Combine(outputDir, "Mouse_Reverse"),
+                //    DecoyType = UsefulProteomicsDatabases.DecoyType.Reverse,
+                //    ConditionIdentifier = "Mouse_Reverse",
+                //    PeptideProviderType = PeptideSetProviderType.TopDownFromDatabase,
+                //    MaximumPeptidesPerIteration = peptidesPerIteration,
+                //    MaximumSpectraPerIteration = spectraPerIteration
+                //},
+                //new MonteCarloParameters(outputDir, droosophilaProteomePath, spectraPath)
+                //{
+                //    OutputDirectory = Path.Combine(outputDir, "FruitFly_Target"),
+                //    DecoyType = UsefulProteomicsDatabases.DecoyType.None,
+                //    ConditionIdentifier = "FruitFly_Target",
+                //    PeptideProviderType = PeptideSetProviderType.TopDownFromDatabase,
+                //    MaximumPeptidesPerIteration = peptidesPerIteration,
+                //    MaximumSpectraPerIteration = spectraPerIteration
+                //},
+                //new MonteCarloParameters(outputDir, droosophilaProteomePath, spectraPath)
+                //{
+                //    OutputDirectory = Path.Combine(outputDir, "FruitFly_Reverse"),
+                //    DecoyType = UsefulProteomicsDatabases.DecoyType.Reverse,
+                //    ConditionIdentifier = "FruitFly_Reverse",
+                //    PeptideProviderType = PeptideSetProviderType.TopDownFromDatabase,
+                //    MaximumPeptidesPerIteration = peptidesPerIteration,
+                //    MaximumSpectraPerIteration = spectraPerIteration
+                //},
             };
 
             var runner = new MultiMonteCarloRunner(allparams, outputDir);

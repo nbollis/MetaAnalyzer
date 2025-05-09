@@ -7,7 +7,7 @@ public interface ISpectraProvider
 {
     int Count { get; }
     int SpectraPerIteration { get; set; }
-    IEnumerable<MzSpectrum> GetSpectra();
+    IEnumerable<MsDataScan> GetSpectra();
 }
 
 public enum SpectraProviderType
@@ -24,7 +24,7 @@ public static class SpectraProviderFactory
         return type switch
         {
             SpectraProviderType.AllMs2 => new AllMs2Provider(msDataFiles, spectraPerIteration),
-            SpectraProviderType.ProbabilisticMs2 => new WeightedMs2Provider(msDataFiles, spectraPerIteration),
+            //SpectraProviderType.ProbabilisticMs2 => new WeightedMs2Provider(msDataFiles, spectraPerIteration),
             _ => throw new ArgumentOutOfRangeException(nameof(type), type, null)
         };
     }

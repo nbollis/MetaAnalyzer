@@ -16,9 +16,10 @@ public class MetaMorpheusPsmScorer : IPsmScorer
         FragmentMatchingTolerance = fragmentMatchingTolerance;
     }
 
-    public double ScorePeptideSpectralMatch(MzSpectrum spectra, HashSet<double> fragmentMzs)
+    public double ScorePeptideSpectralMatch(MsDataScan scan, HashSet<double> fragmentMzs)
     {
         double score = 0;
+        MzSpectrum spectra = scan.MassSpectrum;
 
         for (int peakIndex = 0; peakIndex < spectra.XArray.Length; peakIndex++)
         {

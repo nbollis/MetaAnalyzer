@@ -14,7 +14,7 @@ public abstract class MsDataFileSpectraProvider : ISpectraProvider
     }
 
     public abstract int Count { get; }
-    public abstract IEnumerable<MzSpectrum> GetSpectra();
+    public abstract IEnumerable<MsDataScan> GetSpectra();
 }
 
 

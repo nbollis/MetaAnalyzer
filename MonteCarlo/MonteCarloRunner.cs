@@ -1,4 +1,5 @@
 ﻿using System.Text;
+using Omics.Modifications;
 
 namespace MonteCarlo;
 
@@ -7,10 +8,17 @@ public class MonteCarloRunner(MonteCarloParameters parameters)
     public MonteCarloParameters Parameters { get; } = parameters;
     public SimulationResultHandler Run()
     {
+        var resultHandler = new SimulationResultHandler(Parameters.OutputDirectory, Parameters.ConditionIdentifier);
+        if (resultHandler.SimulationComplete())
+        {
+            Console.WriteLine($"Simulation for {Parameters.ConditionIdentifier} is already complete. Skipping.");
+            return resultHandler;
+        }
+
         var spectraProvider = SpectraProviderFactory.CreateSpectraProvider(Parameters.SpectraProviderType, Parameters.MaximumSpectraPerIteration, Parameters.InputSpectraPaths);
         var peptideSetProvider = PeptideSetFactory.GetPeptideSetProvider(Parameters.PeptideProviderType, Parameters.InputPeptidePath, Parameters.MaximumPeptidesPerIteration, Parameters.DecoyType, Parameters.CustomDigestionParams, Parameters.VariableMods, Parameters.FixedMods);
         var psmScorer = PsmScoringMethodFactory.GetPsmScorer(PsmScoringMethods.MetaMorpheus, Parameters.MinFragmentCharge, Parameters.MaxFragmentCharge, Parameters.Tolerance);
-        var resultHandler = new SimulationResultHandler(Parameters.OutputDirectory, Parameters.ConditionIdentifier);
+        
 
         // Start some summary text for logging TODO: Make this a toml or something more reusable. 
         StringBuilder summary = new();

@@ -1,26 +1,54 @@
 ﻿using MathNet.Numerics;
+using System.Collections.Concurrent;
 
 namespace MonteCarlo;
 
 public class SimulationResultHandler : ISimulationResultHandler
 {
+    private ConcurrentBag<IndividualScoreRecord> individualScoreRecords = new();
     public string ConditionIdentifier { get; set; }
     public string OutputDirectory { get; private set; }
     public string SummaryText { get; set; } = string.Empty;
     public Dictionary<int, List<double>> ScoresByIteration { get; }
     public CsvHelperFile<HistogramRecord> HistogramFile { get; set; }
     public CsvHelperFile<AllScoreRecord> ScoreFile { get; set; }
+    public CsvHelperFile<IndividualScoreRecord> BestScoresFile { get; set; }
 
     public SimulationResultHandler(string outputDirectory, string? conditionIdentifier = null)
     {
         ScoresByIteration = new();
         ConditionIdentifier = conditionIdentifier ?? string.Empty;
         OutputDirectory = outputDirectory;
+
+        string summaryPath = Path.Combine(OutputDirectory, $"{ConditionIdentifier}_{FileIdentifiers.AllSimulationScores}"); 
+        string histogramPath = Path.Combine(OutputDirectory, $"{ConditionIdentifier}_{FileIdentifiers.SimulationResultHistogram}");
+        string bestScoresPath = Path.Combine(OutputDirectory, $"{ConditionIdentifier}_{FileIdentifiers.BestScoringPeptides}");
+        ScoreFile = new CsvHelperFile<AllScoreRecord>(summaryPath);
+        HistogramFile = new CsvHelperFile<HistogramRecord>(histogramPath);
     }
 
     public void HandleResult(SimulationResult result, int iteration)
     {
         ScoresByIteration.Add(iteration, result.AllScores);
+    }
+
+    public bool SimulationComplete()
+    {
+        var summaryPath = Path.Combine(OutputDirectory, $"{ConditionIdentifier}_{FileIdentifiers.SimulationSummary}");
+        if (!File.Exists(summaryPath))
+            return false;
+
+        if (!File.Exists(ScoreFile.FilePath))
+            return false;
+
+        if (!File.Exists(HistogramFile.FilePath))
+            return false;
+        return true;
+    }
+
+    public void HandleBestScoreRecord(IndividualScoreRecord scoreRecord)
+    {
+        individualScoreRecords.Add(scoreRecord);
     }
 
     public void DoPostProcessing()
@@ -32,6 +60,7 @@ public class SimulationResultHandler : ISimulationResultHandler
 
         GatherAllScoreResults();
         DoHistogramProcessing();
+        DoBestScoringPostProcessing();
     }
 
     public void WriteAllResults()
@@ -49,15 +78,14 @@ public class SimulationResultHandler : ISimulationResultHandler
 
     private void GatherAllScoreResults()
     {
-        string summaryPath = Path.Combine(OutputDirectory, $"{ConditionIdentifier}_{FileIdentifiers.AllSimulationScores}");
-
+        
         // Flatten ScoresByIteration into a list of ScoreRecords
         var scoreRecords = ScoresByIteration
             .SelectMany(kvp => kvp.Value.Select(score => new AllScoreRecord(ConditionIdentifier, kvp.Key, score)))
             .ToList();
 
         // Write the score records to a CSV file
-        ScoreFile = new CsvHelperFile<AllScoreRecord>(summaryPath)
+        ScoreFile = new CsvHelperFile<AllScoreRecord>(ScoreFile.FilePath)
         {
             Results = scoreRecords
         };
@@ -65,7 +93,7 @@ public class SimulationResultHandler : ISimulationResultHandler
 
     private void DoHistogramProcessing()
     {
-        string histogramPath = Path.Combine(OutputDirectory, $"{ConditionIdentifier}_{FileIdentifiers.SimulationResultHistogram}");
+        
 
         // Aggregate scores across iterations into a histogram
         SortedDictionary<double, int> histogram = new();
@@ -92,10 +120,22 @@ public class SimulationResultHandler : ISimulationResultHandler
             Count = kvp.Value
         }).ToList();
 
-        HistogramFile = new CsvHelperFile<HistogramRecord>(histogramPath)
+        HistogramFile = new CsvHelperFile<HistogramRecord>(HistogramFile.FilePath)
         {
             Results = histogramRecords
         };
+    }
+
+    public void DoBestScoringPostProcessing()
+    {
+        // Write the best scoring peptides to a CSV file
+        BestScoresFile = new CsvHelperFile<IndividualScoreRecord>(BestScoresFile.FilePath)
+        {
+            Results = individualScoreRecords.ToList()
+        };
+
+        // Clear the individual score records for the next iteration
+        individualScoreRecords = new ConcurrentBag<IndividualScoreRecord>();
     }
 }
 

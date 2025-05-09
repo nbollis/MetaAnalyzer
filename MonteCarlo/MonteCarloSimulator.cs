@@ -14,12 +14,13 @@ public class MonteCarloSimulator
     private readonly IPsmScorer _psmScorer;
     private readonly ISimulationResultHandler _resultHandler;
     private readonly int _threads;
+    private readonly int _minScoreToRecord;
 
     public MonteCarloSimulator(
         ISpectraProvider spectraProvider,
         IPeptideSetProvider peptideSetProvider,
         ISimulationResultHandler resultHandler,
-        IPsmScorer psmScorer, StringBuilder summaryText, int threads)
+        IPsmScorer psmScorer, StringBuilder summaryText, int threads, int minScoreToRecord = 8)
     {
         _spectraProvider = spectraProvider;
         _peptideSetProvider = peptideSetProvider;
@@ -27,6 +28,7 @@ public class MonteCarloSimulator
         _psmScorer = psmScorer;
         SummaryText = summaryText;
         _threads = threads;
+        _minScoreToRecord = minScoreToRecord;
     }
 
     public void RunSimulation(int iterations)
@@ -55,7 +57,7 @@ public class MonteCarloSimulator
         _resultHandler.SummaryText = SummaryText.ToString();
     }
 
-    private SimulationResult PerformMatching(List<MzSpectrum> spectra, List<IBioPolymerWithSetMods> peptides)
+    private SimulationResult PerformMatching(List<MsDataScan> spectra, List<IBioPolymerWithSetMods> peptides)
     {
         List<double> allScores = new();
         var parallelOptions = new ParallelOptions
@@ -95,6 +97,17 @@ public class MonteCarloSimulator
                     // Score the peptide-spectral match
                     double psmScore = _psmScorer.ScorePeptideSpectralMatch(spectrum, fragmentMzs);
                     localScores.Add(psmScore);
+
+                    if (psmScore >= _minScoreToRecord)
+                        _resultHandler.HandleBestScoreRecord(new() 
+                        { 
+                            BaseSequence = peptide.BaseSequence, 
+                            Score = psmScore, 
+                            FullSequence = peptide.FullSequence,
+                            FileNameWithoutExtension = spectrum.NativeId,
+                            OneBasedScanNumber = spectrum.OneBasedScanNumber,
+                            Condition = _resultHandler.ConditionIdentifier
+                        });
                 }
             }
 

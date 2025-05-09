@@ -18,6 +18,16 @@ public class HistogramRecord : IRecord
     public int Count { get; set; }
 }
 
+public class IndividualScoreRecord : IRecord
+{
+    public string FullSequence { get; set; }
+    public string BaseSequence { get; set; }
+    public string Condition { get; set; }
+    public int OneBasedScanNumber { get; set; }
+    public string FileNameWithoutExtension { get; set; }
+    public double Score { get; set; }
+}
+
 public class AllScoreRecord : IRecord
 {
     public AllScoreRecord() { }
