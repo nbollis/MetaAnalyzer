@@ -104,6 +104,7 @@ namespace Analyzer.FileTypes.External
         [Name("Intensity")]
         public double Intensity { get; set; }
 
+
         [Name("Assigned Modifications")]
         public string AssignedModifications { get; set; }
 

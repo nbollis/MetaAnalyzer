@@ -76,7 +76,7 @@ namespace Analyzer.FileTypes.External
             }
         }
         [Ignore] public string FileNameWithoutExtension { get; }
-        [Ignore] public double MonoisotopicMass => TheoreticalMass;
+        [Ignore] public double MonoisotopicMass => PrecursorMass;
         [Ignore] public string ProteinAccession => ProteinAccessions;
 
         // decoys are not reported by default
@@ -315,7 +315,79 @@ namespace Analyzer.FileTypes.External
         public override void LoadResults()
         {
             using var csv = new CsvReader(new StreamReader(FilePath), ProteomeDiscovererPsmRecord.CsvConfiguration);
-            Results = csv.GetRecords<ProteomeDiscovererPsmRecord>().ToList();
+            var results = csv.GetRecords<ProteomeDiscovererPsmRecord>().ToList();
+
+            // Split results that have been identified in multiple scans into unique records
+            var toSplit = results.Where(p => p.Ms2ScanNumber.Contains(';')).ToList();
+            foreach (var splittableResult in toSplit)
+            {
+                results.Remove(splittableResult);
+                foreach (var newScanNum in splittableResult.Ms2ScanNumber.Split(';'))
+                {
+                    var newResult = new ProteomeDiscovererPsmRecord()
+                    {
+                        Checked = splittableResult.Checked,
+                        Confidence = splittableResult.Confidence,
+                        DetectedIonCount = splittableResult.DetectedIonCount,
+                        ProteoformLevel = splittableResult.ProteoformLevel,
+                        PTMsLocalized = splittableResult.PTMsLocalized,
+                        PTMsIdentified = splittableResult.PTMsIdentified,
+                        SequenceDefined = splittableResult.SequenceDefined,
+                        GeneIdentified = splittableResult.GeneIdentified,
+                        IdentifyingNode = splittableResult.IdentifyingNode,
+                        AnnotatedSequence = splittableResult.AnnotatedSequence,
+                        BaseSequence = splittableResult.BaseSequence,
+                        Modifications = splittableResult.Modifications,
+                        ProteinCount = splittableResult.ProteinCount,
+                        ProteinAccessions = splittableResult.ProteinAccessions,
+                        Charge = splittableResult.Charge,
+                        Rank = splittableResult.Rank,
+                        SearchEngineRank = splittableResult.SearchEngineRank,
+                        Mz = splittableResult.Mz,
+                        PrecursorMass = splittableResult.PrecursorMass,
+                        TheoreticalMass = splittableResult.TheoreticalMass,
+                        DeltaMassPpm = splittableResult.DeltaMassPpm,
+                        DeltaMassDa = splittableResult.DeltaMassDa,
+                        DeltaMz = splittableResult.DeltaMz,
+                        MatchedIons = splittableResult.MatchedIons,
+                        ActivationType = splittableResult.ActivationType,
+                        NCE = splittableResult.NCE,
+                        MSOrder = splittableResult.MSOrder,
+                        IonInjectTime = splittableResult.IonInjectTime,
+                        RT = splittableResult.RT,
+                        PredictedRT = splittableResult.PredictedRT,
+                        ApexRT = splittableResult.ApexRT,
+                        DeltaRT = splittableResult.DeltaRT,
+                        Ms2ScanNumber = newScanNum,
+                        FragmentationScans = splittableResult.FragmentationScans,
+                        PrecursorScans = splittableResult.PrecursorScans,
+                        FileID = splittableResult.FileID,
+                        NegativeLogPScore = splittableResult.NegativeLogPScore,
+                        NegativeLogEValue = splittableResult.NegativeLogEValue,
+                        CScore = splittableResult.CScore,
+                        QValue = splittableResult.QValue,
+                        PEP = splittableResult.PEP,
+                        SVMScore = splittableResult.SVMScore,
+                        PrecursorAbundance = splittableResult.PrecursorAbundance,
+                        PercentResidueCleavages = splittableResult.PercentResidueCleavages,
+                        CorrectedDeltaMassDa = splittableResult.CorrectedDeltaMassDa,
+                        CorrectedDeltaMassPpm = splittableResult.CorrectedDeltaMassPpm,
+                        CompensationVoltage = splittableResult.CompensationVoltage,
+                        PsmAmbiguity = splittableResult.PsmAmbiguity,
+                        ILAmbiguity = splittableResult.ILAmbiguity,
+                        MissedCleavages = splittableResult.MissedCleavages,
+                        DeltaScore = splittableResult.DeltaScore,
+                        DeltaCn = splittableResult.DeltaCn,
+                        Intensity = splittableResult.Intensity,
+                        NormalizedChimeraCoefficient = splittableResult.NormalizedChimeraCoefficient,
+                        PrecursorScanNumbers = splittableResult.PrecursorScanNumbers,
+                        ProteinGroupCount = splittableResult.ProteinGroupCount,
+                    };
+
+                    results.Add(newResult);
+                }
+            }
+            Results = results;
         }
 
         public override void WriteResults(string outputPath)

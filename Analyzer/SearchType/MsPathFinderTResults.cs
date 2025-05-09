@@ -320,6 +320,8 @@ namespace Analyzer.SearchType
 
                             if (index == 0)
                                 parent = chimera;
+                            else if (parent.FullSequence == chimera.FullSequence)
+                                record.DuplicateCount++;
                             // Duplicated MS1 Signal
                             else if (evaluated.Any(assignedChimera => tolerance.Within(assignedChimera.MonoisotopicMass, chimera.MonoisotopicMass)
                                                                    && tolerance.Within(assignedChimera.MostAbundantIsotopeMz, chimera.MostAbundantIsotopeMz)))

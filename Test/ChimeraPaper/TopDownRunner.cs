@@ -42,7 +42,7 @@ namespace Test.ChimeraPaper
 
         }
 
-
+ 
 
 
         [Test]
@@ -52,18 +52,28 @@ namespace Test.ChimeraPaper
             {
                 foreach (var result in cellLine)
                 {
-                    result.Override = true;
-                    //result.CountChimericPsms();
-                    //result.GetBulkResultCountComparisonFile();
-                    //result.GetIndividualFileComparison();
+
+                    result.CountChimericPsms();
+                    result.GetBulkResultCountComparisonFile();
+                    result.GetIndividualFileComparison();
                     if (result is IChimeraBreakdownCompatible cb){
-                        if (result is MetaMorpheusResult) continue;
-                        if (result is MsPathFinderTResults mspt)
-                        {
-                            if (!mspt.Condition.Contains("WithMods"))
-                                continue;
-                        }
+                        //if (result is MetaMorpheusResult) continue;
+                        //if (result is MsPathFinderTResults mspt)
+                        //{
+                        //    if (!mspt.Condition.Contains("WithMods"))
+                        //        continue;
+                        //    result.Override = true;
+                        //}
+                        //if (result is ProteomeDiscovererResult pspd)
+                        //{
+                        //    result.Override = true;
+                        //    if (!pspd.Condition.Contains("_Rep2_15_10ppm"))
+                        //        continue;
+                        //}
+
                         cb.GetChimeraBreakdownFile();
+                        result.Override = false;
+
                         cb.PlotChimeraBreakDownStackedColumn_Scaled(ResultType.Psm);
                         try
                         {
@@ -85,21 +95,21 @@ namespace Test.ChimeraPaper
                     result.Override = false;
                 }
 
-                //cellLine.Override = true;
-                //cellLine.GetIndividualFileComparison();
-                //cellLine.GetBulkResultCountComparisonFile();
-                //cellLine.CountChimericPsms();
-                //cellLine.CountChimericPeptides();
-                //cellLine.Override = false;
+                cellLine.Override = true;
+                cellLine.GetIndividualFileComparison();
+                cellLine.GetBulkResultCountComparisonFile();
+                cellLine.CountChimericPsms();
+                cellLine.CountChimericPeptides();
+                cellLine.Override = false;
 
-                //cellLine.PlotIndividualFileResults();
-                //cellLine.PlotCellLineSpectralSimilarity();
-                cellLine.PlotCellLineChimeraBreakdown();
-                cellLine.PlotCellLineChimeraBreakdown_TargetDecoy();
-                //cellLine.PlotModificationDistribution(ResultType.Psm, false);
-                //cellLine.PlotModificationDistribution(ResultType.Peptide, false);
+                ////cellLine.PlotIndividualFileResults();
+                ////cellLine.PlotCellLineSpectralSimilarity();
+                //cellLine.PlotCellLineChimeraBreakdown();
+                //cellLine.PlotCellLineChimeraBreakdown_TargetDecoy();
+                ////cellLine.PlotModificationDistribution(ResultType.Psm, false);
+                ////cellLine.PlotModificationDistribution(ResultType.Peptide, false);
 
-                cellLine.Dispose();
+                //cellLine.Dispose();
             }
 
             AllResults.Override = true;

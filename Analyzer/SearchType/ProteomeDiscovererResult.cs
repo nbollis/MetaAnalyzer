@@ -245,9 +245,7 @@ namespace Analyzer.SearchType
                     }
                 }
 
-                //TODO: Consider if this distinct comparer is necessary
                 foreach (var chimeraGroup in fileGroup
-                             .DistinctBy(p => p, CustomComparerExtensions.PSPDPrSMDistinctPsmComparer)
                              .GroupBy(p => p, CustomComparerExtensions.PSPDPrSMChimeraComparer)
                              .Select(p => p.ToArray()))
                 {
