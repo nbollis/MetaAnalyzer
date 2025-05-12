@@ -26,6 +26,8 @@ public class IndividualScoreRecord : IRecord
     public int OneBasedScanNumber { get; set; }
     public string FileNameWithoutExtension { get; set; }
     public double Score { get; set; }
+    public string Accession { get; set; }
+    public string Name { get; set; }
 }
 
 public class AllScoreRecord : IRecord

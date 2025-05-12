@@ -8,7 +8,7 @@ public interface IPsmScorer
     int MinFragmentCharge { get; }
     int MaxFragmentCharge { get; }
 
-    double ScorePeptideSpectralMatch(MsDataScan spectra, HashSet<double> fragmentMzs);
+    double ScorePeptideSpectralMatch(MsDataScan spectra, double[] sortedFragmentsMzs);
 }
 
 public enum PsmScoringMethods

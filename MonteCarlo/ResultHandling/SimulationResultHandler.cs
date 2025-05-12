@@ -25,6 +25,7 @@ public class SimulationResultHandler : ISimulationResultHandler
         string bestScoresPath = Path.Combine(OutputDirectory, $"{ConditionIdentifier}_{FileIdentifiers.BestScoringPeptides}");
         ScoreFile = new CsvHelperFile<AllScoreRecord>(summaryPath);
         HistogramFile = new CsvHelperFile<HistogramRecord>(histogramPath);
+        BestScoresFile = new CsvHelperFile<IndividualScoreRecord>(bestScoresPath);
     }
 
     public void HandleResult(SimulationResult result, int iteration)
@@ -67,6 +68,7 @@ public class SimulationResultHandler : ISimulationResultHandler
     {
         ScoreFile.WriteResults(ScoreFile.FilePath);
         HistogramFile.WriteResults(HistogramFile.FilePath);
+        BestScoresFile.WriteResults(BestScoresFile.FilePath);
 
         // Write summary text to a file
         string summaryPath = Path.Combine(OutputDirectory, $"{ConditionIdentifier}_{FileIdentifiers.SimulationSummary}");

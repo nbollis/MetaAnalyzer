@@ -73,40 +73,47 @@ public class MonteCarloSimulator
             int end = Math.Min(start + rangeSize, spectra.Count);
 
             List<double> localScores = new(); // Thread-local storage for scores
+            HashSet<double> fragmentMzs = new();
+            List<Product> neutralFragments = new();
 
-            for (int i = start; i < end; i++)
+            foreach (var peptide in peptides)
             {
-                var spectrum = spectra[i];
-                if (spectrum == null) continue;
+                fragmentMzs.Clear();
+                neutralFragments.Clear();
 
-                foreach (var peptide in peptides)
+                // Generate fragments for the peptide
+                peptide.Fragment(DissociationType.HCD, FragmentationTerminus.Both, neutralFragments);
+                foreach (var fragment in neutralFragments)
                 {
-                    HashSet<double> fragmentMzs = new();
-                    List<Product> neutralFragments = new();
-
-                    // Generate fragments for the peptide
-                    peptide.Fragment(DissociationType.HCD, FragmentationTerminus.Both, neutralFragments);
-                    foreach (var fragment in neutralFragments)
+                    for (int z = _psmScorer.MinFragmentCharge; z <= _psmScorer.MaxFragmentCharge; z++)
                     {
-                        for (int z = _psmScorer.MinFragmentCharge; z <= _psmScorer.MaxFragmentCharge; z++)
-                        {
-                            fragmentMzs.Add(fragment.ToMz(z));
-                        }
+                        fragmentMzs.Add(fragment.ToMz(z));
                     }
+                }
+
+                // Sort fragmentMzs once here
+                var sortedFragmentMzs = fragmentMzs.OrderBy(mz => mz).ToArray();
+
+                for (int i = start; i < end; i++)
+                {
+                    var spectrum = spectra[i];
+                    if (spectrum == null) continue;
 
                     // Score the peptide-spectral match
-                    double psmScore = _psmScorer.ScorePeptideSpectralMatch(spectrum, fragmentMzs);
+                    double psmScore = _psmScorer.ScorePeptideSpectralMatch(spectrum, sortedFragmentMzs);
                     localScores.Add(psmScore);
 
                     if (psmScore >= _minScoreToRecord)
-                        _resultHandler.HandleBestScoreRecord(new() 
-                        { 
-                            BaseSequence = peptide.BaseSequence, 
-                            Score = psmScore, 
+                        _resultHandler.HandleBestScoreRecord(new()
+                        {
+                            BaseSequence = peptide.BaseSequence,
+                            Score = psmScore,
                             FullSequence = peptide.FullSequence,
                             FileNameWithoutExtension = spectrum.NativeId,
                             OneBasedScanNumber = spectrum.OneBasedScanNumber,
-                            Condition = _resultHandler.ConditionIdentifier
+                            Condition = _resultHandler.ConditionIdentifier,
+                            Accession = peptide.Parent?.Accession ?? "",
+                            Name = peptide.Parent?.Name ?? ""
                         });
                 }
             }

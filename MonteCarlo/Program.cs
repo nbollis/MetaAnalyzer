@@ -158,10 +158,10 @@ namespace MonteCarlo
                 @"B:\RawSpectraFiles\JurkatTopDown\02-18-20_jurkat_td_rep1_fract6.raw",
                 @"B:\RawSpectraFiles\JurkatTopDown\02-18-20_jurkat_td_rep1_fract7.raw"
                 ];
-            string outputDir = @"D:\Projects\MonteCarlo\TD_SmallToTestOutput";
+            string outputDir = @"D:\Projects\MonteCarlo\TD_SmallToTestOutput_WithAccession";
 
-            int peptidesPerIteration = 20;
-            int spectraPerIteration = 20;
+            int peptidesPerIteration = 100;
+            int spectraPerIteration = 10;
             List<MonteCarloParameters> allparams = new()
             {
                 new MonteCarloParameters(outputDir, dbPath, spectraPath)
@@ -227,15 +227,15 @@ namespace MonteCarlo
                 //    MaximumPeptidesPerIteration = peptidesPerIteration,
                 //    MaximumSpectraPerIteration = spectraPerIteration
                 //},
-                //new MonteCarloParameters(outputDir, panTroglodyteProteomePath, spectraPath)
-                //{
-                //    OutputDirectory = Path.Combine(outputDir, "Chimp_Target"),
-                //    DecoyType = UsefulProteomicsDatabases.DecoyType.None,
-                //    ConditionIdentifier = "Chimp_Target",
-                //    PeptideProviderType = PeptideSetProviderType.TopDownFromDatabase,
-                //    MaximumPeptidesPerIteration = peptidesPerIteration,
-                //    MaximumSpectraPerIteration = spectraPerIteration
-                //},
+                new MonteCarloParameters(outputDir, panTroglodyteProteomePath, spectraPath)
+                {
+                    OutputDirectory = Path.Combine(outputDir, "Chimp_Target"),
+                    DecoyType = UsefulProteomicsDatabases.DecoyType.None,
+                    ConditionIdentifier = "Chimp_Target",
+                    PeptideProviderType = PeptideSetProviderType.TopDownFromDatabase,
+                    MaximumPeptidesPerIteration = peptidesPerIteration,
+                    MaximumSpectraPerIteration = spectraPerIteration
+                },
                 //new MonteCarloParameters(outputDir, panTroglodyteProteomePath, spectraPath)
                 //{
                 //    OutputDirectory = Path.Combine(outputDir, "Chimp_Reverse"),
