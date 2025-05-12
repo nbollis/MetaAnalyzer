@@ -1,4 +1,6 @@
-﻿namespace ResultAnalyzerUtil.CommandLine;
+﻿using System.Diagnostics;
+
+namespace ResultAnalyzerUtil.CommandLine;
 
 public abstract class CmdProcess
 {
@@ -23,6 +25,9 @@ public abstract class CmdProcess
 
     public void DependsOn(CmdProcess other)
     {
+        if (other == this || IsCircularDependency(other))
+            throw new InvalidOperationException("Circular dependency detected.");
+
         Dependency = other.CompletionSource;
     }
 
@@ -32,13 +37,36 @@ public abstract class CmdProcess
     public abstract bool IsCompleted();
 
 
-
-
-
     // for adaptors, not a good pattern, but here we are. 
     public bool IsCmdTask { get; protected set; } = true;
-    public virtual Task RunTask()
+    public virtual async Task RunTask()
     {
-        return Task.CompletedTask;
+        var proc = new System.Diagnostics.Process
+        {
+            StartInfo = new System.Diagnostics.ProcessStartInfo
+            {
+                FileName = ProgramExe,
+                Arguments = Prompt,
+                UseShellExecute = true,
+                CreateNoWindow = false,
+                WorkingDirectory = WorkingDirectory,
+                ErrorDialog = true,
+            }
+        };
+        proc.Start();
+        await proc.WaitForExitAsync();
+    }
+
+    private bool IsCircularDependency(CmdProcess other)
+    {
+        var current = other;
+        while (current != null)
+        {
+            if (current == this)
+                return true;
+
+            current = current.Dependency?.Task.AsyncState as CmdProcess;
+        }
+        return false;
     }
 }

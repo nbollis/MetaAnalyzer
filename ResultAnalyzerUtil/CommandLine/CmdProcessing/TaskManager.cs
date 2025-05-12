@@ -85,7 +85,7 @@ public class TaskManager
             Console.WriteLine($"Has Started Elsewhere: {process.SummaryText}");
             while (!process.IsCompleted()) 
             {
-                await Task.Delay(100000); // Adjust delay as needed
+                await Task.Delay(10000); // Adjust delay as needed
             }
 
             return;
@@ -103,7 +103,7 @@ public class TaskManager
             }
 
             semaphore.Release();
-            await Task.Delay(100000); // Adjust delay as needed
+            await Task.Delay(10000); // Adjust delay as needed
         }
 
         try
@@ -119,28 +119,7 @@ public class TaskManager
                 Console.WriteLine($"\tUsing dependency result: {result} in {process.QuickName}");
             }
 
-            if (!process.IsCmdTask)
-            {
-                await process.RunTask();
-            }
-            else
-            {
-                var proc = new System.Diagnostics.Process
-                {
-                    StartInfo = new System.Diagnostics.ProcessStartInfo
-                    {
-                        FileName = process.ProgramExe,
-                        Arguments = process.Prompt,
-                        UseShellExecute = true,
-                        CreateNoWindow = false,
-                        WorkingDirectory = process.WorkingDirectory,
-                        ErrorDialog = true,
-                    }
-                };
-                proc.Start();
-                await proc.WaitForExitAsync();
-            }
-
+            await process.RunTask();
             Console.WriteLine($"Completed process: {process.SummaryText}");
         }
         finally
