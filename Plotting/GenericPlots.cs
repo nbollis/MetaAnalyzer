@@ -162,6 +162,7 @@ namespace Plotting
 
             // remove anything where the mod is less than 1 % of total modifications
             modDict = modDict.Where(p => p.Value > 1)
+                .OrderByDescending(p => p.Value)
                 .ToDictionary(p => p.Key, p => p.Value);
 
             var chart = Chart.Column<double, string, string>(modDict.Values, modDict.Keys, title, MarkerColor: title.ConvertConditionToColor())

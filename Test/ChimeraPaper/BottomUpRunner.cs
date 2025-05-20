@@ -575,52 +575,55 @@ namespace Test.ChimeraPaper
                 .Where(p => selector.Contains(p.Condition, SelectorType.BulkResultComparison))
                 .ToList();
 
-            string cellLinePath = @"B:\Users\Nic\Chimeras\ExternalMMAnalysis\Mann_11cell_lines\A549";
-            List<SingleRunResults> results = new(); //[fraggerToReturn.First()];
-            foreach (var dir in Directory.GetDirectories(cellLinePath)
-                .Where(p => !p.Contains("Figure")))
+            string allDataPath = @"B:\Users\Nic\Chimeras\ExternalMMAnalysis\Mann_11cell_lines";
+            foreach (var cellLineDir in Directory.GetDirectories(allDataPath).Where(p => !p.Contains("Figure") && !p.Contains("Generate")))
             {
-                var result = ExternalComparisonTask.LoadResultFromFilePath(dir);
-                if (result is MetaMorpheusResult)
-                    continue;
-                
-                results.Add(result);   
-
-                if (result is ChimerysResult cr)
+                List<SingleRunResults> results = new(); //[fraggerToReturn.First()];
+                foreach (var dir in Directory.GetDirectories(cellLineDir)
+                             .Where(p => !p.Contains("Figure")))
                 {
-                    result.GetIndividualFileComparison();
-                    result.GetBulkResultCountComparisonFile();
-                    result.CountChimericPsms();
-                    result.ToPsmProformaFile();
-                    result.CountProteins();
+                    var result = ExternalComparisonTask.LoadResultFromFilePath(dir);
+                    if (result is MetaMorpheusResult)
+                        continue;
+
+                    results.Add(result);
+
+                    if (result is ChimerysResult cr)
+                    {
+                        result.GetIndividualFileComparison();
+                        result.GetBulkResultCountComparisonFile();
+                        result.CountChimericPsms();
+                        result.ToPsmProformaFile();
+                        result.CountProteins();
+                    }
                 }
+
+                var cellLine = new CellLineResults(cellLineDir, results);
+                cellLine.GetIndividualFileComparison();
+                cellLine.GetBulkResultCountComparisonFile();
+                cellLine.CountChimericPsms();
+
+                //try
+                //{
+                //    cellLine.PlotModificationDistribution(ResultType.Psm, false);
+                //}
+                //catch (Exception e)
+                //{
+                //    Console.WriteLine(e);
+                //}
+                //try
+                //{
+                //    cellLine.PlotModificationDistribution(ResultType.Peptide, false);
+                //}
+                //catch (Exception e)
+                //{
+                //    Console.WriteLine(e);
+                //}
+
+                cellLine.PlotIndividualFileResults(ResultType.Psm);
+                cellLine.PlotIndividualFileResults(ResultType.Peptide);
+                cellLine.PlotIndividualFileResults(ResultType.Protein);
             }
-
-            var cellLine = new CellLineResults(cellLinePath, results);
-            cellLine.GetIndividualFileComparison();
-            cellLine.GetBulkResultCountComparisonFile();
-            cellLine.CountChimericPsms();
-
-            //try
-            //{
-            //    cellLine.PlotModificationDistribution(ResultType.Psm, false);
-            //}
-            //catch (Exception e)
-            //{
-            //    Console.WriteLine(e);
-            //}
-            //try
-            //{
-            //    cellLine.PlotModificationDistribution(ResultType.Peptide, false);
-            //}
-            //catch (Exception e)
-            //{
-            //    Console.WriteLine(e);
-            //}
-
-            cellLine.PlotIndividualFileResults(ResultType.Psm);
-            cellLine.PlotIndividualFileResults(ResultType.Peptide);
-            cellLine.PlotIndividualFileResults(ResultType.Protein);
         }
 
         static double LogFactorial(int n)

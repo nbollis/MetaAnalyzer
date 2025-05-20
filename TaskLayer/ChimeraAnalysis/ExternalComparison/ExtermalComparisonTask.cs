@@ -183,6 +183,8 @@ namespace TaskLayer.ChimeraAnalysis
             var allProfomaResults = proformaGroups.SelectMany(p => p.Value.SelectMany(m => m.ToPsmProformaFile().Results)).ToList();
             var modPlot = allProfomaResults.GetModificationDistribution(isTopDown, true);
             modPlot.Show();
+            string modPlotPath = Path.Combine(BulkFigureDirectory, "ModificationDistribution");
+            modPlot.SaveJPG(modPlotPath, null, 1000, 600);
 
             Log("Creating Protein Counting Files", 1);
             foreach (var cellLineDictEntry in cellLineDict)
@@ -326,14 +328,14 @@ namespace TaskLayer.ChimeraAnalysis
         internal static BulkResultCountComparisonFile GetResultCountFile(List<SingleRunResults> mmResults)
         {
             Log($"Counting Total Results", 0);
-            if (_bulkResultCountComparisonFile != null)
-                return _bulkResultCountComparisonFile;
-            if (File.Exists(BulkResultComparisonFilePath))
-            {
-                _bulkResultCountComparisonFile = new BulkResultCountComparisonFile(BulkResultComparisonFilePath);
-                _bulkResultCountComparisonFile.LoadResults();
-                return _bulkResultCountComparisonFile;
-            }
+            //if (_bulkResultCountComparisonFile != null)
+            //    return _bulkResultCountComparisonFile;
+            //if (File.Exists(BulkResultComparisonFilePath))
+            //{
+            //    _bulkResultCountComparisonFile = new BulkResultCountComparisonFile(BulkResultComparisonFilePath);
+            //    _bulkResultCountComparisonFile.LoadResults();
+            //    return _bulkResultCountComparisonFile;
+            //}
 
             bool isTopDown = mmResults.First().IsTopDown;
             List<BulkResultCountComparison> allResults = new();
@@ -556,12 +558,18 @@ namespace TaskLayer.ChimeraAnalysis
                 foreach (var cellLineDirectory in Directory.GetDirectories(parameters.OutputDirectory)
                              .Where(p => !p.Contains("Generate") && !p.Contains("Figure")))
                 {
+                    var datasetName = Path.GetFileName(cellLineDirectory);
                     foreach (var indResultDir in Directory.GetDirectories(cellLineDirectory))
                     {
-                        if (!indResultDir.Contains("Chimerys") || indResultDir.Contains("MSAID"))
+                        var condition = Path.GetFileName(indResultDir);
+                        SingleRunResults result;
+                        if (indResultDir.Contains("MSAID"))
+                            result = new ChimerysResult(indResultDir/*, datasetName, condition*/);
+                        else if (indResultDir.Contains("Chimerys"))
+                            result = new ProteomeDiscovererResult(indResultDir);
+                        else
                             continue;
-
-                        var result = new ProteomeDiscovererResult(indResultDir);
+                        
                         allOtherResults.Add(result);
                     }
                 }
@@ -601,29 +609,31 @@ namespace TaskLayer.ChimeraAnalysis
                 .Where(p => p != null && p.Any())
                 .ToList();
 
-            results.ForEach(p => p!.Results = p.Results.OrderBy(m => m.FileName.ConvertFileName()).ToList());
+            results.ForEach(p => p!.Results = p.Results
+               .OrderByDescending(m => m.Condition.Contains("DDA+"))
+               .ThenBy(m => m.FileName.ConvertFileName())
+               .ToList());
 
             var toPlot = results
                 .SelectMany(p => p!.Results).ToList();
 
 
             var psmPlot = GetIndividualSummedBarChar(toPlot, ResultType.Psm, isTopDown);
-            var outPath = Path.Combine(BulkFigureDirectory, "ResultsByCellLine_PSM");
+            var outPath = Path.Combine(BulkFigureDirectory, "ResultsByCellLine_Averaged_PSM");
             psmPlot.SavePNG(outPath, null, 800, 600);
 
             var peptidePlot = GetIndividualSummedBarChar(toPlot, ResultType.Peptide, isTopDown);
-            outPath = Path.Combine(BulkFigureDirectory, "ResultsByCellLine_Peptide");
+            outPath = Path.Combine(BulkFigureDirectory, "ResultsByCellLine_Averaged_Peptide");
             peptidePlot.SavePNG(outPath, null, 800, 600);
 
             var proteinPlot = GetIndividualSummedBarChar(toPlot, ResultType.Protein, isTopDown);
-            outPath = Path.Combine(BulkFigureDirectory, "ResultsByCellLine_Protein");
+            outPath = Path.Combine(BulkFigureDirectory, "ResultsByCellLine_Averaged_Protein");
             proteinPlot.SavePNG(outPath, null, 800, 600);
         }
 
         static GenericChart.GenericChart GetIndividualSummedBarChar(List<BulkResultCountComparison> records, ResultType resultType, bool isTopDown)
         {
             bool withErrorBars = true;
-
 
             List<GenericChart.GenericChart> toCombine = new();
             foreach (var softwareGroup in records.GroupBy(p => p.Condition.Split('_')[0]))
@@ -638,11 +648,12 @@ namespace TaskLayer.ChimeraAnalysis
                         .ToDictionary(p => p.Key,
                             p => p.Select(AnalyzerGenericPlots.ResultSelector(resultType)).ToArray());
 
+                    // Bar height is average of count by replicate. 
                     int value = (int)repGroups.Select(p => p.Value.Sum()).Average();
                     values.Add(value);
                     labels.Add(cellLineGroup.Key);
 
-
+                    // Bounds are min and max of count by replicate
                     int lowerBound = repGroups.Select(p => p.Value.Sum()).Min();
                     lower.Add(value - lowerBound);
                     int upperBound = repGroups.Select(p => p.Value.Sum()).Max();
@@ -660,10 +671,10 @@ namespace TaskLayer.ChimeraAnalysis
 
             var finalChart = Chart.Combine(toCombine.ToArray())
                 .WithTitle($"1% FDR {Labels.GetLabel(isTopDown, resultType)}")
-                .WithXAxisStyle(Title.init("File", Font: Font.init(Size: PlotlyBase.AxisTitleFontSize)))
+                .WithXAxisStyle(Title.init("Cell Line", Font: Font.init(Size: PlotlyBase.AxisTitleFontSize)))
                 .WithYAxisStyle(Title.init("Count", Font: Font.init(Size: PlotlyBase.AxisTitleFontSize)))
                 .WithLayout(PlotlyBase.DefaultLayoutWithLegendLargerText)
-                .WithSize(800, 600);
+                .WithSize(800, 700);
 
             return finalChart;
         }
@@ -700,7 +711,7 @@ namespace TaskLayer.ChimeraAnalysis
 
             var finalChart = Chart.Combine(toCombine.ToArray())
                 .WithTitle($"1% FDR {Labels.GetLabel(isTopDown, resultType)}")
-                .WithXAxisStyle(Title.init("File", Font: Font.init(Size: PlotlyBase.AxisTitleFontSize)))
+                .WithXAxisStyle(Title.init("Cell Line", Font: Font.init(Size: PlotlyBase.AxisTitleFontSize)))
                 .WithYAxisStyle(Title.init("Count", Font: Font.init(Size: PlotlyBase.AxisTitleFontSize)))
                 .WithLayout(PlotlyBase.DefaultLayoutWithLegendLargerText)
                 .WithSize(800, 600);

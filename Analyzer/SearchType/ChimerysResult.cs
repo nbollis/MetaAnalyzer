@@ -3,8 +3,6 @@ using Analyzer.FileTypes.Internal;
 using Chemistry;
 using Plotting.Util;
 using Proteomics;
-using Proteomics.AminoAcidPolymer;
-using Readers.Generated;
 using UsefulProteomicsDatabases;
 
 namespace Analyzer.SearchType;

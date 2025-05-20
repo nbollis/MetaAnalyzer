@@ -479,10 +479,11 @@ public static class PlottingTranslators
     private static Dictionary<string, string> ConditionNameConversionDictionary = new()
     {
 
-        // MM General
-        { "MetaMorpheus_106_Rep1", "MetaMorpheus" },
-        { "MetaMorpheus_106_Rep2", "MetaMorpheus" },
-        { "MetaMorpheus_106_Rep3", "MetaMorpheus" },
+        // MM External - Reduced - may cause conflicts elsewhere 
+        { "MetaMorpheus_106_Rep1", "Reduced MetaMorpheus" },
+        { "MetaMorpheus_106_Rep2", "Reduced MetaMorpheus" },
+        { "MetaMorpheus_106_Rep3", "Reduced MetaMorpheus" },
+
         { "MetaMorpheus_107_Rep1", "MetaMorpheus" },
         { "MetaMorpheus_107_Rep2", "MetaMorpheus" },
         { "MetaMorpheus_107_Rep3", "MetaMorpheus" },
