@@ -14,7 +14,7 @@ public class CytosineInformation
     public CytosineInformation(string dataFileName, double fdrCutoff, int totalTargetCytosines, int totalDecoyCytosines,
         int methylatedTargetCystosines, int methylatedDecoyCystosines, int unmethylatedTargetCytosines,
         int unmethylatedDecoyCytosines, double targetMethylPercent, double decoyMethylPercent,
-        double targetMethylPercentGreaterThanOne, double decoyMethylPercentGreaterThanOne)
+        double targetMethylPercentGreaterThanOne, double decoyMethylPercentGreaterThanOne, string condition = "")
     {
         DataFileName = dataFileName;
         FdrCutoff = fdrCutoff;
@@ -28,6 +28,7 @@ public class CytosineInformation
         DecoyMethylPercent = decoyMethylPercent;
         TargetMethylPercentGreaterThanOne = targetMethylPercentGreaterThanOne;
         DecoyMethylPercentGreaterThanOne = decoyMethylPercentGreaterThanOne;
+        Condition = condition;
 
         ExpectedMethylPercent = -1;
 
@@ -116,6 +117,10 @@ public class CytosineInformation
 
     [Name("DecoyMethylPercentGreaterThanOne")]
     public double DecoyMethylPercentGreaterThanOne { get; set; }
+
+    [Name("Condition")]
+    [Optional][Default("")]
+    public string Condition { get; set; } = string.Empty;
 }
 
 public class CytosineInformationFile : ResultFile<CytosineInformation>, IResultFile

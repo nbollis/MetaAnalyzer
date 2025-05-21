@@ -161,28 +161,14 @@ namespace GradientDevelopment
         public CytosineInformation ExtractMethylationInformation(double? fdrCutoff = null)
         {
             double cutoff = fdrCutoff ?? qValueCutoff;
-            var targets = OsmFromTsv.Where(p => p.FileNameWithoutExtension == DataFileName && p.QValue <= cutoff && IsMajorityTarget(p));
-            var decoys = OsmFromTsv.Where(p => p.FileNameWithoutExtension == DataFileName && p.QValue <= cutoff && !IsMajorityTarget(p));
-
-            var targetCounts = CountCytosines(targets.Select(p => p.FullSequence));
-            var decoyCounts = CountCytosines(decoys.Select(p => p.FullSequence));
-
-            double percentMethylatedTargets = CalculatePercentage(targetCounts.methylated, targetCounts.total);
-            double percentMethylatedDecoys = CalculatePercentage(decoyCounts.methylated, decoyCounts.total);
-            double percentMethylatedTargetsGreaterThanOne = CalculatePercentage(targetCounts.methylatedGreaterThanOne, targetCounts.totalGreaterThanOne);
-            double percentMethylatedDecoysGreaterThanOne = CalculatePercentage(decoyCounts.methylatedGreaterThanOne, decoyCounts.totalGreaterThanOne);
-
-            return new CytosineInformation(DataFileName, cutoff, targetCounts.total, decoyCounts.total,
-                targetCounts.methylated, decoyCounts.methylated,
-                targetCounts.unmethylated, decoyCounts.unmethylated, percentMethylatedTargets,
-                percentMethylatedDecoys, percentMethylatedTargetsGreaterThanOne, percentMethylatedDecoysGreaterThanOne);
+            return CytosineBatchProcessor.ExtractMethylationInformation(OsmFromTsv, DataFileName, cutoff);
         }
 
 
 
 
 
-        internal static (int total, int methylated, int unmethylated, int totalGreaterThanOne, int methylatedGreaterThanOne, int unmethylatedGreaterThanOne)
+        public static (int total, int methylated, int unmethylated, int totalGreaterThanOne, int methylatedGreaterThanOne, int unmethylatedGreaterThanOne)
             CountCytosines(IEnumerable<string> fullSequences)
         {
             int totalCytosines = 0;
@@ -211,7 +197,7 @@ namespace GradientDevelopment
             return (totalCytosines, methylatedCytosines, unmethylatedCytosines, totalCytosinesGreaterThanOne, methylatedCytosinesGreaterThanOne, unmethylatedCytosinesGreaterThanOne);
         }
 
-        internal static (int localCCount, int localMethylatedCCount, int localUnmethylatedCCount) CountCytosinesInSequence(string sequence)
+        public static (int localCCount, int localMethylatedCCount, int localUnmethylatedCCount) CountCytosinesInSequence(string sequence)
         {
             bool inBracket = false;
 
@@ -251,12 +237,12 @@ namespace GradientDevelopment
             return (localCCount, localMethylatedCCount, localUnmethylatedCCount);
         }
 
-        internal static double CalculatePercentage(int part, int whole)
+        public static double CalculatePercentage(int part, int whole)
         {
             return whole == 0 ? 0 : (double)part / whole;
         }
 
-        internal static bool IsMajorityTarget(OsmFromTsv osm)
+        public static bool IsMajorityTarget(OsmFromTsv osm)
         {
             int countT = osm.DecoyContamTarget.Count(c => c == 'T');
             int countD = osm.DecoyContamTarget.Count(c => c == 'D');

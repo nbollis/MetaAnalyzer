@@ -37,7 +37,7 @@ public static class StoredInformation
     internal static string DifferentialMethylBigSearch = Path.Combine(MixedMethylDirectory, @"Searches\AllFiles_MethOnlyGPTMD_VariableMeth\Task2-SearchVariableMeth\AllOSMs.osmtsv");
 
     internal static string MixedMethylDirectory2 = @"B:\Users\Nic\RNA\FLuc\250313_FLucDifferentialMethylations_More";
-    internal static string DifferentialMethylBigSearch2 = Path.Combine(MixedMethylDirectory2, @"Searches\SearcheAllFiles_MethMetalGPTMD_VariableMeth\Task2-RnaSearchTask\AllOSMs.osmtsv");
+    internal static string DifferentialMethylBigSearch2 = Path.Combine(MixedMethylDirectory2, @"Searches\SearcheAllFiles_MethOnlyGPTMD_VariableMeth_AdductAcceptor\Task2-RnaSearchTask\AllOSMs.osmtsv");
 
     internal static string MixedMethylDirectory3 = @"B:\Users\Nic\RNA\FLuc\250317_FlucDifferentialMethylations";
     //internal static string DifferentialMethylBigSearch3 = Path.Combine(MixedMethylDirectory3, @"Searches\SearchAllFiles_MethMetalGPTMD_VariableMeth\Task2-RnaSearchTask\AllOSMs.osmtsv");
