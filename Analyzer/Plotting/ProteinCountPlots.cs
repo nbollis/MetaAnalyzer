@@ -101,7 +101,7 @@ namespace Analyzer.Plotting
         public static GenericChart.GenericChart GetProteinCountPlot(this List<ProteinCountingRecord> records,
             ProteinCountPlotTypes resultType, DistributionPlotTypes plotType)
         {
-            string xTitle = "Condition";
+            string xTitle = "" /*"Condition"*/;
             string yTitle = resultType.GetAxisLabel();
             List<GenericChart.GenericChart> toCombine = new();
 
@@ -112,7 +112,7 @@ namespace Analyzer.Plotting
                 var condition = record.Key;
                 var data = record.GetValues(resultType).ToList();
 
-                int max = 50;
+                int max = 80;
                 switch (plotType)
                 {
                     case DistributionPlotTypes.ViolinPlot:
@@ -127,7 +127,8 @@ namespace Analyzer.Plotting
 
                     case DistributionPlotTypes.BoxPlot:
                         toCombine.Add(GenericPlots.BoxPlot(data, condition, xTitle, yTitle, false)
-                            .WithYAxisStyle<int, int, string>(MinMax: new Tuple<int, int>(-10, max)));
+                            .WithYAxisStyle<int, int, string>(/*MinMax: new Tuple<int, int>(-10, max)*/)
+                            .WithLegend(false));
                         break;
 
                     case DistributionPlotTypes.KernelDensity:
@@ -141,7 +142,7 @@ namespace Analyzer.Plotting
             }
 
             var finalPlot = Chart.Combine(toCombine)
-                .WithTitle($"Distribution of {yTitle} per Protein")
+                .WithTitle($"{yTitle} per Protein from 1% PSMs")
                 .WithLayout(PlotlyBase.DefaultLayoutWithLegendLargerText)
                 .WithSize(1000, 600);
             return finalPlot;

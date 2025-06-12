@@ -35,44 +35,23 @@ public class ChimerysPsm : ISpectralMatch
 
             if (OneBasedModificationDictionary.Any(p => p.Key == 0))
             {
-                var mmMod = OneBasedModificationDictionary.FirstOrDefault(p => p.Key == 0).Value;
-                if (mmMod is not null)
-                {
-                    string category = mmMod.ModificationType switch
-                    {
-                        "Unimod" when mmMod.OriginalId.Contains("Carbamido") => "Common Fixed",
-                        "Unimod" when mmMod.OriginalId.Contains("Oxidation") => "Common Variable",
-                        "Unimod" when mmMod.OriginalId.Contains("Phosphoryl") => "Common Biological",
-                        "Unimod" when mmMod.OriginalId.Contains("Acetyl") => "Common Biological",
-                        "Unimod" when mmMod.OriginalId.Contains("Methy") => "Common Biological",
-                        _ => mmMod.ModificationType
-                    };
-
-                    sb.Append($"[{category}:{mmMod.OriginalId} on {mmMod.Target}]");
-                }
+                var modToAdd = OneBasedModificationDictionary.FirstOrDefault(p => p.Key == 0).Value;
+                if (modToAdd is not null)
+                    sb.Append(modToAdd.GetMetaMorpheusFullSequenceString(GlobalVariables.AllModsKnown));
             }
             for (int i = 0; i < BaseSequence.Length; i++)
             {
                 var residue = BaseSequence[i];
                 sb.Append(residue);
 
-                var mmMod = OneBasedModificationDictionary.FirstOrDefault(p => p.Key == i + 1).Value;
-                if (mmMod is null) continue;
+                var potentialMod = OneBasedModificationDictionary.FirstOrDefault(p => p.Key == i + 1).Value;
+                if (potentialMod is null) continue;
 
-                string category = mmMod.ModificationType switch
-                {
-                    "Unimod" when mmMod.OriginalId.Contains("Carbamido") => "Common Fixed",
-                    "Unimod" when mmMod.OriginalId.Contains("Oxidation") => "Common Variable",
-                    "Unimod" when mmMod.OriginalId.Contains("Phosphoryl") => "Common Biological",
-                    "Unimod" when mmMod.OriginalId.Contains("Acetyl") => "Common Biological",
-                    "Unimod" when mmMod.OriginalId.Contains("Methy") => "Common Biological",
-                    _ => mmMod.ModificationType
-                };
-                sb.Append($"[{category}:{mmMod.OriginalId} on {mmMod.Target}]");
+                var mmMod = potentialMod.GetMetaMorpheusFullSequenceString(GlobalVariables.AllModsKnown);
+                sb.Append(mmMod);
             }
 
             return _fullSequence = sb.ToString();
-
         }
     }
 

@@ -183,5 +183,20 @@ namespace AnalyzerCore
 
             return $"[{category}:{mmMod.OriginalId} on {mmMod.Target}]";
         }
+
+        public static string GetMetaMorpheusFullSequenceString(this Modification mmMod, IList<Modification> allKnownMods)
+        {
+            string category = mmMod.ModificationType switch
+            {
+                "Unimod" when mmMod.OriginalId.Contains("Carbamido") => "Common Fixed",
+                "Unimod" when mmMod.OriginalId.Contains("Oxidation") => "Common Variable",
+                "Unimod" when mmMod.OriginalId.Contains("Phosphoryl") => "Common Biological",
+                "Unimod" when mmMod.OriginalId.Contains("Acetyl") => "Common Biological",
+                "Unimod" when mmMod.OriginalId.Contains("Methy") => "Common Biological",
+                _ => mmMod.ModificationType
+            };
+
+            return $"[{category}:{mmMod.OriginalId} on {mmMod.Target}]";
+        }
     }
 }

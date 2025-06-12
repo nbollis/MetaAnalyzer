@@ -55,7 +55,8 @@ namespace Test
         [Test]
         public static void ParseInfoFromDirectory()
         {
-            string dirPath = @"B:\Users\Nic\RNA\FLuc\250313_FLucDifferentialMethylations_More\Searches";
+            //string dirPath = @"B:\Users\Nic\RNA\FLuc\250313_FLucDifferentialMethylations_More\Searches";
+            string dirPath = @"B:\Users\Nic\RNA\FLuc\250530_Fluc_HereWeAreOnceAgain";
 
             List<BulkResultCountComparison> bulkResultCountComparisons = new List<BulkResultCountComparison>();
             foreach (var searchDirectory in Directory.GetDirectories(dirPath).Where(p => Directory.GetFiles(p, "*OSMs.osmtsv", SearchOption.AllDirectories).Length > 0))

@@ -15,6 +15,7 @@ using Chart = Plotly.NET.CSharp.Chart;
 using Plotly.NET.TraceObjects;
 using Plotly.NET.ImageExport;
 using Omics.SpectrumMatch;
+using Plotly.NET.LayoutObjects;
 using ResultAnalyzerUtil.CommandLine;
 
 namespace TaskLayer.ChimeraAnalysis
@@ -181,7 +182,7 @@ namespace TaskLayer.ChimeraAnalysis
 
 
             var allProfomaResults = proformaGroups.SelectMany(p => p.Value.SelectMany(m => m.ToPsmProformaFile().Results)).ToList();
-            var modPlot = allProfomaResults.GetModificationDistribution(isTopDown, true);
+            var modPlot = allProfomaResults.GetModificationDistribution(isTopDown, false);
             modPlot.Show();
             string modPlotPath = Path.Combine(BulkFigureDirectory, "ModificationDistribution");
             modPlot.SaveJPG(modPlotPath, null, 1000, 600);
@@ -565,8 +566,8 @@ namespace TaskLayer.ChimeraAnalysis
                         SingleRunResults result;
                         if (indResultDir.Contains("MSAID"))
                             result = new ChimerysResult(indResultDir/*, datasetName, condition*/);
-                        else if (indResultDir.Contains("Chimerys"))
-                            result = new ProteomeDiscovererResult(indResultDir);
+                        //else if (indResultDir.Contains("Chimerys"))
+                        //    result = new ProteomeDiscovererResult(indResultDir);
                         else
                             continue;
                         
@@ -589,16 +590,40 @@ namespace TaskLayer.ChimeraAnalysis
                 Directory.CreateDirectory(directory);
 
             var outPath = Path.Combine(directory, "SequenceCoverage");
-            var plot = records.GetProteinCountPlotsStacked(ProteinCountPlots.ProteinCountPlotTypes.SequenceCoverage);
-            plot.SavePNG(outPath, null, 1200, 1200);
+            //var plot = records.GetProteinCountPlotsStacked(ProteinCountPlots.ProteinCountPlotTypes.SequenceCoverage);
+            //plot.SavePNG(outPath, null, 1200, 1200);
 
-            outPath = Path.Combine(directory, "BaseSequenceCount");
-            plot = records.GetProteinCountPlotsStacked(ProteinCountPlots.ProteinCountPlotTypes.BaseSequenceCount);
-            plot.SavePNG(outPath, null, 1200, 1200);
+            //outPath = Path.Combine(directory, "BaseSequenceCount");
+            //plot = records.GetProteinCountPlotsStacked(ProteinCountPlots.ProteinCountPlotTypes.BaseSequenceCount);
+            //plot.SavePNG(outPath, null, 1200, 1200);
 
-            outPath = Path.Combine(directory, "FullSequenceCount");
-            plot = records.GetProteinCountPlotsStacked(ProteinCountPlots.ProteinCountPlotTypes.FullSequenceCount);
-            plot.SavePNG(outPath, null, 1200, 1200);
+            //outPath = Path.Combine(directory, "FullSequenceCount");
+            //plot = records.GetProteinCountPlotsStacked(ProteinCountPlots.ProteinCountPlotTypes.FullSequenceCount);
+            //plot.SavePNG(outPath, null, 1200, 1200);
+
+            outPath = Path.Combine(directory, "SequenceCoverageViolin");
+            var violinPlot = records.GetProteinCountPlot(ProteinCountPlots.ProteinCountPlotTypes.SequenceCoverage, DistributionPlotTypes.ViolinPlot);
+            violinPlot.SavePNG(outPath, null, 1200, 1200);
+
+            outPath = Path.Combine(directory, "BaseSequenceCountViolin");
+            violinPlot = records.GetProteinCountPlot(ProteinCountPlots.ProteinCountPlotTypes.BaseSequenceCount, DistributionPlotTypes.ViolinPlot);
+            violinPlot.SavePNG(outPath, null, 1200, 1200);
+
+            outPath = Path.Combine(directory, "FullSequenceCountViolin");
+            violinPlot = records.GetProteinCountPlot(ProteinCountPlots.ProteinCountPlotTypes.FullSequenceCount, DistributionPlotTypes.ViolinPlot);
+            violinPlot.SavePNG(outPath, null, 1200, 1200);
+
+            outPath = Path.Combine(directory, "SequenceCoverageBox");
+            var boxPlot = records.GetProteinCountPlot(ProteinCountPlots.ProteinCountPlotTypes.SequenceCoverage, DistributionPlotTypes.BoxPlot);
+            boxPlot.SavePNG(outPath, null, 1200, 1200);
+
+            outPath = Path.Combine(directory, "BaseSequenceCountBox");
+            boxPlot = records.GetProteinCountPlot(ProteinCountPlots.ProteinCountPlotTypes.BaseSequenceCount, DistributionPlotTypes.BoxPlot);
+            boxPlot.SavePNG(outPath, null, 1200, 1200);
+
+            outPath = Path.Combine(directory, "FullSequenceCountBox");
+            boxPlot = records.GetProteinCountPlot(ProteinCountPlots.ProteinCountPlotTypes.FullSequenceCount, DistributionPlotTypes.BoxPlot);
+            boxPlot.SavePNG(outPath, null, 1200, 1200);
         }
 
 
@@ -620,15 +645,15 @@ namespace TaskLayer.ChimeraAnalysis
 
             var psmPlot = GetIndividualSummedBarChar(toPlot, ResultType.Psm, isTopDown);
             var outPath = Path.Combine(BulkFigureDirectory, "ResultsByCellLine_Averaged_PSM");
-            psmPlot.SavePNG(outPath, null, 800, 600);
+            psmPlot.SavePNG(outPath, null, 1200, 800);
 
             var peptidePlot = GetIndividualSummedBarChar(toPlot, ResultType.Peptide, isTopDown);
             outPath = Path.Combine(BulkFigureDirectory, "ResultsByCellLine_Averaged_Peptide");
-            peptidePlot.SavePNG(outPath, null, 800, 600);
+            peptidePlot.SavePNG(outPath, null, 1200, 800);
 
             var proteinPlot = GetIndividualSummedBarChar(toPlot, ResultType.Protein, isTopDown);
             outPath = Path.Combine(BulkFigureDirectory, "ResultsByCellLine_Averaged_Protein");
-            proteinPlot.SavePNG(outPath, null, 800, 600);
+            proteinPlot.SavePNG(outPath, null, 1200, 800);
         }
 
         static GenericChart.GenericChart GetIndividualSummedBarChar(List<BulkResultCountComparison> records, ResultType resultType, bool isTopDown)
