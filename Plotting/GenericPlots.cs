@@ -128,7 +128,14 @@ namespace Plotting
             foreach (var mod in fullSequences.SelectMany(p =>
                          Omics.SpectrumMatch.SpectrumMatchFromTsv.ParseModifications(p).SelectMany(m => m.Value)
                              .Select(mod => System.Text.RegularExpressions.Regex.Replace(mod, @".*?:", "").Trim()
-                                 .Replace("Accetyl", "Acetyl"))))
+                                 .Replace("Accetyl", "Acetyl")
+                                 .Replace("Acetyl on X", "Acetylation on X")
+                                 .Replace("Acetyl on K", "Acetylation on K")
+                                 .Replace("Phospho on T", "Phosphorylation on T")
+                                 .Replace("Phospho on S", "Phosphorylation on S")
+                                 .Replace("Phospho on Y", "Phosphorylation on Y")
+                                 .Split(" on ")[0]
+                                 )))
             {
                 string finalMod = mod;
                 if (!displayCarbamimidoMethyl && mod.StartsWith("Carbamidometh"))
@@ -151,24 +158,14 @@ namespace Plotting
                 }
             }
 
-
-            if (false)
-            {
-                foreach (var keyValuePair in modDict.Where(p => p.Key.Contains("Deamida") || p.Key.Contains("Hydrox")))
-                {
-                    modDict.Remove(keyValuePair.Key);
-                }
-            }
-
-            // remove anything where the mod is less than 1 % of total modifications
+            // remove anything where the mod is less than 1 % of total modifications or more than 1 mod in absolute mode
             modDict = modDict.Where(p => p.Value > 1)
                 .OrderByDescending(p => p.Value)
                 .ToDictionary(p => p.Key, p => p.Value);
 
             var chart = Chart.Column<double, string, string>(modDict.Values, modDict.Keys, title, MarkerColor: title.ConvertConditionToColor())
-                .WithSize(1200, 1000)
                 .WithTitle(title, Plotly.NET.Font.init(Size: PlotlyBase.TitleSize))
-                .WithXAxisStyle(Title.init(xTitle, Font: Font.init(Size: PlotlyBase.AxisTitleFontSize-2)))
+                .WithXAxisStyle(Title.init(xTitle, Font: Font.init(Size: PlotlyBase.AxisTitleFontSize)))
                 .WithYAxisStyle(Title.init(yTitle, Font: Font.init(Size: PlotlyBase.AxisTitleFontSize)));
             return chart;
         }

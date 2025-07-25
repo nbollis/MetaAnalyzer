@@ -36,7 +36,7 @@ public static class PlottingTranslators
         {"ReviewdDatabaseNoPhospho_MsFragger", Color.fromKeyword(ColorKeyword.LightAkyBlue) },
         {"ReviewdDatabaseNoPhospho_MsFraggerDDA+", Color.fromKeyword(ColorKeyword.RoyalBlue) },
         {"Chimerys", Color.fromKeyword(ColorKeyword.Lime) },
-        {"Chimerys Platform", Color.fromKeyword(ColorKeyword.DarkOrange) },
+        {"Chimerys Platform", Color.fromKeyword(ColorKeyword.Lime) },
 
         // General
         {"Chimeras", Color.fromKeyword(ColorKeyword.Purple) }, // (128,0,128)
@@ -549,7 +549,7 @@ public static class PlottingTranslators
         { "MsFraggerDDA", "MsFraggerDDA" },
         { "ReviewdDatabaseNoPhospho_MsFraggerDDA+", "MsFraggerDDA+" },
         { "ReviewdDatabase_MsFraggerDDA+", "MsFraggerDDA+" },
-        { "MsFraggerDDA+", "OG MsFraggerDDA+" },
+        { "MsFraggerDDA+", " MsFraggerDDA+" },
         { "Chimerys", "\u2800Chimerys"},
         { "Chimerys_Rep1", "Chimerys"},
         { "Chimerys_Rep2", "Chimerys"},

@@ -25,6 +25,15 @@ public class SingleRunAnalysisParameters : BaseResultAnalyzerTaskParameters
         RunResult = new MetaMorpheusResult(SingleRunResultsDirectoryPath);
         PlotType = distributionPlotType;
     }
+
+    public SingleRunAnalysisParameters(SingleRunResults runResult, bool overrideFiles, bool runOnAll,
+        DistributionPlotTypes distributionPlotType = DistributionPlotTypes.ViolinPlot)
+        : base(runResult.DirectoryPath, overrideFiles, runOnAll)
+    {
+        SingleRunResultsDirectoryPath = runResult.DirectoryPath;
+        RunResult = runResult;
+        PlotType = distributionPlotType;
+    }
 }
 
 public class CellLineAnalysisParameters : BaseResultAnalyzerTaskParameters

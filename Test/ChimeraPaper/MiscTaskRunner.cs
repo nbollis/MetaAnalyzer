@@ -16,6 +16,8 @@ using RetentionTimePrediction;
 using TaskLayer.ChimeraAnalysis;
 using Analyzer.Plotting.ComparativePlots;
 using UsefulProteomicsDatabases;
+using System.Reflection.Metadata.Ecma335;
+using MassSpectrometry;
 
 namespace Test.ChimeraPaper
 {
@@ -490,6 +492,147 @@ namespace Test.ChimeraPaper
 
         }
 
+
+        [Test]
+        public static void MoveStuff()
+        {
+            var inDir = @"R:\Nic\ML_FDR_Data";
+            var outDir = @"C:\Users\Nic\OneDrive - UW-Madison\MachineLearningFDR\Results\PaperDataRuns";
+
+            var researchDriveDirs = Directory.GetDirectories(inDir)
+                .ToList();
+
+            foreach (var researchDir in researchDriveDirs)
+            {
+                var dirName = Path.GetFileName(researchDir);
+                if (dirName is null)
+                    continue;
+
+                var oneDriveDir = Path.Combine(outDir, dirName);
+                if (!Directory.Exists(oneDriveDir))
+                    Directory.CreateDirectory(oneDriveDir);
+
+                var runDirectories = Directory.GetDirectories(researchDir);
+                foreach (var runDir in runDirectories)
+                {
+                    var runName = Path.GetFileName(runDir);
+                    if (runName is null)
+                        continue;
+                    var oneDriveRunDir = Path.Combine(oneDriveDir, runName);
+                    if (!Directory.Exists(oneDriveRunDir))
+                        Directory.CreateDirectory(oneDriveRunDir);
+
+                    var files = Directory.GetFiles(runDir);
+                    foreach (var file in files)
+                    {
+                        var fileName = Path.GetFileName(file);
+                        if (fileName is null)
+                            continue;
+
+                        var destPath = Path.Combine(oneDriveRunDir, fileName);
+                        if (destPath.Contains("PRCurve"))
+                            destPath = destPath.Replace("ModelPrediction", "PRCurve").Replace("_PRCurve", "");
+
+                        if (destPath.Contains("Predict"))
+                            continue;
+
+                        if (!File.Exists(destPath))
+                            File.Copy(file, destPath);
+                    }
+                }
+            }
+
+        }
+
+
+        [Test]
+        public static void SnipMzMl()
+        {
+            string origDataFile = @"B:\Users\Nic\RNA\Standards\BurkeStandards\20250612_RNA-Mix_10V.raw";
+            int startScan = 2763;
+            int endScan = 2765;
+            FilteringParams filter = new FilteringParams(200, 0.01, 1, null, false, false, true);
+            var reader = MsDataFileReader.GetDataFile(origDataFile);
+            reader.LoadAllStaticData(filter, 1);
+
+            var scans = reader.GetAllScansList();
+            var scansToKeep = scans.Where(x => x.OneBasedScanNumber >= startScan && x.OneBasedScanNumber <= endScan).ToList();
+
+            List<(int oneBasedScanNumber, int? oneBasedPrecursorScanNumber)> scanNumbers = new List<(int oneBasedScanNumber, int? oneBasedPrecursorScanNumber)>();
+            foreach (var scan in scansToKeep)
+            {
+                if (scan.OneBasedPrecursorScanNumber.HasValue)
+                {
+                    scanNumbers.Add((scan.OneBasedScanNumber, scan.OneBasedPrecursorScanNumber.Value));
+                }
+                else
+                {
+                    scanNumbers.Add((scan.OneBasedScanNumber, null));
+                }
+            }
+
+            Dictionary<int, int> scanNumberMap = new Dictionary<int, int>();
+
+            foreach (var scanNumber in scanNumbers)
+            {
+                if (!scanNumberMap.ContainsKey(scanNumber.oneBasedScanNumber) && (scanNumber.oneBasedScanNumber - startScan + 1) > 0)
+                {
+                    scanNumberMap.Add(scanNumber.oneBasedScanNumber, scanNumber.oneBasedScanNumber - startScan + 1);
+                }
+                if (scanNumber.oneBasedPrecursorScanNumber.HasValue && !scanNumberMap.ContainsKey(scanNumber.oneBasedPrecursorScanNumber.Value) && (scanNumber.oneBasedPrecursorScanNumber.Value - startScan + 1) > 0)
+                {
+                    scanNumberMap.Add(scanNumber.oneBasedPrecursorScanNumber.Value, scanNumber.oneBasedPrecursorScanNumber.Value - startScan + 1);
+                }
+            }
+            List<MsDataScan> scansForTheNewFile = new List<MsDataScan>();
+
+
+            foreach (var scanNumber in scanNumbers)
+            {
+                MsDataScan scan = scansToKeep.First(x => x.OneBasedScanNumber == scanNumber.oneBasedScanNumber);
+
+                int? newOneBasedPrecursorScanNumber = null;
+                if (scan.OneBasedPrecursorScanNumber.HasValue && scanNumberMap.ContainsKey(scan.OneBasedPrecursorScanNumber.Value))
+                {
+                    newOneBasedPrecursorScanNumber = scanNumberMap[scan.OneBasedPrecursorScanNumber.Value];
+                }
+                MsDataScan newDataScan = new MsDataScan(
+                    scan.MassSpectrum,
+                    scanNumberMap[scan.OneBasedScanNumber],
+                    scan.MsnOrder,
+                    scan.IsCentroid,
+                    scan.Polarity,
+                    scan.RetentionTime,
+                    scan.ScanWindowRange,
+                    scan.ScanFilter,
+                    scan.MzAnalyzer,
+                    scan.TotalIonCurrent,
+                    scan.InjectionTime,
+                    scan.NoiseData,
+                    scan.NativeId.Replace(scan.OneBasedScanNumber.ToString(), scanNumberMap[scan.OneBasedScanNumber].ToString()),
+                    scan.SelectedIonMZ,
+                    scan.SelectedIonChargeStateGuess,
+                    scan.SelectedIonIntensity,
+                    scan.IsolationMz,
+                    scan.IsolationWidth,
+                    scan.DissociationType,
+                    newOneBasedPrecursorScanNumber,
+                    scan.SelectedIonMonoisotopicGuessMz,
+                    scan.HcdEnergy
+                );
+                scansForTheNewFile.Add(newDataScan);
+            }
+
+            string outPath = origDataFile.Replace(".raw", "_snip.mzML").ToString();
+
+            SourceFile sourceFile = new SourceFile(reader.SourceFile.NativeIdFormat,
+                reader.SourceFile.MassSpectrometerFileFormat, reader.SourceFile.CheckSum, reader.SourceFile.FileChecksumType, reader.SourceFile.Uri, reader.SourceFile.Id, reader.SourceFile.FileName);
+
+
+            MzmlMethods.CreateAndWriteMyMzmlWithCalibratedSpectra(new GenericMsDataFile(scansForTheNewFile.ToArray(), sourceFile), outPath, false);
+
+            Assert.IsTrue(false);
+        }
         public record HyperScoreMetric
         {
             public bool IsDecoy { get; init; }

@@ -51,7 +51,38 @@ public class ChimerysPsm : ISpectralMatch
                 sb.Append(mmMod);
             }
 
-            return _fullSequence = sb.ToString();
+            // Use a single StringBuilder to avoid multiple string allocations from chained Replace calls
+            var fullSeq = sb.ToString();
+            var replacements = new (string oldValue, string newValue)[]
+            {
+                ("Phospho on Y", "Phosphorylation on Y"),
+                ("Phospho on T", "Phosphorylation on T"),
+                ("Phospho on S", "Phosphorylation on S"),
+                ("Acetyl on X", "Acetylation on X"),
+                ("Acetyl on K", "Acetylation on K")
+            };
+
+            var resultBuilder = new StringBuilder(fullSeq.Length);
+            int lastIndex = 0;
+            foreach (var (oldValue, newValue) in replacements)
+            {
+                int index = fullSeq.IndexOf(oldValue, lastIndex, StringComparison.Ordinal);
+                while (index != -1)
+                {
+                    resultBuilder.Append(fullSeq, lastIndex, index - lastIndex);
+                    resultBuilder.Append(newValue);
+                    lastIndex = index + oldValue.Length;
+                    index = fullSeq.IndexOf(oldValue, lastIndex, StringComparison.Ordinal);
+                }
+                if (lastIndex < fullSeq.Length)
+                {
+                    resultBuilder.Append(fullSeq, lastIndex, fullSeq.Length - lastIndex);
+                }
+                fullSeq = resultBuilder.ToString();
+                resultBuilder.Clear();
+                lastIndex = 0;
+            }
+            return _fullSequence = fullSeq;
         }
     }
 

@@ -148,14 +148,9 @@ namespace Test.ChimeraPaper
         [Test]
         public static void GenerateSpecificFigures()
         {
-            var a549 = BottomUpRunner.AllResults.First();
-            a549.PlotModificationDistribution();
-            a549.PlotModificationDistribution(ResultType.Peptide);
-            var jurkat = AllResults.Skip(1).First();
-            jurkat.PlotModificationDistribution();
-            jurkat.PlotModificationDistribution(ResultType.Peptide);
-            //a549.PlotAccuracyByModificationType();
-            //a549.PlotChronologerDeltaKernelPDF();
+            var resultPath = @"B:\Users\Nic\Chimeras\TopDown_Analysis\Jurkat\SearchResults\MetaMorpheus_108_Rep2_IsoDec";
+            var mm = new MetaMorpheusResult(resultPath, "Jurkat");
+            mm.ToPsmProformaFile();
         }
 
         [Test]

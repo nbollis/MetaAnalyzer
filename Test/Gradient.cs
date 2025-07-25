@@ -56,7 +56,8 @@ namespace Test
         public static void ParseInfoFromDirectory()
         {
             //string dirPath = @"B:\Users\Nic\RNA\FLuc\250313_FLucDifferentialMethylations_More\Searches";
-            string dirPath = @"B:\Users\Nic\RNA\FLuc\250530_Fluc_HereWeAreOnceAgain";
+            string dirPath = @"B:\Users\Nic\RNA\FLuc\250621_FrankenLC\50mC_VibeCheck_VariableMeth";
+            //string dirPath = @"D:\DataFiles\RnaTestSets\PfizerData";
 
             List<BulkResultCountComparison> bulkResultCountComparisons = new List<BulkResultCountComparison>();
             foreach (var searchDirectory in Directory.GetDirectories(dirPath).Where(p => Directory.GetFiles(p, "*OSMs.osmtsv", SearchOption.AllDirectories).Length > 0))
@@ -91,8 +92,8 @@ namespace Test
                     bulkResultCountComparisons.Add(resultCount);
                 }
 
-                var processor = new CytosineBatchProcessor(osms, dataFileNames, searchDirectory);
-                processor.WriteCytosineInformationFiles(true, Path.GetFileName(searchDirectory));
+                //var processor = new CytosineBatchProcessor(osms, dataFileNames, searchDirectory);
+                //processor.WriteCytosineInformationFiles(true, Path.GetFileName(searchDirectory));
             }
 
             var outPath = Path.Combine(dirPath, "BulkResultCountComparison.csv");

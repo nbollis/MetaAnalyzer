@@ -41,7 +41,29 @@ namespace Analyzer.Util
         new CustomComparer<ProteomeDiscovererProteinRecord>(
                            prsm => prsm.Accession);
 
+        // Chimerys
+        public static CustomComparer<ChimerysPsm> ChimerysChimeraComparer =>
+            new CustomComparer<ChimerysPsm>(
+                prsm => prsm.OneBasedScanNumber,
+                prsm => prsm.FileNameWithoutExtension);
 
+        public static CustomComparer<ChimerysPsm> ChimerysDistinctPsmComparer =>
+            new CustomComparer<ChimerysPsm>(
+                prsm => prsm.BaseSequence,
+                prsm => prsm.OneBasedScanNumber,
+                prsm => prsm.FileNameWithoutExtension,
+                prsm => prsm.ProteinAccession,
+                prsm => prsm.ModifiedSequence);
+
+        public static CustomComparer<ChimerysPeptide> ChimerysDistinctPeptideComparer =>
+            new CustomComparer<ChimerysPeptide>(
+                prsm => prsm.BaseSequence,
+                prsm => string.Join(',', prsm.ProteinIds),
+                prsm => string.Join(',',prsm.ModifiedPeptideIds));
+
+        public static CustomComparer<ChimerysProteinGroup> ChimerysDistinctProteinComparer =>
+            new CustomComparer<ChimerysProteinGroup>(
+                prsm => prsm.ProteinGroupId);
 
         // MsPathFinderT
         public static CustomComparer<MsPathFinderTResult> MsPathFinderTChimeraComparer =>

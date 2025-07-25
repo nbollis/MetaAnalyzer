@@ -9,6 +9,8 @@ using Plotting.Util;
 using ResultAnalyzerUtil;
 using Chart = Plotly.NET.CSharp.Chart;
 using Plotting;
+using Plotly.NET.CSharp;
+using GenericChartExtensions = Plotly.NET.CSharp.GenericChartExtensions;
 
 namespace Analyzer.Plotting.IndividualRunPlots
 {
@@ -178,7 +180,7 @@ namespace Analyzer.Plotting.IndividualRunPlots
 
             var logged = combined
                 .WithYAxis(LinearAxis.init<int, int, int, int, int, int>(AxisType: StyleParam.AxisType.Log));
-            logged.Show();
+            GenericChartExtensions.Show(logged);
 
             return combined;
         }
@@ -231,10 +233,35 @@ namespace Analyzer.Plotting.IndividualRunPlots
                 toCombine.Add(plot);
             }
 
+            // Move the legend below the plot, outside the y-axis area, bottom center under the x axis label
+            Legend legend = Legend.init(
+                X: 0.5,
+                Y: -0.6, // Move further down to be below the x axis label
+                Orientation: StyleParam.Orientation.Horizontal,
+                EntryWidth: 0,
+                VerticalAlign: StyleParam.VerticalAlign.Bottom,
+                XAnchor: StyleParam.XAnchorPosition.Center,
+                YAnchor: StyleParam.YAnchorPosition.Bottom,
+                Font: Font.init(null, 18, null)
+            );
+
+            Layout layout = Layout.init<string>(
+                PaperBGColor: Color.fromKeyword(ColorKeyword.White),
+                PlotBGColor: Color.fromKeyword(ColorKeyword.White),
+                ShowLegend: true,
+                //Legend: legend,
+                Font: Font.init(null, 24, null),
+                Margin: Margin.init<int, int, int, int, int, int>(Bottom: 10) // Add extra bottom margin for legend
+            );
+
             var finalPlot = Chart.Combine(toCombine)
                 .WithTitle($"1% {Labels.GetLabel(isTopDown, ResultType.Psm)}  Modification Distribution")
-                .WithSize(1200, 1000)
-                .WithLayout(PlotlyBase.DefaultLayoutWithLegend);
+                .WithYAxis(LinearAxis.init<int, int, int, int, int, int>(AxisType: StyleParam.AxisType.Log))
+                .WithXAxisStyle(Title.init("Modification", Font: Font.init(Size: PlotlyBase.AxisTitleFontSize)))
+                .WithYAxisStyle(Title.init( "Count", Font: Font.init(Size: PlotlyBase.AxisTitleFontSize)))
+                .WithLayout(layout)
+                .WithLegend(false);
+
 
             return finalPlot;
         }
