@@ -1,6 +1,5 @@
 ﻿using Analyzer.Util.TypeConverters;
 using CsvHelper.Configuration.Attributes;
-using Easy.Common.Extensions;
 
 namespace Analyzer.FileTypes.External;
 /// <summary>

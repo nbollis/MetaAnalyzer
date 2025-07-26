@@ -1,5 +1,4 @@
-﻿using Proteomics.PSM;
-using ResultAnalyzerUtil;
+﻿using ResultAnalyzerUtil;
 
 namespace Analyzer.Util
 {

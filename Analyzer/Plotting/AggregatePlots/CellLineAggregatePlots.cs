@@ -6,7 +6,7 @@ using Analyzer.Plotting.IndividualRunPlots;
 using Plotly.NET;
 using Plotly.NET.ImageExport;
 using Plotting.Util;
-using Proteomics.PSM;
+using Readers;
 using ResultAnalyzerUtil;
 
 namespace Analyzer.Plotting.AggregatePlots

@@ -1,6 +1,4 @@
-using NUnit.Framework;
 using RadicalFragmentation.Util;
-using System;
 using Chemistry;
 
 namespace Test

@@ -4,13 +4,13 @@ using Analyzer.Util;
 using Plotly.NET.LayoutObjects;
 using Plotly.NET;
 using Chart = Plotly.NET.CSharp.Chart;
-using Proteomics.PSM;
 using Analyzer.SearchType;
 using Plotly.NET.ImageExport;
 using Analyzer.Interfaces;
 using Plotting.Util;
 using ResultAnalyzerUtil;
 using MathNet.Numerics;
+using Readers;
 
 namespace Analyzer.Plotting.IndividualRunPlots
 {

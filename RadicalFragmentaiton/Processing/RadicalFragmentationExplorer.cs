@@ -6,6 +6,7 @@ using RadicalFragmentation.Util;
 using ResultAnalyzerUtil;
 using ResultAnalyzerUtil.CommandLine;
 using System.Collections.Concurrent;
+using Omics.BioPolymer;
 using UsefulProteomicsDatabases;
 
 namespace RadicalFragmentation.Processing;
@@ -69,7 +70,7 @@ public abstract class RadicalFragmentationExplorer
     // empty and used in digestion
     protected readonly List<Modification> fixedMods;
     protected readonly List<Modification> variableMods;
-    protected readonly List<ProteolysisProduct> proteolysisProducts;
+    protected readonly List<TruncationProduct> TruncationProducts;
     protected readonly List<DisulfideBond> disulfideBonds;
 
     protected RadicalFragmentationExplorer(string databasePath, int numberOfMods, string species, int maximumFragmentationEvents = int.MaxValue,
@@ -89,7 +90,7 @@ public abstract class RadicalFragmentationExplorer
 
         fixedMods = new List<Modification>();
         variableMods = new List<Modification>();
-        proteolysisProducts = new List<ProteolysisProduct>();
+        TruncationProducts = new List<TruncationProduct>();
         disulfideBonds = new List<DisulfideBond>();
 
 

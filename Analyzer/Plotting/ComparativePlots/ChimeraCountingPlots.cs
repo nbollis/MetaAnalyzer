@@ -1,12 +1,5 @@
 ﻿using Analyzer.FileTypes.Internal;
 using Plotly.NET;
-using Plotly.NET.ImageExport;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Runtime.InteropServices.WindowsRuntime;
-using System.Text;
-using System.Threading.Tasks;
 using Plotting.Util;
 
 namespace Analyzer.Plotting.ComparativePlots

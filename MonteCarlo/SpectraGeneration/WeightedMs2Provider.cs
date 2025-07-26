@@ -1,6 +1,4 @@
-﻿using MassSpectrometry;
-
-namespace MonteCarlo;
+﻿namespace MonteCarlo;
 
 //public class WeightedMs2Provider : MsDataFileSpectraProvider
 //{

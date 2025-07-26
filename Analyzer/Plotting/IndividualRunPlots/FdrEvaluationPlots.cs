@@ -4,9 +4,8 @@ using Analyzer.Util;
 using Microsoft.FSharp.Core;
 using Plotly.NET;
 using Plotly.NET.LayoutObjects;
-using Plotly.NET.TraceObjects;
 using Plotting.Util;
-using Proteomics.PSM;
+using Readers;
 using ResultAnalyzerUtil;
 using Chart = Plotly.NET.CSharp.Chart;
 

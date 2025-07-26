@@ -1,5 +1,5 @@
-﻿using Analyzer.FileTypes.External;
-using Proteomics.PSM;
+﻿using Readers;
+using MsFraggerPsm = Analyzer.FileTypes.External.MsFraggerPsm;
 
 namespace Calibrator;
 
@@ -20,7 +20,7 @@ public class RawFileLogger
         foreach (var fullSequence in fullSequences)
         {
             FullSequenceWithScanRetentionTime.Add(fullSequence.Key,
-                fullSequence.Select(p => p.RetentionTime.Value).First());
+                fullSequence.Select(p => p.RetentionTime).First());
         }
     }
 

@@ -1,6 +1,5 @@
 ﻿using Analyzer.Util.TypeConverters;
 using CsvHelper.Configuration.Attributes;
-using Easy.Common.Extensions;
 using Omics.Modifications;
 using System.Text;
 

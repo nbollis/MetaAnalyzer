@@ -10,8 +10,8 @@ using Calibrator;
 using Easy.Common.Extensions;
 using Plotting;
 using Plotting.Util;
+using Readers;
 using ResultAnalyzerUtil;
-using Proteomics.PSM;
 using ResultAnalyzerUtil.CommandLine;
 using TaskLayer.CMD;
 

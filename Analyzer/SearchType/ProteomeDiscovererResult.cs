@@ -12,7 +12,6 @@ using Proteomics;
 using ResultAnalyzerUtil;
 using UsefulProteomicsDatabases;
 using MzLibUtil;
-using Plotly.NET.LayoutObjects;
 
 namespace Analyzer.SearchType
 {

@@ -4,7 +4,7 @@ using Analyzer.SearchType;
 using Plotly.NET;
 using Plotting;
 using Plotting.Util;
-using Proteomics.PSM;
+using Readers;
 using ResultAnalyzerUtil;
 
 namespace TaskLayer.ChimeraAnalysis

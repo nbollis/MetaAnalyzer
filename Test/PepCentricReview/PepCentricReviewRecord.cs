@@ -8,7 +8,6 @@ using Readers;
 using Proteomics.ProteolyticDigestion;
 using ResultAnalyzerUtil;
 using CsvHelper.Configuration.Attributes;
-using Easy.Common.Extensions;
 
 namespace Test.PepCentricReview;
 

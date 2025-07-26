@@ -14,8 +14,6 @@ using Plotly.NET;
 using Chart = Plotly.NET.CSharp.Chart;
 using Plotly.NET.TraceObjects;
 using Plotly.NET.ImageExport;
-using Omics.SpectrumMatch;
-using Plotly.NET.LayoutObjects;
 using ResultAnalyzerUtil.CommandLine;
 
 namespace TaskLayer.ChimeraAnalysis

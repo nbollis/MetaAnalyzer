@@ -1,10 +1,8 @@
 ﻿#nullable enable
-using Analyzer.FileTypes.External;
 using CsvHelper;
 using CsvHelper.Configuration;
 using CsvHelper.Configuration.Attributes;
 using Readers;
-using MsFraggerPsm = Analyzer.FileTypes.External.MsFraggerPsm;
 
 namespace Analyzer.FileTypes.Internal
 {

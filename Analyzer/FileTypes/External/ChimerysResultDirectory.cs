@@ -1,7 +1,4 @@
-﻿using Proteomics.AminoAcidPolymer;
-using Readers;
-
-namespace Analyzer.FileTypes.External;
+﻿namespace Analyzer.FileTypes.External;
 
 /// <summary>
 /// Class Representing a directory of Chimerys results. Each file type has a path, and the file is loaded when requested.

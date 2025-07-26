@@ -1,7 +1,6 @@
 ﻿using Analyzer.Plotting.Util;
 using Analyzer.SearchType;
 using ResultAnalyzerUtil.CommandLine;
-using TaskLayer.CMD;
 
 namespace TaskLayer
 {

@@ -1,7 +1,6 @@
 ﻿using System.Diagnostics;
 using Analyzer.SearchType;
 using Analyzer.FileTypes.Internal;
-using Analyzer.Plotting;
 using Analyzer.Plotting.Util;
 using Chart = Plotly.NET.CSharp.Chart;
 using Plotly.NET;

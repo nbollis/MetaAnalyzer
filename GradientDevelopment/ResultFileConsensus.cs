@@ -1,4 +1,4 @@
-﻿using GradientDevelopment.Temporary;
+﻿using Readers;
 
 namespace GradientDevelopment
 {
@@ -57,7 +57,7 @@ namespace GradientDevelopment
                     MinQValue = p.MinQValue,
                     FileCount = p.FileCount,
                     MaxFileCount = distinctFileNames.Length,
-                    AverageRT = p.OSMs.WeightedAverage(z => z.RetentionTime!.Value, z => 1 - z.QValue),
+                    AverageRT = p.OSMs.WeightedAverage(z => z.RetentionTime, z => 1 - z.QValue),
                     SpectralMatchesByFileName = p.OSMs.Cast<SpectrumMatchFromTsv>().GroupBy(p => p.FileNameWithoutExtension)
                         .ToDictionary(q => q.Key, q => q.OrderBy(n => n.RetentionTime).ToList())
                 }).ToList();

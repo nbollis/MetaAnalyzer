@@ -1,8 +1,6 @@
-﻿using Plotly.NET.CSharp;
-using Plotting.RadicalFragmentation;
+﻿using Plotting.RadicalFragmentation;
 using RadicalFragmentation;
 using ResultAnalyzerUtil;
-using UsefulProteomicsDatabases;
 
 namespace Test
 {

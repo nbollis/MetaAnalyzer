@@ -1,5 +1,4 @@
 ﻿using Analyzer.Interfaces;
-using Analyzer.Plotting;
 using Analyzer.Plotting.Util;
 using Analyzer.SearchType;
 using Microsoft.FSharp.Core;

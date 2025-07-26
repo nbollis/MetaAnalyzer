@@ -1,14 +1,11 @@
-﻿using Analyzer.FileTypes.External;
-using AnalyzerCore;
+﻿using AnalyzerCore;
 using CsvHelper;
 using CsvHelper.Configuration;
 using CsvHelper.TypeConversion;
 using MzLibUtil;
 using System.Text.RegularExpressions;
 using ResultAnalyzerUtil;
-using MathNet.Numerics;
 using Omics.Modifications;
-using Easy.Common.Extensions;
 
 namespace Analyzer.Util.TypeConverters;
 

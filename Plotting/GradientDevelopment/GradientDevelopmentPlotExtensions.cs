@@ -1,21 +1,16 @@
-﻿using System.Diagnostics;
-using System.Security.Cryptography;
-using GradientDevelopment;
-using GradientDevelopment.Temporary;
+﻿using GradientDevelopment;
 using MathNet.Numerics;
-using MathNet.Numerics.Statistics;
 using Microsoft.FSharp.Core;
 using MzLibUtil;
 using Plotly.NET.CSharp;
 using Plotly.NET;
 using Plotly.NET.LayoutObjects;
-using Plotly.NET.TraceObjects;
 using Chart = Plotly.NET.CSharp.Chart;
-using GenericChartExtensions = Plotly.NET.CSharp.GenericChartExtensions;
 using Plotting.Util;
 using ResultAnalyzerUtil;
 using MathNet.Numerics.Distributions;
 using Plotly.NET.ImageExport;
+using Readers;
 
 namespace Plotting.GradientDevelopment
 {
@@ -137,7 +132,7 @@ namespace Plotting.GradientDevelopment
                         continue;
 
                     var fullSequence = filteredMatches.First().FullSequence;
-                    var weightedAvgRt = filteredMatches.WeightedAverage(p => p.RetentionTime!.Value,
+                    var weightedAvgRt = filteredMatches.WeightedAverage(p => p.RetentionTime,
                         p => 1 - p.QValue);
                     var avgCharge = Math.Abs(filteredMatches.WeightedAverage(p => p.PrecursorCharge,
                         p => 1 - p.QValue));
@@ -147,9 +142,9 @@ namespace Plotting.GradientDevelopment
                             && p.RetentionTimeBegin >= min && p.RetentionTimeEnd <= max
                             && p.RetentionTimeBegin - 30 <= weightedAvgRt && p.RetentionTimeEnd + 30 >= weightedAvgRt
                             && p.ChargeStateMin - 1 <= avgCharge && p.ChargeStateMax + 1 >= avgCharge
-                            && tolerance.Within(p.Mass, double.Parse(matches.First().MonoisotopicMass)))
+                            && tolerance.Within(p.Mass, double.Parse(matches.First().MonoisotopicMassString)))
                         .OrderByDescending(p => p.ChargeStateMax - p.ChargeStateMin)
-                        .ThenBy(p => Math.Abs(p.Mass - double.Parse(matches.First().MonoisotopicMass)))
+                        .ThenBy(p => Math.Abs(p.Mass - double.Parse(matches.First().MonoisotopicMassString)))
                         .ToList();
 
                     if (fullFiltered.Count == 0)

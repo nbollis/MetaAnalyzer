@@ -1,11 +1,6 @@
 ﻿using Omics.Modifications;
-using System.Text;
-using System.Xml.Linq;
 using ResultAnalyzerUtil;
-using Chemistry;
-using MathNet.Numerics;
 using System.Collections.Concurrent;
-using System.Reflection.PortableExecutable;
 
 namespace AnalyzerCore
 {

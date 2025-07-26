@@ -14,9 +14,7 @@ using Readers;
 using ResultAnalyzerUtil;
 using RetentionTimePrediction;
 using TaskLayer.ChimeraAnalysis;
-using Analyzer.Plotting.ComparativePlots;
 using UsefulProteomicsDatabases;
-using System.Reflection.Metadata.Ecma335;
 using MassSpectrometry;
 
 namespace Test.ChimeraPaper

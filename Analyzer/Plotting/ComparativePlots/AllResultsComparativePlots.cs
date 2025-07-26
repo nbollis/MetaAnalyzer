@@ -10,7 +10,7 @@ using Plotly.NET.ImageExport;
 using Plotly.NET.LayoutObjects;
 using Plotting;
 using Plotting.Util;
-using Proteomics.PSM;
+using Readers;
 using ResultAnalyzerUtil;
 using Chart = Plotly.NET.CSharp.Chart;
 using GenericChartExtensions = Plotly.NET.CSharp.GenericChartExtensions;

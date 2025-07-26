@@ -1,5 +1,4 @@
 ﻿using System.Text.RegularExpressions;
-using System.Xml.Linq;
 using Analyzer.SearchType;
 using AnalyzerCore;
 using CsvHelper;

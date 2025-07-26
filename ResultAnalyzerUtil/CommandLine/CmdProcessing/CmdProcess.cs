@@ -1,6 +1,4 @@
-﻿using System.Diagnostics;
-
-namespace ResultAnalyzerUtil.CommandLine;
+﻿namespace ResultAnalyzerUtil.CommandLine;
 
 public abstract class CmdProcess
 {

@@ -1,6 +1,4 @@
-﻿using System.Configuration;
-using System.Numerics;
-using System.Security.Cryptography.X509Certificates;
+﻿using System.Numerics;
 using Analyzer;
 using Analyzer.Interfaces;
 using Analyzer.Plotting;

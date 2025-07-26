@@ -1,5 +1,4 @@
 ﻿using MonteCarlo;
-using Readers;
 
 namespace Test.MonteCarlo
 {

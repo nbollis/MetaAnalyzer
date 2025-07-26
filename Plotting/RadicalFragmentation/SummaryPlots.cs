@@ -1,20 +1,12 @@
 ﻿using Plotly.NET;
 using MathNet.Numerics;
 using Plotly.NET.LayoutObjects;
-using RadicalFragmentation.Processing;
 using RadicalFragmentation;
-using System.Globalization;
 using System.Text;
 using Microsoft.FSharp.Core;
-using UsefulProteomicsDatabases;
 using Chart = Plotly.NET.CSharp.Chart;
 using Plotly.NET.ImageExport;
 using Plotting.Util;
-using ResultAnalyzerUtil;
-using System.Security.Cryptography;
-using static Plotly.NET.StyleParam.LinearAxisId;
-using MzLibUtil;
-using static Plotly.NET.StyleParam;
 
 namespace Plotting.RadicalFragmentation
 {

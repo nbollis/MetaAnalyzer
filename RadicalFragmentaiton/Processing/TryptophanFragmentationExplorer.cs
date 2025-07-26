@@ -32,7 +32,7 @@ internal class TryptophanFragmentationExplorer : RadicalFragmentationExplorer
                 .ToDictionary(p => p.Key, p => new List<Modification>() { p.Value });
             var proteinReconstruction = new Protein(proteoform.BaseSequence, proteoform.Protein.Accession,
                 proteoform.Protein.Organism, proteoform.Protein.GeneNames.ToList(),
-                mods, proteolysisProducts, proteoform.Protein.Name, proteoform.Protein.FullName,
+                mods, TruncationProducts, proteoform.Protein.Name, proteoform.Protein.FullName,
                 proteoform.Protein.IsDecoy, proteoform.Protein.IsContaminant,
                 proteoform.Protein.DatabaseReferences.ToList(), proteoform.Protein.SequenceVariations.ToList(),
                 proteoform.Protein.AppliedSequenceVariations, proteoform.Protein.SampleNameForVariants,

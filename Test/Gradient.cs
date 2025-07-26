@@ -1,16 +1,10 @@
 ﻿using GradientDevelopment;
-using Plotly.NET;
-using Plotly.NET.ImageExport;
 using Plotting.GradientDevelopment;
 using Readers;
 using ResultAnalyzerUtil;
-using static Plotly.NET.StyleParam.DrawingStyle;
-using Transcriptomics;
-using SpectrumMatchTsvReader = GradientDevelopment.Temporary.SpectrumMatchTsvReader;
 using System.Diagnostics;
 using Analyzer.SearchType;
 using Analyzer.FileTypes.Internal;
-using GradientDevelopment.Temporary;
 
 namespace Test
 {

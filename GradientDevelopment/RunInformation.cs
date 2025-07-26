@@ -1,10 +1,7 @@
-﻿using GradientDevelopment.Temporary;
-using MassSpectrometry;
+﻿using MassSpectrometry;
 using MathNet.Numerics;
 using MzLibUtil;
 using Readers;
-using Ms1FeatureFile = GradientDevelopment.Temporary.Ms1FeatureFile;
-using SpectrumMatchTsvReader = GradientDevelopment.Temporary.SpectrumMatchTsvReader;
 using StreamReader = System.IO.StreamReader;
 
 namespace GradientDevelopment

@@ -1,6 +1,4 @@
-﻿using Analyzer.FileTypes.External;
-using Proteomics.PSM;
-using Readers;
+﻿using Readers;
 using MsFraggerPsm = Analyzer.FileTypes.External.MsFraggerPsm;
 using MsFraggerPsmFile = Analyzer.FileTypes.External.MsFraggerPsmFile;
 

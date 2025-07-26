@@ -7,8 +7,6 @@ using CsvHelper;
 using MzLibUtil;
 using ResultAnalyzerUtil.CsvConverters;
 using System.IO.MemoryMappedFiles;
-using PuppeteerSharp;
-using System.Collections.Concurrent;
 
 namespace RadicalFragmentation;
 

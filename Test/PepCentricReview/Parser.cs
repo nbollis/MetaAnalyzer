@@ -1,12 +1,4 @@
 ﻿using Analyzer;
-using Google.Protobuf.WellKnownTypes;
-using Omics;
-using Omics.Modifications;
-using Proteomics.ProteolyticDigestion;
-using ResultAnalyzerUtil;
-using System.Diagnostics;
-using System.Threading.Tasks;
-using UsefulProteomicsDatabases;
 
 namespace Test.PepCentricReview
 {

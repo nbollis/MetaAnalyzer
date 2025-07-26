@@ -1,5 +1,4 @@
-﻿using Analyzer.FileTypes.External;
-using MathNet.Numerics.Statistics;
+﻿using MathNet.Numerics.Statistics;
 using Microsoft.ML;
 using Readers;
 using MsFraggerPsmFile = Analyzer.FileTypes.External.MsFraggerPsmFile;
@@ -97,7 +96,7 @@ public class FileLogger
             var grouped = PsmFile.GroupBy(x => x.FullSequence)
                 .ToDictionary(p => p.Key,
                     p => p.DistinctBy(x => x.FileNameWithoutExtension)
-                        .Select(x => (x.FileNameWithoutExtension, x.RetentionTime.Value)).ToList());
+                        .Select(x => (x.FileNameWithoutExtension, x.RetentionTime)).ToList());
             FileWiseCalibrations = grouped;
         }
 

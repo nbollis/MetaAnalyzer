@@ -1,7 +1,5 @@
-﻿using System;
-using System.Diagnostics;
+﻿using System.Diagnostics;
 using System.Text.RegularExpressions;
-using Analyzer.FileTypes.External;
 using Analyzer.FileTypes.Internal;
 using Analyzer.Interfaces;
 using Analyzer.Util;
@@ -13,7 +11,6 @@ using MzLibUtil;
 using Plotting.Util;
 using Proteomics;
 using Proteomics.ProteolyticDigestion;
-using Proteomics.PSM;
 using Proteomics.RetentionTimePrediction;
 using Readers;
 using ResultAnalyzerUtil;
@@ -408,14 +405,14 @@ namespace Analyzer.SearchType
                                 parent = chimericPsm;
                             else if (evaluated.Any(p => p.FullSequence == chimericPsm.FullSequence))
                                 record.DuplicateCount++;
-                            else if (evaluated.Any(assignedChimera => tolerance.Within(double.Parse(assignedChimera.MonoisotopicMass.Split('|')[0]), double.Parse(chimericPsm.MonoisotopicMass.Split('|')[0]))
+                            else if (evaluated.Any(assignedChimera => tolerance.Within(double.Parse(assignedChimera.MonoisotopicMassString.Split('|')[0]), double.Parse(chimericPsm.MonoisotopicMassString.Split('|')[0]))
                                                                        && tolerance.Within(assignedChimera.PrecursorMz, chimericPsm.PrecursorMz)))
                             {
                                 record.ZeroSumShiftCount++;
                             }
                             // Missed Monoisotopic Error
                             else if (evaluated.Any(assigned =>
-                            MonoisotopicSimilarityChecker.AreSameSpeciesByMonoisotopicError(double.Parse(assigned.MonoisotopicMass.Split('|')[0]), double.Parse(chimericPsm.MonoisotopicMass.Split('|')[0]),
+                            MonoisotopicSimilarityChecker.AreSameSpeciesByMonoisotopicError(double.Parse(assigned.MonoisotopicMassString.Split('|')[0]), double.Parse(chimericPsm.MonoisotopicMassString.Split('|')[0]),
                                 assigned.PrecursorMz, chimericPsm.PrecursorMz, assigned.PrecursorCharge, chimericPsm.PrecursorCharge, tolerance)))
                             {
                                 record.MissedMonoCount++;
@@ -509,14 +506,14 @@ namespace Analyzer.SearchType
                                 parent = chimericPsm;
                             else if (evaluated.Any(p => p.FullSequence == chimericPsm.FullSequence))
                                 record.DuplicateCount++;
-                            else if (evaluated.Any(assignedChimera => tolerance.Within(double.Parse(assignedChimera.MonoisotopicMass.Split('|')[0]), double.Parse(chimericPsm.MonoisotopicMass.Split('|')[0]))
+                            else if (evaluated.Any(assignedChimera => tolerance.Within(double.Parse(assignedChimera.MonoisotopicMassString.Split('|')[0]), double.Parse(chimericPsm.MonoisotopicMassString.Split('|')[0]))
                                                                        && tolerance.Within(assignedChimera.PrecursorMz, chimericPsm.PrecursorMz)))
                             {
                                 record.ZeroSumShiftCount++;
                             }
                             // Missed Monoisotopic Error
                             else if (evaluated.Any(assigned =>
-                            MonoisotopicSimilarityChecker.AreSameSpeciesByMonoisotopicError(double.Parse(assigned.MonoisotopicMass.Split('|')[0]), double.Parse(chimericPsm.MonoisotopicMass.Split('|')[0]),
+                            MonoisotopicSimilarityChecker.AreSameSpeciesByMonoisotopicError(double.Parse(assigned.MonoisotopicMassString.Split('|')[0]), double.Parse(chimericPsm.MonoisotopicMassString.Split('|')[0]),
                                 assigned.PrecursorMz, chimericPsm.PrecursorMz, assigned.PrecursorCharge, chimericPsm.PrecursorCharge, tolerance)))
                             {
                                 record.MissedMonoCount++;
@@ -612,7 +609,7 @@ namespace Analyzer.SearchType
                 bool isChimeric = group.Count() > 1;
                 retentionTimePredictions.AddRange(group.Select(p =>
                     new RetentionTimePredictionEntry(p.FileNameWithoutExtension, p.Ms2ScanNumber, p.PrecursorScanNum,
-                        p.RetentionTime.Value, p.BaseSeq, p.FullSequence, p.PeptideModSeq(modDict), p.QValue,
+                        p.RetentionTime, p.BaseSeq, p.FullSequence, p.PeptideModSeq(modDict), p.QValue,
                         p.PEP_QValue, p.PEP, p.SpectralAngle ?? -1, isChimeric)
                     {
                         SSRCalcPrediction = calc.ScoreSequence(new PeptideWithSetModifications(p.FullSequence.Split('|')[0], GlobalVariables.AllModsKnownDictionary)),

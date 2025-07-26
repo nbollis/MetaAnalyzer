@@ -1,7 +1,6 @@
 ﻿using System.Text;
 using System.Text.RegularExpressions;
 using Analyzer.FileTypes.External;
-using Analyzer.SearchType;
 using AnalyzerCore;
 using CsvHelper;
 using CsvHelper.Configuration;

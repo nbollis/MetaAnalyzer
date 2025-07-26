@@ -1,10 +1,10 @@
 ﻿using Analyzer.Plotting.Util;
 using Analyzer.Plotting;
 using Analyzer.SearchType;
-using Proteomics.PSM;
 using Plotly.NET;
 using Plotting;
 using Plotting.Util;
+using Readers;
 using ResultAnalyzerUtil;
 
 namespace TaskLayer.ChimeraAnalysis
@@ -55,11 +55,11 @@ namespace TaskLayer.ChimeraAnalysis
                     if (chimeraGroup.Count() == 1)
                     {
                         var first = chimeraGroup.First();
-                        peptideNonChimericRT.Add(first.RetentionTime!.Value);
+                        peptideNonChimericRT.Add(first.RetentionTime);
                     }
                     else
                     {
-                        peptideChimericRT.AddRange(chimeraGroup.Select(p => p.RetentionTime!.Value));
+                        peptideChimericRT.AddRange(chimeraGroup.Select(p => p.RetentionTime));
                     }
                 }
             }
@@ -119,11 +119,11 @@ namespace TaskLayer.ChimeraAnalysis
                     if (!chimeraGroup.Any()) continue;
                     if (chimeraGroup.Count() == 1)
                     {
-                        psmNonChimericRT.AddRange(chimeraGroup.Select(p => p.RetentionTime!.Value));
+                        psmNonChimericRT.AddRange(chimeraGroup.Select(p => p.RetentionTime));
                     }
                     else
                     {
-                        psmChimericRT.AddRange(chimeraGroup.Select(p => p.RetentionTime!.Value));
+                        psmChimericRT.AddRange(chimeraGroup.Select(p => p.RetentionTime));
                     }
                 }
             }

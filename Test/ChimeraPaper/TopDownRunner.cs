@@ -1,6 +1,5 @@
 ﻿using Analyzer.FileTypes.Internal;
 using Analyzer.Interfaces;
-using Analyzer.Plotting.AggregatePlots;
 using Analyzer.Plotting.ComparativePlots;
 using Analyzer.Plotting.IndividualRunPlots;
 using Analyzer.Plotting.Util;

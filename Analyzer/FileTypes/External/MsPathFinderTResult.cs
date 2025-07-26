@@ -1,5 +1,4 @@
-﻿using Analyzer.SearchType;
-using Analyzer.Util.TypeConverters;
+﻿using Analyzer.Util.TypeConverters;
 using AnalyzerCore;
 using Chemistry;
 using CsvHelper;

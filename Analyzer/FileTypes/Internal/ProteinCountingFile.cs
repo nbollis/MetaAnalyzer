@@ -4,7 +4,6 @@ using CsvHelper.Configuration;
 using CsvHelper.Configuration.Attributes;
 using Easy.Common.Extensions;
 using Proteomics;
-using Proteomics.PSM;
 using Readers;
 using ResultAnalyzerUtil;
 

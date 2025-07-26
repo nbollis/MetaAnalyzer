@@ -3,9 +3,9 @@ using Plotly.NET;
 using Plotly.NET.TraceObjects;
 using MathNet.Numerics;
 using MathNet.Numerics.Statistics;
-using Omics.SpectrumMatch;
 using Plotting.Util;
 using Microsoft.FSharp.Core;
+using Readers;
 using ResultAnalyzerUtil;
 
 namespace Plotting
@@ -126,7 +126,7 @@ namespace Plotting
         {
             var modDict = new Dictionary<string, double>();
             foreach (var mod in fullSequences.SelectMany(p =>
-                         Omics.SpectrumMatch.SpectrumMatchFromTsv.ParseModifications(p).SelectMany(m => m.Value)
+                         SpectrumMatchFromTsv.ParseModifications(p).SelectMany(m => m.Value)
                              .Select(mod => System.Text.RegularExpressions.Regex.Replace(mod, @".*?:", "").Trim()
                                  .Replace("Accetyl", "Acetyl")
                                  .Replace("Acetyl on X", "Acetylation on X")
