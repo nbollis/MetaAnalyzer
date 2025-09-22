@@ -47,6 +47,9 @@ public class TaskManager
         }
     }
 
+    public TaskManager() { }
+    public TaskManager(double maxWeight) { MaxWeight = maxWeight; }
+
     public async Task RunProcesses(List<CmdProcess> processes)
     {
         List<Task> runningTasks = new List<Task>();

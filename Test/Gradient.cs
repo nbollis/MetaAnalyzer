@@ -50,7 +50,7 @@ namespace Test
         public static void ParseInfoFromDirectory()
         {
             //string dirPath = @"B:\Users\Nic\RNA\FLuc\250313_FLucDifferentialMethylations_More\Searches";
-            string dirPath = @"B:\Users\Nic\RNA\FLuc\250621_FrankenLC\50mC_VibeCheck_VariableMeth";
+            string dirPath = @"D:\DataFiles\RnaTestSets\PfizerData\250825_UpdatedCode_SearchCaliSearchAvgSearch";
             //string dirPath = @"D:\DataFiles\RnaTestSets\PfizerData";
 
             List<BulkResultCountComparison> bulkResultCountComparisons = new List<BulkResultCountComparison>();
@@ -58,7 +58,7 @@ namespace Test
             {
                 var results = new List<CytosineInformation>();
                 var osmPath = Directory.GetFiles(searchDirectory, "*OSMs.osmtsv", SearchOption.AllDirectories).FirstOrDefault();
-                var oligoPath = Directory.GetFiles(searchDirectory, "*Oligos.psmtsv", SearchOption.AllDirectories).FirstOrDefault();
+                var oligoPath = Directory.GetFiles(searchDirectory, "*Oligos.osmtsv", SearchOption.AllDirectories).FirstOrDefault();
 
                 if (osmPath is null)
                     continue;
@@ -104,9 +104,9 @@ namespace Test
                 allCytosineByFdrs.AddRange(cytosineByFdr.Results);
             }
 
-            var combinedOutPath = Path.Combine(dirPath, "CombinedCytosineMethylDataByFdr.csv");
-            var combinedFile = new CytosineInformationFile(combinedOutPath) { Results = allCytosineByFdrs };
-            combinedFile.WriteResults(combinedOutPath);
+            //var combinedOutPath = Path.Combine(dirPath, "CombinedCytosineMethylDataByFdr.csv");
+            //var combinedFile = new CytosineInformationFile(combinedOutPath) { Results = allCytosineByFdrs };
+            //combinedFile.WriteResults(combinedOutPath);
         }
 
 

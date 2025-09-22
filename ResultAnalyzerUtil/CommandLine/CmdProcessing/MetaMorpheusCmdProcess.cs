@@ -21,7 +21,7 @@ public abstract class MetaMorpheusCmdProcess(
             var sb = new StringBuilder();
             sb.Append($" -t {string.Join(" ", TasksTomls)}");
             sb.Append($" -s {string.Join(" ", SpectraPaths)}");
-            sb.Append($" -s {string.Join(" ", DatabasePaths)}");
+            sb.Append($" -d {string.Join(" ", DatabasePaths)}");
             sb.Append($" -o {OutputDirectory}");
             if (Dependency != null)
             {
@@ -29,8 +29,6 @@ public abstract class MetaMorpheusCmdProcess(
             }
 
             var promptstring = sb.ToString();
-            var start = OutputDirectory.Substring(0, 3);
-            promptstring = promptstring.Replace(@"B:\", start);
 
             return promptstring;
         }

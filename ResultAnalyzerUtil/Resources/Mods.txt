@@ -643,3 +643,33 @@ PP   Anywhere.
 MT   Speculative
 CF   H-2 O1
 //
+ID   Decoy Phosphorylation
+TG   S or T
+PP   Anywhere.
+MT   DECOY
+CF   H1 O3 P1 B1
+//
+ID   Decoy Phosphorylation
+TG   Y
+PP   Anywhere.
+MT   DECOY
+CF   H1 O3 P1 B1
+//
+ID   Decoy Acetylation
+TG   X
+PP   N-terminal.
+MT   DECOY
+CF   H2 C2 O1 B1
+//
+ID   Decoy Acetylation
+TG   K
+PP   Anywhere.
+MT   DECOY
+CF   H2 C2 O1 B1
+//
+ID   Decoy Methylation
+TG   K or R
+PP   Anywhere.
+MT   DECOY
+CF   B
+//
