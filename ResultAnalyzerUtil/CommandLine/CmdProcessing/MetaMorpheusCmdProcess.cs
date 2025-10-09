@@ -19,10 +19,19 @@ public abstract class MetaMorpheusCmdProcess(
         get
         {
             var sb = new StringBuilder();
-            sb.Append($" -t {string.Join(" ", TasksTomls)}");
-            sb.Append($" -s {string.Join(" ", SpectraPaths)}");
-            sb.Append($" -d {string.Join(" ", DatabasePaths)}");
-            sb.Append($" -o {OutputDirectory}");
+            sb.Append("-t ");
+            foreach (var taskToml in TasksTomls)
+                sb.Append($"\"{taskToml}\" ");
+
+            sb.Append("-s ");
+            foreach (var spectra in SpectraPaths)
+                sb.Append($"\"{spectra}\" ");
+
+            sb.Append("-d ");
+            foreach (var db in DatabasePaths)
+                sb.Append($"\"{db}\" ");
+
+            sb.Append($"-o {OutputDirectory} ");
             if (Dependency != null)
             {
                 sb.Append($" {Dependency.Task.Result}");
