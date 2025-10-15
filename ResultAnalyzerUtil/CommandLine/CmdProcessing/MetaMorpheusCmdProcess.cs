@@ -39,6 +39,11 @@ public abstract class MetaMorpheusCmdProcess(
 
             var promptstring = sb.ToString();
 
+            // Rare: Computer specific path switches. 
+            var userDir = Path.GetFullPath(System.Reflection.Assembly.GetEntryAssembly()?.Location);
+            if (userDir.Contains("Artemis"))
+                promptstring = promptstring.Replace(@"B:\", @"Z:\");
+
             return promptstring;
         }
     }
