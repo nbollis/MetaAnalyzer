@@ -146,7 +146,10 @@ internal class CellLineFileManager
 
         Replicates = new();
         var calibratedAveragedDirs = Directory.GetDirectories(dataDirectoryPath, "*_CalibratedAveraged*");
-        var toUse = calibratedAveragedDirs.Where(p => p.Contains($"{InternalMetaMorpheusAnalysisTask.Version}")).ToList();
+        var toUse = calibratedAveragedDirs
+            //.Where(p => p.Contains($"{InternalMetaMorpheusAnalysisTask.Version}"))
+            .Where(p => p.Contains("107"))
+            .ToList();
         var calibAveragedSetPrecursorDir = Path.Combine(dataDirectoryPath, "CalibratedAveragedSetPrecursor");
 
         // top-down jurkat

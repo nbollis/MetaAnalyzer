@@ -431,5 +431,49 @@ namespace Test.ChimeraPaper
             outPath = Path.Combine(dirpath, "Figures", "ChimeraBreakdown_Peptides");
             plot.SavePNG(outPath, null, 1200, 1200);
         }
+
+        [Test]
+        public static void TESTNAME()
+        {
+            var results = new List<MetaMorpheusResult>()
+            {
+                new MetaMorpheusResult(@"B:\Users\Nic\Chimeras\TopDown_Analysis\Jurkat\EntrapmentSearchResult\MetaMorpheus_114a_Rep1_EntrapmentSearch", "Jurkat", "Rep1"),
+                new MetaMorpheusResult(@"B:\Users\Nic\Chimeras\TopDown_Analysis\Jurkat\EntrapmentSearchResult\MetaMorpheus_114a_Rep2_EntrapmentSearch", "Jurkat", "Rep2")
+            };
+            foreach (var result in results)
+            {
+
+                result.CountChimericPsms();
+                result.GetBulkResultCountComparisonFile();
+                result.GetIndividualFileComparison();
+                if (result is IChimeraBreakdownCompatible cb)
+                {
+                    cb.GetChimeraBreakdownFile();
+                    result.Override = false;
+
+                    cb.PlotChimeraBreakDownStackedColumn_Scaled(ResultType.Psm);
+                    try
+                    {
+                        cb.PlotChimeraBreakDownStackedColumn_Scaled(ResultType.Peptide);
+                    }
+                    catch
+                    { // Ignore
+                    }
+                }
+                if (result is IChimeraPeptideCounter pc)
+                    pc.CountChimericPeptides();
+                if (result is MetaMorpheusResult mm)
+                {
+                    mm.PlotPepFeaturesScatterGrid();
+                    mm.ExportCombinedChimeraTargetDecoyExploration(mm.FigureDirectory, mm.Condition);
+                    mm.PlotTargetDecoyCurves(ResultType.Psm, TargetDecoyCurveMode.Score, false);
+                    mm.PlotTargetDecoyCurves(ResultType.Psm, TargetDecoyCurveMode.Score, true);
+                    mm.PlotTargetDecoyCurves(ResultType.Peptide, TargetDecoyCurveMode.Score, false);
+                    mm.PlotTargetDecoyCurves(ResultType.Peptide, TargetDecoyCurveMode.Score, true);
+                }
+                result.Override = false;
+            }
+        }
     }
+
 }

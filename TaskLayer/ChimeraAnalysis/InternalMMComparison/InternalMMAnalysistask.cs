@@ -84,7 +84,7 @@ namespace TaskLayer.ChimeraAnalysis
 
         #endregion
 
-        public static string Version { get; set; } = "107";
+        public static string Version { get; set; } = "114";
         private static string NonChimericDescriptor => "MetaMorpheusNoChimeras";
         private static string ChimericDescriptor => "MetaMorpheusWithChimeras";
         private static string BulkFigureDirectory { get; set; }

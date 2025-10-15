@@ -173,7 +173,7 @@ namespace Test.ChimeraPaper
         [Test]
         public static void RunInternalMMComparison()
         {
-            InternalMetaMorpheusAnalysisTask.Version = "105";
+            InternalMetaMorpheusAnalysisTask.Version = "114";
             var path = BottomUpRunner.DirectoryPath;
             var dataDirectoryPath = InternalMetaMorpheusAnalysisTask.Mann11DataFileDirectory;
             var outputDir = InternalMetaMorpheusAnalysisTask.Mann11OutputDirectory;
@@ -187,7 +187,7 @@ namespace Test.ChimeraPaper
         [Test]
         public static void RunInternalMMComparison_TopDown()
         {
-            InternalMetaMorpheusAnalysisTask.Version = "106";
+            InternalMetaMorpheusAnalysisTask.Version = "114";
             var path = TopDownRunner.DirectoryPath;
             var dataDirectoryPath = InternalMetaMorpheusAnalysisTask.JurkatTopDownDataFileDirectory;
             var outputDir = InternalMetaMorpheusAnalysisTask.JurkatTopDownOutputDirectory;
