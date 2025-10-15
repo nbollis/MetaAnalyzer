@@ -35,7 +35,7 @@ namespace CMD
                 }
                 catch (Exception e)
                 {
-                    ReportCrash($"{task.MyTask} failed with message {e.Message} at\n{e.StackTrace}");
+                    ReportCrash($"{task.MyTask} failed with message {e.Message} at\n{e.StackTrace} with inner exception {e.InnerException}");
                 }
             }
         }
