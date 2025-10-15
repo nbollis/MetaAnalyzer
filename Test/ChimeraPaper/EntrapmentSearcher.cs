@@ -41,7 +41,7 @@ internal class EntrapmentSearcher
             //@"B:\RawSpectraFiles\JurkatTopDown\107_CalibratedAveraged_Rep2\Task1-AveragingTask\02-17-20_jurkat_td_rep2_fract4-calib-averaged.mzML",
             @"B:\RawSpectraFiles\JurkatTopDown\107_CalibratedAveraged_Rep2\Task1-AveragingTask\02-18-20_jurkat_td_rep2_fract5-calib-averaged.mzML",
             @"B:\RawSpectraFiles\JurkatTopDown\107_CalibratedAveraged_Rep2\Task1-AveragingTask\02-18-20_jurkat_td_rep2_fract6-calib-averaged.mzML",
-            @"B:\RawSpectraFiles\JurkatTopDown\107_CalibratedAveraged_Rep2\Task1-AveragingTask\02-18-20_jurkat_td_rep2_fract7-calib-averaged.mzML",
+            //@"B:\RawSpectraFiles\JurkatTopDown\107_CalibratedAveraged_Rep2\Task1-AveragingTask\02-18-20_jurkat_td_rep2_fract7-calib-averaged.mzML",
             //@"B:\RawSpectraFiles\JurkatTopDown\107_CalibratedAveraged_Rep2\Task1-AveragingTask\02-18-20_jurkat_td_rep2_fract8-calib-averaged.mzML",
             //@"B:\RawSpectraFiles\JurkatTopDown\107_CalibratedAveraged_Rep2\Task1-AveragingTask\02-18-20_jurkat_td_rep2_fract9-calib-averaged.mzML",
             //@"B:\RawSpectraFiles\JurkatTopDown\107_CalibratedAveraged_Rep2\Task1-AveragingTask\02-18-20_jurkat_td_rep2_fract10-calib-averaged.mzML"
@@ -107,7 +107,7 @@ internal class EntrapmentSearcher
         string gptmdToml = @"B:\Users\Nic\TopDownEntrapment\GPTMD.toml";
         string searchToml = @"B:\Users\Nic\TopDownEntrapment\Search.toml";
 
-        string outPath = @"B:\Users\Nic\TopDownEntrapment\113_RangeFoldExploration_Mini";
+        string outPath = @"B:\Users\Nic\TopDownEntrapment\114_RangeFoldExploration_Mini";
 
         RunSearches(all, targetDbPath, specPaths, outPath, searchToml, gptmdToml);
     }
