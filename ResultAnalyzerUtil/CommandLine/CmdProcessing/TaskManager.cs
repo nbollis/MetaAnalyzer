@@ -38,6 +38,11 @@ public class TaskManager
                 MaxWeight = 2.5;
                 Console.WriteLine($"Detected Shortreed New: Max Weight = {MaxWeight}");
             }
+            else if (dir.Contains("nic")) // Orion or whatever is in the corner
+            {
+                MaxWeight = 2.5;
+                Console.WriteLine($"Detected Shortreed New: Max Weight = {MaxWeight}");
+            }
             else
                 Console.WriteLine($"Unknown Computer: Default Max Weight = {MaxWeight}");
         }
