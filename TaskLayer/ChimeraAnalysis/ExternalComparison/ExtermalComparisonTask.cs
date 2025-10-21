@@ -36,7 +36,7 @@ namespace TaskLayer.ChimeraAnalysis
             @"B:\Users\Nic\Chimeras\Mann_11cell_analysis\Search_BuildLibrary_ReducedForComparison.toml";
         public static string Mann11OutputDirectory =>
             @"B:\Users\Nic\Chimeras\ExternalMMAnalysis\Mann_11cell_lines";
-        public static string Version => "106";
+        public static string Version => "114";
 
         public override MyTask MyTask => MyTask.ExternalChimeraPaperAnalysis;
         public override ExternalComparisonParameters Parameters { get; }
@@ -153,9 +153,9 @@ namespace TaskLayer.ChimeraAnalysis
             }
 
             var allPaths = cellLineDict.SelectMany(p => p.Value).ToList();
-            //PlotCellLineAveragedBarCharts(allPaths, isTopDown);
-            //var bulkResults = GetResultCountFile(allPaths.Select(p => resultCache[p]).ToList());
-            //PlotCellLineBulkBarCharts(bulkResults.Results, isTopDown);
+            PlotCellLineAveragedBarCharts(allPaths, isTopDown);
+            var bulkResults = GetResultCountFile(allPaths.Select(p => resultCache[p]).ToList());
+            PlotCellLineBulkBarCharts(bulkResults.Results, isTopDown);
 
 
             // Run Protein Information
@@ -197,39 +197,39 @@ namespace TaskLayer.ChimeraAnalysis
             string modPlotPath = Path.Combine(BulkFigureDirectory, "ModificationDistribution_");
             modPlot.SaveJPG(modPlotPath, null, 1600, 800);
 
-            //Log("Creating Protein Counting Files", 1);
-            //foreach (var cellLineDictEntry in cellLineDict)
-            //{
-            //    var cellLine = Path.GetFileNameWithoutExtension(cellLineDictEntry.Key);
+            Log("Creating Protein Counting Files", 1);
+            foreach (var cellLineDictEntry in cellLineDict)
+            {
+                var cellLine = Path.GetFileNameWithoutExtension(cellLineDictEntry.Key);
 
-            //    Log($"Processing Cell Line {cellLine}", 1);
-            //    foreach (var singleRunPath in cellLineDictEntry.Value)
-            //    {
-            //        SingleRunResults result = resultCache[singleRunPath];
-            //        result.CountProteins();
-            //        result.Dispose();
-            //    }
-            //}
+                Log($"Processing Cell Line {cellLine}", 1);
+                foreach (var singleRunPath in cellLineDictEntry.Value)
+                {
+                    SingleRunResults result = resultCache[singleRunPath];
+                    result.CountProteins();
+                    result.Dispose();
+                }
+            }
 
-            //var proteinGroups = resultCache.Values
-            //    .GroupBy(p => p.Condition.ConvertConditionName())
-            //    .ToDictionary(p => p.Key, p => p.ToList());
-            //foreach (var condition in proteinGroups)
-            //{
-            //    var proforomaFileName = Path.Combine(proformaResultPath, condition.Key + "_PSM_" + FileIdentifiers.ProteinCountingFile);
-            //    var records = new List<ProteinCountingRecord>();
-            //    foreach (var result in condition.Value)
-            //        records.AddRange(result.CountProteins().Results);
-            //    var newFile = new ProteinCountingFile(proforomaFileName)
-            //    {
-            //        Results = records
-            //    };
+            var proteinGroups = resultCache.Values
+                .GroupBy(p => p.Condition.ConvertConditionName())
+                .ToDictionary(p => p.Key, p => p.ToList());
+            foreach (var condition in proteinGroups)
+            {
+                var proforomaFileName = Path.Combine(proformaResultPath, condition.Key + "_PSM_" + FileIdentifiers.ProteinCountingFile);
+                var records = new List<ProteinCountingRecord>();
+                foreach (var result in condition.Value)
+                    records.AddRange(result.CountProteins().Results);
+                var newFile = new ProteinCountingFile(proforomaFileName)
+                {
+                    Results = records
+                };
 
-            //    newFile.WriteResults(proforomaFileName);
-            //}
+                newFile.WriteResults(proforomaFileName);
+            }
 
-            //var countingRecords = proteinGroups.SelectMany(p => p.Value.SelectMany(m => m.CountProteins().Results)).ToList();
-            //PlotProteinCountingCharts(countingRecords, isTopDown);
+            var countingRecords = proteinGroups.SelectMany(p => p.Value.SelectMany(m => m.CountProteins().Results)).ToList();
+            PlotProteinCountingCharts(countingRecords, isTopDown);
         }
 
 

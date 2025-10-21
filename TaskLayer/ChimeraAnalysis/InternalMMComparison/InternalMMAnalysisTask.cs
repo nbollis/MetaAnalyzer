@@ -6,6 +6,7 @@ using Analyzer.Util;
 using Plotly.NET;
 using Plotly.NET.ImageExport;
 using Analyzer.FileTypes.Internal;
+using Analyzer.Plotting;
 using Calibrator;
 using Easy.Common.Extensions;
 using Plotting;
@@ -778,14 +779,14 @@ namespace TaskLayer.ChimeraAnalysis
                 .ToList();
 
             GenerateFractionalIntensityPlots(ResultType.Psm, resultsToPlot, true, true, isTopDown);
-            //GenerateFractionalIntensityPlots(ResultType.Psm, resultsToPlot, true, false, isTopDown);
-            //GenerateFractionalIntensityPlots(ResultType.Peptide, resultsToPlot, true, true, isTopDown);
-            //GenerateFractionalIntensityPlots(ResultType.Peptide, resultsToPlot, true, false, isTopDown);
+            GenerateFractionalIntensityPlots(ResultType.Psm, resultsToPlot, true, false, isTopDown);
+            GenerateFractionalIntensityPlots(ResultType.Peptide, resultsToPlot, true, true, isTopDown);
+            GenerateFractionalIntensityPlots(ResultType.Peptide, resultsToPlot, true, false, isTopDown);
 
-            //GenerateFractionalIntensityPlots(ResultType.Psm, resultsToPlot, false, false, isTopDown);
+            GenerateFractionalIntensityPlots(ResultType.Psm, resultsToPlot, false, false, isTopDown);
             GenerateFractionalIntensityPlots(ResultType.Psm, resultsToPlot, false, true, isTopDown);
-            //GenerateFractionalIntensityPlots(ResultType.Peptide, resultsToPlot, false, false, isTopDown);
-            //GenerateFractionalIntensityPlots(ResultType.Peptide, resultsToPlot, false, true, isTopDown);
+            GenerateFractionalIntensityPlots(ResultType.Peptide, resultsToPlot, false, false, isTopDown);
+            GenerateFractionalIntensityPlots(ResultType.Peptide, resultsToPlot, false, true, isTopDown);
         }
 
         static void GenerateFractionalIntensityPlots(ResultType resultType,
@@ -853,7 +854,7 @@ namespace TaskLayer.ChimeraAnalysis
                 .WithTitle($"1% {Labels.GetLabel(isTopDown, resultType)} Identified {outPrecursor} Intensity {titleEnd}", Plotly.NET.Font.init(Size: PlotlyBase.TitleSize))
                 .WithYAxisStyle(Title.init("Number of Spectra", Font: Font.init(Size: PlotlyBase.AxisTitleFontSize)), Side: StyleParam.Side.Left,
                     Id: StyleParam.SubPlotId.NewYAxis(1))
-                .WithLayout(PlotlyBase.DefaultLayoutWithLegendLargerText);
+                .WithLayout(PlotlyBase.DefaultLayoutWithLegendLargeText);
             var outName = $"SpectrumSummary_{outPrecursor}FractionalIntensity_{outType}_{Labels.GetLabel(isTopDown, resultType)}_Histogram";
 
             outName =
