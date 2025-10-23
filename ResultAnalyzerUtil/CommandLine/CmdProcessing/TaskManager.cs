@@ -90,6 +90,12 @@ public class TaskManager
         // if still running, wait until finish and return
         if (process.HasStarted())
         {
+            if (process.IsCompleted())
+            {
+                Console.WriteLine($"Already Completed: {process.SummaryText}");
+                return;
+            }
+
             Console.WriteLine($"Has Started Elsewhere: {process.SummaryText}");
             while (!process.IsCompleted()) 
             {
@@ -122,7 +128,6 @@ public class TaskManager
             // Use the dependency result if it exists
             if (!string.IsNullOrEmpty(dependencyResult))
             {
-                //var result = string.Join("\\", dependencyResult.Split('\\').TakeLast(3));
                 var result = Path.GetFileName(dependencyResult);
                 Console.WriteLine($"\tUsing dependency result: {result} in {process.QuickName}");
             }
@@ -137,5 +142,4 @@ public class TaskManager
             semaphore.Release();
         }
     }
-
 }
