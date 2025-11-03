@@ -122,8 +122,8 @@ namespace TaskLayer.ChimeraAnalysis
                 cellLineDict.Add(cellLineDirectory, new());
                 foreach (var runDirectory in Directory.GetDirectories(cellLineDirectory).Where(p => !p.Contains("Figure") && p.Contains(Version)))
                 {
-                    //if (runDirectory.Contains("WithChimeras") && runDirectory.Contains("NonChimericLib"))
-                    //    continue;
+                    if (runDirectory.Contains("WithChimeras") && runDirectory.Contains("NonChimericLib"))
+                        continue;
                     cellLineDict[cellLineDirectory].Add(new MetaMorpheusResult(runDirectory));
                 }
             }
