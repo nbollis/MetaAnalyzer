@@ -503,6 +503,10 @@ public static class PlottingTranslators
         { "MetaMorpheusWithChimeras_108_ChimericLibrary_Rep1", "MetaMorpheus\u2800" },
         { "MetaMorpheusWithChimeras_108_ChimericLibrary_Rep2", "MetaMorpheus\u2800" },
         { "MetaMorpheusWithChimeras_108_ChimericLibrary_Rep3", "MetaMorpheus\u2800" },
+        { "MetaMorpheusWithChimeras_114_ChimericLibrary", "MetaMorpheus\u2800" },
+        { "MetaMorpheusWithChimeras_114_ChimericLibrary_Rep1", "MetaMorpheus\u2800" },
+        { "MetaMorpheusWithChimeras_114_ChimericLibrary_Rep2", "MetaMorpheus\u2800" },
+        { "MetaMorpheusWithChimeras_114_ChimericLibrary_Rep3", "MetaMorpheus\u2800" },
         { "MetaMorpheusNoChimeras_105_NonChimericLibrary1", "MetaMorpheus No Chimeras" },
         { "MetaMorpheusNoChimeras_105_NonChimericLibrary_Rep1", "MetaMorpheus No Chimeras" },
         { "MetaMorpheusNoChimeras_105_NonChimericLibrary_Rep2", "MetaMorpheus No Chimeras" },
@@ -519,6 +523,10 @@ public static class PlottingTranslators
         { "MetaMorpheusNoChimeras_108_NonChimericLibrary_Rep1", "MetaMorpheus No Chimeras" },
         { "MetaMorpheusNoChimeras_108_NonChimericLibrary_Rep2", "MetaMorpheus No Chimeras" },
         { "MetaMorpheusNoChimeras_108_NonChimericLibrary_Rep3", "MetaMorpheus No Chimeras" },
+        { "MetaMorpheusNoChimeras_114_NonChimericLibrary", "MetaMorpheus No Chimeras" },
+        { "MetaMorpheusNoChimeras_114_NonChimericLibrary_Rep1", "MetaMorpheus No Chimeras" },
+        { "MetaMorpheusNoChimeras_114_NonChimericLibrary_Rep2", "MetaMorpheus No Chimeras" },
+        { "MetaMorpheusNoChimeras_114_NonChimericLibrary_Rep3", "MetaMorpheus No Chimeras" },
         { "MetaMorpheusWithChimeras_105_NonChimericLibrary", "MetaMorpheus Chimeras (Non-chimeric library)" },
         { "MetaMorpheusWithChimeras_105_NonChimericLibrary_Rep1", "MetaMorpheus Chimeras (Non-chimeric library)" },
         { "MetaMorpheusWithChimeras_105_NonChimericLibrary_Rep2", "MetaMorpheus Chimeras (Non-chimeric library)" },
@@ -535,6 +543,10 @@ public static class PlottingTranslators
         { "MetaMorpheusWithChimeras_108_NonChimericLibrary_Rep1", "MetaMorpheus Chimeras (Non-chimeric library)" },
         { "MetaMorpheusWithChimeras_108_NonChimericLibrary_Rep2", "MetaMorpheus Chimeras (Non-chimeric library)" },
         { "MetaMorpheusWithChimeras_108_NonChimericLibrary_Rep3", "MetaMorpheus Chimeras (Non-chimeric library)" },
+        { "MetaMorpheusWithChimeras_114_NonChimericLibrary", "MetaMorpheus Chimeras (Non-chimeric library)" },
+        { "MetaMorpheusWithChimeras_114_NonChimericLibrary_Rep1", "MetaMorpheus Chimeras (Non-chimeric library)" },
+        { "MetaMorpheusWithChimeras_114_NonChimericLibrary_Rep2", "MetaMorpheus Chimeras (Non-chimeric library)" },
+        { "MetaMorpheusWithChimeras_114_NonChimericLibrary_Rep3", "MetaMorpheus Chimeras (Non-chimeric library)" },
 
         // Bottom up
         { "MetaMorpheusWithLibrary", "Full MetaMorpheus⠀" }, // old
