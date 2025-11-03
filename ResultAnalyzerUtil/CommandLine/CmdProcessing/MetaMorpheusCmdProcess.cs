@@ -18,6 +18,12 @@ public abstract class MetaMorpheusCmdProcess(
     {
         get
         {
+            if (Dependency is { Task.IsCompleted: true })
+            {
+                if (Dependency.Task.Result.EndsWith(".msp"))
+                    DatabasePaths = DatabasePaths.Concat([Dependency.Task.Result]).ToArray();
+            }
+
             var sb = new StringBuilder();
             sb.Append("-t ");
             foreach (var taskToml in TasksTomls)
@@ -32,10 +38,6 @@ public abstract class MetaMorpheusCmdProcess(
                 sb.Append($"\"{db}\" ");
 
             sb.Append($"-o {OutputDirectory} ");
-            if (Dependency != null)
-            {
-                sb.Append($" {Dependency.Task.Result}");
-            }
 
             var promptstring = sb.ToString();
 
@@ -49,7 +51,7 @@ public abstract class MetaMorpheusCmdProcess(
     }
     public string OutputDirectory { get; } = outputPath;
     public string[] SpectraPaths { get; } = spectraPaths;
-    public string[] DatabasePaths { get; } = dbPaths;
+    public string[] DatabasePaths { get; private set; } = dbPaths;
     public string[] TasksTomls { get; } = taskTomlPaths;
 
     public override bool HasStarted()
