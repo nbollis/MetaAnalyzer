@@ -964,18 +964,18 @@ namespace TaskLayer.ChimeraAnalysis
                 //var outPath = Path.Combine(figDir, outName);
                 //peptidePlot.SaveJPG(outPath, null, 1000, 800);
 
-                var peptidePlot = Chart.Combine(new[]
-                    {
-                        GenericPlots.BoxPlot(peptideChimericAngles, "Chimeric", "", "Spectral Angle"),
-                        GenericPlots.BoxPlot(peptideNonChimericAngles, "Non-Chimeric", "", "Spectral Angle")
-                    })
-                    .WithTitle(
-                        $"MetaMorpheus 1% {Labels.GetLabel(isTopDown, ResultType.Peptide)} Spectral Angle Distribution", Plotly.NET.Font.init(Size: PlotlyBase.TitleSize))
-                    .WithLayout(PlotlyBase.DefaultLayoutWithLegendLargerText);
-                var outName =
-                    $"FdrAnalysis_{Labels.GetLabel(isTopDown, ResultType.Peptide)}_{FileIdentifiers.SpectralAngleFigure}_BoxPlot";
-                var outPath = Path.Combine(figDir, outName);
-                peptidePlot.SaveJPG(outPath, null, 1000, 800);
+                //var peptidePlot = Chart.Combine(new[]
+                //    {
+                //        GenericPlots.BoxPlot(peptideChimericAngles, "Chimeric", "", "Spectral Angle"),
+                //        GenericPlots.BoxPlot(peptideNonChimericAngles, "Non-Chimeric", "", "Spectral Angle")
+                //    })
+                //    .WithTitle(
+                //        $"MetaMorpheus 1% {Labels.GetLabel(isTopDown, ResultType.Peptide)} Spectral Angle Distribution", Plotly.NET.Font.init(Size: PlotlyBase.TitleSize))
+                //    .WithLayout(PlotlyBase.DefaultLayoutWithLegendLargerText);
+                //var outName =
+                //    $"FdrAnalysis_{Labels.GetLabel(isTopDown, ResultType.Peptide)}_{FileIdentifiers.SpectralAngleFigure}_BoxPlot";
+                //var outPath = Path.Combine(figDir, outName);
+                //peptidePlot.SaveJPG(outPath, null, 1000, 800);
 
                 //peptidePlot = Chart.Combine(new[]
                 //    {
@@ -992,7 +992,7 @@ namespace TaskLayer.ChimeraAnalysis
                 //outPath = Path.Combine(figDir, outName);
                 //peptidePlot.SaveJPG(outPath, null, 1000, 800);
 
-                peptidePlot = Chart.Combine(new[]
+                var peptidePlot = Chart.Combine(new[]
                     {
                         GenericPlots.Histogram(peptideChimericAngles, "Chimeric", "Spectral Angle", "Count"),
                         GenericPlots.Histogram(peptideNonChimericAngles, "Non-Chimeric", "Spectral Angle", "Count")
@@ -1000,9 +1000,9 @@ namespace TaskLayer.ChimeraAnalysis
                     .WithTitle(
                         $"MetaMorpheus 1% {Labels.GetLabel(isTopDown, ResultType.Peptide)} Spectral Angle Distribution", Plotly.NET.Font.init(Size: PlotlyBase.TitleSize))
                     .WithLayout(PlotlyBase.DefaultLayoutWithLegendLargerText);
-                outName =
+                var outName =
                     $"FdrAnalysis_{Labels.GetLabel(isTopDown, ResultType.Peptide)}_{FileIdentifiers.SpectralAngleFigure}_Histogram";
-                outPath = Path.Combine(figDir, outName);
+                var outPath = Path.Combine(figDir, outName);
                 peptidePlot.SaveJPG(outPath, null, 1000, 800);
 
 
@@ -1017,18 +1017,18 @@ namespace TaskLayer.ChimeraAnalysis
                 //outPath = Path.Combine(figDir, outName);
                 //peptidePlot.SaveJPG(outPath, null, 1000, 800);
 
-                var psmPlot = Chart.Combine(new[]
-                    {
-                        GenericPlots.BoxPlot(psmChimericAngles, "Chimeric", "", "Spectral Angle", false),
-                        GenericPlots.BoxPlot(psmNonChimericAngles, "Non-Chimeric", "", "Spectral Angle", false)
-                    })
-                    .WithTitle(
-                        $"MetaMorpheus 1% {Labels.GetLabel(isTopDown, ResultType.Psm)} Spectral Angle Distribution", Plotly.NET.Font.init(Size: PlotlyBase.TitleSize))
-                    .WithLayout(PlotlyBase.DefaultLayoutWithLegendLargerText);
-                outName =
-                    $"FdrAnalysis_{Labels.GetLabel(isTopDown, ResultType.Psm)}_{FileIdentifiers.SpectralAngleFigure}_BoxPlot";
-                outPath = Path.Combine(figDir, outName);
-                psmPlot.SaveJPG(outPath, null, 1000, 800);
+                //var psmPlot = Chart.Combine(new[]
+                //    {
+                //        GenericPlots.BoxPlot(psmChimericAngles, "Chimeric", "", "Spectral Angle", false),
+                //        GenericPlots.BoxPlot(psmNonChimericAngles, "Non-Chimeric", "", "Spectral Angle", false)
+                //    })
+                //    .WithTitle(
+                //        $"MetaMorpheus 1% {Labels.GetLabel(isTopDown, ResultType.Psm)} Spectral Angle Distribution", Plotly.NET.Font.init(Size: PlotlyBase.TitleSize))
+                //    .WithLayout(PlotlyBase.DefaultLayoutWithLegendLargerText);
+                //outName =
+                //    $"FdrAnalysis_{Labels.GetLabel(isTopDown, ResultType.Psm)}_{FileIdentifiers.SpectralAngleFigure}_BoxPlot";
+                //outPath = Path.Combine(figDir, outName);
+                //psmPlot.SaveJPG(outPath, null, 1000, 800);
 
                 //psmPlot = Chart.Combine(new[]
                 //    {
@@ -1045,7 +1045,7 @@ namespace TaskLayer.ChimeraAnalysis
                 //outPath = Path.Combine(figDir, outName);
                 //psmPlot.SaveJPG(outPath, null, 1000, 800);
 
-                psmPlot = Chart.Combine(new[]
+                var psmPlot = Chart.Combine(new[]
                     {
                         GenericPlots.Histogram(peptideChimericAngles, "Chimeric", "Spectral Angle", "Count"),
                         GenericPlots.Histogram(psmNonChimericAngles, "Non-Chimeric", "Spectral Angle", "Count")
