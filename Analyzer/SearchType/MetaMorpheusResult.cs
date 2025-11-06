@@ -1091,7 +1091,7 @@ namespace Analyzer.SearchType
 
 
                 default: // all bottom up
-                    massSpecFiles = Directory.GetFiles(Path.Combine(@"B:\RawSpectraFiles\Mann_11cell_lines", DatasetName, "CalibratedAveraged"), "*.mzML",
+                    massSpecFiles = Directory.GetFiles(Path.Combine(@"B:\RawSpectraFiles\Mann_11cell_lines", DatasetName, "106_CalibratedAveraged"), "*.mzML",
                         SearchOption.AllDirectories).ToList();
                     fullDeconDirectory = Path.Combine(@"B:\Users\Nic\Chimeras\Mann_11cell_analysis", DatasetName, "DeconResults",
                         specificDir);

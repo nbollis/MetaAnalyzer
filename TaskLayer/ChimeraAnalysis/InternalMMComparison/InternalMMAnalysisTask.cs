@@ -841,7 +841,7 @@ namespace TaskLayer.ChimeraAnalysis
             };
 
 
-            var label = /*isPrecursor ? sumPrecursor ?*/ "Percent of Signal Identified" /*: "Precursor ID Fractional Intensity" : "Fragment Fractional Intensity"*/;
+            var label = isPrecursor ? sumPrecursor ? "Percent of Signal Identified" : "Precursor ID Fractional Intensity" : "Fragment Fractional Intensity";
             var titleEnd = sumPrecursor
                 ? isPrecursor ? "Per Isolation Window" : "Per MS2"
                 : "Per ID";
