@@ -15,6 +15,7 @@ public enum ExperimentalGroup
     DifferentialMethylFlucRound3_5,
     DifferentialMethylFlucRound3_75,
     DifferentialMethylFlucRound3_1,
+    Naviya_Malat,
 }
 
 public static class StoredInformation
@@ -44,8 +45,7 @@ public static class StoredInformation
 
     // Gradient14 only
     internal static string Gradient14Search = Path.Combine(MixedMethylDirectory, @"Searches\AllGrad14_MethOnlyGptmd_VariableMeth\Task2-SearchVariableMeth\AllOSMs.osmtsv");
-
-    // Gradient13 Only
+    private static string NaviyaGradientDirectory => @"B:\Users\Naviya\RNA\2025_11_06_MALAT_GradientTests";
 
     private static List<RunInformation>? _runInformationList;
     public static List<RunInformation> RunInformationList => _runInformationList ??= rawInputDictionary.SelectMany(p => p.Value).ToList();
@@ -446,7 +446,7 @@ public static class StoredInformation
                 new(Path.Combine(MixedMethylDirectory3, "250315_RNA_FLuc_0-5Met_T1_Grad14_Rep3.raw"),
                     Path.Combine(GradientDirectory, "Gradient14_2.csv"), DifferentialMethylBigSearch3_5,
                     Path.Combine(MixedMethylDirectory3, "TopFD", "250315_RNA_FLuc_0-5Met_T1_Grad14_Rep3_ms1.feature"),
-                    "MeOH", new DoubleRange(30, 70)),             
+                    "MeOH", new DoubleRange(30, 70)),
             }
         },
         {
@@ -483,5 +483,42 @@ public static class StoredInformation
                     "MeOH", new DoubleRange(30, 70))
             }
         },
+
+        { ExperimentalGroup.Naviya_Malat, new() 
+            {
+                new RunInformation(Path.Combine(NaviyaGradientDirectory, "2025_11_06_MALAT_30minDigFresh_1-5ug_NormalMeth_LongestGrad_ACN.raw"),
+                    Path.Combine(GradientDirectory, "Naviya_LongAndLongest.csv"),
+                    Path.Combine(NaviyaGradientDirectory, "2025-11-07-10-19-02_Qval-05", "Task2-RnaSearchTask", "AllOSMs.osmtsv"),
+                    Path.Combine(NaviyaGradientDirectory, "FlashDeconv", "2025_11_06_MALAT_30minDigFresh_1-5ug_NormalMeth_LongestGrad_ACN_ms1.feature"),
+                    "ACN", null),
+
+
+                new RunInformation(Path.Combine(NaviyaGradientDirectory, "2025_11_06_MALAT_30minDigFresh_1-5ug_NormalMeth_MedGrad_ACN.raw"),
+                    Path.Combine(GradientDirectory, "Naviya_LongAndMedium.csv"),
+                    Path.Combine(NaviyaGradientDirectory, "2025-11-07-10-19-02_Qval-05", "Task2-RnaSearchTask", "AllOSMs.osmtsv"),
+                    Path.Combine(NaviyaGradientDirectory, "FlashDeconv", "2025_11_06_MALAT_30minDigFresh_1-5ug_NormalMeth_MedGrad_ACN_ms1.feature"),
+                    "ACN", null),
+
+                new RunInformation(Path.Combine(NaviyaGradientDirectory, "2025_11_06_MALAT_30minDigFresh_10x_1-5ug_NormalMeth_LongGrad_ACN.raw"),
+                    Path.Combine(GradientDirectory, "Naviya_LongAndLow.csv"),
+                    Path.Combine(NaviyaGradientDirectory, "2025-11-07-10-19-02_Qval-05", "Task2-RnaSearchTask", "AllOSMs.osmtsv"),
+                    Path.Combine(NaviyaGradientDirectory, "FlashDeconv", "2025_11_06_MALAT_30minDigFresh_10x_1-5ug_NormalMeth_LongGrad_ACN_ms1.feature"),
+                    "ACN", null),
+
+                new RunInformation(Path.Combine(NaviyaGradientDirectory, "2025_11_06_MALAT_30minDigFrozen_1-5ug_NormalMeth_MedGrad_ACN.raw"),
+                    Path.Combine(GradientDirectory, "Naviya_LongAndMedium.csv"),
+                    Path.Combine(NaviyaGradientDirectory, "2025-11-07-10-19-02_Qval-05", "Task2-RnaSearchTask", "AllOSMs.osmtsv"),
+                    Path.Combine(NaviyaGradientDirectory, "FlashDeconv", "2025_11_06_MALAT_30minDigFrozen_1-5ug_NormalMeth_MedGrad_ACN_ms1.feature"),
+                    "ACN", null),
+
+                new RunInformation(Path.Combine(NaviyaGradientDirectory, "2025_11_06_MALAT_30minDigFrrdj_1-5ug_NormalMeth_LongGrad_ACN.raw"),
+                    Path.Combine(GradientDirectory, "Naviya_LongAndLow.csv"),
+                    Path.Combine(NaviyaGradientDirectory, "2025-11-07-10-19-02_Qval-05", "Task2-RnaSearchTask", "AllOSMs.osmtsv"),
+                    Path.Combine(NaviyaGradientDirectory, "FlashDeconv", "2025_11_06_MALAT_30minDigFrrdj_1-5ug_NormalMeth_LongGrad_ACN_ms1.feature"),
+                    "ACN", null),
+
+            }
+        }
     };
+
 }

@@ -778,13 +778,13 @@ namespace TaskLayer.ChimeraAnalysis
                     && p.Type != "No ID")
                 .ToList();
 
-            GenerateFractionalIntensityPlots(ResultType.Psm, resultsToPlot, true, true, isTopDown);
-            GenerateFractionalIntensityPlots(ResultType.Psm, resultsToPlot, true, false, isTopDown);
+            //GenerateFractionalIntensityPlots(ResultType.Psm, resultsToPlot, true, true, isTopDown);
+            //GenerateFractionalIntensityPlots(ResultType.Psm, resultsToPlot, true, false, isTopDown);
             GenerateFractionalIntensityPlots(ResultType.Peptide, resultsToPlot, true, true, isTopDown);
             GenerateFractionalIntensityPlots(ResultType.Peptide, resultsToPlot, true, false, isTopDown);
 
-            GenerateFractionalIntensityPlots(ResultType.Psm, resultsToPlot, false, false, isTopDown);
-            GenerateFractionalIntensityPlots(ResultType.Psm, resultsToPlot, false, true, isTopDown);
+            //GenerateFractionalIntensityPlots(ResultType.Psm, resultsToPlot, false, false, isTopDown);
+            //GenerateFractionalIntensityPlots(ResultType.Psm, resultsToPlot, false, true, isTopDown);
             GenerateFractionalIntensityPlots(ResultType.Peptide, resultsToPlot, false, false, isTopDown);
             GenerateFractionalIntensityPlots(ResultType.Peptide, resultsToPlot, false, true, isTopDown);
         }
@@ -859,7 +859,35 @@ namespace TaskLayer.ChimeraAnalysis
 
             outName =
                 $"{Version}_SpectrumSummary_{outPrecursor}FractionalIntensity_{outType}_{Labels.GetLabel(isTopDown, resultType)}_Combined";
-            hist.SavePNG(Path.Combine(BulkFigureDirectory, outName), null, 800, 600);
+            try
+            {
+                hist.SavePNG(Path.Combine(BulkFigureDirectory, outName), null, 800, 600);
+            }
+            catch
+            {
+                try
+                {
+                    hist.SaveJPG(Path.Combine(BulkFigureDirectory, outName), null, 800, 600);
+                }
+                catch
+                {
+                    try
+                    {
+                        hist.SaveSVG(Path.Combine(BulkFigureDirectory, outName), null, 800, 600);
+                    }
+                    catch
+                    {
+                        try
+                        {
+                            Plotly.NET.CSharp.GenericChartExtensions.SaveHtml(hist, Path.Combine(BulkFigureDirectory, outName), false);
+                        }
+                        catch (Exception e)
+                        {
+                            Console.WriteLine($"Idk man, we tried them all {Labels.GetLabel(isTopDown, resultType)}: {e}");
+                        }
+                    }
+                }
+            }
         }
 
         static void PlotFdrPlots(Dictionary<string, List<MetaMorpheusResult>> allResults)

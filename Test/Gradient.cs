@@ -12,8 +12,9 @@ namespace Test
     internal class Gradient
     {
 
-        static string GradientDevelopmentDirectory = @"B:\Users\Nic\RNA\FLuc\GradientDevelopment";
-        static string GradientDevelopmentFigureDirectory = @"B:\Users\Nic\RNA\FLuc\GradientDevelopment\Figures";
+        //static string GradientDevelopmentDirectory = @"B:\Users\Nic\RNA\FLuc\GradientDevelopment";
+        static string GradientDevelopmentDirectory = @"B:\Users\Naviya\RNA\2025_11_06_MALAT_GradientTests";
+        static string GradientDevelopmentFigureDirectory = Path.Combine(GradientDevelopmentDirectory, "Figures");
 
         [OneTimeSetUp]
         public void OneTimeSetUp()
@@ -28,22 +29,22 @@ namespace Test
         [Test]
         public static void GetTheInformationYouWant()
         {
-            var batch = StoredInformation.ExperimentalBatches[ExperimentalGroup.DifferentialMethylFlucRound2];
+            var batch = StoredInformation.ExperimentalBatches[ExperimentalGroup.Naviya_Malat];
 
             //var cys = batch.CytosineInformationFile;
             //var fdr = batch.CytosineInformationByFdrFile;
-            //var info = batch.ExtractedInformationFile;
-            //batch.SavePlotHists();
+            var info = batch.ExtractedInformationFile;
+            batch.SavePlotHists();
 
 
-            foreach (var groupIdentifier in Enum.GetValues<ExperimentalGroup>().Where(p => p.ToString().Contains("Round2")))
-            {
-                var batch2 = StoredInformation.ExperimentalBatches[groupIdentifier];
-                var cys2 = batch2.CytosineInformationFile;
-                var fdr2 = batch2.CytosineInformationByFdrFile;
-                //var info2 = batch2.ExtractedInformationFile;
-                batch2.SavePlotHists();
-            }
+            //foreach (var groupIdentifier in Enum.GetValues<ExperimentalGroup>().Where(p => p.ToString().Contains("Round2")))
+            //{
+            //    var batch2 = StoredInformation.ExperimentalBatches[groupIdentifier];
+            //    var cys2 = batch2.CytosineInformationFile;
+            //    var fdr2 = batch2.CytosineInformationByFdrFile;
+            //    //var info2 = batch2.ExtractedInformationFile;
+            //    batch2.SavePlotHists();
+            //}
         }
 
         [Test]

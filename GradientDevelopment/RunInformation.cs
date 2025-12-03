@@ -59,9 +59,9 @@ namespace GradientDevelopment
             // Result file lines
             var lines = File.ReadAllLines(resultsTxtPath.FullName);
             var relevant = lines.Where(p => p.Contains(DataFileName)).ToArray();
-            var ms2Scans = relevant.First(p => p.Contains("MS2 spectra in"));
-            var precursors = relevant.First(p => p.Contains("Precursors fragmented"));
-            var osmLine = relevant.First(p => p.Contains("target PSMs"));
+            var ms2Scans = relevant.First(p => p.Contains("MS2 Scans"));
+            var precursors = relevant.First(p => p.Contains("Precursors"));
+            var osmLine = relevant.First(p => p.Contains("OSMs"));
             var oligLine = relevant.First(p => p.Contains("oligos with q"));
             var ms2ScanCount = int.Parse(ms2Scans.Split(':')[1].Trim());
             var precursorCount = int.Parse(precursors.Split(':')[1].Trim());
