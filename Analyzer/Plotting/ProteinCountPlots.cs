@@ -112,7 +112,7 @@ namespace Analyzer.Plotting
                 var condition = record.Key;
                 var data = record.GetValues(resultType).ToList();
 
-                int max = 80;
+                int max = (int)(data.Max() + (data.Max() * 0.1));
                 switch (plotType)
                 {
                     case DistributionPlotTypes.ViolinPlot:
@@ -127,7 +127,7 @@ namespace Analyzer.Plotting
 
                     case DistributionPlotTypes.BoxPlot:
                         toCombine.Add(GenericPlots.BoxPlot(data, condition, xTitle, yTitle, false)
-                            .WithYAxisStyle<int, int, string>(/*MinMax: new Tuple<int, int>(-10, max)*/)
+                            .WithYAxisStyle<int, int, string>(MinMax: new Tuple<int, int>(-10, max))
                             .WithLegend(false));
                         break;
 
@@ -146,7 +146,6 @@ namespace Analyzer.Plotting
                 .WithLayout(PlotlyBase.DefaultLayoutWithLegendLargerText)
                 .WithSize(1000, 600);
             return finalPlot;
-
         }
     }
 }

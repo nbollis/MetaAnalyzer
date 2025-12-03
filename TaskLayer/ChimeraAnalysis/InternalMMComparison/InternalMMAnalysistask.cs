@@ -1,19 +1,20 @@
-﻿using System.Diagnostics;
-using Analyzer;
+﻿using Analyzer;
+using Analyzer.FileTypes.Internal;
+using Analyzer.Plotting;
 using Analyzer.Plotting.IndividualRunPlots;
 using Analyzer.SearchType;
 using Analyzer.Util;
-using Plotly.NET;
-using Plotly.NET.ImageExport;
-using Analyzer.FileTypes.Internal;
-using Analyzer.Plotting;
 using Calibrator;
 using Easy.Common.Extensions;
+using Plotly.NET;
+using Plotly.NET.ImageExport;
 using Plotting;
 using Plotting.Util;
 using Readers;
 using ResultAnalyzerUtil;
 using ResultAnalyzerUtil.CommandLine;
+using System.Collections.Generic;
+using System.Diagnostics;
 using TaskLayer.CMD;
 
 namespace TaskLayer.ChimeraAnalysis
@@ -157,12 +158,14 @@ namespace TaskLayer.ChimeraAnalysis
                     sw.Stop();
 
                     // if it takes less than one minute to get the breakdown, and we are not overriding, do not plot
-                    if (sw.Elapsed.Minutes < 1 && !Parameters.Override)
-                        return;
+                    //if (sw.Elapsed.Minutes < 1 && !Parameters.Override)
+                    //    return;
                     lock (plottingLock)
                     {
                         mmResult.PlotChimeraBreakDownStackedColumn_Scaled(ResultType.Psm);
                         mmResult.PlotChimeraBreakDownStackedColumn_Scaled(ResultType.Peptide);
+                        mmResult.PlotChimeraBreakDownStackedColumn_Scaled(ResultType.Psm, false);
+                        mmResult.PlotChimeraBreakDownStackedColumn_Scaled(ResultType.Peptide, false);
                     }
                 });
 
@@ -698,22 +701,36 @@ namespace TaskLayer.ChimeraAnalysis
         static void PlotChimeraBreakdownBarChart(List<MetaMorpheusResult> results)
         {
             Log($"Chimera Breakdown", 1);
-            string tempTitleLeader = "Jurkat ";
             bool isTopDown = results.First().IsTopDown;
+            string titleLeader;
+            if (!isTopDown)
+                titleLeader = "All Cell Lines ";
+            else if (results.FirstOrDefault(p => p.DatasetName.Contains("Jurkat")) != null)
+                titleLeader = "Jurkat ";
+            else
+                titleLeader = "E. Coli ";
+
             var resultsToPlot = results.SelectMany(p => p.ChimeraBreakdownFile)
                 .ToList();
 
+            // Logged y scaling
             var psmPlot = resultsToPlot.GetChimeraBreakdownStackedColumn_Scaled(ResultType.Psm, isTopDown)
-                .WithTitle($"{tempTitleLeader}Chimera Spectra Composition (1% {Labels.GetSpectrumMatchLabel(isTopDown)})", Plotly.NET.Font.init(Size: PlotlyBase.TitleSize));
-            var psmOutPath = Path.Combine(BulkFigureDirectory, $"{Version}_ChimeraBreakdown_Absolute_Psm");
-            //var psmOutPath = Path.Combine(BulkFigureDirectory, $"{Version}_ChimeraBreakdown_Psm");
-            psmPlot.SaveJPG(psmOutPath, null, 1000, 800);
+                .WithTitle($"{titleLeader}Chimera Spectra Composition (1% {Labels.GetSpectrumMatchLabel(isTopDown)})", Plotly.NET.Font.init(Size: PlotlyBase.TitleSize));
+            TryAllTheExports(psmPlot, $"{Version}_ChimeraBreakdown_Logged_Psm", 1000, 800, isTopDown, ResultType.Psm);
 
             var peptidePlot = resultsToPlot.GetChimeraBreakdownStackedColumn_Scaled(ResultType.Peptide, isTopDown)
-                .WithTitle($"{tempTitleLeader}Chimera Spectra Composition (1% {Labels.GetPeptideLabel(isTopDown)})", Plotly.NET.Font.init(Size: PlotlyBase.TitleSize));
-            var peptideOutPath = Path.Combine(BulkFigureDirectory, $"{Version}_ChimeraBreakdown_Absolute_Peptide");
-            //var peptideOutPath = Path.Combine(BulkFigureDirectory, $"{Version}_ChimeraBreakdown_Peptide");
-            peptidePlot.SaveJPG(peptideOutPath, null, 1000, 800);
+                .WithTitle($"{titleLeader}Chimera Spectra Composition (1% {Labels.GetPeptideLabel(isTopDown)})", Plotly.NET.Font.init(Size: PlotlyBase.TitleSize));
+            TryAllTheExports(peptidePlot, $"{Version}_ChimeraBreakdown_Logged_Peptide", 1000, 800, isTopDown, ResultType.Peptide);
+
+
+            // Linear y scaling
+            psmPlot = resultsToPlot.GetChimeraBreakdownStackedColumn_Scaled(ResultType.Psm, isTopDown, false)
+                .WithTitle($"{titleLeader}Chimera Spectra Composition (1% {Labels.GetSpectrumMatchLabel(isTopDown)})", Plotly.NET.Font.init(Size: PlotlyBase.TitleSize));
+            TryAllTheExports(psmPlot, $"{Version}_ChimeraBreakdown_Absolute_Psm", 1000, 800, isTopDown, ResultType.Psm);
+
+            peptidePlot = resultsToPlot.GetChimeraBreakdownStackedColumn_Scaled(ResultType.Peptide, isTopDown, false)
+                .WithTitle($"{titleLeader}Chimera Spectra Composition (1% {Labels.GetPeptideLabel(isTopDown)})", Plotly.NET.Font.init(Size: PlotlyBase.TitleSize));
+            TryAllTheExports(peptidePlot, $"{Version}_ChimeraBreakdown_Absolute_Peptide", 1000, 800, isTopDown, ResultType.Peptide);
         }
 
         static void PlotPossibleFeatures(List<MetaMorpheusResult> results)
@@ -778,13 +795,13 @@ namespace TaskLayer.ChimeraAnalysis
                     && p.Type != "No ID")
                 .ToList();
 
-            //GenerateFractionalIntensityPlots(ResultType.Psm, resultsToPlot, true, true, isTopDown);
-            //GenerateFractionalIntensityPlots(ResultType.Psm, resultsToPlot, true, false, isTopDown);
+            GenerateFractionalIntensityPlots(ResultType.Psm, resultsToPlot, true, true, isTopDown);
+            GenerateFractionalIntensityPlots(ResultType.Psm, resultsToPlot, true, false, isTopDown);
             GenerateFractionalIntensityPlots(ResultType.Peptide, resultsToPlot, true, true, isTopDown);
             GenerateFractionalIntensityPlots(ResultType.Peptide, resultsToPlot, true, false, isTopDown);
 
-            //GenerateFractionalIntensityPlots(ResultType.Psm, resultsToPlot, false, false, isTopDown);
-            //GenerateFractionalIntensityPlots(ResultType.Psm, resultsToPlot, false, true, isTopDown);
+            GenerateFractionalIntensityPlots(ResultType.Psm, resultsToPlot, false, false, isTopDown);
+            GenerateFractionalIntensityPlots(ResultType.Psm, resultsToPlot, false, true, isTopDown);
             GenerateFractionalIntensityPlots(ResultType.Peptide, resultsToPlot, false, false, isTopDown);
             GenerateFractionalIntensityPlots(ResultType.Peptide, resultsToPlot, false, true, isTopDown);
         }
@@ -841,7 +858,9 @@ namespace TaskLayer.ChimeraAnalysis
             };
 
 
-            var label = isPrecursor ? sumPrecursor ? "Percent of Signal Identified" : "Precursor ID Fractional Intensity" : "Fragment Fractional Intensity";
+            var label = isPrecursor ? 
+                sumPrecursor ? "Percent of Signal Identified" : "Precursor ID Fractional Intensity" 
+                : "Percent of Signal Identified";
             var titleEnd = sumPrecursor
                 ? isPrecursor ? "Per Isolation Window" : "Per MS2"
                 : "Per ID";
@@ -851,7 +870,7 @@ namespace TaskLayer.ChimeraAnalysis
             var chimericHist = GenericPlots.Histogram(chimericFractionalIntensity, "Chimeric ID", label, "Number of Spectra", false, minMax);
             var nonChimericHist = GenericPlots.Histogram(nonChimericFractionalIntensity, "Non-Chimeric ID", label, "Number of Spectra", false, minMax);
             var hist = Chart.Combine(new List<GenericChart.GenericChart> { chimericHist, nonChimericHist })
-                .WithTitle($"1% {Labels.GetLabel(isTopDown, resultType)} Identified {outPrecursor} Intensity {titleEnd}", Plotly.NET.Font.init(Size: PlotlyBase.TitleSize))
+                .WithTitle($"Identified {outPrecursor} Intensity {titleEnd} (1% {Labels.GetLabel(isTopDown, resultType)})", Plotly.NET.Font.init(Size: PlotlyBase.TitleSize))
                 .WithYAxisStyle(Title.init("Number of Spectra", Font: Font.init(Size: PlotlyBase.AxisTitleFontSize)), Side: StyleParam.Side.Left,
                     Id: StyleParam.SubPlotId.NewYAxis(1))
                 .WithLayout(PlotlyBase.DefaultLayoutWithLegendLargeText);
@@ -859,35 +878,8 @@ namespace TaskLayer.ChimeraAnalysis
 
             outName =
                 $"{Version}_SpectrumSummary_{outPrecursor}FractionalIntensity_{outType}_{Labels.GetLabel(isTopDown, resultType)}_Combined";
-            try
-            {
-                hist.SavePNG(Path.Combine(BulkFigureDirectory, outName), null, 800, 600);
-            }
-            catch
-            {
-                try
-                {
-                    hist.SaveJPG(Path.Combine(BulkFigureDirectory, outName), null, 800, 600);
-                }
-                catch
-                {
-                    try
-                    {
-                        hist.SaveSVG(Path.Combine(BulkFigureDirectory, outName), null, 800, 600);
-                    }
-                    catch
-                    {
-                        try
-                        {
-                            Plotly.NET.CSharp.GenericChartExtensions.SaveHtml(hist, Path.Combine(BulkFigureDirectory, outName), false);
-                        }
-                        catch (Exception e)
-                        {
-                            Console.WriteLine($"Idk man, we tried them all {Labels.GetLabel(isTopDown, resultType)}: {e}");
-                        }
-                    }
-                }
-            }
+
+            TryAllTheExports(hist, Path.Combine(BulkFigureDirectory, outName), 900, 900, isTopDown, resultType);
         }
 
         static void PlotFdrPlots(Dictionary<string, List<MetaMorpheusResult>> allResults)
@@ -912,12 +904,12 @@ namespace TaskLayer.ChimeraAnalysis
                 var chart = psms.GetTargetDecoyCurve(ResultType.Psm, TargetDecoyCurveMode.Score, name, condition, isTopDown);
                 var outName = $"FdrAnalysis_{Labels.GetLabel(isTopDown, ResultType.Psm)}_{FileIdentifiers.TargetDecoyCurve}";
                 var outPath = Path.Combine(figDir, outName);
-                chart.SaveJPG(outPath, null, 1000, 800);
+                TryAllTheExports(chart, outPath, 1000, 800, isTopDown, ResultType.Psm);
 
                 var chimStratChart = psms.GetTargetDecoyCurveChimeraStratified(ResultType.Psm, TargetDecoyCurveMode.Score, name, condition, isTopDown);
                 outName = $"FdrAnalysis_{Labels.GetLabel(isTopDown, ResultType.Psm)}_{FileIdentifiers.TargetDecoyCurve}_ChimeraStratified";
                 outPath = Path.Combine(figDir, outName);
-                chimStratChart.SaveJPG(outPath, null, 1000, 800);
+                TryAllTheExports(chimStratChart, outPath, 1000, 800, isTopDown, ResultType.Psm);
             }
         }
 
@@ -981,29 +973,29 @@ namespace TaskLayer.ChimeraAnalysis
                     }
                 }
 
-                //var peptidePlot = AnalyzerGenericPlots.SpectralAngleChimeraComparisonViolinPlot(
-                //        peptideChimericAngles.ToArray(), peptideNonChimericAngles.ToArray(),
-                //        "", isTopDown, ResultType.Peptide)
-                //    .WithTitle(
-                //        $"MetaMorpheus 1% {Labels.GetLabel(isTopDown, ResultType.Peptide)} Spectral Angle Distribution", Plotly.NET.Font.init(Size: PlotlyBase.TitleSize))
-                //    .WithLayout(PlotlyBase.DefaultLayoutWithLegendLargerText);
-                //var outName =
-                //    $"FdrAnalysis_{Labels.GetLabel(isTopDown, ResultType.Peptide)}_{FileIdentifiers.SpectralAngleFigure}_ViolinPlot";
-                //var outPath = Path.Combine(figDir, outName);
-                //peptidePlot.SaveJPG(outPath, null, 1000, 800);
+                var peptidePlot = AnalyzerGenericPlots.SpectralAngleChimeraComparisonViolinPlot(
+                        peptideChimericAngles.ToArray(), peptideNonChimericAngles.ToArray(),
+                        "", isTopDown, ResultType.Peptide)
+                    .WithTitle(
+                        $"MetaMorpheus 1% {Labels.GetLabel(isTopDown, ResultType.Peptide)} Spectral Angle Distribution", Plotly.NET.Font.init(Size: PlotlyBase.TitleSize))
+                    .WithLayout(PlotlyBase.DefaultLayoutWithLegendLargerText);
+                var outName =
+                    $"FdrAnalysis_{Labels.GetLabel(isTopDown, ResultType.Peptide)}_{FileIdentifiers.SpectralAngleFigure}_ViolinPlot";
+                var outPath = Path.Combine(figDir, outName);
+                TryAllTheExports(peptidePlot, outPath, 1000, 800, isTopDown, ResultType.Peptide);
 
-                //var peptidePlot = Chart.Combine(new[]
-                //    {
-                //        GenericPlots.BoxPlot(peptideChimericAngles, "Chimeric", "", "Spectral Angle"),
-                //        GenericPlots.BoxPlot(peptideNonChimericAngles, "Non-Chimeric", "", "Spectral Angle")
-                //    })
-                //    .WithTitle(
-                //        $"MetaMorpheus 1% {Labels.GetLabel(isTopDown, ResultType.Peptide)} Spectral Angle Distribution", Plotly.NET.Font.init(Size: PlotlyBase.TitleSize))
-                //    .WithLayout(PlotlyBase.DefaultLayoutWithLegendLargerText);
-                //var outName =
-                //    $"FdrAnalysis_{Labels.GetLabel(isTopDown, ResultType.Peptide)}_{FileIdentifiers.SpectralAngleFigure}_BoxPlot";
-                //var outPath = Path.Combine(figDir, outName);
-                //peptidePlot.SaveJPG(outPath, null, 1000, 800);
+                peptidePlot = Chart.Combine(new[]
+                    {
+                        GenericPlots.BoxPlot(peptideChimericAngles, "Chimeric", "", "Spectral Angle"),
+                        GenericPlots.BoxPlot(peptideNonChimericAngles, "Non-Chimeric", "", "Spectral Angle")
+                    })
+                    .WithTitle(
+                        $"MetaMorpheus 1% {Labels.GetLabel(isTopDown, ResultType.Peptide)} Spectral Angle Distribution", Plotly.NET.Font.init(Size: PlotlyBase.TitleSize))
+                    .WithLayout(PlotlyBase.DefaultLayoutWithLegendLargerText);
+                outName =
+                    $"FdrAnalysis_{Labels.GetLabel(isTopDown, ResultType.Peptide)}_{FileIdentifiers.SpectralAngleFigure}_BoxPlot";
+                outPath = Path.Combine(figDir, outName);
+                TryAllTheExports(peptidePlot, outPath, 1000, 800, isTopDown, ResultType.Peptide);
 
                 //peptidePlot = Chart.Combine(new[]
                 //    {
@@ -1020,7 +1012,7 @@ namespace TaskLayer.ChimeraAnalysis
                 //outPath = Path.Combine(figDir, outName);
                 //peptidePlot.SaveJPG(outPath, null, 1000, 800);
 
-                var peptidePlot = Chart.Combine(new[]
+                peptidePlot = Chart.Combine(new[]
                     {
                         GenericPlots.Histogram(peptideChimericAngles, "Chimeric", "Spectral Angle", "Count"),
                         GenericPlots.Histogram(peptideNonChimericAngles, "Non-Chimeric", "Spectral Angle", "Count")
@@ -1028,35 +1020,35 @@ namespace TaskLayer.ChimeraAnalysis
                     .WithTitle(
                         $"MetaMorpheus 1% {Labels.GetLabel(isTopDown, ResultType.Peptide)} Spectral Angle Distribution", Plotly.NET.Font.init(Size: PlotlyBase.TitleSize))
                     .WithLayout(PlotlyBase.DefaultLayoutWithLegendLargerText);
-                var outName =
+                outName =
                     $"FdrAnalysis_{Labels.GetLabel(isTopDown, ResultType.Peptide)}_{FileIdentifiers.SpectralAngleFigure}_Histogram";
-                var outPath = Path.Combine(figDir, outName);
-                peptidePlot.SaveJPG(outPath, null, 1000, 800);
+                outPath = Path.Combine(figDir, outName);
+                TryAllTheExports(peptidePlot, outPath, 1000, 800, isTopDown, ResultType.Peptide);
 
 
-                //var psmPlot = AnalyzerGenericPlots.SpectralAngleChimeraComparisonViolinPlot(psmChimericAngles.ToArray(),
-                //        psmNonChimericAngles.ToArray(),
-                //        "", isTopDown, ResultType.Psm)
-                //    .WithTitle(
-                //        $"MetaMorpheus 1% {Labels.GetLabel(isTopDown, ResultType.Psm)} Spectral Angle Distribution", Plotly.NET.Font.init(Size: PlotlyBase.TitleSize))
-                //    .WithLayout(PlotlyBase.DefaultLayoutWithLegendLargerText);
-                //outName =
-                //    $"FdrAnalysis_{Labels.GetLabel(isTopDown, ResultType.Psm)}_{FileIdentifiers.SpectralAngleFigure}_ViolinPlot";
-                //outPath = Path.Combine(figDir, outName);
-                //peptidePlot.SaveJPG(outPath, null, 1000, 800);
+                var psmPlot = AnalyzerGenericPlots.SpectralAngleChimeraComparisonViolinPlot(psmChimericAngles.ToArray(),
+                        psmNonChimericAngles.ToArray(),
+                        "", isTopDown, ResultType.Psm)
+                    .WithTitle(
+                        $"MetaMorpheus 1% {Labels.GetLabel(isTopDown, ResultType.Psm)} Spectral Angle Distribution", Plotly.NET.Font.init(Size: PlotlyBase.TitleSize))
+                    .WithLayout(PlotlyBase.DefaultLayoutWithLegendLargerText);
+                outName =
+                    $"FdrAnalysis_{Labels.GetLabel(isTopDown, ResultType.Psm)}_{FileIdentifiers.SpectralAngleFigure}_ViolinPlot";
+                outPath = Path.Combine(figDir, outName);
+                TryAllTheExports(psmPlot, outPath, 1000, 800, isTopDown, ResultType.Psm);
 
-                //var psmPlot = Chart.Combine(new[]
-                //    {
-                //        GenericPlots.BoxPlot(psmChimericAngles, "Chimeric", "", "Spectral Angle", false),
-                //        GenericPlots.BoxPlot(psmNonChimericAngles, "Non-Chimeric", "", "Spectral Angle", false)
-                //    })
-                //    .WithTitle(
-                //        $"MetaMorpheus 1% {Labels.GetLabel(isTopDown, ResultType.Psm)} Spectral Angle Distribution", Plotly.NET.Font.init(Size: PlotlyBase.TitleSize))
-                //    .WithLayout(PlotlyBase.DefaultLayoutWithLegendLargerText);
-                //outName =
-                //    $"FdrAnalysis_{Labels.GetLabel(isTopDown, ResultType.Psm)}_{FileIdentifiers.SpectralAngleFigure}_BoxPlot";
-                //outPath = Path.Combine(figDir, outName);
-                //psmPlot.SaveJPG(outPath, null, 1000, 800);
+                psmPlot = Chart.Combine(new[]
+                    {
+                        GenericPlots.BoxPlot(psmChimericAngles, "Chimeric", "", "Spectral Angle", false),
+                        GenericPlots.BoxPlot(psmNonChimericAngles, "Non-Chimeric", "", "Spectral Angle", false)
+                    })
+                    .WithTitle(
+                        $"MetaMorpheus 1% {Labels.GetLabel(isTopDown, ResultType.Psm)} Spectral Angle Distribution", Plotly.NET.Font.init(Size: PlotlyBase.TitleSize))
+                    .WithLayout(PlotlyBase.DefaultLayoutWithLegendLargerText);
+                outName =
+                    $"FdrAnalysis_{Labels.GetLabel(isTopDown, ResultType.Psm)}_{FileIdentifiers.SpectralAngleFigure}_BoxPlot";
+                outPath = Path.Combine(figDir, outName);
+                TryAllTheExports(psmPlot, outPath, 1000, 800, isTopDown, ResultType.Psm);
 
                 //psmPlot = Chart.Combine(new[]
                 //    {
@@ -1073,7 +1065,7 @@ namespace TaskLayer.ChimeraAnalysis
                 //outPath = Path.Combine(figDir, outName);
                 //psmPlot.SaveJPG(outPath, null, 1000, 800);
 
-                var psmPlot = Chart.Combine(new[]
+                psmPlot = Chart.Combine(new[]
                     {
                         GenericPlots.Histogram(peptideChimericAngles, "Chimeric", "Spectral Angle", "Count"),
                         GenericPlots.Histogram(psmNonChimericAngles, "Non-Chimeric", "Spectral Angle", "Count")
@@ -1084,9 +1076,42 @@ namespace TaskLayer.ChimeraAnalysis
                 outName =
                     $"FdrAnalysis_{Labels.GetLabel(isTopDown, ResultType.Psm)}_{FileIdentifiers.SpectralAngleFigure}_Histogram";
                 outPath = Path.Combine(figDir, outName);
-                psmPlot.SaveJPG(outPath, null, 1000, 800);
+                TryAllTheExports(psmPlot, outPath, 1000, 800, isTopDown, ResultType.Psm);
             }
         }
         #endregion
+
+        static void TryAllTheExports(GenericChart.GenericChart chart, string outName, int width, int height, bool isTopDown, ResultType resultType)
+        {
+            try
+            {
+                chart.SavePNG(Path.Combine(BulkFigureDirectory, outName), null, width, height);
+            }
+            catch
+            {
+                try
+                {
+                    chart.SaveJPG(Path.Combine(BulkFigureDirectory, outName), null, width, height);
+                }
+                catch
+                {
+                    try
+                    {
+                        chart.SaveSVG(Path.Combine(BulkFigureDirectory, outName), null, width, height);
+                    }
+                    catch
+                    {
+                        try
+                        {
+                            Plotly.NET.CSharp.GenericChartExtensions.SaveHtml(chart, Path.Combine(BulkFigureDirectory, outName), false);
+                        }
+                        catch (Exception e)
+                        {
+                            Console.WriteLine($"Idk man, we tried them all {Labels.GetLabel(isTopDown, resultType)}: {e}");
+                        }
+                    }
+                }
+            }
+        }
     }
 }

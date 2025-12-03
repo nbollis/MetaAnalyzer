@@ -185,15 +185,15 @@ namespace Analyzer.Plotting.IndividualRunPlots
                         .GetChimeraBreakdownStackedColumn_Scaled(resultType, cellLine.First().IsTopDown)
                         .WithTitle($"{cellLine.CellLine} 1% {Labels.GetLabel(cellLine.First().IsTopDown, resultType)} Identifications")
                         .SaveInCellLineOnly(cellLine, $"ChimeraBreakdown_Hybrid_{Labels.GetLabel(cellLine.First().IsTopDown, resultType)}_{cellLine.CellLine}", 1000, 1000);
-        public static void PlotChimeraBreakDownStackedColumn_Scaled(this IChimeraBreakdownCompatible result, ResultType resultType)
+        public static void PlotChimeraBreakDownStackedColumn_Scaled(this IChimeraBreakdownCompatible result, ResultType resultType, bool logyScaling = true)
             => result.ChimeraBreakdownFile.Results
-                .GetChimeraBreakdownStackedColumn_Scaled(resultType, result.IsTopDown)
+                .GetChimeraBreakdownStackedColumn_Scaled(resultType, result.IsTopDown, logyScaling)
                 .WithTitle($"{result.DatasetName} {result.Condition} 1% {Labels.GetLabel(result.IsTopDown, resultType)} Identifications")
-                .SaveInRunResultOnly(result as SingleRunResults, $"ChimeraBreakdown_Hybrid_{Labels.GetLabel(result.IsTopDown, resultType)}", 1000, 1000);
+                .SaveInRunResultOnly(result as SingleRunResults, $"ChimeraBreakdown_{(logyScaling ? "Logged" : "Absolute")}_{Labels.GetLabel(result.IsTopDown, resultType)}", 1000, 1000);
 
         public static GenericChart.GenericChart GetChimeraBreakdownStackedColumn_Scaled(
             this List<ChimeraBreakdownRecord> results, ResultType resultType = ResultType.Psm, 
-            bool isTopDown = false)
+            bool isTopDown = false, bool logyScaling = true)
         {
 
             (int IdsPerSpectra, double Parent, double UniqueProtein, double UniqueForms, double Decoys, double Duplicates, double Entrapment, double MonoErrorCount, double MassDuplicateCount)[] data = 
@@ -295,10 +295,14 @@ namespace Analyzer.Plotting.IndividualRunPlots
 
             string title = Labels.GetLabel(isTopDown, resultType);
 
+            StyleParam.AxisType axisType = logyScaling 
+                ? StyleParam.AxisType.Log 
+                : StyleParam.AxisType.Linear;
+
             var chart = Chart.Combine(charts)
                 .WithTitle($"{title} Identifications per Spectra")
                 .WithXAxisStyle(Title.init($"1% {Labels.GetLabel(isTopDown, resultType)} per Spectrum", Font: Font.init(Size: PlotlyBase.AxisTitleFontSize)))
-                .WithYAxis(LinearAxis.init<int, int, int, int, int, int>(AxisType: StyleParam.AxisType.Log))
+                .WithYAxis(LinearAxis.init<int, int, int, int, int, int>(AxisType: axisType))
                 .WithYAxisStyle(Title.init("Count of Spectra", Font: Font.init(Size: PlotlyBase.AxisTitleFontSize)))
                 .WithLayout(PlotlyBase.DefaultLayoutWithLegendLargerText);
           

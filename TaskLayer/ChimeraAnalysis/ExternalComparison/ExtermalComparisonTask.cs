@@ -103,13 +103,16 @@ namespace TaskLayer.ChimeraAnalysis
                     _ = mmResult.GetChimeraBreakdownFile();
                     sw.Stop();
 
-                    // if it takes less than one minute to get the breakdown, and we are not overriding, do not plot
-                    if (sw.Elapsed.Minutes < 1 && !Parameters.Override)
-                        return;
+                    //// if it takes less than one minute to get the breakdown, and we are not overriding, do not plot
+                    //if (sw.Elapsed.Minutes < 1 && !Parameters.Override)
+                    //    return;
                     lock(plottingLock)
                     {
                         mmResult.PlotChimeraBreakDownStackedColumn_Scaled(ResultType.Psm);
                         mmResult.PlotChimeraBreakDownStackedColumn_Scaled(ResultType.Peptide);
+
+                        mmResult.PlotChimeraBreakDownStackedColumn_Scaled(ResultType.Psm, false);
+                        mmResult.PlotChimeraBreakDownStackedColumn_Scaled(ResultType.Peptide, false);
                     }
                 });
 
@@ -157,7 +160,6 @@ namespace TaskLayer.ChimeraAnalysis
             var bulkResults = GetResultCountFile(allPaths.Select(p => resultCache[p]).ToList());
             PlotCellLineBulkBarCharts(bulkResults.Results, isTopDown);
 
-
             // Run Protein Information
             Log("Creating Proforma Files", 1);
             foreach (var cellLineDictEntry in cellLineDict)
@@ -179,7 +181,7 @@ namespace TaskLayer.ChimeraAnalysis
             var proformaResultPath = Path.Combine(BulkFigureDirectory, "ProformaResults");
             foreach (var condition in proformaGroups)
             {
-                var proforomaFileName = Path.Combine(proformaResultPath, condition.Key + "_PSM_" + FileIdentifiers.ProformaFile);
+                var proforomaFileName = Path.Combine(proformaResultPath, Version + "_" + condition.Key + "_PSM_" + FileIdentifiers.ProformaFile);
                 var records = new List<ProformaRecord>();
                 foreach (var result in condition.Value)
                     records.AddRange(result.ToPsmProformaFile().Results);
@@ -728,15 +730,15 @@ namespace TaskLayer.ChimeraAnalysis
 
 
             var psmPlot = GetIndividualSummedBarChar(toPlot, ResultType.Psm, isTopDown);
-            var outPath = Path.Combine(BulkFigureDirectory, "ResultsByCellLine_Averaged_PSM");
+            var outPath = Path.Combine(BulkFigureDirectory, $"{Version}_ResultsByCellLine_Averaged_PSM");
             psmPlot.SavePNG(outPath, null, 1200, 800);
 
             var peptidePlot = GetIndividualSummedBarChar(toPlot, ResultType.Peptide, isTopDown);
-            outPath = Path.Combine(BulkFigureDirectory, "ResultsByCellLine_Averaged_Peptide");
+            outPath = Path.Combine(BulkFigureDirectory, $"{Version}_ResultsByCellLine_Averaged_Peptide");
             peptidePlot.SavePNG(outPath, null, 1200, 800);
 
             var proteinPlot = GetIndividualSummedBarChar(toPlot, ResultType.Protein, isTopDown);
-            outPath = Path.Combine(BulkFigureDirectory, "ResultsByCellLine_Averaged_Protein");
+            outPath = Path.Combine(BulkFigureDirectory, $"{Version}_ResultsByCellLine_Averaged_Protein");
             proteinPlot.SavePNG(outPath, null, 1200, 800);
         }
 
@@ -796,15 +798,15 @@ namespace TaskLayer.ChimeraAnalysis
         {
 
             var psmPlot = GetBulkBarChar(records, ResultType.Psm, isTopDown);
-            var outPath = Path.Combine(BulkFigureDirectory, "Bulk_ResultsByCellLine_PSM");
+            var outPath = Path.Combine(BulkFigureDirectory, $"{Version}_Bulk_ResultsByCellLine_PSM");
             psmPlot.SavePNG(outPath, null, 800, 600);
 
             var peptidePlot = GetBulkBarChar(records, ResultType.Peptide, isTopDown);
-            outPath = Path.Combine(BulkFigureDirectory, "Bulk_ResultsByCellLine_Peptide");
+            outPath = Path.Combine(BulkFigureDirectory, $"{Version}_Bulk_ResultsByCellLine_Peptide");
             peptidePlot.SavePNG(outPath, null, 800, 600);
 
             var proteinPlot = GetBulkBarChar(records, ResultType.Protein, isTopDown);
-            outPath = Path.Combine(BulkFigureDirectory, "Bulk_ResultsByCellLine_Protein");
+            outPath = Path.Combine(BulkFigureDirectory, $"{Version}_Bulk_ResultsByCellLine_Protein");
             proteinPlot.SavePNG(outPath, null, 800, 600);
         }
 
