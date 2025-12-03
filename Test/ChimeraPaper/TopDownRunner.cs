@@ -9,6 +9,7 @@ using Plotly.NET.ImageExport;
 using Plotting.Util;
 using ResultAnalyzerUtil;
 using System.Diagnostics;
+using Analyzer.Plotting.AggregatePlots;
 using UsefulProteomicsDatabases;
 
 namespace Test.ChimeraPaper
@@ -48,6 +49,7 @@ namespace Test.ChimeraPaper
         public static void RunAllParsing()
         {
             foreach (var cellLine in AllResults)
+                
             {
                 foreach (var result in cellLine)
                 {
@@ -80,16 +82,16 @@ namespace Test.ChimeraPaper
                         } catch { // Ignore
                         }
                     }
-                    //if (result is IChimeraPeptideCounter pc)
-                    //    pc.CountChimericPeptides();
+                    if (result is IChimeraPeptideCounter pc)
+                        pc.CountChimericPeptides();
                     //if (result is MetaMorpheusResult mm)
                     //{
-                    //    //mm.PlotPepFeaturesScatterGrid();
-                    //    //mm.ExportCombinedChimeraTargetDecoyExploration(mm.FigureDirectory, mm.Condition);
-                    //    //mm.PlotTargetDecoyCurves(ResultType.Psm, TargetDecoyCurveMode.Score, false);
-                    //    //mm.PlotTargetDecoyCurves(ResultType.Psm, TargetDecoyCurveMode.Score, true);
-                    //    //mm.PlotTargetDecoyCurves(ResultType.Peptide, TargetDecoyCurveMode.Score, false);
-                    //    //mm.PlotTargetDecoyCurves(ResultType.Peptide, TargetDecoyCurveMode.Score, true);
+                    //    mm.PlotPepFeaturesScatterGrid();
+                    //    mm.ExportCombinedChimeraTargetDecoyExploration(mm.FigureDirectory, mm.Condition);
+                    //    mm.PlotTargetDecoyCurves(ResultType.Psm, TargetDecoyCurveMode.Score, false);
+                    //    mm.PlotTargetDecoyCurves(ResultType.Psm, TargetDecoyCurveMode.Score, true);
+                    //    mm.PlotTargetDecoyCurves(ResultType.Peptide, TargetDecoyCurveMode.Score, false);
+                    //    mm.PlotTargetDecoyCurves(ResultType.Peptide, TargetDecoyCurveMode.Score, true);
                     //}
                     result.Override = false;
                 }
@@ -101,14 +103,14 @@ namespace Test.ChimeraPaper
                 cellLine.CountChimericPeptides();
                 cellLine.Override = false;
 
-                ////cellLine.PlotIndividualFileResults();
-                ////cellLine.PlotCellLineSpectralSimilarity();
-                //cellLine.PlotCellLineChimeraBreakdown();
-                //cellLine.PlotCellLineChimeraBreakdown_TargetDecoy();
-                ////cellLine.PlotModificationDistribution(ResultType.Psm, false);
-                ////cellLine.PlotModificationDistribution(ResultType.Peptide, false);
+                cellLine.PlotIndividualFileResults();
+                cellLine.PlotCellLineSpectralSimilarity();
+                cellLine.PlotCellLineChimeraBreakdown();
+                cellLine.PlotCellLineChimeraBreakdown_TargetDecoy();
+                cellLine.PlotModificationDistribution(ResultType.Psm, false);
+                cellLine.PlotModificationDistribution(ResultType.Peptide, false);
 
-                //cellLine.Dispose();
+                cellLine.Dispose();
             }
 
             AllResults.Override = true;
@@ -206,20 +208,16 @@ namespace Test.ChimeraPaper
                     _ => throw new ArgumentOutOfRangeException()
                 };
 
-                // TODO: remove this
-                if (software.StartsWith("M"))
-                    continue;
-
                 result.Override = true;
-                //var chimericPsms = result.CountChimericPsms();
-                //if (chimeraCountingResults == null)
-                //{
-                //    chimeraCountingResults = chimericPsms;
-                //}
-                //else
-                //{
-                //    chimeraCountingResults.Results.AddRange(chimericPsms.Results);
-                //}
+                var chimericPsms = result.CountChimericPsms();
+                if (chimeraCountingResults == null)
+                {
+                    chimeraCountingResults = chimericPsms;
+                }
+                else
+                {
+                    chimeraCountingResults.Results.AddRange(chimericPsms.Results);
+                }
 
                 var proforma = result.ToPsmProformaFile();
                 result.Override = false;

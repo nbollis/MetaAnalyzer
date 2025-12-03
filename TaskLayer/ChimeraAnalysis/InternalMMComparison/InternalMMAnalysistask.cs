@@ -365,6 +365,8 @@ namespace TaskLayer.ChimeraAnalysis
             }
 
             var countingRecords = cellLineDict.SelectMany(p => p.Value.SelectMany(m => m.CountProteins().Results)).ToList();
+
+            Log("Creating Protein Count Plots");
             ExternalComparisonTask.PlotProteinCountingCharts(countingRecords, isTopDown, BulkFigureDirectory);
 
             var resultsForInternalComparison = cellLineDict
@@ -787,7 +789,7 @@ namespace TaskLayer.ChimeraAnalysis
 
         static void PlotFractionalIntensityPlots(List<MetaMorpheusResult> results)
         {
-            Log($"Fractional Intensity", 1);
+            Log($"Plotting Fractional Intensity", 1);
             bool isTopDown = results.First().IsTopDown;
             var resultsToPlot = results.SelectMany(p => p.ChimericSpectrumSummaryFile)
                 .Where(p =>
@@ -795,13 +797,15 @@ namespace TaskLayer.ChimeraAnalysis
                     && p.Type != "No ID")
                 .ToList();
 
+            Log($"Plotting PSM Fractional Intensity", 2);
             GenerateFractionalIntensityPlots(ResultType.Psm, resultsToPlot, true, true, isTopDown);
             GenerateFractionalIntensityPlots(ResultType.Psm, resultsToPlot, true, false, isTopDown);
-            GenerateFractionalIntensityPlots(ResultType.Peptide, resultsToPlot, true, true, isTopDown);
-            GenerateFractionalIntensityPlots(ResultType.Peptide, resultsToPlot, true, false, isTopDown);
-
             GenerateFractionalIntensityPlots(ResultType.Psm, resultsToPlot, false, false, isTopDown);
             GenerateFractionalIntensityPlots(ResultType.Psm, resultsToPlot, false, true, isTopDown);
+
+            Log($"Plotting Peptide Fractional Intensity", 2);
+            GenerateFractionalIntensityPlots(ResultType.Peptide, resultsToPlot, true, true, isTopDown);
+            GenerateFractionalIntensityPlots(ResultType.Peptide, resultsToPlot, true, false, isTopDown);
             GenerateFractionalIntensityPlots(ResultType.Peptide, resultsToPlot, false, false, isTopDown);
             GenerateFractionalIntensityPlots(ResultType.Peptide, resultsToPlot, false, true, isTopDown);
         }
@@ -915,11 +919,13 @@ namespace TaskLayer.ChimeraAnalysis
 
         static void PlotSpectralAnglePlots(Dictionary<string, List<MetaMorpheusResult>> allResults)
         {
+            Log("Creating Aggregate Spectral Angle Plots");
             foreach (var conditionGroup in allResults)
             {
                 if (conditionGroup.Key.Contains("Non-chimeric")) continue;
                 if (conditionGroup.Key.Contains("No Chimeras")) continue;
 
+                Log($"... for condition {conditionGroup.Key}", 2);
                 bool isTopDown = conditionGroup.Value.First().IsTopDown;
                 var figDir = Path.Combine(BulkFigureDirectory, conditionGroup.Key);
                 if (!Directory.Exists(figDir))
@@ -983,6 +989,7 @@ namespace TaskLayer.ChimeraAnalysis
                     $"FdrAnalysis_{Labels.GetLabel(isTopDown, ResultType.Peptide)}_{FileIdentifiers.SpectralAngleFigure}_ViolinPlot";
                 var outPath = Path.Combine(figDir, outName);
                 TryAllTheExports(peptidePlot, outPath, 1000, 800, isTopDown, ResultType.Peptide);
+                Log("Finished Peptide Violin", 3);
 
                 peptidePlot = Chart.Combine(new[]
                     {
@@ -996,6 +1003,7 @@ namespace TaskLayer.ChimeraAnalysis
                     $"FdrAnalysis_{Labels.GetLabel(isTopDown, ResultType.Peptide)}_{FileIdentifiers.SpectralAngleFigure}_BoxPlot";
                 outPath = Path.Combine(figDir, outName);
                 TryAllTheExports(peptidePlot, outPath, 1000, 800, isTopDown, ResultType.Peptide);
+                Log("Finished Peptide Box", 3);
 
                 //peptidePlot = Chart.Combine(new[]
                 //    {
@@ -1024,6 +1032,7 @@ namespace TaskLayer.ChimeraAnalysis
                     $"FdrAnalysis_{Labels.GetLabel(isTopDown, ResultType.Peptide)}_{FileIdentifiers.SpectralAngleFigure}_Histogram";
                 outPath = Path.Combine(figDir, outName);
                 TryAllTheExports(peptidePlot, outPath, 1000, 800, isTopDown, ResultType.Peptide);
+                Log("Finished Peptide Histogram", 3);
 
 
                 var psmPlot = AnalyzerGenericPlots.SpectralAngleChimeraComparisonViolinPlot(psmChimericAngles.ToArray(),
@@ -1036,6 +1045,7 @@ namespace TaskLayer.ChimeraAnalysis
                     $"FdrAnalysis_{Labels.GetLabel(isTopDown, ResultType.Psm)}_{FileIdentifiers.SpectralAngleFigure}_ViolinPlot";
                 outPath = Path.Combine(figDir, outName);
                 TryAllTheExports(psmPlot, outPath, 1000, 800, isTopDown, ResultType.Psm);
+                Log("Finished PSM Violin", 3);
 
                 psmPlot = Chart.Combine(new[]
                     {
@@ -1049,6 +1059,7 @@ namespace TaskLayer.ChimeraAnalysis
                     $"FdrAnalysis_{Labels.GetLabel(isTopDown, ResultType.Psm)}_{FileIdentifiers.SpectralAngleFigure}_BoxPlot";
                 outPath = Path.Combine(figDir, outName);
                 TryAllTheExports(psmPlot, outPath, 1000, 800, isTopDown, ResultType.Psm);
+                Log("Finished PSM Box", 3);
 
                 //psmPlot = Chart.Combine(new[]
                 //    {
@@ -1077,8 +1088,10 @@ namespace TaskLayer.ChimeraAnalysis
                     $"FdrAnalysis_{Labels.GetLabel(isTopDown, ResultType.Psm)}_{FileIdentifiers.SpectralAngleFigure}_Histogram";
                 outPath = Path.Combine(figDir, outName);
                 TryAllTheExports(psmPlot, outPath, 1000, 800, isTopDown, ResultType.Psm);
+                Log("Finished PSM Histogram", 3);
             }
         }
+
         #endregion
 
         static void TryAllTheExports(GenericChart.GenericChart chart, string outName, int width, int height, bool isTopDown, ResultType resultType)
