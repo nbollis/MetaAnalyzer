@@ -4,5 +4,6 @@ public enum ResultType
 {
     Psm,
     Peptide,
-    Protein
+    Protein,
+    ModifiedForms
 }

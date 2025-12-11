@@ -30,21 +30,21 @@ namespace Analyzer.Plotting.Util
                 IsTopDown = true,
                 IndividualFileComparisonSelector = new[]
                 {
-                    "MetaMorpheus_Chimeras",
+                    "MetaMorpheus_114_Rep2",
                     "MsPathFinderTWithMods_15Rep2",
                     "ProsightPdChimeras_Rep2_15_10ppm",
                 },
                 InternalMetaMorpheusFileComparisonSelector = new[]
                 {
-                    "MetaMorpheus_Chimeras", "MetaMorpheus_NoChimeras"
+                    "MetaMorpheus_114_Rep2", "MetaMorpheus_NoChimeras"
                 },
                 BulkResultComparisonSelector = new[]
                 {
-                    "MetaMorpheus_NoChimeras", "MetaMorpheus_Chimeras",
+                    "MetaMorpheus_NoChimeras", "MetaMorpheus_114_Rep2",
                     "MsPathFinderT_NoChimeras", "MsPathFinderT_7", "MsPathFinderT_15",
                     "ProsightPD_NoChimeras", "ProsightPD_7", "ProsightPD_15",
                 },
-                SingleResultSelector = new[] { "MetaMorpheus_Chimeras" }
+                SingleResultSelector = new[] { "MetaMorpheus_114_Rep2" }
             };
 
             PaperTopDownEcoliSelector = new Selector()
@@ -53,21 +53,21 @@ namespace Analyzer.Plotting.Util
                 IsTopDown = true,
                 IndividualFileComparisonSelector = new[]
                 {
-                    "MetaMorpheus_Chimeras",
+                    "MetaMorpheus_114_Rep2",
                     "MsPathFinderTWithMods_15Rep2",
                     "ProsightPdChimeras_Rep2_15_10ppm",
                 },
                 InternalMetaMorpheusFileComparisonSelector = new[]
                 {
-                    "MetaMorpheus_Chimeras", "MetaMorpheus_NoChimeras"
+                    "MetaMorpheus_114_Rep2", "MetaMorpheus_NoChimeras"
                 },
                 BulkResultComparisonSelector = new[]
                 {
-                    "MetaMorpheus_NoChimeras", "MetaMorpheus_Chimeras",
+                    "MetaMorpheus_NoChimeras", "MetaMorpheus_114_Rep2",
                     "MsPathFinderT_NoChimeras", "MsPathFinderT_7", "MsPathFinderT_15",
                     "ProsightPD_NoChimeras", "ProsightPD_7", "ProsightPD_15",
                 },
-                SingleResultSelector = new[] { "MetaMorpheus_Chimeras" }
+                SingleResultSelector = new[] { "MetaMorpheus_114_Rep2" }
             };
 
             PaperBottomUpMann11Selector = new Selector()
@@ -101,7 +101,7 @@ namespace Analyzer.Plotting.Util
                 {
                     //"MetaMorpheusNoChimeras",
                     //"MetaMorpheus_Rep2_WithLibrary", // metamorpheus rep2 with library and old pep
-                    "MetaMorpheus_Rep2_WithLibrary_NewPEP_NoNorm",
+                    "MetaMorpheus_114_Rep2",
 
                     /*"MsPathFinderTWithModsNoChimerasRep2", "MsPathFinderTWithMods_7Rep2", */"MsPathFinderTWithMods_15Rep2_Final",
 
@@ -110,21 +110,21 @@ namespace Analyzer.Plotting.Util
                 },
                 InternalMetaMorpheusFileComparisonSelector = new[]
                 {
-                    "MetaMorpheusNoChimeras", "MetaMorpheus_Rep2_WithLibrary_NewPEP_NoNorm"
+                    "MetaMorpheusNoChimeras", "MetaMorpheus_114_Rep2"
                 },
                 BulkResultComparisonSelector = new[]
                 {
                     /*"MetaMorpheus",*/ "MetaMorpheusNoChimeras",/* "MetaMorpheus_FullPEPChimeraIncorporation",*/
                     //"MetaMorpheus_Rep2_WithLibrary", // metamorpheus rep2 with library and old pep
                     //"MetaMorpheus_NewPEP_NoNormNoMult",
-                    "MetaMorpheus_Rep2_WithLibrary_NewPEP_NoNorm",
+                    "MetaMorpheus_114_Rep2",
 
                     "MsPathFinderTWithModsNoChimerasRep2", "MsPathFinderTWithMods_7Rep2", "MsPathFinderTWithMods_15Rep2_Final",
 
                     /*"ProsightPDChimeras_Rep2",*/ "ProsightPDNoChimeras_Rep2", /*"ProsightPDChimeras_Rep2_15",*/
                     "ProsightPdChimeras_Rep2_15_10ppm", "ProsightPDChimeras_Rep2_7_10ppm",
                 },
-                SingleResultSelector = new[] { "MetaMorpheus_Rep2_WithLibrary_NewPEP_NoNorm" }
+                SingleResultSelector = new[] { "MetaMorpheus_114_Rep2" }
             };
             TopDownEcoliSelector = new Selector()
             {
@@ -133,8 +133,8 @@ namespace Analyzer.Plotting.Util
                 IndividualFileComparisonSelector = new[]
                 {
                     //"MetaMorpheus", "MetaMorpheusNoChimeras",
-                    "MetaMorpheus_NewPEP_NoNorm", // ecoli ran with new pep
-                    "MetaMorpheus_NewPEP_NoNormNoMult", // ecoli ran with new pep no mult
+                    "MetaMorpheus_114_Rep2", // ecoli ran with new pep
+                    //"MetaMorpheus_NewPEP_NoNormNoMult", // ecoli ran with new pep no mult
 
                     "MsPathFinderTWithMods_15_Final",
 
@@ -143,17 +143,17 @@ namespace Analyzer.Plotting.Util
                 InternalMetaMorpheusFileComparisonSelector = new[]
                 {
                     "MetaMorpheusNoChimeras",
-                    "MetaMorpheus_NewPEP_NoNormNoMult",
+                    "MetaMorpheus_114_Rep2",
                 },
                 BulkResultComparisonSelector = new[] {
-                    "MetaMorpheus_NewPEP_NoNormNoMult", "MetaMorpheusNoChimeras",
+                    "MetaMorpheus_114_Rep2", "MetaMorpheusNoChimeras",
                     //"MetaMorpheus_NewPEP_NoNorm", // ecoli ran with new pep
 
                     "MsPathFinderTWithModsNoChimeras", "MsPathFinderTWithMods_7", "MsPathFinderTWithMods_15_Final",
 
                     "ProsightPDChimeras_7", "ProsightPDNoChimeras", "ProsightPDChimeras_15"
                 },
-                SingleResultSelector = new[] { "MetaMorpheus_NewPEP_NoNormNoMult" }
+                SingleResultSelector = new[] { "MetaMorpheus_114_Rep2" }
             };
             BottomUpMann11Selector = new Selector()
             {

@@ -82,6 +82,12 @@ namespace Analyzer.Plotting.IndividualRunPlots
             proteoformChart.SavePNG(proteoformChartOutPath, null, 1000, 1000);
         }
 
+        public static void PlotChimeraBreakDownStackedColumn(this IChimeraBreakdownCompatible result, ResultType resultType)
+            => result.ChimeraBreakdownFile.Results
+                .GetChimeraBreakDownStackedColumn(resultType, result.IsTopDown, out int width)
+                .WithTitle($"{result.DatasetName} {result.Condition} 1% {Labels.GetLabel(result.IsTopDown, resultType)} Identifications")
+                .SaveInRunResultOnly(result as SingleRunResults, $"ChimeraBreakdown_Absolute_{Labels.GetLabel(result.IsTopDown, resultType)}", 1000, 1000);
+
         /// <summary>
         /// Plots the type of chimera as a function of the number of results they are chimeric with
         /// types include sharing the same base sequence or being an entirely different protein/peptide
@@ -185,15 +191,15 @@ namespace Analyzer.Plotting.IndividualRunPlots
                         .GetChimeraBreakdownStackedColumn_Scaled(resultType, cellLine.First().IsTopDown)
                         .WithTitle($"{cellLine.CellLine} 1% {Labels.GetLabel(cellLine.First().IsTopDown, resultType)} Identifications")
                         .SaveInCellLineOnly(cellLine, $"ChimeraBreakdown_Hybrid_{Labels.GetLabel(cellLine.First().IsTopDown, resultType)}_{cellLine.CellLine}", 1000, 1000);
-        public static void PlotChimeraBreakDownStackedColumn_Scaled(this IChimeraBreakdownCompatible result, ResultType resultType, bool logyScaling = true)
+        public static void PlotChimeraBreakDownStackedColumn_Scaled(this IChimeraBreakdownCompatible result, ResultType resultType)
             => result.ChimeraBreakdownFile.Results
-                .GetChimeraBreakdownStackedColumn_Scaled(resultType, result.IsTopDown, logyScaling)
+                .GetChimeraBreakdownStackedColumn_Scaled(resultType, result.IsTopDown)
                 .WithTitle($"{result.DatasetName} {result.Condition} 1% {Labels.GetLabel(result.IsTopDown, resultType)} Identifications")
-                .SaveInRunResultOnly(result as SingleRunResults, $"ChimeraBreakdown_{(logyScaling ? "Logged" : "Absolute")}_{Labels.GetLabel(result.IsTopDown, resultType)}", 1000, 1000);
+                .SaveInRunResultOnly(result as SingleRunResults, $"ChimeraBreakdown_Logged_{Labels.GetLabel(result.IsTopDown, resultType)}", 1000, 1000);
 
         public static GenericChart.GenericChart GetChimeraBreakdownStackedColumn_Scaled(
             this List<ChimeraBreakdownRecord> results, ResultType resultType = ResultType.Psm, 
-            bool isTopDown = false, bool logyScaling = true)
+            bool isTopDown = false)
         {
 
             (int IdsPerSpectra, double Parent, double UniqueProtein, double UniqueForms, double Decoys, double Duplicates, double Entrapment, double MonoErrorCount, double MassDuplicateCount)[] data = 
@@ -276,7 +282,7 @@ namespace Analyzer.Plotting.IndividualRunPlots
                     "Duplicates",
                     MarkerColor: "Duplicates".ConvertConditionToColor(),
                     MultiText: data.Select(p => p.Duplicates.ToString()).ToArray())).ToArray();
-            if (data.Any(p => p.Entrapment > 0))
+            if (data.Any(p => p.Entrapment > 0) && results.Any(p => !p.Condition.Contains("MetaM")))
                 charts = charts.Append(Chart.StackedColumn<double, int, string>(scaledPercentData.Select(p => p.Entrapment), keys,
                     "Entrapment",
                     MarkerColor: "Entrapment".ConvertConditionToColor(),
@@ -286,7 +292,7 @@ namespace Analyzer.Plotting.IndividualRunPlots
                     "Mass Duplicates",
                     MarkerColor: "Mass Duplicates".ConvertConditionToColor(),
                     MultiText: data.Select(p => p.MassDuplicateCount.ToString()).ToArray())).ToArray();
-            if (data.Any(p => p.MonoErrorCount > 0))
+            if (data.Any(p => p.MonoErrorCount > 0) && results.Any(p => !p.Condition.Contains("MetaM")))
                 charts = charts.Append(Chart.StackedColumn<double, int, string>(scaledPercentData.Select(p => p.MonoErrorCount), keys,
                     "Monoisotopic Error",
                     MarkerColor: "Monoisotopic Error".ConvertConditionToColor(),
@@ -294,15 +300,10 @@ namespace Analyzer.Plotting.IndividualRunPlots
 
 
             string title = Labels.GetLabel(isTopDown, resultType);
-
-            StyleParam.AxisType axisType = logyScaling 
-                ? StyleParam.AxisType.Log 
-                : StyleParam.AxisType.Linear;
-
             var chart = Chart.Combine(charts)
                 .WithTitle($"{title} Identifications per Spectra")
                 .WithXAxisStyle(Title.init($"1% {Labels.GetLabel(isTopDown, resultType)} per Spectrum", Font: Font.init(Size: PlotlyBase.AxisTitleFontSize)))
-                .WithYAxis(LinearAxis.init<int, int, int, int, int, int>(AxisType: axisType))
+                .WithYAxis(LinearAxis.init<int, int, int, int, int, int>(AxisType: StyleParam.AxisType.Log))
                 .WithYAxisStyle(Title.init("Count of Spectra", Font: Font.init(Size: PlotlyBase.AxisTitleFontSize)))
                 .WithLayout(PlotlyBase.DefaultLayoutWithLegendLargerText);
           

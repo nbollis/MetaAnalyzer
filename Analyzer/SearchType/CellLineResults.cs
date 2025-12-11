@@ -54,17 +54,18 @@ public class CellLineResults : IEnumerable<SingleRunResults>, IDisposable
                 p.Contains("calibratedaveraged", StringComparison.InvariantCultureIgnoreCase));
             _dataFilePaths = Directory.GetFiles(caliAvgDirectory, "*.mzML", SearchOption.AllDirectories);
         }
-        
-        foreach (var directory in Directory.GetDirectories(SearchResultsDirectoryPath).Where(p => !p.Contains("maxquant") && !p.StartsWith("XX")))
+
+        var searhDirs = Directory.GetDirectories(SearchResultsDirectoryPath).Where(p => !p.Contains("maxquant") && !p.StartsWith("XX"));
+        Parallel.ForEach(searhDirs, (directory) =>
         {
             if (Directory.GetFiles(directory, "meta.bin", SearchOption.AllDirectories).Any()
                 && !Directory.GetFiles(directory, "combined_peptide.tsv").Any())
-                continue; // fragger currently running
+                return; // fragger currently running
             if (Directory.GetFiles(directory, "*.psmtsv", SearchOption.AllDirectories).Any())
             {
                 var files = Directory.GetFiles(directory, "*.psmtsv", SearchOption.AllDirectories);
                 if (!files.Any(p => p.Contains("AllProteoforms") || p.Contains("AllPSMs")) && !files.Any(p => p.Contains("AllProteinGroups")))
-                    continue;
+                    return;
                 if (directory.Contains("Fragger") && Directory.GetDirectories(directory).Count(p => !p.Contains("Figures")) > 2)
                 {
                     var directories = Directory.GetDirectories(directory);
@@ -73,7 +74,7 @@ public class CellLineResults : IEnumerable<SingleRunResults>, IDisposable
                         files = Directory.GetFiles(dir, "*.psmtsv", SearchOption.AllDirectories);
                         if (!files.Any(p => p.Contains("AllProteoforms") || p.Contains("AllPSMs")) &&
                             !files.Any(p => p.Contains("AllProteinGroups")))
-                            continue;
+                            return;
                         if (dir.Contains("NoChimera"))
                             Results.Add(new MetaMorpheusResult(dir) { DataFilePaths = _dataFilePaths });
                         else if (dir.Contains("WithChimera"))
@@ -98,8 +99,8 @@ public class CellLineResults : IEnumerable<SingleRunResults>, IDisposable
                     Results.Add(new ProteomeDiscovererResult(directory));
             }
             else if (Directory.GetFiles(directory, "*_wide.tsv").Any())
-                    Results.Add(new ChimerysResult(directory));
-        }
+                Results.Add(new ChimerysResult(directory));
+        });
     }
 
     public CellLineResults(string directorypath, List<SingleRunResults> results)

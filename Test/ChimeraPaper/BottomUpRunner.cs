@@ -493,10 +493,9 @@ namespace Test.ChimeraPaper
 
             var records = runResults.SelectMany(p => p.CountProteins())
                 .Where(p => p is { UniqueFullSequences: > 1, UniqueBaseSequences: > 1 }).ToList();
-            records.GetProteinCountPlotsStacked(ProteinCountPlots.ProteinCountPlotTypes.BaseSequenceCount).Show();
-            records.GetProteinCountPlotsStacked(ProteinCountPlots.ProteinCountPlotTypes.FullSequenceCount).Show();
-            records.GetProteinCountPlotsStacked(ProteinCountPlots.ProteinCountPlotTypes.SequenceCoverage).Show();
-
+            records.GetProteinCountPlotsGrid(ProteinCountPlots.ProteinCountPlotTypes.BaseSequenceCount, false).Show();
+            records.GetProteinCountPlotsGrid(ProteinCountPlots.ProteinCountPlotTypes.FullSequenceCount, false).Show();
+            records.GetProteinCountPlotsGrid(ProteinCountPlots.ProteinCountPlotTypes.SequenceCoverage, false).Show();
         }
 
         [Test]

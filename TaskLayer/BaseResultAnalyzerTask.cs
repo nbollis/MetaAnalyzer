@@ -10,15 +10,18 @@ namespace TaskLayer
         public static event EventHandler<StringEventArgs> WarnHandler;
         public abstract MyTask MyTask { get; }
         public string Condition { get; set; }
+        public bool Silent { get; set; } = false;
         public abstract BaseResultAnalyzerTaskParameters Parameters { get; }
 
         public async Task Run()
         {
-            Log($"Running Task {MyTask}: {Condition}", 0);
+            if (!Silent)
+                Log($"Running Task {MyTask}: {Condition}", 0);
             
             await Task.Run(RunSpecific);
             
-            Log($"Finished Running {MyTask}: {Condition}", 0);
+            if (!Silent)
+                Log($"Finished Running {MyTask}: {Condition}", 0);
             
             Console.WriteLine();
         }

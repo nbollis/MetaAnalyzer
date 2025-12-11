@@ -483,6 +483,9 @@ public static class PlottingTranslators
         { "MetaMorpheus_106_Rep1", "Reduced MetaMorpheus" },
         { "MetaMorpheus_106_Rep2", "Reduced MetaMorpheus" },
         { "MetaMorpheus_106_Rep3", "Reduced MetaMorpheus" },
+        { "MetaMorpheus_114_Rep1", "Reduced MetaMorpheus" },
+        { "MetaMorpheus_114_Rep2", "Reduced MetaMorpheus" },
+        { "MetaMorpheus_114_Rep3", "Reduced MetaMorpheus" },
 
         { "MetaMorpheus_107_Rep1", "MetaMorpheus" },
         { "MetaMorpheus_107_Rep2", "MetaMorpheus" },

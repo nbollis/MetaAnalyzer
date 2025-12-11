@@ -29,80 +29,35 @@ namespace Analyzer.Plotting
                 _ => throw new ArgumentOutOfRangeException(nameof(type), type, null)
             };
         }
-        public static string GetAxisLabel(this ProteinCountPlotTypes type) => type switch
+        public static string GetAxisLabel(this ProteinCountPlotTypes type, bool isTopDown) => type switch
         {
             ProteinCountPlotTypes.SequenceCoverage => "Sequence Coverage",
-            ProteinCountPlotTypes.BaseSequenceCount => "Unique Peptides per Protein",
-            ProteinCountPlotTypes.FullSequenceCount => "Unique Peptidoforms per Protein",
+            ProteinCountPlotTypes.BaseSequenceCount => $"Unique {Labels.GetLabel(isTopDown, ResultType.Psm)} per Protein",
+            ProteinCountPlotTypes.FullSequenceCount => $"Unique {Labels.GetDifferentFormLabel(isTopDown)}s per Protein",
             _ => throw new ArgumentOutOfRangeException(nameof(type), type, null)
         };
 
-        public static GenericChart.GenericChart GetProteinCountPlotsStacked(this List<ProteinCountingRecord> records,
-            ProteinCountPlotTypes resultType)
+        public static GenericChart.GenericChart GetProteinCountPlotsGrid(this List<ProteinCountingRecord> records,
+            ProteinCountPlotTypes resultType, bool isTopDown)
         {
             var chart = Chart.Grid(new[]
                 {
-                    GetProteinCountPlot(records, resultType, DistributionPlotTypes.BoxPlot),
-                    GetProteinCountPlot(records, resultType, DistributionPlotTypes.ViolinPlot),
-                    GetProteinCountPlot(records, resultType, DistributionPlotTypes.Histogram),
-                    GetProteinCountPlot(records, resultType, DistributionPlotTypes.KernelDensity),
+                    GetProteinCountPlot(records, resultType, DistributionPlotTypes.BoxPlot, isTopDown),
+                    GetProteinCountPlot(records, resultType, DistributionPlotTypes.ViolinPlot, isTopDown),
+                    GetProteinCountPlot(records, resultType, DistributionPlotTypes.Histogram, isTopDown),
+                    GetProteinCountPlot(records, resultType, DistributionPlotTypes.KernelDensity, isTopDown),
                 }, 2, 2)
                 .WithSize(1000, 1000)
-                .WithTitle($"Distribution of {resultType.GetAxisLabel()}");
-
-            return chart;
-        }
-
-        public static GenericChart.GenericChart GetProteinCountPlotsStacked(this List<ProteinCountingRecord> records,
-            DistributionPlotTypes plotType)
-        {
-            var chart = Chart.Grid(new[]
-                {
-                    GetProteinCountPlot(records, ProteinCountPlotTypes.SequenceCoverage, plotType)
-                        .WithYAxis(LinearAxis.init<string, string, string, string, string, string>
-                                (Title: Title.init(ProteinCountPlotTypes.SequenceCoverage.GetAxisLabel())),
-                            StyleParam.SubPlotId.NewYAxis(1))
-                        .WithXAxis(LinearAxis.init<string, string, string, string, string, string>
-                                (Title: Title.init("Condition", Font: Font.init(Size: PlotlyBase.AxisTitleFontSize))),
-                            StyleParam.SubPlotId.NewXAxis(1)),
-                    GetProteinCountPlot(records, ProteinCountPlotTypes.BaseSequenceCount, plotType)
-                        .WithYAxis(LinearAxis.init<string, string, string, string, string, string>
-                                (Title: Title.init(ProteinCountPlotTypes.BaseSequenceCount.GetAxisLabel())),
-                            StyleParam.SubPlotId.NewYAxis(2))
-                        .WithXAxis(LinearAxis.init<string, string, string, string, string, string>
-                                (Title: Title.init("Condition", Font: Font.init(Size: PlotlyBase.AxisTitleFontSize))),
-                            StyleParam.SubPlotId.NewXAxis(2)),
-                    GetProteinCountPlot(records, ProteinCountPlotTypes.FullSequenceCount, plotType)
-                        .WithYAxis(LinearAxis.init<string, string, string, string, string, string>
-                                (Title: Title.init(ProteinCountPlotTypes.FullSequenceCount.GetAxisLabel(), Font: Font.init(Size: PlotlyBase.AxisTitleFontSize))),
-                            StyleParam.SubPlotId.NewYAxis(3))
-                        .WithXAxis(LinearAxis.init<string, string, string, string, string, string>
-                                (Title: Title.init("Condition", Font: Font.init(Size: PlotlyBase.AxisTitleFontSize))),
-                            StyleParam.SubPlotId.NewXAxis(3)),
-                }, 3, 1, 
-                    YAxes: new Optional<StyleParam.LinearAxisId[]>(new StyleParam.LinearAxisId[]
-                {
-                    StyleParam.LinearAxisId.NewY(1),
-                    StyleParam.LinearAxisId.NewY(2),
-                    StyleParam.LinearAxisId.NewY(3),
-                }, true), 
-                    XAxes: new Optional<StyleParam.LinearAxisId[]>(new StyleParam.LinearAxisId[]
-                {
-                    StyleParam.LinearAxisId.NewX(1),
-                    StyleParam.LinearAxisId.NewX(2),
-                    StyleParam.LinearAxisId.NewX(3),
-                }, true))
-                .WithSize(600, 1200)
-                .WithTitle($"Distribution of Protein Counting Metrics");
+                .WithTitle($"Distribution of {resultType.GetAxisLabel(isTopDown)}");
 
             return chart;
         }
 
         public static GenericChart.GenericChart GetProteinCountPlot(this List<ProteinCountingRecord> records,
-            ProteinCountPlotTypes resultType, DistributionPlotTypes plotType)
+            ProteinCountPlotTypes resultType, DistributionPlotTypes plotType, bool isTopDown)
         {
             string xTitle = "" /*"Condition"*/;
-            string yTitle = resultType.GetAxisLabel();
+            string yTitle = resultType.GetAxisLabel(isTopDown);
             List<GenericChart.GenericChart> toCombine = new();
 
             foreach (var record in records
@@ -142,9 +97,8 @@ namespace Analyzer.Plotting
             }
 
             var finalPlot = Chart.Combine(toCombine)
-                .WithTitle($"{yTitle} per Protein from 1% PSMs")
-                .WithLayout(PlotlyBase.DefaultLayoutWithLegendLargerText)
-                .WithSize(1000, 600);
+                .WithTitle($"{yTitle} (1% {Labels.GetLabel(isTopDown, ResultType.Psm)})")
+                .WithLayout(PlotlyBase.DefaultLayoutWithLegendLargerText);
             return finalPlot;
         }
     }

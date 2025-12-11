@@ -305,24 +305,25 @@ namespace Test.ChimeraPaper
         }
 
 
-        [Test]
-        public static void RunChronologer()
-        {
-            var allResults = new AllResults(Man11AllResultsPath);
-            // figures found at B:\Users\Nic\Chimeras\Mann_11cell_analysis\A549\Figures
-            foreach (var cellLine in allResults)
-            {
-                var mm = (MetaMorpheusResult)cellLine.First(p => p is MetaMorpheusResult);
-                var peptides = mm.AllPeptides;
-                var results = peptides
-                    .Where(p => p is { PEP_QValue: <= 0.01, DecoyContamTarget: "T" }
-                                && !p.FullSequence.Contains("Metal")
-                                && !p.BaseSeq.Contains('U'))
-                    .Select(p => (p.FullSequence, p.RetentionTime, ChronologerEstimator.PredictRetentionTime(p.BaseSeq, p.FullSequence))).ToArray();
+        //[Test]
+        //public static void RunChronologer()
+        //{
+        //    var estimator = new ChronologerRetentionTimePredictor();
+        //    var allResults = new AllResults(Man11AllResultsPath);
+        //    // figures found at B:\Users\Nic\Chimeras\Mann_11cell_analysis\A549\Figures
+        //    foreach (var cellLine in allResults)
+        //    {
+        //        var mm = (MetaMorpheusResult)cellLine.First(p => p is MetaMorpheusResult);
+        //        var peptides = mm.AllPeptides;
+        //        var results = peptides
+        //            .Where(p => p is { PEP_QValue: <= 0.01, DecoyContamTarget: "T" }
+        //                        && !p.FullSequence.Contains("Metal")
+        //                        && !p.BaseSeq.Contains('U'))
+        //            .Select(p => (p.FullSequence, p.RetentionTime, estimator.PredictRetentionTime(p.BaseSeq, p.FullSequence))).ToArray();
 
-                var notDone = results.Where(p => p.Item3 is null).ToArray();
-            }
-        }
+        //        var notDone = results.Where(p => p.Item3 is null).ToArray();
+        //    }
+        //}
 
 
         [Test]

@@ -1,11 +1,17 @@
-﻿using System.Globalization;
-using System.Text.RegularExpressions;
-using CsvHelper.Configuration;
+﻿using CsvHelper.Configuration;
 using CsvHelper.Configuration.Attributes;
+using Omics.Modifications;
+using Proteomics.ProteolyticDigestion;
+using ResultAnalyzerUtil;
+using RetentionTimePrediction;
+using System.Globalization;
+using System.Text;
+using System.Text.RegularExpressions;
+using Chemistry;
 
 namespace Analyzer.FileTypes.External
 {
-    public class MsFraggerPsm : ISpectralMatch
+    public class MsFraggerPsm : ISpectralMatch, IRetentionPredictable
     {
         public static CsvConfiguration CsvConfiguration = new CsvConfiguration(CultureInfo.InvariantCulture)
         {
@@ -204,6 +210,58 @@ namespace Analyzer.FileTypes.External
 
                 return _fullSequence ??= workingSequence;
             }
+        }
+
+        [Ignore] private string? _fullSequenceWithMassShifts;
+
+
+        public string FullSequenceWithMassShifts => _fullSequenceWithMassShifts ??= SetFullSequenceWithMassShifts(GlobalVariables.AllModsKnownDictionary);
+
+        public string SetFullSequenceWithMassShifts(Dictionary<string, Modification> allKnownMods)
+        {
+            var withSetMods = new PeptideWithSetModifications(FullSequence, allKnownMods);
+            var subsequence = new StringBuilder();
+
+            // modification on peptide N-terminus
+            if (withSetMods.AllModsOneIsNterminus.TryGetValue(1, out Modification? mod))
+            {
+                if (mod.MonoisotopicMass > 0)
+                    subsequence.Append($"[+{mod.MonoisotopicMass.RoundedDouble(6)}]");
+                else
+                    subsequence.Append($"[{mod.MonoisotopicMass.RoundedDouble(6)}]");
+            }
+
+            for (int r = 0; r < withSetMods.Length; r++)
+            {
+                subsequence.Append(withSetMods[r]);
+
+                // modification on this residue
+                if (withSetMods.AllModsOneIsNterminus.TryGetValue(r + 2, out mod))
+                {
+                    if (mod.MonoisotopicMass > 0)
+                    {
+                        subsequence.Append($"[+{mod.MonoisotopicMass.RoundedDouble(6)}]");
+                    }
+                    else
+                    {
+                        subsequence.Append($"[{mod.MonoisotopicMass.RoundedDouble(6)}]");
+                    }
+                }
+            }
+
+            // modification on peptide C-terminus
+            if (withSetMods.AllModsOneIsNterminus.TryGetValue(withSetMods.Length + 2, out mod))
+            {
+                if (mod.MonoisotopicMass > 0)
+                {
+                    subsequence.Append($"-[+{mod.MonoisotopicMass.RoundedDouble(6)}]");
+                }
+                else
+                {
+                    subsequence.Append($"-[{mod.MonoisotopicMass.RoundedDouble(6)}]");
+                }
+            }
+            return subsequence.ToString();
         }
 
         [Ignore]

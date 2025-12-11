@@ -25,10 +25,6 @@ namespace Test.ChimeraPaper
         [OneTimeSetUp]
         public static void OneTimeSetup() { Loaders.LoadElements(); }
 
-
-
-
-
         [Test]
         public static void PaperInternalMMParsing()
         {
@@ -43,16 +39,40 @@ namespace Test.ChimeraPaper
         }
 
  
-
-
         [Test]
         public static void RunAllParsing()
         {
             foreach (var cellLine in AllResults)
-                
             {
+                var toRemove = new List<SingleRunResults>();
                 foreach (var result in cellLine)
                 {
+                    if (result.Condition.Contains("IsoDec"))
+                        toRemove.Add(result);
+
+                    if (result.Condition.Contains("106"))
+                        toRemove.Add(result);
+                    if (result.Condition.Contains("108"))
+                        toRemove.Add(result);
+                    if (result.Condition.Contains("112"))
+                        toRemove.Add(result);
+                    if (result.Condition.Contains("MsAlign"))
+                        toRemove.Add(result);
+                    if (result.Condition.Contains("PEP"))
+                        toRemove.Add(result);
+
+                    if (!result.Condition.Contains("114"))
+                        toRemove.Add(result);
+                }
+
+                foreach (var result in toRemove)
+                    cellLine.Results.Remove(result);
+
+                var remainingConditions = cellLine.Results.Select(p => p.Condition).ToArray();
+
+                foreach (var result in cellLine)
+                {
+
 
                     result.CountChimericPsms();
                     result.GetBulkResultCountComparisonFile();
@@ -103,7 +123,7 @@ namespace Test.ChimeraPaper
                 cellLine.CountChimericPeptides();
                 cellLine.Override = false;
 
-                cellLine.PlotIndividualFileResults();
+                //cellLine.PlotIndividualFileResults();
                 cellLine.PlotCellLineSpectralSimilarity();
                 cellLine.PlotCellLineChimeraBreakdown();
                 cellLine.PlotCellLineChimeraBreakdown_TargetDecoy();

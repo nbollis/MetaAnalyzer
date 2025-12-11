@@ -56,6 +56,13 @@ namespace Plotting.Util
             ShowLegend: true,
             Legend: DefaultLegend20,
             Font: Font.init(null, 18, null));
+
+        public static Layout DefaultLayoutWithLegendLargererText => Layout.init<string>(
+            PaperBGColor: Color.fromKeyword(ColorKeyword.White),
+            PlotBGColor: Color.fromKeyword(ColorKeyword.White),
+            ShowLegend: true,
+            Legend: DefaultLegend20,
+            Font: Font.init(null, 24, null));
         public static Layout DefaultLayoutNoLegend => Layout.init<string>(
             PaperBGColor: Color.fromKeyword(ColorKeyword.White),
             PlotBGColor: Color.fromKeyword(ColorKeyword.White),

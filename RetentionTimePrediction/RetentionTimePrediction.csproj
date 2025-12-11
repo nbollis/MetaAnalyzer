@@ -6,7 +6,11 @@
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="libtorch-cpu-win-x64" Version="2.2.1.1" />
+    <PackageReference Include="mzLib" Version="1.0.566" />
     <PackageReference Include="TorchSharp" Version="0.102.6" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\ResultAnalyzerUtil\ResultAnalyzerUtil.csproj" />
   </ItemGroup>
   <ItemGroup>
     <None Update="Chronologer_20220601193755_TorchSharp.dat">

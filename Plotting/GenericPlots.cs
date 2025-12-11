@@ -49,8 +49,7 @@ namespace Plotting
                                    HistNorm: normalize ? StyleParam.HistNorm.Percent : StyleParam.HistNorm.None)
                 .WithSize(400, 400)
                 .WithTitle(title)
-                .WithYAxisStyle(Title.init(yTitle, Font: Font.init(Size: PlotlyBase.AxisTitleFontSize)))
-                .WithLayout(PlotlyBase.DefaultLayoutWithLegend);
+                .WithYAxisStyle(Title.init(yTitle, Font: Font.init(Size: PlotlyBase.AxisTitleFontSize)));
             if (minMax is not null)
                 return chart.WithXAxisStyle(Title.init(xTitle, Font: Font.init(Size: PlotlyBase.AxisTitleFontSize)),
                     new FSharpOption<Tuple<IConvertible, IConvertible>>(
@@ -65,7 +64,6 @@ namespace Plotting
             var violin = Chart.Violin<string, double, string> (labels, values,
                     label, MarkerColor: label.ConvertConditionToColor(), 
                         MeanLine: MeanLine.init(true, label.ConvertConditionToColor()), ShowLegend: false)
-                .WithLayout(PlotlyBase.DefaultLayout)
                 .WithSize(1000, 600);
             return violin;
         }
@@ -80,8 +78,7 @@ namespace Plotting
                 .WithSize(400, 400)
                 .WithTitle(title, TitleFont: Font.init(Size: PlotlyBase.TitleSize))
                 .WithXAxisStyle(Title.init(xTitle, Font: Font.init(Size: PlotlyBase.AxisTitleFontSize)))
-                .WithYAxisStyle(Title.init(yTitle, Font: Font.init(Size: PlotlyBase.AxisTitleFontSize)))
-                .WithLayout(PlotlyBase.DefaultLayoutWithLegend);
+                .WithYAxisStyle(Title.init(yTitle, Font: Font.init(Size: PlotlyBase.AxisTitleFontSize)));
             return chart;
         }
 

@@ -1,4 +1,5 @@
-﻿using System.Diagnostics;
+﻿using System.Collections.Concurrent;
+using System.Diagnostics;
 using System.Text.RegularExpressions;
 using Analyzer.FileTypes.Internal;
 using Analyzer.Interfaces;
@@ -316,10 +317,10 @@ namespace Analyzer.SearchType
             if (!Override && File.Exists(_chimeraBreakDownPath))
             {
                 var breakdownFile = new ChimeraBreakdownFile(_chimeraBreakDownPath);
-                //if (breakdownFile.Any(p => p.PsmCharges.IsNotNullOrEmpty()))
-                //    return breakdownFile;
-                //AppendChargesAndMassesToBreakdownFile(breakdownFile);
-                //breakdownFile.WriteResults(_chimeraBreakDownPath);
+                if (breakdownFile.Any(p => p.PsmCharges.IsNotNullOrEmpty()))
+                    return breakdownFile;
+                AppendChargesAndMassesToBreakdownFile(breakdownFile);
+                breakdownFile.WriteResults(_chimeraBreakDownPath);
                 return breakdownFile;
             }
 
@@ -584,9 +585,11 @@ namespace Analyzer.SearchType
 
         // for prediction
         public string _retentionTimePredictionPath => Path.Combine(DirectoryPath, $"{DatasetName}_MM_{FileIdentifiers.RetentionTimePredictionReady}");
-        private RetentionTimePredictionFile _retentionTimePredictionFile;
+        private RetentionTimePredictionFile? _retentionTimePredictionFile;
         public RetentionTimePredictionFile RetentionTimePredictionFile => _retentionTimePredictionFile ??= CreateRetentionTimePredictionFile();
         
+        private static ConcurrentDictionary<(string, string), double> _CachedRtPredictions { get; } = [];
+
         public RetentionTimePredictionFile CreateRetentionTimePredictionFile()
         {
             string outpath = _retentionTimePredictionPath;
@@ -595,31 +598,83 @@ namespace Analyzer.SearchType
             var modDict = GlobalVariables.AllModsKnown.ToDictionary(p => p.IdWithMotif, p => p.MonoisotopicMass.Value);
             var peptides = IndividualFileResults.SelectMany(p => p.AllPeptides
                     .Where(pep => pep is { DecoyContamTarget: "T", PEP_QValue: <= 0.01 }))
+                .Select(p => new PredicablePsm(p))
                 .ToList();
             var calc = new SSRCalc3("SSRCalc 3.0 (300A)", SSRCalc3.Column.A300);
 
-            Log($"{Condition}: Making Retention time predctions with chronologer", 2);
-            var sequenceToPredictionDictionary = peptides.Select(p => (p.BaseSeq, p.FullSequence))
-                .Distinct()
-                .ToDictionary(p => p, p => ChronologerEstimator.PredictRetentionTime(p.BaseSeq, p.FullSequence));
+            Log($"{DatasetName} {Condition}: Making Retention time predctions with chronologer", 2);
+            var chron = new ChronologerRetentionTimePredictor();
+
+            var sequenceToPredictionDictionary = peptides
+                .DistinctBy(p => (p.BaseSequence, p.FullSequence))
+                .AsParallel()
+                .ToDictionary(p => (p.BaseSequence, p.FullSequence), p =>
+                {
+                    if (_CachedRtPredictions.TryGetValue((p.BaseSequence, p.FullSequence), out var rt))
+                    {
+                        return rt;
+                    }
+                    else
+                    {
+                        rt = chron.PredictRetentionTime(p, out var failureReason) ?? 0;
+                        _CachedRtPredictions[(p.BaseSequence, p.FullSequence)] = rt;
+
+                        return rt;
+                    }
+                });
+
+
+
+            // Append adjusted retention times if available
+            Dictionary<string, Dictionary<string, double>> fullSequenceToFileToRetentionTime = new();
+            bool addAdjusted = false;
+            if (File.Exists(CalibratedRetentionTimeFilePath))
+            {
+                addAdjusted = true;
+                // Parse file into dictionary
+                var header = true;
+                Dictionary<string, int> fileToColumnIndex = new();
+                foreach (var line in File.ReadAllLines(CalibratedRetentionTimeFilePath))
+                {
+                    if (header)
+                    {
+                        header = false;
+                        var splits = line.Split(',');
+                        for (int i = 1; i < splits.Length; i++)
+                            fileToColumnIndex[splits[i]] = i;
+                        continue;
+                    }
+
+                    var splitsLine = line.Split(',');
+                    var fullSequence = splitsLine[0];
+                    fullSequenceToFileToRetentionTime[fullSequence] = new Dictionary<string, double>();
+                    foreach (var fileColumn in fileToColumnIndex)
+                    {
+                        if (double.TryParse(splitsLine[fileColumn.Value], out var rt))
+                            fullSequenceToFileToRetentionTime[fullSequence][fileColumn.Key] = rt;
+                    }
+                }
+            }
 
             List<RetentionTimePredictionEntry> retentionTimePredictions = new List<RetentionTimePredictionEntry>();
-            foreach (var group in peptides.GroupBy(p => p, CustomComparer<PsmFromTsv>.ChimeraComparer))
+            foreach (var group in peptides.GroupBy(p => p.Psm, CustomComparer<PsmFromTsv>.ChimeraComparer))
             {
                 bool isChimeric = group.Count() > 1;
                 retentionTimePredictions.AddRange(group.Select(p =>
-                    new RetentionTimePredictionEntry(p.FileNameWithoutExtension, p.Ms2ScanNumber, p.PrecursorScanNum,
-                        p.RetentionTime, p.BaseSeq, p.FullSequence, p.PeptideModSeq(modDict), p.QValue,
-                        p.PEP_QValue, p.PEP, p.SpectralAngle ?? -1, isChimeric)
+                    new RetentionTimePredictionEntry(p.Psm.FileNameWithoutExtension, p.Psm.Ms2ScanNumber, p.Psm.PrecursorScanNum,
+                        p.Psm.RetentionTime, p.Psm.BaseSeq, p.FullSequence, p.Psm.PeptideModSeq(modDict), p.Psm.QValue,
+                        p.Psm.PEP_QValue, p.Psm.PEP, p.Psm.SpectralAngle ?? -1, isChimeric)
                     {
                         SSRCalcPrediction = calc.ScoreSequence(new PeptideWithSetModifications(p.FullSequence.Split('|')[0], GlobalVariables.AllModsKnownDictionary)),
-                        ChronologerPrediction = sequenceToPredictionDictionary.TryGetValue((p.BaseSeq, p.FullSequence), out var value) ? value ?? 0 : 0
+                        ChronologerPrediction = sequenceToPredictionDictionary.TryGetValue((p.BaseSequence, p.FullSequence), out var value) ? value : 0.0,
+                        AdjustedRetentionTime = addAdjusted && fullSequenceToFileToRetentionTime.TryGetValue(p.FullSequence, out var fileToRtDict) && fileToRtDict.TryGetValue(p.Psm.FileNameWithoutExtension, out var adjustedRt) ? adjustedRt : 0
                     }));
             }
+
             var retentionTimePredictionFile = new RetentionTimePredictionFile(outpath) { Results = retentionTimePredictions };
             retentionTimePredictionFile.WriteResults(outpath);
 
-            Log($"{Condition}: Finished Retention time predctions with chronologer", 2);
+            Log($"{DatasetName} {Condition}: Finished Retention time predctions with chronologer", 2);
             return retentionTimePredictionFile;
         }
 
@@ -1440,58 +1495,46 @@ namespace Analyzer.SearchType
                             .Sum(p => (int)p.Value.MonoisotopicMass!.RoundedDouble(0)!);
 
                     // Splitting the protein accession and base sequence
-                    //ProformaRecord record;
-                    //if (psm.AmbiguityLevel != "1")
-                    //{
-                    //    record = new ProformaRecord()
-                    //    {
-                    //        Condition = condition,
-                    //        FileName = fileName,
-                    //        BaseSequence = psm.BaseSeq.Split('|')[0].Trim(),
-                    //        ModificationMass = modMass,
-                    //        PrecursorCharge = psm.PrecursorCharge,
-                    //        ProteinAccession = psm.ProteinAccession.Split('|')[0].Trim(),
-                    //        ScanNumber = psm.Ms2ScanNumber,
-                    //        FullSequence = psm.FullSequence.Split('|')[0].Trim()
-                    //    };
-                    //}
-                    //else
-                    //{
-                    //    if (psm.Accession.Contains('|'))
-                    //    {
-                    //        var accessions = psm.Accession.Split('|');
-                    //        foreach (var accession in accessions)
-                    //        {
-                    //            record = new ProformaRecord()
-                    //            {
-                    //                Condition = condition,
-                    //                FileName = fileName,
-                    //                BaseSequence = psm.BaseSeq,
-                    //                ModificationMass = modMass,
-                    //                PrecursorCharge = psm.PrecursorCharge,
-                    //                ProteinAccession = accession,
-                    //                ScanNumber = psm.Ms2ScanNumber,
-                    //                FullSequence = psm.FullSequence
-                    //            };
-                    //            records.Add(record);
-                    //        }
-                    //        continue;
-                    //    }
-
-                       var record = new ProformaRecord()
+                    ProformaRecord record;
+                    if (psm.AmbiguityLevel != "1")
+                    {
+                        record = new ProformaRecord()
                         {
                             Condition = condition,
                             FileName = fileName,
-                            BaseSequence = psm.BaseSeq,
+                            BaseSequence = psm.BaseSeq.Split('|')[0].Trim(),
                             ModificationMass = modMass,
                             PrecursorCharge = psm.PrecursorCharge,
-                            ProteinAccession = psm.ProteinAccession,
+                            ProteinAccession = psm.ProteinAccession.Split('|')[0].Trim(),
                             ScanNumber = psm.Ms2ScanNumber,
-                            FullSequence = psm.FullSequence
+                            FullSequence = psm.FullSequence.Split('|')[0].Trim()
                         };
-                    //}
+                        records.Add(record);
+                    }
+                    else
+                    {
+                        if (psm.Accession.Contains('|'))
+                        {
+                            var accessions = psm.Accession.Split('|');
+                            foreach (var accession in accessions)
+                            {
+                                record = new ProformaRecord()
+                                {
+                                    Condition = condition,
+                                    FileName = fileName,
+                                    BaseSequence = psm.BaseSeq,
+                                    ModificationMass = modMass,
+                                    PrecursorCharge = psm.PrecursorCharge,
+                                    ProteinAccession = accession,
+                                    ScanNumber = psm.Ms2ScanNumber,
+                                    FullSequence = psm.FullSequence
+                                };
+                                records.Add(record);
+                            }
+                        }
+                    }
 
-                    records.Add(record);
+                    //records.Add(record);
                 }
             }
             var proformaFile = new ProformaFile(_proformaPsmFilePath) { Results = records };
@@ -1595,6 +1638,15 @@ namespace Analyzer.SearchType
             "Carbamidomethyl on C",
             "Hydroxylation on M",
         };
+
+
+        /// <summary>
+        /// Used for retention time analsyis -> creates the sequence to throw into chronologer. 
+        /// TODO: better mod sanitization. 
+        /// </summary>
+        /// <param name="psm"></param>
+        /// <param name="modDictionary"></param>
+        /// <returns></returns>
         public static string PeptideModSeq(this PsmFromTsv psm, Dictionary<string, double> modDictionary)
         {
             // Regex pattern to match words in brackets
@@ -1605,12 +1657,18 @@ namespace Analyzer.SearchType
             {
                 string[] parts = match.Groups[1].Value.Split(':');
                 var mod = modDictionary.TryGetValue(parts[1], out double value);
-                if (parts.Length == 2 && modDictionary.ContainsKey(parts[1]))
+
+                if (parts.Length < 2)
+                    return "-1";
+
+                string modString = parts[1];
+
+                if (parts.Length == 2 && modDictionary.ContainsKey(modString))
                 {
-                    if (AcceptableMods.Contains(parts[1]))
+                    if (AcceptableMods.Contains(modString))
                     {
-                        var symbol = modDictionary[parts[1]] > 0 ? "+" : "";
-                        return $"[{symbol}{modDictionary[parts[1]]:N6}]";
+                        var symbol = modDictionary[modString] > 0 ? "+" : "";
+                        return $"[{symbol}{modDictionary[modString]:N6}]";
                     }
 
                     return "-1";

@@ -214,9 +214,12 @@ namespace Analyzer.SearchType
                 .ToList();
 
             Log($"{Condition}: Making Retention time predctions with chronologer", 2);
-            var sequenceToPredictionDictionary = psms.Select(p => (p.BaseSequence, p.FullSequence))
-                .Distinct()
-                .ToDictionary(p => p, p => ChronologerEstimator.PredictRetentionTime(p.BaseSequence, p.FullSequence));
+
+            var chron = new ChronologerRetentionTimePredictor();
+
+            var sequenceToPredictionDictionary = psms
+                .DistinctBy(p => (p.BaseSequence, p.FullSequence))
+                .ToDictionary(p => (p.BaseSequence, p.FullSequence), p => chron.PredictRetentionTime(p, out var failureReason));
 
             List<RetentionTimePredictionEntry> results = new();
             foreach (var chimeraGroup in psms.GroupBy(p => p, CustomComparerExtensions.MsFraggerChimeraComparer))

@@ -3,11 +3,11 @@
     public static partial class FileIdentifiers
     {
         // Radical Fragmentation
-        public static string FragmentIndex => "FragmentIndexFile";
-        public static string FragmentCountHistogram => "FragmentCountHistogram";
-        public static string MinFragmentNeeded => "MinFragmentsNeededHistogram";
-        public static string FragNeededSummary => "FragmentsNeeded_Summary";
-        public static string PrecursorCompetitionSummary => "PrecursorCompetition_Summary";
+        public const string FragmentIndex = "FragmentIndexFile";
+        public const string FragmentCountHistogram = "FragmentCountHistogram";
+        public const string MinFragmentNeeded = "MinFragmentsNeededHistogram";
+        public const string FragNeededSummary = "FragmentsNeeded_Summary";
+        public const string PrecursorCompetitionSummary = "PrecursorCompetition_Summary";
 
         // Gradient Analysis
 
@@ -15,71 +15,71 @@
         public static string GradientFigure = "IdsVsRt";
 
         // Chimera Analysis
-        public static string ChimeraCountingFile => "ChimeraCounting.csv";
-        public static string IndividualFileComparison => "IndividualFileComparison.csv";
-        public static string IndividualFileComparisonFigure => "IndividualFileComparison";
-        public static string BottomUpResultComparison => "BottomUpResultComparison.csv";
-        public static string BulkResultComparisonMultipleFilters => "ResultComparisonManyFilters.csv";
-        public static string IndividualFileComparisonMultipleFilters => "IndividualFileResultComparisonManyFilters.csv";
-        public static string MaximumChimeraEstimate => "MaximumChimeraEstimate.csv";
-        public static string ChimericSpectrumSummary => "ChimericSpectrumSummary.csv";
-        public static string MaximumChimeraEstimateCalibAveraged => "MaximumChimeraEstimateCalibAveragedHybrid.csv";
-        public static string ProformaFile => "ProformaFile.tsv";
-        public static string ProteinCountingFile => "ProteinCounting.tsv";
-        public static string ModificationDistributionFigure => "ModificationDistribution";
-        public static string ComparativeResultFilteringFigure => "AllResults_ComparingPRs";
-        public static string IndividualFileComparativeResultFilteringFigure => "AllResults_ComparingPRs_IndividualFile";
-        public static string ComparativeFileResults_TargetDecoyAbsolute => "AllResults_ComparingPRs_TargetDecoy_Absolute";
-        public static string ComparativeFileResults_TargetDecoyRelative => "AllResults_ComparingPRs_TargetDecoy_Relative";
-        public static string ComparativeTopDownResults => "AllResults_TopDownSummary.png";
-        public static string TargetDecoyCurveFigure => "AllResults_TopDownSummary.png";
+        public const string ChimeraCountingFile = "ChimeraCounting.csv";
+        public const string IndividualFileComparison = "IndividualFileComparison.csv";
+        public const string IndividualFileComparisonFigure = "IndividualFileComparison";
+        public const string BottomUpResultComparison = "BottomUpResultComparison.csv";
+        public const string BulkResultComparisonMultipleFilters = "ResultComparisonManyFilters.csv";
+        public const string IndividualFileComparisonMultipleFilters = "IndividualFileResultComparisonManyFilters.csv";
+        public const string MaximumChimeraEstimate = "MaximumChimeraEstimate.csv";
+        public const string ChimericSpectrumSummary = "ChimericSpectrumSummary.csv";
+        public const string MaximumChimeraEstimateCalibAveraged = "MaximumChimeraEstimateCalibAveragedHybrid.csv";
+        public const string ProformaFile = "ProformaFile.tsv";
+        public const string ProteinCountingFile = "ProteinCounting.tsv";
+        public const string ModificationDistributionFigure = "ModificationDistribution";
+        public const string ComparativeResultFilteringFigure = "AllResults_ComparingPRs";
+        public const string IndividualFileComparativeResultFilteringFigure = "AllResults_ComparingPRs_IndividualFile";
+        public const string ComparativeFileResults_TargetDecoyAbsolute = "AllResults_ComparingPRs_TargetDecoy_Absolute";
+        public const string ComparativeFileResults_TargetDecoyRelative = "AllResults_ComparingPRs_TargetDecoy_Relative";
+        public const string ComparativeTopDownResults = "AllResults_TopDownSummary.png";
+        public const string TargetDecoyCurveFigure = "AllResults_TopDownSummary.png";
 
 
 
 
-        public static string InternalChimeraComparison => "InternalChimeraComparison.csv";
-        public static string IndividualFraggerFileComparison => "IndividualFraggerFileComparison.csv";
+        public const string InternalChimeraComparison = "InternalChimeraComparison.csv";
+        public const string IndividualFraggerFileComparison = "IndividualFraggerFileComparison.csv";
 
         // Chimera Breakdown Plots
-        public static string ChimeraBreakdownComparison => "ChimeraBreakdownComparison.csv";
-        public static string ChimeraBreakdownComparisonFigure => "ChimeraBreakdown_1%";
-        public static string ChimeraBreakdownComparisonStackedAreaFigure => "ChimeraBreakdownStackedArea_1%";
-        public static string ChimeraBreakdownComparisonStackedAreaPercentFigure => "ChimeraBreakdownStackedAreaPercent_1%";
-        public static string ChimeraBreakdownByChargeStateFigure => "ChimeraBreakdownByChargeState";
-        public static string ChimeraBreakdownByMassFigure => "ChimeraBreakdownByPrecursorMass";
-        public static string ChimeraBreakdownTargetDecoy => "ChimeraBreakdown_TargetDecoy";
+        public const string ChimeraBreakdownComparison = "ChimeraBreakdownComparison.csv";
+        public const string ChimeraBreakdownComparisonFigure = "ChimeraBreakdown_1%";
+        public const string ChimeraBreakdownComparisonStackedAreaFigure = "ChimeraBreakdownStackedArea_1%";
+        public const string ChimeraBreakdownComparisonStackedAreaPercentFigure = "ChimeraBreakdownStackedAreaPercent_1%";
+        public const string ChimeraBreakdownByChargeStateFigure = "ChimeraBreakdownByChargeState";
+        public const string ChimeraBreakdownByMassFigure = "ChimeraBreakdownByPrecursorMass";
+        public const string ChimeraBreakdownTargetDecoy = "ChimeraBreakdown_TargetDecoy";
 
         // Retention Time Predictions
-        public static string RetentionTimePredictionReady => "RetentionTimePredictionReady.tsv";
-        public static string ChronologerReadyFile => "ChronologerReady.tsv";
-        public static string ChoronologerResults => "ChronologerOut.tsv";
-        public static string CalibratedRetentionTimeFile => "AdjustedRetentionTimes.csv";
-        public static string SSRCalcFigure => "RetentionTimeVsSSRCalc3";
-        public static string ChronologerFigure => "RetentionTimeVsChronologer";
-        public static string ChronologerFigureACN => "PercentACNVsChronologer";
-        public static string ChronologerDeltaKdeFigure => "ChronologerDeltaDistribution_KDE";
-        public static string ChronologerDeltaBoxAndWhiskers => "ChronologerDeltaDistribution_BoxAndWhisker";
-        public static string ChronologerDeltaRange => "ChronologerDeltaDistribution_Range";
+        public const string RetentionTimePredictionReady = "RetentionTimePredictionReady.tsv";
+        public const string ChronologerReadyFile = "ChronologerReady.tsv";
+        public const string ChoronologerResults = "ChronologerOut.tsv";
+        public const string CalibratedRetentionTimeFile = "AdjustedRetentionTimes.csv";
+        public const string SSRCalcFigure = "RetentionTimeVsSSRCalc3";
+        public const string ChronologerFigure = "RetentionTimeVsChronologer";
+        public const string ChronologerFigureACN = "PercentACNVsChronologer";
+        public const string ChronologerDeltaKdeFigure = "ChronologerDeltaDistribution_KDE"; 
+        public const string ChronologerDeltaBoxAndWhiskers = "ChronologerDeltaDistribution_BoxAndWhisker";
+        public const string ChronologerDeltaRange = "ChronologerDeltaDistribution_Range";
 
 
         // Feature Finding Plots
-        public static string RetentionTimeShift_MM => "RetentionTimeShift_MetaMorpheus";
-        public static string RetentionTimeShiftHistogram_MM => "RetentionTimeShiftHistogram_MetaMorpheus";
-        public static string RetentionTimeShift_Fragger => "RetentionTimeShift_Fragger";
-        public static string RetentionTimeShiftHistogram_Fragger => "RetentionTimeShiftHistogram_Fragger";
-        public static string RetentionTimeShift_Stacked => "RetentionTimeShift_Stacked";
-        public static string RetentionTimeShiftHistogram_Stacked => "RetentionTimeShiftHistogram_Stacked";
-        public static string RetentionTimeShiftFullGrid_Stacked => "RetentionTimeShiftFullGrid_Stacked";
+        public const string RetentionTimeShift_MM = "RetentionTimeShift_MetaMorpheus";
+        public const string RetentionTimeShiftHistogram_MM = "RetentionTimeShiftHistogram_MetaMorpheus";
+        public const string RetentionTimeShift_Fragger = "RetentionTimeShift_Fragger";
+        public const string RetentionTimeShiftHistogram_Fragger = "RetentionTimeShiftHistogram_Fragger";
+        public const string RetentionTimeShift_Stacked = "RetentionTimeShift_Stacked";
+        public const string RetentionTimeShiftHistogram_Stacked = "RetentionTimeShiftHistogram_Stacked";
+        public const string RetentionTimeShiftFullGrid_Stacked = "RetentionTimeShiftFullGrid_Stacked";
 
 
         // Target Decoy
-        public static string RetentionTimeFigure => "RetentionTimeComparison";
-        public static string SpectralAngleFigure => "SpectralAngleComparison";
-        public static string PepGridChartFigure => "PepFeatureAnalysis";
-        public static string TargetDecoyCurve => "TargetDecoyCurve";
+        public const string RetentionTimeFigure = "RetentionTimeComparison";
+        public const string SpectralAngleFigure = "SpectralAngleComparison";
+        public const string PepGridChartFigure = "PepFeatureAnalysis";
+        public const string TargetDecoyCurve = "TargetDecoyCurve";
 
         // Jenkins Runs
-        public static string PepTestingSummaryFigure => "RunSummary";
+        public const string PepTestingSummaryFigure = "RunSummary";
 
     }
 }

@@ -26,6 +26,7 @@ namespace Analyzer.FileTypes.Internal
         public double PrecursorScanNumber { get; set; }
         public bool IsChimeric { get; set; }
         public double RetentionTime { get; set; }
+        [Optional] public double AdjustedRetentionTime { get; set; }
         public string BaseSequence { get; set; }
         public string FullSequence { get; set; }
         public double QValue { get; set; }
@@ -58,7 +59,7 @@ namespace Analyzer.FileTypes.Internal
         /// <summary>
         /// The difference between the Chronologer prediction translated to RT and the actual retention time
         /// </summary>
-        [Ignore]
+        [Optional]
         public double ChronologerToRetentionTime =>
             _chronologerToRetentionTime ??=
                 GetRetentionTimeFromMann11ChronologerPredictions(ChronologerPrediction);
