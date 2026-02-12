@@ -1,11 +1,17 @@
-﻿using Analyzer.Interfaces;
+﻿using System.Collections.Specialized;
+using System.Drawing.Text;
+using System.Globalization;
+using Analyzer.FileTypes.Internal;
+using Analyzer.Interfaces;
 using Analyzer.Plotting;
 using Analyzer.Plotting.IndividualRunPlots;
 using Analyzer.Plotting.Util;
 using Analyzer.SearchType;
 using Analyzer.Util;
 using Calibrator;
-using Chart = Plotly.NET.CSharp.Chart;
+using CsvHelper;
+using CsvHelper.Configuration;
+using MassSpectrometry;
 using Plotly.NET;
 using Plotly.NET.ImageExport;
 using Plotting;
@@ -15,7 +21,7 @@ using ResultAnalyzerUtil;
 using RetentionTimePrediction;
 using TaskLayer.ChimeraAnalysis;
 using UsefulProteomicsDatabases;
-using MassSpectrometry;
+using Chart = Plotly.NET.CSharp.Chart;
 
 namespace Test.ChimeraPaper
 {
@@ -31,6 +37,98 @@ namespace Test.ChimeraPaper
             @"B:\Users\Nic\Chimeras\FdrAnalysis\UseProvidedLibraryOnAllFiles_JurkatTD";
 
         [Test]
+        public static void DirCleanerUpper()
+        {
+            var dirpath = @"D:\Projects\Chimeras\SumbissionDirectory";
+            var initialFiles = Directory.GetFiles(dirpath, "*", SearchOption.AllDirectories);
+
+            //foreach (var file in initialFiles)
+            //{
+            //    if (file.EndsWith(".mzrt.csv"))
+            //    {
+            //        var newpath = file.Replace(".mzrt.csv", "_mzrt.csv");
+            //    }
+            //    if (file.EndsWith(".feature"))
+            //    {
+            //        var newpath = file.Replace("feature", "_feature.tsv");
+            //    }
+            //}
+            
+
+            var files = Directory.GetFiles(dirpath, "*", SearchOption.AllDirectories)
+                .GroupBy(Path.GetExtension)
+                .ToDictionary(p => p.Key, p => (p.ToList(), p.Select(Path.GetFileNameWithoutExtension).ToList(), p.Select(Path.GetFileNameWithoutExtension).Distinct().ToList()));
+
+            Dictionary<string, skip> skipDict = files
+                .ToDictionary(p => p.Key, p => new skip(p.Key));
+            //skipDict[".xml"].EndsWith.AddRange(["_feature"]);
+            skipDict[".txt"].StartsWith.AddRange(["log_2024-", "glyco_masses_list"]);
+
+
+            List<string> deleteExts = new() { ".db", ".png", ".zip" };
+
+
+            List<string> removedPaths = new();
+            foreach (var fileGroup in files)
+            {
+                var paths = fileGroup.Value.Item1;
+                var names = fileGroup.Value.Item2;
+                var distinctNames = fileGroup.Value.Item3;
+
+                if (fileGroup.Key.StartsWith(".toppic_") || fileGroup.Key.StartsWith(".msalign_index") || fileGroup.Key.StartsWith(".bin"))
+                {
+                    removedPaths.AddRange(paths);
+                    continue;
+                }
+
+                if (deleteExts.Any(p => p == fileGroup.Key))
+                {
+                    removedPaths.AddRange(paths);
+                    continue;
+                }
+
+                var theSkipEntry = skipDict[fileGroup.Key!];
+
+                var toRemove = new List<int>();
+                for (int i = 0; i < names.Count; i++)
+                {
+                    if (theSkipEntry.EndsWith.Any(s => names[i].EndsWith(s)))
+                        toRemove.Add(i);
+
+                    if (theSkipEntry.StartsWith.Any(s => names[i].StartsWith(s)))
+                        toRemove.Add(i);
+                }
+
+                for (int i = toRemove.Count - 1; i >= 0; i--)
+                {
+                    int indexToRemove = toRemove[i];
+                    removedPaths.Add(paths[indexToRemove]);
+                    paths.RemoveAt(indexToRemove);
+                    names.RemoveAt(indexToRemove);
+                }
+            }
+
+            var removeDict = removedPaths
+                .GroupBy(Path.GetExtension)
+                .ToDictionary(p => p.Key, p => (p.ToList(), p.Select(Path.GetFileNameWithoutExtension).ToList(), p.Select(Path.GetFileNameWithoutExtension).Distinct().ToList()));
+
+            foreach (var path in removedPaths)
+            {
+                File.Delete(path);
+            }
+
+        }
+
+        public class skip(string exten)
+        {
+            public string Extension { get; set; } = exten;
+            public List<string> EndsWith { get; set; } = new();
+            public List<string> StartsWith { get; set; } = new();
+        }
+
+
+
+        [Test]
         public static void SpectrumSimilarityTaskRunner()
         {
             string path = Man11FDRRunPath;
@@ -39,6 +137,69 @@ namespace Test.ChimeraPaper
             var task = new SingleRunSpectralAngleComparisonTask(parameters);
             task.Run();
         }
+
+        [Test]
+        public static void GetPaperNumbers()
+        {
+            // user internal comparison to get paper numbers
+            List<MetaMorpheusResult> GetBottomUpResults()
+            {
+                string buBasePath = InternalMetaMorpheusAnalysisTask.Mann11OutputDirectory;
+                var results = new List<MetaMorpheusResult>();
+
+                foreach (var searchPath in Directory.GetDirectories(buBasePath, $"*WithChimeras_{InternalMetaMorpheusAnalysisTask.Version}_ChimericLibrary*", SearchOption.AllDirectories)
+                    .Where(p => !p.Contains("Figure"))
+                    .Where(p => !p.Contains("Processed"))
+                    .Where(p => !p.Contains("Generate")))
+                {
+                    var result = new MetaMorpheusResult(searchPath);
+                    results.Add(result);
+                }
+
+                return results;
+            }
+
+            List<MetaMorpheusResult> GetTopDownResults()
+            {
+                string tdBasePath = InternalMetaMorpheusAnalysisTask.JurkatTopDownOutputDirectory;
+                var results = new List<MetaMorpheusResult>();
+                foreach (var searchPath in Directory.GetDirectories(tdBasePath, $"*WithChimeras_{InternalMetaMorpheusAnalysisTask.Version}_ChimericLibrary*", SearchOption.AllDirectories)
+                    .Where(p => !p.Contains("Figure"))
+                    .Where(p => !p.Contains("Processed"))
+                    .Where(p => !p.Contains("Generate")))
+                {
+                    var result = new MetaMorpheusResult(searchPath);
+                    results.Add(result);
+                }
+                return results;
+            }
+
+            List<MetaMorpheusResult> buResults = GetBottomUpResults();
+            List<MetaMorpheusResult> tdResults = GetTopDownResults();
+
+            var byPsm = buResults.CalculateMetrics(ResultType.Psm);
+            var byPeptide = buResults.CalculateMetrics(ResultType.Peptide);
+
+            var tdByPsm = tdResults.CalculateMetrics(ResultType.Psm);
+            var tdByPeptide = tdResults.CalculateMetrics(ResultType.Peptide);
+
+            List<PaperNumbers> allnumbrs = [byPsm, byPeptide, tdByPsm, tdByPeptide];
+
+            string outpath = @"B:\Users\Nic\Chimeras\InternalMMAnalysis\parsednums.csv";
+
+            using var csv = new CsvWriter(new StreamWriter(outpath), new CsvConfiguration(CultureInfo.InvariantCulture));
+
+            csv.WriteHeader<PaperNumbers>();
+            foreach (var result in allnumbrs)
+            {
+                csv.NextRecord();
+                csv.WriteRecord(result);
+            }
+        }
+
+
+
+
 
         [Test]
         public static void ChimericSpectrumSummaryTask()

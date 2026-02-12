@@ -34,12 +34,14 @@ public class CellLineResults : IEnumerable<SingleRunResults>, IDisposable
     public CellLineResults(string directoryPath)
     {
         DirectoryPath = directoryPath;
-        SearchResultsDirectoryPath = Path.Combine(DirectoryPath, "SearchResults"); /*directoryPath*/;
         CellLine = Path.GetFileName(DirectoryPath);
         Results = new List<SingleRunResults>();
         FigureDirectory = Path.Combine(DirectoryPath, "Figures");
         if (!Directory.Exists(FigureDirectory))
             Directory.CreateDirectory(FigureDirectory);
+
+        var searchDir = Path.Combine(DirectoryPath, "SearchResults"); 
+        SearchResultsDirectoryPath = Directory.Exists(searchDir) ? searchDir : DirectoryPath;
 
         if (directoryPath.Contains("TopDown") || directoryPath.Contains("PEP"))
         {

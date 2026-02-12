@@ -232,9 +232,9 @@ namespace TaskLayer.ChimeraAnalysis
 
 
             //  TODO: Change retention time alignment to operate on the grouped runs
-            if (!isTopDown)
-            {
-                Log($"Running Retention Time Alignment", 0);
+            //if (!isTopDown)
+            //{
+            //    Log($"Running Retention Time Alignment", 0);
                 //foreach (var cellLineDictEntry in cellLineDict)
                 //{
                 //    var cellLine = Path.GetFileNameWithoutExtension(cellLineDictEntry.Key);
@@ -262,82 +262,80 @@ namespace TaskLayer.ChimeraAnalysis
                 //    }
                 //}
 
-                Log("Creating Prediction Files");
-                foreach (var cellLineDictEntry in cellLineDict)
-                {
-                    if (cellLineDictEntry.Value.First().Condition.Contains(NonChimericDescriptor))
-                        continue;
+            //    Log("Creating Prediction Files");
+            //    foreach (var cellLineDictEntry in cellLineDict)
+            //    {
+            //        if (cellLineDictEntry.Value.First().Condition.Contains(NonChimericDescriptor))
+            //            continue;
 
-                    var cellLine = Path.GetFileNameWithoutExtension(cellLineDictEntry.Key);
+            //        var cellLine = Path.GetFileNameWithoutExtension(cellLineDictEntry.Key);
 
-                    var cellLineOutputDir = Path.Combine(BulkFigureDirectory, cellLineDictEntry.Key.ConvertConditionName());
-                    if (!Directory.Exists(cellLineOutputDir))
-                        Directory.CreateDirectory(cellLineOutputDir);
+            //        var cellLineOutputDir = Path.Combine(BulkFigureDirectory, cellLineDictEntry.Key.ConvertConditionName());
+            //        if (!Directory.Exists(cellLineOutputDir))
+            //            Directory.CreateDirectory(cellLineOutputDir);
 
-                    Log($"Processing Cell Line {cellLine}", 1);
-                    List<RetentionTimePredictionFile> cellLineFiles = new();
-                    foreach (var mmResult in cellLineDictEntry.Value)
-                    {
-                        if (mmResult.Condition.Contains(NonChimericDescriptor))
-                            continue;
+            //        Log($"Processing Cell Line {cellLine}", 1);
+            //        List<RetentionTimePredictionFile> cellLineFiles = new();
+            //        foreach (var mmResult in cellLineDictEntry.Value)
+            //        {
+            //            if (mmResult.Condition.Contains(NonChimericDescriptor))
+            //                continue;
 
-                        mmResult.Override = true;
-                        var file = mmResult.RetentionTimePredictionFile;
-                        mmResult.Override = false;
+            //            mmResult.Override = true;
+            //            var file = mmResult.RetentionTimePredictionFile;
+            //            mmResult.Override = false;
 
-                        cellLineFiles.Add(file);
-                    }
+            //            cellLineFiles.Add(file);
+            //        }
 
 
-                    var cellLineOutPath = Path.Combine(cellLineOutputDir, $"{cellLine}_{FileIdentifiers.RetentionTimePredictionReady}");
+            //        var cellLineOutPath = Path.Combine(cellLineOutputDir, $"{cellLine}_{FileIdentifiers.RetentionTimePredictionReady}");
+            //        if (!File.Exists(cellLineOutPath) || Parameters.Override)
+            //        {
+            //            var combinedFile = new RetentionTimePredictionFile(cellLineOutPath)
+            //            {
+            //                Results = cellLineFiles.SelectMany(p =>
+            //                {
+            //                    p.Results.ForEach(r => r.FileNameWithoutExtension = r.FileNameWithoutExtension.ConvertFileName());
+            //                    return p.Results;
+            //                }).ToList()
+            //            };
+            //            combinedFile.WriteResults(cellLineOutPath);
+            //        }
+            //    }
 
-                    // TODO: Fix this overwrite logic. 
-                    if (true ) //!File.Exists(cellLineOutPath) || Parameters.Override)
-                    {
-                        var combinedFile = new RetentionTimePredictionFile(cellLineOutPath)
-                        {
-                            Results = cellLineFiles.SelectMany(p =>
-                            {
-                                p.Results.ForEach(r => r.FileNameWithoutExtension = r.FileNameWithoutExtension.ConvertFileName());
-                                return p.Results;
-                            }).ToList()
-                        };
-                        combinedFile.WriteResults(cellLineOutPath);
-                    }
-                }
+            //    Log($"Running Retention Time Plots", 0);
+            //    foreach (var cellLineDictEntry in cellLineDict)
+            //    {
+            //        var cellLine = Path.GetFileNameWithoutExtension(cellLineDictEntry.Key);
 
-                Log($"Running Retention Time Plots", 0);
-                foreach (var cellLineDictEntry in cellLineDict)
-                {
-                    var cellLine = Path.GetFileNameWithoutExtension(cellLineDictEntry.Key);
+            //        List<CmdProcess> summaryTasks = new();
+            //        Log($"Processing Cell Line {cellLine}", 1);
+            //        foreach (var mmResult in cellLineDictEntry.Value)
+            //        {
+            //            if (mmResult.Condition.Contains(NonChimericDescriptor))
+            //                continue;
 
-                    List<CmdProcess> summaryTasks = new();
-                    Log($"Processing Cell Line {cellLine}", 1);
-                    foreach (var mmResult in cellLineDictEntry.Value)
-                    {
-                        if (mmResult.Condition.Contains(NonChimericDescriptor))
-                            continue;
+            //            foreach (var distribPlotTypes in Enum.GetValues<DistributionPlotTypes>())
+            //            {
+            //                var summaryParams =
+            //                    new SingleRunAnalysisParameters(mmResult.DirectoryPath, Parameters.Override, false, mmResult, distribPlotTypes);
+            //                var summaryTask = new SingleRunChimeraRetentionTimeDistribution(summaryParams) { Silent = true };
+            //                summaryTasks.Add(new ResultAnalyzerTaskToCmdProcessAdaptor(summaryTask, "Retention Time Plots", 0.25,
+            //                    mmResult.DirectoryPath));
+            //            }
+            //        }
 
-                        foreach (var distribPlotTypes in Enum.GetValues<DistributionPlotTypes>())
-                        {
-                            var summaryParams =
-                                new SingleRunAnalysisParameters(mmResult.DirectoryPath, Parameters.Override, false, mmResult, distribPlotTypes);
-                            var summaryTask = new SingleRunChimeraRetentionTimeDistribution(summaryParams) { Silent = true };
-                            summaryTasks.Add(new ResultAnalyzerTaskToCmdProcessAdaptor(summaryTask, "Retention Time Plots", 0.25,
-                                mmResult.DirectoryPath));
-                        }
-                    }
-
-                    try
-                    {
-                        RunProcesses(summaryTasks).Wait();
-                    }
-                    catch (Exception e)
-                    {
-                        Warn($"Error Running Retention Time Plots for {cellLine}: {e.Message}");
-                    }
-                }
-            }
+            //        try
+            //        {
+            //            RunProcesses(summaryTasks).Wait();
+            //        }
+            //        catch (Exception e)
+            //        {
+            //            Warn($"Error Running Retention Time Plots for {cellLine}: {e.Message}");
+            //        }
+            //    }
+            //}
 
             Log("Creating Proforma Files", 1);
             foreach (var cellLineDictEntry in cellLineDict)
@@ -816,7 +814,7 @@ namespace TaskLayer.ChimeraAnalysis
         #region Plotting
 
 
-        static void PlotCellLineBarCharts(List<MetaMorpheusResult> results)
+        public static void PlotCellLineBarCharts(List<MetaMorpheusResult> results)
         {
             Log($"Cell line bar charts", 1);
             bool isTopDown = results.First().IsTopDown;
@@ -884,17 +882,16 @@ namespace TaskLayer.ChimeraAnalysis
             proteinPlot.SaveJPG(proteinOutName, null, 1000, 800);
         }
 
-        static void PlotChimeraBreakdownBarChart(List<MetaMorpheusResult> results)
+        public static void PlotChimeraBreakdownBarChart(List<MetaMorpheusResult> results)
         {
             Log($"Chimera Breakdown", 1);
             bool isTopDown = results.First().IsTopDown;
             string titleLeader;
             if (!isTopDown)
                 titleLeader = "All Cell Lines ";
-            else if (results.FirstOrDefault(p => p.DatasetName.Contains("Jurkat")) != null)
-                titleLeader = "Jurkat ";
             else
-                titleLeader = "E. Coli ";
+                titleLeader = results[0].DatasetName + " ";
+                //titleLeader = "Top-Down ";
 
             var resultsToPlot = results.SelectMany(p => p.ChimeraBreakdownFile)
                 .ToList();
@@ -902,24 +899,24 @@ namespace TaskLayer.ChimeraAnalysis
             // Logged y scaling
             var psmPlot = resultsToPlot.GetChimeraBreakdownStackedColumn_Scaled(ResultType.Psm, isTopDown)
                 .WithTitle($"{titleLeader}Chimera Spectra Composition (1% {Labels.GetSpectrumMatchLabel(isTopDown)})", Plotly.NET.Font.init(Size: PlotlyBase.TitleSize));
-            TryAllTheExports(psmPlot, $"{Version}_ChimeraBreakdown_Logged_Psm", 1000, 1000, isTopDown, ResultType.Psm);
+            TryAllTheExports(psmPlot, $"{Version}_ChimeraBreakdown_Logged_Psm", 1000, 800, isTopDown, ResultType.Psm);
 
             var peptidePlot = resultsToPlot.GetChimeraBreakdownStackedColumn_Scaled(ResultType.Peptide, isTopDown)
                 .WithTitle($"{titleLeader}Chimera Spectra Composition (1% {Labels.GetPeptideLabel(isTopDown)})", Plotly.NET.Font.init(Size: PlotlyBase.TitleSize));
-            TryAllTheExports(peptidePlot, $"{Version}_ChimeraBreakdown_Logged_Peptide", 1000, 1000, isTopDown, ResultType.Peptide);
+            TryAllTheExports(peptidePlot, $"{Version}_ChimeraBreakdown_Logged_Peptide", 1000, 800, isTopDown, ResultType.Peptide);
 
 
             // Linear y scaling
             psmPlot = resultsToPlot.GetChimeraBreakDownStackedColumn(ResultType.Psm, isTopDown, out _)
                 .WithTitle($"{titleLeader}Chimera Spectra Composition (1% {Labels.GetSpectrumMatchLabel(isTopDown)})", Plotly.NET.Font.init(Size: PlotlyBase.TitleSize));
-            TryAllTheExports(psmPlot, $"{Version}_ChimeraBreakdown_Absolute_Psm", 1000, 1000, isTopDown, ResultType.Psm);
+            TryAllTheExports(psmPlot, $"{Version}_ChimeraBreakdown_Absolute_Psm", 1000, 800, isTopDown, ResultType.Psm);
 
             peptidePlot = resultsToPlot.GetChimeraBreakDownStackedColumn(ResultType.Peptide, isTopDown, out _)
                 .WithTitle($"{titleLeader}Chimera Spectra Composition (1% {Labels.GetPeptideLabel(isTopDown)})", Plotly.NET.Font.init(Size: PlotlyBase.TitleSize));
-            TryAllTheExports(peptidePlot, $"{Version}_ChimeraBreakdown_Absolute_Peptide", 1000, 1000, isTopDown, ResultType.Peptide);
+            TryAllTheExports(peptidePlot, $"{Version}_ChimeraBreakdown_Absolute_Peptide", 1000, 800, isTopDown, ResultType.Peptide);
         }
 
-        static void PlotPossibleFeatures(List<MetaMorpheusResult> results)
+        public static void PlotPossibleFeatures(List<MetaMorpheusResult> results)
         {
             Log($"Possible Features", 1);
             var noIdString = "No ID";
@@ -971,7 +968,7 @@ namespace TaskLayer.ChimeraAnalysis
             hist.SaveJPG(Path.Combine(BulkFigureDirectory, outname), null, 800, 600);
         }
 
-        static void PlotFractionalIntensityPlots(List<MetaMorpheusResult> results)
+        public static void PlotFractionalIntensityPlots(List<MetaMorpheusResult> results)
         {
             Log($"Plotting Fractional Intensity", 1);
             bool isTopDown = results.First().IsTopDown;
@@ -994,7 +991,7 @@ namespace TaskLayer.ChimeraAnalysis
             GenerateFractionalIntensityPlots(ResultType.Peptide, resultsToPlot, false, true, isTopDown);
         }
 
-        static void GenerateFractionalIntensityPlots(ResultType resultType,
+        public static void GenerateFractionalIntensityPlots(ResultType resultType,
             List<ChimericSpectrumSummary> summaryRecords, bool isPrecursor, bool sumPrecursor, bool isTopDown = false)
         {
             var records = summaryRecords.Where(p => p.Type == resultType.ToString()).ToList();
@@ -1070,7 +1067,7 @@ namespace TaskLayer.ChimeraAnalysis
             TryAllTheExports(hist, Path.Combine(BulkFigureDirectory, outName), 900, 900, isTopDown, resultType);
         }
 
-        static void PlotFdrPlots(Dictionary<string, List<MetaMorpheusResult>> allResults)
+        public static void PlotFdrPlots(Dictionary<string, List<MetaMorpheusResult>> allResults)
         {
             foreach (var conditionGroup in allResults)
             {
@@ -1101,7 +1098,7 @@ namespace TaskLayer.ChimeraAnalysis
             }
         }
 
-        static void PlotSpectralAnglePlots(Dictionary<string, List<MetaMorpheusResult>> allResults)
+        public static void PlotSpectralAnglePlots(Dictionary<string, List<MetaMorpheusResult>> allResults)
         {
             Log("Creating Aggregate Spectral Angle Plots");
             foreach (var conditionGroup in allResults)

@@ -18,6 +18,10 @@ namespace Analyzer.FileTypes.Internal
         [Name("Dataset")]
         public string Dataset { get; set; }
 
+        [Name("Condition")]
+        [Optional]
+        public string Condition { get; set; }
+
         [Name("Software")]
         public string Software { get; set; }
 
@@ -32,13 +36,14 @@ namespace Analyzer.FileTypes.Internal
 
 
 
-        public ChimeraCountingResult(int idsPerSpectra, int idCount, int onePercentIdCount, string dataset, string software)
+        public ChimeraCountingResult(int idsPerSpectra, int idCount, int onePercentIdCount, string dataset, string software, string? condition = null)
         {
             IdsPerSpectra = idsPerSpectra;
             IdCount = idCount;
             OnePercentIdCount = onePercentIdCount;
             Software = software;
             Dataset = dataset;
+            Condition = condition ?? dataset;
         }
 
         public ChimeraCountingResult()

@@ -40,6 +40,9 @@ namespace Analyzer.FileTypes.Internal
         public double ChronologerPrediction { get; set; }
         public string PeptideModSeq { get; set; }
 
+        [Optional] public int PrecursorCharge { get; set; } = -1;
+        [Optional] public double PrecursorIntensity { get; set; } = -1;
+
 
         [Ignore] private double? _percentHI;
         /// <summary>
@@ -99,7 +102,7 @@ namespace Analyzer.FileTypes.Internal
 
         public RetentionTimePredictionEntry(string fileNameWithoutExtension, double scanNumber,
             double precursorScanNumber, double retentionTime, string baseSequence, string fullSequence, string peptideModSeq,
-            double qValue, double pepQValue, double pep, double spectralAngle, bool isChimeric)
+            double qValue, double pepQValue, double pep, double spectralAngle, bool isChimeric, int precursorCharge = -1, double precursorIntensity = -1 )
         {
             FileNameWithoutExtension = fileNameWithoutExtension;
             ScanNumber = scanNumber;
@@ -113,6 +116,8 @@ namespace Analyzer.FileTypes.Internal
             IsChimeric = isChimeric;
             PEP = pep;
             SpectralAngle = spectralAngle;
+            PrecursorCharge = precursorCharge;
+            PrecursorIntensity = precursorIntensity;
         }
 
         public RetentionTimePredictionEntry()

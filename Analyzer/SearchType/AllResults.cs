@@ -16,7 +16,7 @@ namespace Analyzer.SearchType
             DirectoryPath = directoryPath;
             CellLineResults = new List<CellLineResults>(); 
             foreach (var directory in Directory.GetDirectories(DirectoryPath).Where(p => 
-                         !p.Contains("Figures") && !p.Contains("Order") && !p.Contains("Prosight") && !p.Contains("ProcessedResults"))) 
+                         !p.Contains("Figures") && !p.Contains("Order") && !p.Contains("Prosight") && !p.Contains("ProcessedResults") && !p.Contains("Generate")) )
             {
                 CellLineResults.Add(new CellLineResults(directory));
             }

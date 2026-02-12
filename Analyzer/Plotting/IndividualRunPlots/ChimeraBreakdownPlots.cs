@@ -195,7 +195,7 @@ namespace Analyzer.Plotting.IndividualRunPlots
             => result.ChimeraBreakdownFile.Results
                 .GetChimeraBreakdownStackedColumn_Scaled(resultType, result.IsTopDown)
                 .WithTitle($"{result.DatasetName} {result.Condition} 1% {Labels.GetLabel(result.IsTopDown, resultType)} Identifications")
-                .SaveInRunResultOnly(result as SingleRunResults, $"ChimeraBreakdown_Logged_{Labels.GetLabel(result.IsTopDown, resultType)}", 1000, 1000);
+                .SaveInRunResultOnly(result as SingleRunResults, $"ChimeraBreakdown_Logged_{Labels.GetLabel(result.IsTopDown, resultType)}", 1000, 800);
 
         public static GenericChart.GenericChart GetChimeraBreakdownStackedColumn_Scaled(
             this List<ChimeraBreakdownRecord> results, ResultType resultType = ResultType.Psm, 

@@ -58,12 +58,15 @@ namespace Plotting
                 return chart.WithXAxisStyle(Title.init(xTitle, Font: Font.init(Size: PlotlyBase.AxisTitleFontSize)));
         }
 
-        public static GenericChart.GenericChart ViolinPlot(List<double> values, string label)
+        public static GenericChart.GenericChart ViolinPlot(List<double> values, string label, string xTitle = "",
+            string yTitle = "")
         {
             var labels = Enumerable.Repeat(label, values.Count).ToArray();
             var violin = Chart.Violin<string, double, string> (labels, values,
                     label, MarkerColor: label.ConvertConditionToColor(), 
                         MeanLine: MeanLine.init(true, label.ConvertConditionToColor()), ShowLegend: false)
+                .WithYAxisStyle(Title.init(yTitle, Font: Font.init(Size: PlotlyBase.AxisTitleFontSize)))
+                .WithXAxisStyle(Title.init(xTitle, Font: Font.init(Size: PlotlyBase.AxisTitleFontSize)))
                 .WithSize(1000, 600);
             return violin;
         }

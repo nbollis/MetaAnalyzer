@@ -603,6 +603,9 @@ public static class PlottingTranslators
         {"ProsightPDChimeras_15", "ProsightPD\u280015 Chimeras"},
         {"ProsightPdChimeras_Rep2_15_10ppm", "ProsightPD"},
         {"ProsightPD_15", "ProsightPD\u280015 Chimeras"},
+        //B:\RawSpectraFiles\LiangliangSun_DifferentSeparations\2D_RPLC-CZE\114_GPTMDSearch\Figures
+        // E. Coli Top-Down analysis
+        { "LiangliangSun_DifferentSeparations","E. Coli"},
     };
 
     public static PlotlyColorQueue ColorQueue { get; }

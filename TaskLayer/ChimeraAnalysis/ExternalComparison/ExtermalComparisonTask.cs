@@ -666,7 +666,7 @@ namespace TaskLayer.ChimeraAnalysis
                 (PlotType: "SequenceCoverage", Width: 1200, Height: 1200, IsViolin: false, IsBox: false),
                 (PlotType: "BaseSequenceCount", Width: 1200, Height: 1200, IsViolin: false, IsBox: false),
                 (PlotType: "FullSequenceCount", Width: 1200, Height: 1200, IsViolin: false, IsBox: false),
-                (PlotType: "SequenceCoverageViolin", Width: 1200, Height: 1200, IsViolin: true, IsBox: false),
+                (PlotType: "SequenceCoverageViolin", Width: 700, Height: 700, IsViolin: true, IsBox: false),
                 (PlotType: "BaseSequenceCountViolin", Width: 700, Height: 700, IsViolin: true, IsBox: false),
                 (PlotType: "FullSequenceCountViolin", Width: 700, Height: 700, IsViolin: true, IsBox: false),
                 (PlotType: "SequenceCoverageBox", Width: 700, Height: 700, IsViolin: false, IsBox: true),

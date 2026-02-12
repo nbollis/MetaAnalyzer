@@ -71,7 +71,7 @@ namespace Analyzer.Plotting
                 switch (plotType)
                 {
                     case DistributionPlotTypes.ViolinPlot:
-                        toCombine.Add(GenericPlots.ViolinPlot(data, condition)
+                        toCombine.Add(GenericPlots.ViolinPlot(data, condition, xTitle, yTitle)
                             .WithYAxisStyle<int, int, string>(MinMax: new Tuple<int, int>(-10, max)));
                         break;
 

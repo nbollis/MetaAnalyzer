@@ -11,6 +11,7 @@ using ResultAnalyzerUtil;
 using System.Diagnostics;
 using Analyzer.Plotting.AggregatePlots;
 using UsefulProteomicsDatabases;
+using TaskLayer.ChimeraAnalysis;
 
 namespace Test.ChimeraPaper
 {
@@ -42,7 +43,13 @@ namespace Test.ChimeraPaper
         [Test]
         public static void RunAllParsing()
         {
-            foreach (var cellLine in AllResults)
+            //var allResults = AllResults;
+
+            var allResults = new AllResults(@"B:\Users\Nic\Chimeras\InternalMMAnalysis\TopDown_Jurkat");
+
+
+            // Clean input - currently keeps only 114 results from MetaMorpheus
+            foreach (var cellLine in allResults)
             {
                 var toRemove = new List<SingleRunResults>();
                 foreach (var result in cellLine)
@@ -61,83 +68,99 @@ namespace Test.ChimeraPaper
                     if (result.Condition.Contains("PEP"))
                         toRemove.Add(result);
 
-                    if (!result.Condition.Contains("114"))
+                    if (!result.Condition.Contains("WithChimeras_114_Chi"))
                         toRemove.Add(result);
                 }
 
                 foreach (var result in toRemove)
                     cellLine.Results.Remove(result);
+            }
 
-                var remainingConditions = cellLine.Results.Select(p => p.Condition).ToArray();
 
+
+            foreach (var cellLine in allResults)
+            {
                 foreach (var result in cellLine)
                 {
 
 
-                    result.CountChimericPsms();
-                    result.GetBulkResultCountComparisonFile();
-                    result.GetIndividualFileComparison();
-                    if (result is IChimeraBreakdownCompatible cb){
-                        //if (result is MetaMorpheusResult) continue;
-                        //if (result is MsPathFinderTResults mspt)
-                        //{
-                        //    if (!mspt.Condition.Contains("WithMods"))
-                        //        continue;
-                        //    result.Override = true;
-                        //}
-                        //if (result is ProteomeDiscovererResult pspd)
-                        //{
-                        //    result.Override = true;
-                        //    if (!pspd.Condition.Contains("_Rep2_15_10ppm"))
-                        //        continue;
-                        //}
+                    //result.CountChimericPsms();
+                    //result.GetBulkResultCountComparisonFile();
+                    //result.GetIndividualFileComparison();
+                    //if (result is IChimeraBreakdownCompatible cb){
+                    //    //if (result is MetaMorpheusResult) continue;
+                    //    //if (result is MsPathFinderTResults mspt)
+                    //    //{
+                    //    //    if (!mspt.Condition.Contains("WithMods"))
+                    //    //        continue;
+                    //    //    result.Override = true;
+                    //    //}
+                    //    //if (result is ProteomeDiscovererResult pspd)
+                    //    //{
+                    //    //    result.Override = true;
+                    //    //    if (!pspd.Condition.Contains("_Rep2_15_10ppm"))
+                    //    //        continue;
+                    //    //}
 
-                        cb.GetChimeraBreakdownFile();
-                        result.Override = false;
+                    //    cb.GetChimeraBreakdownFile();
+                    //    result.Override = false;
 
-                        cb.PlotChimeraBreakDownStackedColumn_Scaled(ResultType.Psm);
-                        try
-                        {
-                            cb.PlotChimeraBreakDownStackedColumn_Scaled(ResultType.Peptide);
-                        } catch { // Ignore
-                        }
-                    }
-                    if (result is IChimeraPeptideCounter pc)
-                        pc.CountChimericPeptides();
-                    //if (result is MetaMorpheusResult mm)
-                    //{
-                    //    mm.PlotPepFeaturesScatterGrid();
-                    //    mm.ExportCombinedChimeraTargetDecoyExploration(mm.FigureDirectory, mm.Condition);
-                    //    mm.PlotTargetDecoyCurves(ResultType.Psm, TargetDecoyCurveMode.Score, false);
-                    //    mm.PlotTargetDecoyCurves(ResultType.Psm, TargetDecoyCurveMode.Score, true);
-                    //    mm.PlotTargetDecoyCurves(ResultType.Peptide, TargetDecoyCurveMode.Score, false);
-                    //    mm.PlotTargetDecoyCurves(ResultType.Peptide, TargetDecoyCurveMode.Score, true);
+                    //    cb.PlotChimeraBreakDownStackedColumn_Scaled(ResultType.Psm);
+                    //    try
+                    //    {
+                    //        cb.PlotChimeraBreakDownStackedColumn_Scaled(ResultType.Peptide);
+                    //    } catch { // Ignore
+                    //    }
                     //}
-                    result.Override = false;
+                    //if (result is IChimeraPeptideCounter pc)
+                    //    pc.CountChimericPeptides();
+                    ////if (result is MetaMorpheusResult mm)
+                    ////{
+                    ////    mm.PlotPepFeaturesScatterGrid();
+                    ////    mm.ExportCombinedChimeraTargetDecoyExploration(mm.FigureDirectory, mm.Condition);
+                    ////    mm.PlotTargetDecoyCurves(ResultType.Psm, TargetDecoyCurveMode.Score, false);
+                    ////    mm.PlotTargetDecoyCurves(ResultType.Psm, TargetDecoyCurveMode.Score, true);
+                    ////    mm.PlotTargetDecoyCurves(ResultType.Peptide, TargetDecoyCurveMode.Score, false);
+                    ////    mm.PlotTargetDecoyCurves(ResultType.Peptide, TargetDecoyCurveMode.Score, true);
+                    ////}
+                    //result.Override = false;
                 }
 
-                cellLine.Override = true;
+                //cellLine.Override = true;
                 cellLine.GetIndividualFileComparison();
                 cellLine.GetBulkResultCountComparisonFile();
                 cellLine.CountChimericPsms();
                 cellLine.CountChimericPeptides();
-                cellLine.Override = false;
+                //cellLine.Override = false;
 
                 //cellLine.PlotIndividualFileResults();
-                cellLine.PlotCellLineSpectralSimilarity();
-                cellLine.PlotCellLineChimeraBreakdown();
-                cellLine.PlotCellLineChimeraBreakdown_TargetDecoy();
+                //cellLine.PlotCellLineSpectralSimilarity();
+                //cellLine.PlotCellLineChimeraBreakdown();
+                //cellLine.PlotCellLineChimeraBreakdown_TargetDecoy();
+
+
+                InternalMetaMorpheusAnalysisTask.BulkFigureDirectory = cellLine.FigureDirectory;
+
+                List<MetaMorpheusResult> mmResults = cellLine.Results
+                    .Where(p => p is MetaMorpheusResult)
+                    .Cast<MetaMorpheusResult>()
+                    .ToList();
+
+                InternalMetaMorpheusAnalysisTask.PlotChimeraBreakdownBarChart(mmResults);
+                InternalMetaMorpheusAnalysisTask.PlotPossibleFeatures(mmResults);
+                InternalMetaMorpheusAnalysisTask.PlotFractionalIntensityPlots(mmResults);
+                InternalMetaMorpheusAnalysisTask.PlotSpectralAnglePlots(mmResults.GroupBy(p => p.Condition.ConvertConditionName()).ToDictionary(p => p.Key, p => p.ToList()));
                 cellLine.PlotModificationDistribution(ResultType.Psm, false);
                 cellLine.PlotModificationDistribution(ResultType.Peptide, false);
 
                 cellLine.Dispose();
             }
 
-            AllResults.Override = true;
-            AllResults.IndividualFileComparison();
-            AllResults.GetBulkResultCountComparisonFile();
-            AllResults.CountChimericPsms();
-            AllResults.CountChimericPeptides();
+            //AllResults.Override = true;
+            //AllResults.IndividualFileComparison();
+            //AllResults.GetBulkResultCountComparisonFile();
+            //AllResults.CountChimericPsms();
+            //AllResults.CountChimericPeptides();
 
         }
 
@@ -169,9 +192,58 @@ namespace Test.ChimeraPaper
         [Test]
         public static void GenerateSpecificFigures()
         {
-            var resultPath = @"B:\Users\Nic\Chimeras\TopDown_Analysis\Jurkat\SearchResults\MetaMorpheus_108_Rep2_IsoDec";
-            var mm = new MetaMorpheusResult(resultPath, "Jurkat");
-            mm.ToPsmProformaFile();
+            var secCze = @"B:\RawSpectraFiles\LiangliangSun_DifferentSeparations\2D_SEC-CZE\114_GPTMDSearch";
+            var rplcCze = @"B:\RawSpectraFiles\LiangliangSun_DifferentSeparations\2D_RPLC-CZE\114_GPTMDSearch";
+            var rplcCze_Exp1 = @"B:\RawSpectraFiles\LiangliangSun_DifferentSeparations\2D_RPLC-CZE_Experiment1\114_GPTMD_Search";
+            var secRplcCze = @"B:\RawSpectraFiles\LiangliangSun_DifferentSeparations\3D_SEC-RPCL-CZE\114_GPTMDSearch";
+
+            var cellLine = new CellLineResults(@"B:\RawSpectraFiles\LiangliangSun_DifferentSeparations", new List<SingleRunResults> 
+            { 
+                new MetaMorpheusResult(secCze, "E. Coli", "2D_SEC-CZE-MSMS"), 
+                new MetaMorpheusResult(rplcCze, "E. Coli", "2D_RPLC (13 fractions)-CZE-MSMS "),  
+                new MetaMorpheusResult(rplcCze_Exp1, "E. Coli", "2D_RPLC (6 fractions)-CZE-MSMS"),
+                new MetaMorpheusResult(secRplcCze, "E. Coli", "3D_SEC-RPCL-CZE-MSMS"),
+            });
+
+
+            InternalMetaMorpheusAnalysisTask.BulkFigureDirectory = cellLine.FigureDirectory;
+            foreach (var result in cellLine.Where(p => p is MetaMorpheusResult)
+                .Cast<MetaMorpheusResult>())
+            {
+                result.CountChimericPsms();
+
+                result.GetBulkResultCountComparisonFile();
+                result.GetIndividualFileComparison();
+                if (result is IChimeraBreakdownCompatible cb)
+                {
+                    cb.GetChimeraBreakdownFile();
+                    result.PlotChimeraBreakDownStackedColumn_Scaled(ResultType.Psm);
+                    result.PlotChimeraBreakDownStackedColumn_Scaled(ResultType.Peptide);
+                    result.PlotChimeraBreakDownStackedColumn(ResultType.Psm);
+                    result.PlotChimeraBreakDownStackedColumn(ResultType.Peptide);
+                }
+                if (result is IChimeraPeptideCounter pc)
+                    pc.CountChimericPeptides();
+                result.ToPsmProformaFile();
+            }
+
+            cellLine.CountChimericPsms();
+            cellLine.CountChimericPeptides();
+            cellLine.PlotIndividualFileResults(filterByCondition: false);
+
+            List<MetaMorpheusResult> mmResults = cellLine.Results
+                .Where(p => p is MetaMorpheusResult)
+                .Cast<MetaMorpheusResult>()
+                .ToList();
+
+            InternalMetaMorpheusAnalysisTask.BulkFigureDirectory = cellLine.FigureDirectory;
+            InternalMetaMorpheusAnalysisTask.PlotChimeraBreakdownBarChart(mmResults);
+            //InternalMetaMorpheusAnalysisTask.PlotPossibleFeatures(mmResults);
+            //InternalMetaMorpheusAnalysisTask.PlotFractionalIntensityPlots(mmResults);
+            var plot = cellLine.SelectMany(p => p.ToPsmProformaFile().Results).ToList().GetModificationDistribution(true, false, false);
+            var outPath = Path.Combine(cellLine.FigureDirectory, "ModificationDistribution_Psm.png");
+            plot.SavePNG(outPath, null, 1200, 800);
+
         }
 
         [Test]

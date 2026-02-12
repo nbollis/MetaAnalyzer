@@ -194,7 +194,7 @@ namespace Analyzer.SearchType
 
 
             var results = allPsmsCount.Keys.Select(count => new ChimeraCountingResult(count, allPsmsCount[count],
-                onePercentPsmCount.GetValueOrDefault(count, 0), DatasetName, Condition)).ToList();
+                onePercentPsmCount.GetValueOrDefault(count, 0), DatasetName, Condition, Condition)).ToList();
 
             var chimeraCountingFile = new ChimeraCountingFile(_chimeraPsmPath) { Results = results };
             chimeraCountingFile.WriteResults(_chimeraPsmPath);
@@ -380,7 +380,7 @@ namespace Analyzer.SearchType
                                 orderedChimeras = chimeraGroup
                                     .Where(p => p.DecoyContamTarget == "T")
                                     .OrderByDescending(p => p.Score)
-                                    .ThenBy(p => Math.Abs(double.Parse(p.MassDiffDa)))
+                                    .ThenBy(p => Math.Abs(double.Parse(p.MassDiffDa.Split('|')[0])))
                                     .ToArray();
                             else
                                 orderedChimeras = chimeraGroup
@@ -663,7 +663,7 @@ namespace Analyzer.SearchType
                 retentionTimePredictions.AddRange(group.Select(p =>
                     new RetentionTimePredictionEntry(p.Psm.FileNameWithoutExtension, p.Psm.Ms2ScanNumber, p.Psm.PrecursorScanNum,
                         p.Psm.RetentionTime, p.Psm.BaseSeq, p.FullSequence, p.Psm.PeptideModSeq(modDict), p.Psm.QValue,
-                        p.Psm.PEP_QValue, p.Psm.PEP, p.Psm.SpectralAngle ?? -1, isChimeric)
+                        p.Psm.PEP_QValue, p.Psm.PEP, p.Psm.SpectralAngle ?? -1, isChimeric, p.Psm.PrecursorCharge, p.Psm.PrecursorIntensity ?? -1)
                     {
                         SSRCalcPrediction = calc.ScoreSequence(new PeptideWithSetModifications(p.FullSequence.Split('|')[0], GlobalVariables.AllModsKnownDictionary)),
                         ChronologerPrediction = sequenceToPredictionDictionary.TryGetValue((p.BaseSequence, p.FullSequence), out var value) ? value : 0.0,
