@@ -125,9 +125,8 @@ namespace Plotting
             string xTitle = "", string yTitle = "", bool displayCarbamimidoMethyl = false, bool displayRelative = true)
         {
             var modDict = new Dictionary<string, double>();
-            foreach (var mod in fullSequences.SelectMany(p =>
-                         SpectrumMatchFromTsv.ParseModifications(p).SelectMany(m => m.Value)
-                             .Select(mod => System.Text.RegularExpressions.Regex.Replace(mod, @".*?:", "").Trim()
+            foreach (var mod in fullSequences.SelectMany(p => SpectrumMatchFromTsv.ParseModifications(p)
+                         .Select(m => System.Text.RegularExpressions.Regex.Replace(m.Value, @".*?:", "").Trim()
                                  .Replace("Accetyl", "Acetyl")
                                  .Replace("Acetyl on X", "Acetylation on X")
                                  .Replace("Acetyl on K", "Acetylation on K")

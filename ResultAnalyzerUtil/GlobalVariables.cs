@@ -22,7 +22,7 @@ namespace ResultAnalyzerUtil
         public static IList<Modification> AllModsKnown => _AllModsKnown;
         public static IEnumerable<string> AllModTypesKnown => _AllModTypesKnown.AsEnumerable();
         public static Dictionary<string, Modification> AllModsKnownDictionary { get; private set; }
-        public static UsefulProteomicsDatabases.Generated.obo PsiModDeserialized { get; private set; }
+        public static Omics.Modifications.IO.obo PsiModDeserialized { get; private set; }
         public static IEnumerable<Modification> UnimodDeserialized { get; private set; }
         public static IEnumerable<Modification> UniprotDeseralized { get; private set; }
         public static List<Modification> ProteaseMods = new List<Modification>();
