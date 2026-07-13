@@ -3,11 +3,11 @@ using CsvHelper.Configuration.Attributes;
 using Omics.Modifications;
 using Proteomics.ProteolyticDigestion;
 using ResultAnalyzerUtil;
-using RetentionTimePrediction;
 using System.Globalization;
 using System.Text;
 using System.Text.RegularExpressions;
 using Chemistry;
+using Chromatography.RetentionTimePrediction;
 
 namespace Analyzer.FileTypes.External
 {

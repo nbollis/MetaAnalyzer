@@ -18,8 +18,6 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ChimericSpectrumConverter",
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Calibrator", "Calibrator\Calibrator.csproj", "{67F6A206-3CFF-4AE0-AE7F-DAA90EC56DCF}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RetentionTimePrediction", "RetentionTimePrediction\RetentionTimePrediction.csproj", "{23872B49-7F87-4A0C-86A2-59612638801D}"
-EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MsPathFinderTRunner", "MsPathFinderTRunner\MsPathFinderTRunner.csproj", "{212F9336-1C2B-4C5C-A1FC-9DD8FA9B35AC}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "GradientDevelopment", "GradientDevelopment\GradientDevelopment.csproj", "{2F0EB7AC-4D19-4376-AF20-02794F54809D}"
@@ -64,10 +62,6 @@ Global
 		{67F6A206-3CFF-4AE0-AE7F-DAA90EC56DCF}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{67F6A206-3CFF-4AE0-AE7F-DAA90EC56DCF}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{67F6A206-3CFF-4AE0-AE7F-DAA90EC56DCF}.Release|Any CPU.Build.0 = Release|Any CPU
-		{23872B49-7F87-4A0C-86A2-59612638801D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{23872B49-7F87-4A0C-86A2-59612638801D}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{23872B49-7F87-4A0C-86A2-59612638801D}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{23872B49-7F87-4A0C-86A2-59612638801D}.Release|Any CPU.Build.0 = Release|Any CPU
 		{212F9336-1C2B-4C5C-A1FC-9DD8FA9B35AC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{212F9336-1C2B-4C5C-A1FC-9DD8FA9B35AC}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{212F9336-1C2B-4C5C-A1FC-9DD8FA9B35AC}.Release|Any CPU.ActiveCfg = Release|Any CPU

@@ -2,10 +2,10 @@
 using Analyzer.FileTypes.Internal;
 using Analyzer.Interfaces;
 using Analyzer.Util;
+using Chromatography.RetentionTimePrediction.Chronologer;
 using Plotting.Util;
 using Proteomics;
 using ResultAnalyzerUtil;
-using RetentionTimePrediction;
 using UsefulProteomicsDatabases;
 
 namespace Analyzer.SearchType
@@ -219,7 +219,7 @@ namespace Analyzer.SearchType
 
             var sequenceToPredictionDictionary = psms
                 .DistinctBy(p => (p.BaseSequence, p.FullSequence))
-                .ToDictionary(p => (p.BaseSequence, p.FullSequence), p => chron.PredictRetentionTime(p, out var failureReason));
+                .ToDictionary(p => (p.BaseSequence, p.FullSequence), p => chron.PredictRetentionTimeEquivalent(p, out var failureReason));
 
             List<RetentionTimePredictionEntry> results = new();
             foreach (var chimeraGroup in psms.GroupBy(p => p, CustomComparerExtensions.MsFraggerChimeraComparer))

@@ -5,6 +5,9 @@ using Analyzer.FileTypes.Internal;
 using Analyzer.Interfaces;
 using Analyzer.Util;
 using Chemistry;
+using Chromatography.RetentionTimePrediction;
+using Chromatography.RetentionTimePrediction.Chronologer;
+using Chromatography.RetentionTimePrediction.CZE;
 using Easy.Common.Extensions;
 using MassSpectrometry;
 using MathNet.Numerics;
@@ -15,7 +18,6 @@ using Proteomics.ProteolyticDigestion;
 using Proteomics.RetentionTimePrediction;
 using Readers;
 using ResultAnalyzerUtil;
-using RetentionTimePrediction;
 using UsefulProteomicsDatabases;
 using Ms1FeatureFile = Analyzer.FileTypes.External.Ms1FeatureFile;
 
@@ -603,11 +605,9 @@ namespace Analyzer.SearchType
             var calc = new SSRCalc3("SSRCalc 3.0 (300A)", SSRCalc3.Column.A300);
 
             Log($"{DatasetName} {Condition}: Making Retention time predctions with chronologer", 2);
-            var predictor = 
-                // IsTopDown 
-            //    ? new Cz                
-            //    :
-            new ChronologerRetentionTimePredictor();
+            RetentionTimePredictor predictor = IsTopDown
+              ? new CZERetentionTimePredictor()
+              : new ChronologerRetentionTimePredictor();
 
             var sequenceToPredictionDictionary = peptides
                 .DistinctBy(p => (p.BaseSequence, p.FullSequence))
@@ -620,7 +620,7 @@ namespace Analyzer.SearchType
                     }
                     else
                     {
-                        rt = predictor.PredictRetentionTime(p, out var failureReason) ?? 0;
+                        rt = predictor.PredictRetentionTimeEquivalent(p, out var failureReason) ?? 0;
                         _CachedRtPredictions[(p.BaseSequence, p.FullSequence)] = rt;
 
                         return rt;

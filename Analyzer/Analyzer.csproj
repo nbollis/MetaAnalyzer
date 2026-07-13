@@ -22,7 +22,6 @@
 	  <ProjectReference Include="..\AnalyzerCore\AnalyzerCore.csproj" />
 	  <ProjectReference Include="..\Plotting\Plotting.csproj" />
 	  <ProjectReference Include="..\ResultAnalyzerUtil\ResultAnalyzerUtil.csproj" />
-	  <ProjectReference Include="..\RetentionTimePrediction\RetentionTimePrediction.csproj" />
 	</ItemGroup>
 
 	<ItemGroup>

@@ -18,7 +18,6 @@ using Plotting;
 using Plotting.Util;
 using Readers;
 using ResultAnalyzerUtil;
-using RetentionTimePrediction;
 using TaskLayer.ChimeraAnalysis;
 using UsefulProteomicsDatabases;
 using Chart = Plotly.NET.CSharp.Chart;
