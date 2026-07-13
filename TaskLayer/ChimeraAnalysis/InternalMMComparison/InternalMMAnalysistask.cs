@@ -235,95 +235,21 @@ namespace TaskLayer.ChimeraAnalysis
             //if (!isTopDown)
             //{
             //    Log($"Running Retention Time Alignment", 0);
-                //foreach (var cellLineDictEntry in cellLineDict)
-                //{
-                //    var cellLine = Path.GetFileNameWithoutExtension(cellLineDictEntry.Key);
-
-                //    List<CmdProcess> summaryTasks = new();
-                //    Log($"Processing Cell Line {cellLine}", 1);
-                //    foreach (var singleRunPath in cellLineDictEntry.Value)
-                //    {
-                //        if (singleRunPath.Condition.Contains(NonChimericDescriptor))
-                //            continue;
-                //        var summaryParams =
-                //            new SingleRunAnalysisParameters(singleRunPath.DirectoryPath, Parameters.Override, false);
-                //        var summaryTask = new SingleRunRetentionTimeCalibrationTask(summaryParams);
-                //        summaryTasks.Add(new ResultAnalyzerTaskToCmdProcessAdaptor(summaryTask, "Retention Time Alignment", 0.25,
-                //            singleRunPath.DirectoryPath));
-                //    }
-
-                //    try
-                //    {
-                //        RunProcesses(summaryTasks).Wait();
-                //    }
-                //    catch (Exception e)
-                //    {
-                //        Warn($"Error Running Retention Time Alignment for {cellLine}: {e.Message}");
-                //    }
-                //}
-
-            //    Log("Creating Prediction Files");
-            //    foreach (var cellLineDictEntry in cellLineDict)
-            //    {
-            //        if (cellLineDictEntry.Value.First().Condition.Contains(NonChimericDescriptor))
-            //            continue;
-
-            //        var cellLine = Path.GetFileNameWithoutExtension(cellLineDictEntry.Key);
-
-            //        var cellLineOutputDir = Path.Combine(BulkFigureDirectory, cellLineDictEntry.Key.ConvertConditionName());
-            //        if (!Directory.Exists(cellLineOutputDir))
-            //            Directory.CreateDirectory(cellLineOutputDir);
-
-            //        Log($"Processing Cell Line {cellLine}", 1);
-            //        List<RetentionTimePredictionFile> cellLineFiles = new();
-            //        foreach (var mmResult in cellLineDictEntry.Value)
-            //        {
-            //            if (mmResult.Condition.Contains(NonChimericDescriptor))
-            //                continue;
-
-            //            mmResult.Override = true;
-            //            var file = mmResult.RetentionTimePredictionFile;
-            //            mmResult.Override = false;
-
-            //            cellLineFiles.Add(file);
-            //        }
-
-
-            //        var cellLineOutPath = Path.Combine(cellLineOutputDir, $"{cellLine}_{FileIdentifiers.RetentionTimePredictionReady}");
-            //        if (!File.Exists(cellLineOutPath) || Parameters.Override)
-            //        {
-            //            var combinedFile = new RetentionTimePredictionFile(cellLineOutPath)
-            //            {
-            //                Results = cellLineFiles.SelectMany(p =>
-            //                {
-            //                    p.Results.ForEach(r => r.FileNameWithoutExtension = r.FileNameWithoutExtension.ConvertFileName());
-            //                    return p.Results;
-            //                }).ToList()
-            //            };
-            //            combinedFile.WriteResults(cellLineOutPath);
-            //        }
-            //    }
-
-            //    Log($"Running Retention Time Plots", 0);
             //    foreach (var cellLineDictEntry in cellLineDict)
             //    {
             //        var cellLine = Path.GetFileNameWithoutExtension(cellLineDictEntry.Key);
 
             //        List<CmdProcess> summaryTasks = new();
             //        Log($"Processing Cell Line {cellLine}", 1);
-            //        foreach (var mmResult in cellLineDictEntry.Value)
+            //        foreach (var singleRunPath in cellLineDictEntry.Value)
             //        {
-            //            if (mmResult.Condition.Contains(NonChimericDescriptor))
+            //            if (singleRunPath.Condition.Contains(NonChimericDescriptor))
             //                continue;
-
-            //            foreach (var distribPlotTypes in Enum.GetValues<DistributionPlotTypes>())
-            //            {
-            //                var summaryParams =
-            //                    new SingleRunAnalysisParameters(mmResult.DirectoryPath, Parameters.Override, false, mmResult, distribPlotTypes);
-            //                var summaryTask = new SingleRunChimeraRetentionTimeDistribution(summaryParams) { Silent = true };
-            //                summaryTasks.Add(new ResultAnalyzerTaskToCmdProcessAdaptor(summaryTask, "Retention Time Plots", 0.25,
-            //                    mmResult.DirectoryPath));
-            //            }
+            //            var summaryParams =
+            //                new SingleRunAnalysisParameters(singleRunPath.DirectoryPath, Parameters.Override, false);
+            //            var summaryTask = new SingleRunRetentionTimeCalibrationTask(summaryParams);
+            //            summaryTasks.Add(new ResultAnalyzerTaskToCmdProcessAdaptor(summaryTask, "Retention Time Alignment", 0.25,
+            //                singleRunPath.DirectoryPath));
             //        }
 
             //        try
@@ -332,10 +258,84 @@ namespace TaskLayer.ChimeraAnalysis
             //        }
             //        catch (Exception e)
             //        {
-            //            Warn($"Error Running Retention Time Plots for {cellLine}: {e.Message}");
+            //            Warn($"Error Running Retention Time Alignment for {cellLine}: {e.Message}");
             //        }
             //    }
-            //}
+
+                //    Log("Creating Prediction Files");
+                //    foreach (var cellLineDictEntry in cellLineDict)
+                //    {
+                //        if (cellLineDictEntry.Value.First().Condition.Contains(NonChimericDescriptor))
+                //            continue;
+
+                //        var cellLine = Path.GetFileNameWithoutExtension(cellLineDictEntry.Key);
+
+                //        var cellLineOutputDir = Path.Combine(BulkFigureDirectory, cellLineDictEntry.Key.ConvertConditionName());
+                //        if (!Directory.Exists(cellLineOutputDir))
+                //            Directory.CreateDirectory(cellLineOutputDir);
+
+                //        Log($"Processing Cell Line {cellLine}", 1);
+                //        List<RetentionTimePredictionFile> cellLineFiles = new();
+                //        foreach (var mmResult in cellLineDictEntry.Value)
+                //        {
+                //            if (mmResult.Condition.Contains(NonChimericDescriptor))
+                //                continue;
+
+                //            mmResult.Override = true;
+                //            var file = mmResult.RetentionTimePredictionFile;
+                //            mmResult.Override = false;
+
+                //            cellLineFiles.Add(file);
+                //        }
+
+
+                //        var cellLineOutPath = Path.Combine(cellLineOutputDir, $"{cellLine}_{FileIdentifiers.RetentionTimePredictionReady}");
+                //        if (!File.Exists(cellLineOutPath) || Parameters.Override)
+                //        {
+                //            var combinedFile = new RetentionTimePredictionFile(cellLineOutPath)
+                //            {
+                //                Results = cellLineFiles.SelectMany(p =>
+                //                {
+                //                    p.Results.ForEach(r => r.FileNameWithoutExtension = r.FileNameWithoutExtension.ConvertFileName());
+                //                    return p.Results;
+                //                }).ToList()
+                //            };
+                //            combinedFile.WriteResults(cellLineOutPath);
+                //        }
+                //    }
+
+                //    Log($"Running Retention Time Plots", 0);
+                //    foreach (var cellLineDictEntry in cellLineDict)
+                //    {
+                //        var cellLine = Path.GetFileNameWithoutExtension(cellLineDictEntry.Key);
+
+                //        List<CmdProcess> summaryTasks = new();
+                //        Log($"Processing Cell Line {cellLine}", 1);
+                //        foreach (var mmResult in cellLineDictEntry.Value)
+                //        {
+                //            if (mmResult.Condition.Contains(NonChimericDescriptor))
+                //                continue;
+
+                //            foreach (var distribPlotTypes in Enum.GetValues<DistributionPlotTypes>())
+                //            {
+                //                var summaryParams =
+                //                    new SingleRunAnalysisParameters(mmResult.DirectoryPath, Parameters.Override, false, mmResult, distribPlotTypes);
+                //                var summaryTask = new SingleRunChimeraRetentionTimeDistribution(summaryParams) { Silent = true };
+                //                summaryTasks.Add(new ResultAnalyzerTaskToCmdProcessAdaptor(summaryTask, "Retention Time Plots", 0.25,
+                //                    mmResult.DirectoryPath));
+                //            }
+                //        }
+
+                //        try
+                //        {
+                //            RunProcesses(summaryTasks).Wait();
+                //        }
+                //        catch (Exception e)
+                //        {
+                //            Warn($"Error Running Retention Time Plots for {cellLine}: {e.Message}");
+                //        }
+                //    }
+                //}
 
             Log("Creating Proforma Files", 1);
             foreach (var cellLineDictEntry in cellLineDict)

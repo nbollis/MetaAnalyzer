@@ -603,7 +603,11 @@ namespace Analyzer.SearchType
             var calc = new SSRCalc3("SSRCalc 3.0 (300A)", SSRCalc3.Column.A300);
 
             Log($"{DatasetName} {Condition}: Making Retention time predctions with chronologer", 2);
-            var chron = new ChronologerRetentionTimePredictor();
+            var predictor = 
+                // IsTopDown 
+            //    ? new Cz                
+            //    :
+            new ChronologerRetentionTimePredictor();
 
             var sequenceToPredictionDictionary = peptides
                 .DistinctBy(p => (p.BaseSequence, p.FullSequence))
@@ -616,7 +620,7 @@ namespace Analyzer.SearchType
                     }
                     else
                     {
-                        rt = chron.PredictRetentionTime(p, out var failureReason) ?? 0;
+                        rt = predictor.PredictRetentionTime(p, out var failureReason) ?? 0;
                         _CachedRtPredictions[(p.BaseSequence, p.FullSequence)] = rt;
 
                         return rt;

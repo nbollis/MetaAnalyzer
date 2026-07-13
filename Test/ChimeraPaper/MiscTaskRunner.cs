@@ -40,32 +40,57 @@ namespace Test.ChimeraPaper
         public static void DirCleanerUpper()
         {
             var dirpath = @"D:\Projects\Chimeras\SumbissionDirectory";
+
+
+            //foreach (var dir in Directory.GetFiles(dirpath, "*MetaDraw*", SearchOption.AllDirectories))
+            //{
+            //    Directory.Delete(dir, true);
+            //}
+
+
             var initialFiles = Directory.GetFiles(dirpath, "*", SearchOption.AllDirectories);
 
-            //foreach (var file in initialFiles)
-            //{
-            //    if (file.EndsWith(".mzrt.csv"))
-            //    {
-            //        var newpath = file.Replace(".mzrt.csv", "_mzrt.csv");
-            //    }
-            //    if (file.EndsWith(".feature"))
-            //    {
-            //        var newpath = file.Replace("feature", "_feature.tsv");
-            //    }
-            //}
-            
+            foreach (var file in initialFiles)
+            {
+                string newPath;
+                if (file.EndsWith(".mzrt.csv"))
+                {
+                    newPath = file.Replace(".mzrt.csv", "_mzrt.csv");
+                }
+                else if (file.EndsWith(".feature"))
+                {
+                    newPath = file.Replace(".feature", "_feature.tsv");
+                }
+                else if (file.EndsWith(".msalign"))
+                {
+                    newPath = file.Replace(".msalign", "_msalign.tsv");
+                }
+                else
+                {
+                   continue;
+                }
+
+                if (!File.Exists(newPath))
+                {
+                    File.Move(file, newPath);
+                }
+            }
+
 
             var files = Directory.GetFiles(dirpath, "*", SearchOption.AllDirectories)
                 .GroupBy(Path.GetExtension)
                 .ToDictionary(p => p.Key, p => (p.ToList(), p.Select(Path.GetFileNameWithoutExtension).ToList(), p.Select(Path.GetFileNameWithoutExtension).Distinct().ToList()));
 
-            Dictionary<string, skip> skipDict = files
+            Dictionary<string, skip> deleteDict = files
                 .ToDictionary(p => p.Key, p => new skip(p.Key));
-            //skipDict[".xml"].EndsWith.AddRange(["_feature"]);
-            skipDict[".txt"].StartsWith.AddRange(["log_2024-", "glyco_masses_list"]);
+            //deleteDict[".xml"].EndsWith.AddRange(["_feature"]);
+            deleteDict[".txt"].StartsWith.AddRange(["log_2024-", "glyco_masses_list"]);
+            deleteDict[".txt"].EndsWith.AddRange(["Prose"]);
+            deleteDict[".xml"].EndsWith.AddRange(["_feature"]);
 
 
-            List<string> deleteExts = new() { ".db", ".png", ".zip" };
+            List<string> extensionsToDelete = new() { ".db", ".png", ".zip", ".tab" };
+            List<string> directoriesToDeleteStartsWith = new() { ".toppic_", ".msalign_index", ".bin" };
 
 
             List<string> removedPaths = new();
@@ -75,19 +100,19 @@ namespace Test.ChimeraPaper
                 var names = fileGroup.Value.Item2;
                 var distinctNames = fileGroup.Value.Item3;
 
-                if (fileGroup.Key.StartsWith(".toppic_") || fileGroup.Key.StartsWith(".msalign_index") || fileGroup.Key.StartsWith(".bin"))
+                if (directoriesToDeleteStartsWith.Any(p => fileGroup.Key!.StartsWith(p)))
                 {
                     removedPaths.AddRange(paths);
                     continue;
                 }
 
-                if (deleteExts.Any(p => p == fileGroup.Key))
+                if (extensionsToDelete.Any(p => p == fileGroup.Key))
                 {
                     removedPaths.AddRange(paths);
                     continue;
                 }
 
-                var theSkipEntry = skipDict[fileGroup.Key!];
+                var theSkipEntry = deleteDict[fileGroup.Key!];
 
                 var toRemove = new List<int>();
                 for (int i = 0; i < names.Count; i++)

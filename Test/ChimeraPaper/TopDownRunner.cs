@@ -199,10 +199,10 @@ namespace Test.ChimeraPaper
 
             var cellLine = new CellLineResults(@"B:\RawSpectraFiles\LiangliangSun_DifferentSeparations", new List<SingleRunResults> 
             { 
-                new MetaMorpheusResult(secCze, "E. Coli", "2D_SEC-CZE-MSMS"), 
-                new MetaMorpheusResult(rplcCze, "E. Coli", "2D_RPLC (13 fractions)-CZE-MSMS "),  
-                new MetaMorpheusResult(rplcCze_Exp1, "E. Coli", "2D_RPLC (6 fractions)-CZE-MSMS"),
-                new MetaMorpheusResult(secRplcCze, "E. Coli", "3D_SEC-RPCL-CZE-MSMS"),
+                new MetaMorpheusResult(secCze, "E. Coli", "SEC(6)-CZE-MSMS"), 
+                new MetaMorpheusResult(rplcCze, "E. Coli", "RPLC(13)-CZE-MSMS "),  
+                new MetaMorpheusResult(rplcCze_Exp1, "E. Coli", "RPLC(6)-CZE-MSMS"),
+                //new MetaMorpheusResult(secRplcCze, "E. Coli", "3D_SEC-RPCL-CZE-MSMS"),
             });
 
 
@@ -238,6 +238,7 @@ namespace Test.ChimeraPaper
 
             InternalMetaMorpheusAnalysisTask.BulkFigureDirectory = cellLine.FigureDirectory;
             InternalMetaMorpheusAnalysisTask.PlotChimeraBreakdownBarChart(mmResults);
+            InternalMetaMorpheusAnalysisTask.PlotCellLineBarCharts(mmResults);
             //InternalMetaMorpheusAnalysisTask.PlotPossibleFeatures(mmResults);
             //InternalMetaMorpheusAnalysisTask.PlotFractionalIntensityPlots(mmResults);
             var plot = cellLine.SelectMany(p => p.ToPsmProformaFile().Results).ToList().GetModificationDistribution(true, false, false);
