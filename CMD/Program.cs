@@ -192,6 +192,17 @@ namespace MyApp
                             allTasks.Add(new SingleRunChimericSpectrumSummaryTask(parameters6));
                             break;
 
+                        case MyTask.SingleRunCzeRescore:
+                            var mmResult4 = new MetaMorpheusResult(CommandLineArguments.InputDirectory);
+                            var parameters8 = new SingleRunAnalysisParameters(
+                                CommandLineArguments.InputDirectory,
+                                CommandLineArguments.OverrideFiles,
+                                CommandLineArguments.RunOnAll,
+                                mmResult4,
+                                CommandLineArguments.PlotType);
+                            allTasks.Add(new SingleRunCzeRescoreTask(parameters8));
+                            break;
+
                         case MyTask.RetentionTimeAlignment:
                             SingleRunResults result;
                             if (CommandLineArguments.InputDirectory.Contains("MetaM", StringComparison.InvariantCultureIgnoreCase))

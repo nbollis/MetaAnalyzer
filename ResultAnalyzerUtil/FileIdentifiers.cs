@@ -56,8 +56,10 @@
         public const string CalibratedRetentionTimeFile = "AdjustedRetentionTimes.csv";
         public const string SSRCalcFigure = "RetentionTimeVsSSRCalc3";
         public const string ChronologerFigure = "RetentionTimeVsChronologer";
+        public const string CzeFigure = "RetentionTimeVsCZE";
         public const string ChronologerFigureACN = "PercentACNVsChronologer";
         public const string ChronologerDeltaKdeFigure = "ChronologerDeltaDistribution_KDE"; 
+        public const string CzeDeltaKdeFigure = "CZEDeltaDistribution_KDE";
         public const string ChronologerDeltaBoxAndWhiskers = "ChronologerDeltaDistribution_BoxAndWhisker";
         public const string ChronologerDeltaRange = "ChronologerDeltaDistribution_Range";
 

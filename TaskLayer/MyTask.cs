@@ -13,5 +13,6 @@
         RetentionTimeAlignment = 9,
         InternalMetaMorpheusAnalysis = 11,
         ExternalChimeraPaperAnalysis = 12,
+        SingleRunCzeRescore = 13,
     }
 }

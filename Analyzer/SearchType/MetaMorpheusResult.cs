@@ -605,9 +605,10 @@ namespace Analyzer.SearchType
             var calc = new SSRCalc3("SSRCalc 3.0 (300A)", SSRCalc3.Column.A300);
 
             Log($"{DatasetName} {Condition}: Making Retention time predctions with chronologer", 2);
-            RetentionTimePredictor predictor = IsTopDown
-              ? new CZERetentionTimePredictor()
-              : new ChronologerRetentionTimePredictor();
+            using RetentionTimePredictor predictor = IsTopDown
+                ? RetentionTimePredictorFactory.Create(PredictorType.CZE) as RetentionTimePredictor
+                    ?? throw new InvalidOperationException("Unable to create CZE retention time predictor")
+                : new ChronologerRetentionTimePredictor();
 
             var sequenceToPredictionDictionary = peptides
                 .DistinctBy(p => (p.BaseSequence, p.FullSequence))
@@ -670,7 +671,8 @@ namespace Analyzer.SearchType
                         p.Psm.PEP_QValue, p.Psm.PEP, p.Psm.SpectralAngle ?? -1, isChimeric, p.Psm.PrecursorCharge, p.Psm.PrecursorIntensity ?? -1)
                     {
                         SSRCalcPrediction = calc.ScoreSequence(new PeptideWithSetModifications(p.FullSequence.Split('|')[0], GlobalVariables.AllModsKnownDictionary)),
-                        ChronologerPrediction = sequenceToPredictionDictionary.TryGetValue((p.BaseSequence, p.FullSequence), out var value) ? value : 0.0,
+                        ChronologerPrediction = !IsTopDown && sequenceToPredictionDictionary.TryGetValue((p.BaseSequence, p.FullSequence), out var value) ? value : 0.0,
+                        CzePrediction = IsTopDown && sequenceToPredictionDictionary.TryGetValue((p.BaseSequence, p.FullSequence), out value) ? value : 0.0,
                         AdjustedRetentionTime = addAdjusted && fullSequenceToFileToRetentionTime.TryGetValue(p.FullSequence, out var fileToRtDict) && fileToRtDict.TryGetValue(p.Psm.FileNameWithoutExtension, out var adjustedRt) ? adjustedRt : 0
                     }));
             }

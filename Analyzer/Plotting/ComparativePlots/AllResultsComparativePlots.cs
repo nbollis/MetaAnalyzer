@@ -519,6 +519,71 @@ namespace Analyzer.Plotting.ComparativePlots
             chart.SavePNG(outpath, null, 1000, 1000);
         }
 
+        public static void PlotBulkCzePredictions(this AllResults allResults)
+        {
+            var results = allResults.SelectMany(p => p.Results
+                    .Where(b => b is MetaMorpheusResult && p.GetSingleResultSelector().Contains(b.Condition))
+                    .SelectMany(b => ((MetaMorpheusResult)b).RetentionTimePredictionFile.Results.Where(m => m.CzePrediction != 0 && m.PeptideModSeq != "")))
+                .ToList();
+
+            var cze = results.Select(p => (p.CzePrediction, p.RetentionTime, p.IsChimeric)).ToList();
+            var interceptSlope = Fit.Line(cze.Select(p => p.RetentionTime).ToArray(),
+                cze.Select(p => p.CzePrediction).ToArray());
+            var chimeras = cze.Where(p => p.IsChimeric).ToList();
+            var noChimeras = cze.Where(p => !p.IsChimeric).ToList();
+            var chimeraR2 = GoodnessOfFit.CoefficientOfDetermination(
+                chimeras.Select(p => p.RetentionTime * interceptSlope.B + interceptSlope.A),
+                chimeras.Select(p => p.CzePrediction)).Round(4);
+            var nonChimericR2 = GoodnessOfFit.CoefficientOfDetermination(
+                noChimeras.Select(p => p.RetentionTime * interceptSlope.B + interceptSlope.A),
+                noChimeras.Select(p => p.CzePrediction)).Round(4);
+
+            (double RT, double Prediction)[] line =
+            [
+                (cze.Min(p => p.RetentionTime), interceptSlope.A + interceptSlope.B * cze.Min(p => p.RetentionTime)),
+                (cze.Max(p => p.RetentionTime), interceptSlope.A + interceptSlope.B * cze.Max(p => p.RetentionTime))
+            ];
+
+            var chart = Chart.Combine(new[]
+                {
+                    Chart2D.Chart.Scatter<double, double, string>(
+                        noChimeras.Select(p => p.RetentionTime),
+                        noChimeras.Select(p => p.CzePrediction),
+                        StyleParam.Mode.Markers,
+                        $"No Chimeras - R^2={nonChimericR2}", MarkerColor: "No Chimeras".ConvertConditionToColor()),
+                    Chart2D.Chart.Scatter<double, double, string>(
+                        chimeras.Select(p => p.RetentionTime),
+                        chimeras.Select(p => p.CzePrediction),
+                        StyleParam.Mode.Markers,
+                        $"Chimeras - R^2={chimeraR2}", MarkerColor: "Chimeras".ConvertConditionToColor()),
+                    Chart.Line<double, double, string>(line.Select(p => p.RT), line.Select(p => p.Prediction))
+                        .WithLegend(false)
+                })
+                .WithTitle("All Results CZE Predicted Migration Time vs Retention Time (1% Peptides)")
+                .WithXAxisStyle(Title.init("Retention Time"))
+                .WithYAxisStyle(Title.init("CZE Prediction"))
+                .WithLayout(PlotlyBase.DefaultLayoutWithLegend)
+                .WithSize(1000, 600);
+
+            string outpath = Path.Combine(allResults.GetChimeraPaperFigureDirectory(), $"AllResults_{FileIdentifiers.CzeFigure}_Aggregated");
+            chart.SavePNG(outpath, null, 1000, 600);
+        }
+
+        public static void PlotGridCzeDeltaKernelPDF(this AllResults allResults)
+        {
+            bool isTopDown = allResults.First().First().IsTopDown;
+            var chart = Chart.Grid(
+                    allResults.Select(p => p.GetCzeDeltaPlotKernelPDF().WithYAxisStyle(Title.init(p.CellLine))),
+                    4, 3,
+                    Pattern: StyleParam.LayoutGridPattern.Independent, YGap: 0.2)
+                .WithTitle($"CZE Delta Kernel Density (1% {Labels.GetPeptideLabel(isTopDown)})")
+                .WithSize(1000, 800)
+                .WithLayout(PlotlyBase.DefaultLayout)
+                .WithLegend(false);
+            string outpath = Path.Combine(allResults.GetChimeraPaperFigureDirectory(), $"AllResults_{FileIdentifiers.CzeDeltaKdeFigure}_Grid_RT");
+            chart.SavePNG(outpath, null, 1000, 1000);
+        }
+
 
 
         #endregion

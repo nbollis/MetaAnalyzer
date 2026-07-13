@@ -38,6 +38,9 @@ namespace Analyzer.FileTypes.Internal
         [Optional]
         [Default(0)]
         public double ChronologerPrediction { get; set; }
+        [Optional]
+        [Default(0)]
+        public double CzePrediction { get; set; }
         public string PeptideModSeq { get; set; }
 
         [Optional] public int PrecursorCharge { get; set; } = -1;
@@ -73,6 +76,12 @@ namespace Analyzer.FileTypes.Internal
         /// The difference between the Chronologer prediction translated to RT and the actual retention time
         /// </summary>
         [Ignore] public double DeltaChronologerRT => _deltaChronologerRT ??= RetentionTime - ChronologerToRetentionTime;
+
+        [Ignore] public double CzeToRetentionTime => CzePrediction;
+
+        [Ignore] private double? _deltaCzeRT;
+
+        [Ignore] public double DeltaCzeRT => _deltaCzeRT ??= RetentionTime - CzeToRetentionTime;
 
 
 

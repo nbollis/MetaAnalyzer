@@ -477,6 +477,188 @@ namespace Analyzer.Plotting.IndividualRunPlots
             return chart;
         }
 
+        public static void PlotCellLineCzePredictions(this CellLineResults cellLine)
+        {
+            var plot = cellLine.GetCellLineCzePredictions();
+            plot.SaveInCellLineOnly(cellLine, $"{FileIdentifiers.CzeFigure}_{cellLine.CellLine}", 1000,
+                PlotlyBase.DefaultHeight);
+        }
+
+        public static void PlotCzePredictions(this MetaMorpheusResult run)
+        {
+            var plot = run.GetCzePredictions();
+            plot.SaveInRunResultOnly(run, $"{FileIdentifiers.CzeFigure}_{run.Condition}", 1000,
+                PlotlyBase.DefaultHeight);
+        }
+
+        internal static GenericChart.GenericChart GetCellLineCzePredictions(this CellLineResults cellLine)
+        {
+            var cze = cellLine.Results
+                .Where(p => cellLine.GetSingleResultSelector().Contains(p.Condition))
+                .OfType<MetaMorpheusResult>()
+                .OrderBy(p => p.RetentionTimePredictionFile.First())
+                .SelectMany(p => p.RetentionTimePredictionFile.Where(m => m.CzePrediction != 0 && m.PeptideModSeq != ""))
+                .Select(p => (p.CzePrediction, p.RetentionTime, p.IsChimeric))
+                .ToList();
+
+            var interceptSlope = Fit.Line(cze.Select(p => p.RetentionTime).ToArray(),
+                cze.Select(p => p.CzePrediction).ToArray());
+            var chimeraR2 = GoodnessOfFit.CoefficientOfDetermination(
+                cze.Where(p => p.IsChimeric)
+                    .Select(p => p.RetentionTime * interceptSlope.B + interceptSlope.A),
+                cze.Where(p => p.IsChimeric)
+                    .Select(p => p.CzePrediction)).Round(4);
+            var nonChimericR2 = GoodnessOfFit.CoefficientOfDetermination(
+                cze.Where(p => !p.IsChimeric)
+                    .Select(p => p.RetentionTime * interceptSlope.B + interceptSlope.A),
+                cze.Where(p => !p.IsChimeric)
+                    .Select(p => p.CzePrediction)).Round(4);
+
+            (double RT, double Prediction)[] line =
+            [
+                (cze.Min(p => p.RetentionTime), interceptSlope.A + interceptSlope.B * cze.Min(p => p.RetentionTime)),
+                (cze.Max(p => p.RetentionTime), interceptSlope.A + interceptSlope.B * cze.Max(p => p.RetentionTime))
+            ];
+
+            return Chart.Combine(new[]
+                {
+                    Chart2D.Chart.Scatter<double, double, string>(
+                        cze.Where(p => !p.IsChimeric).Select(p => p.RetentionTime),
+                        cze.Where(p => !p.IsChimeric).Select(p => p.CzePrediction),
+                        StyleParam.Mode.Markers,
+                        $"No Chimeras - R^2={nonChimericR2}", MarkerColor: "No Chimeras".ConvertConditionToColor()),
+                    Chart2D.Chart.Scatter<double, double, string>(
+                        cze.Where(p => p.IsChimeric).Select(p => p.RetentionTime),
+                        cze.Where(p => p.IsChimeric).Select(p => p.CzePrediction),
+                        StyleParam.Mode.Markers,
+                        $"Chimeras - R^2={chimeraR2}", MarkerColor: "Chimeras".ConvertConditionToColor()),
+                    Chart.Line<double, double, string>(line.Select(p => p.RT), line.Select(p => p.Prediction))
+                        .WithLegend(false)
+                })
+                .WithTitle($"{cellLine.CellLine} CZE Predicted Migration Time vs Retention Time (1% Peptides)")
+                .WithXAxisStyle(Title.init("Retention Time"))
+                .WithYAxisStyle(Title.init("CZE Prediction"))
+                .WithLayout(Layout.init<string>(PaperBGColor: Color.fromKeyword(ColorKeyword.White),
+                    PlotBGColor: Color.fromKeyword(ColorKeyword.White),
+                    ShowLegend: true,
+                    Legend: Legend.init(X: 0.5, Y: -0.2, Orientation: StyleParam.Orientation.Horizontal, EntryWidth: 0,
+                        VerticalAlign: StyleParam.VerticalAlign.Bottom,
+                        XAnchor: StyleParam.XAnchorPosition.Center,
+                        YAnchor: StyleParam.YAnchorPosition.Top
+                    )))
+                .WithSize(1000, PlotlyBase.DefaultHeight);
+        }
+
+        internal static GenericChart.GenericChart GetCzePredictions(this MetaMorpheusResult run)
+        {
+            var cze = run.RetentionTimePredictionFile
+                .Where(m => m.CzePrediction != 0 && m.PeptideModSeq != "")
+                .Select(p => (p.CzePrediction, p.RetentionTime, p.IsChimeric))
+                .ToList();
+
+            var interceptSlope = Fit.Line(cze.Select(p => p.RetentionTime).ToArray(),
+                cze.Select(p => p.CzePrediction).ToArray());
+            var chimeraR2 = GoodnessOfFit.CoefficientOfDetermination(
+                cze.Where(p => p.IsChimeric)
+                    .Select(p => p.RetentionTime * interceptSlope.B + interceptSlope.A),
+                cze.Where(p => p.IsChimeric)
+                    .Select(p => p.CzePrediction)).Round(4);
+            var nonChimericR2 = GoodnessOfFit.CoefficientOfDetermination(
+                cze.Where(p => !p.IsChimeric)
+                    .Select(p => p.RetentionTime * interceptSlope.B + interceptSlope.A),
+                cze.Where(p => !p.IsChimeric)
+                    .Select(p => p.CzePrediction)).Round(4);
+
+            (double RT, double Prediction)[] line =
+            [
+                (cze.Min(p => p.RetentionTime), interceptSlope.A + interceptSlope.B * cze.Min(p => p.RetentionTime)),
+                (cze.Max(p => p.RetentionTime), interceptSlope.A + interceptSlope.B * cze.Max(p => p.RetentionTime))
+            ];
+
+            return Chart.Combine(new[]
+                {
+                    Chart2D.Chart.Scatter<double, double, string>(
+                        cze.Where(p => !p.IsChimeric).Select(p => p.RetentionTime),
+                        cze.Where(p => !p.IsChimeric).Select(p => p.CzePrediction),
+                        StyleParam.Mode.Markers,
+                        $"No Chimeras - R^2={nonChimericR2}", MarkerColor: "No Chimeras".ConvertConditionToColor()),
+                    Chart2D.Chart.Scatter<double, double, string>(
+                        cze.Where(p => p.IsChimeric).Select(p => p.RetentionTime),
+                        cze.Where(p => p.IsChimeric).Select(p => p.CzePrediction),
+                        StyleParam.Mode.Markers,
+                        $"Chimeras - R^2={chimeraR2}", MarkerColor: "Chimeras".ConvertConditionToColor()),
+                    Chart.Line<double, double, string>(line.Select(p => p.RT), line.Select(p => p.Prediction))
+                        .WithLegend(false)
+                })
+                .WithTitle($"{run.DatasetName} {run.Condition} CZE Predicted Migration Time vs Retention Time (1% Peptides)")
+                .WithXAxisStyle(Title.init("Retention Time"))
+                .WithYAxisStyle(Title.init("CZE Prediction"))
+                .WithLayout(Layout.init<string>(PaperBGColor: Color.fromKeyword(ColorKeyword.White),
+                    PlotBGColor: Color.fromKeyword(ColorKeyword.White),
+                    ShowLegend: true,
+                    Legend: Legend.init(X: 0.5, Y: -0.2, Orientation: StyleParam.Orientation.Horizontal, EntryWidth: 0,
+                        VerticalAlign: StyleParam.VerticalAlign.Bottom,
+                        XAnchor: StyleParam.XAnchorPosition.Center,
+                        YAnchor: StyleParam.YAnchorPosition.Top
+                    )))
+                .WithSize(1000, PlotlyBase.DefaultHeight);
+        }
+
+        public static void PlotCzeDeltaKernelPDF(this CellLineResults cellLine, Kernels kernel = Kernels.Gaussian)
+        {
+            var chart = cellLine.GetCzeDeltaPlotKernelPDF(kernel);
+            chart.SaveInCellLineOnly(cellLine, $"{FileIdentifiers.CzeDeltaKdeFigure}_{cellLine.CellLine}", 600, 600);
+        }
+
+        public static GenericChart.GenericChart GetCzeDeltaPlotKernelPDF(this CellLineResults cellLineResults,
+            Kernels kernel = Kernels.Gaussian)
+        {
+            var result = cellLineResults.First(p => cellLineResults.GetSingleResultSelector().Contains(p.Condition));
+            return result.GetCzeDeltaPlotKernelPDF(kernel);
+        }
+
+        public static GenericChart.GenericChart GetCzeDeltaPlotKernelPDF(this SingleRunResults run,
+            Kernels kernel = Kernels.Gaussian)
+        {
+            if (run is not IRetentionTimePredictionAnalysis rt)
+                return null;
+
+            var cze = rt.RetentionTimePredictionFile.Results
+                .Where(p => p.CzePrediction != 0 && p.PeptideModSeq != "")
+                .Select(p => (p.CzePrediction, p.RetentionTime, p.IsChimeric, p.DeltaCzeRT))
+                .ToList();
+
+            var chimericSamples = cze.Where(p => p.IsChimeric)
+                .Select(p => p.DeltaCzeRT)
+                .OrderBy(p => p)
+                .ToList();
+            var nonChimericSamples = cze.Where(p => !p.IsChimeric)
+                .Select(p => p.DeltaCzeRT)
+                .OrderBy(p => p)
+                .ToList();
+
+            return Chart.Combine(new[]
+                {
+                    GenericPlots.KernelDensityPlot(chimericSamples, "Chimeric", "Delta RT", "Probability", 0.3),
+                    GenericPlots.KernelDensityPlot(nonChimericSamples, "Non-Chimeric", "Delta RT", "Probability", 0.3)
+                })
+                .WithTitle($" {run.DatasetName} CZE Delta Kernel Density")
+                .WithSize(400, 400)
+                .WithXAxisStyle(Title.init("Delta CZE RT"))
+                .WithYAxisStyle(Title.init("Density"))
+                .WithLayout(PlotlyBase.DefaultLayoutWithLegend);
+        }
+
+        public static void PlotCzeDeltaKernelPDF(this SingleRunResults singleRun,
+            Kernels kernel = Kernels.Gaussian)
+        {
+            if (singleRun is not IRetentionTimePredictionAnalysis)
+                return;
+
+            var chart = singleRun.GetCzeDeltaPlotKernelPDF(kernel);
+            chart.SaveInRunResultOnly(singleRun, $"{FileIdentifiers.CzeDeltaKdeFigure}_{singleRun.Condition}", 600, 600);
+        }
+
         #endregion
 
         #region Comparison with Feature Finding

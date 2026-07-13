@@ -99,6 +99,8 @@ namespace TaskLayer.ChimeraAnalysis
                     Log("Running Cell Line FDR Analysis", 2);
                     cellLine.Override = false;
                     cellLine.PlotCellLineSpectralSimilarity();
+                    cellLine.PlotCellLineCzePredictions();
+                    cellLine.PlotCzeDeltaKernelPDF();
                 }
 
                 if (Parameters.RunChimeraBreakdown)
@@ -149,6 +151,9 @@ namespace TaskLayer.ChimeraAnalysis
             {
                 allResults.Override = Parameters.Override;
                 Log("Running Bulk Results FDR Analysis");
+                allResults.Override = false;
+                allResults.PlotBulkCzePredictions();
+                allResults.PlotGridCzeDeltaKernelPDF();
             }
 
             if (Parameters.RunChimeraBreakdown)
