@@ -31,6 +31,7 @@ public class SingleRunCzeRescoreTask : BaseResultAnalyzerTask
         run.Override = Parameters.Override;
         _ = run.RetentionTimePredictionFile;
         run.PlotCzePredictions();
+        run.PlotCzeMigrationTime();
         run.PlotCzeDeltaKernelPDF();
     }
 }

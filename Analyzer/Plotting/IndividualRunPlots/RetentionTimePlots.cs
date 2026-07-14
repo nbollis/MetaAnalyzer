@@ -480,14 +480,27 @@ namespace Analyzer.Plotting.IndividualRunPlots
         public static void PlotCellLineCzePredictions(this CellLineResults cellLine)
         {
             var plot = cellLine.GetCellLineCzePredictions();
-            plot.SaveInCellLineOnly(cellLine, $"{FileIdentifiers.CzeFigure}_{cellLine.CellLine}", 1000,
+            if (plot == null)
+                return;
+            plot.SaveInCellLineOnly(cellLine, $"{FileIdentifiers.CzeMigrationTime}_{cellLine.CellLine}", 1000,
                 PlotlyBase.DefaultHeight);
         }
 
         public static void PlotCzePredictions(this MetaMorpheusResult run)
         {
             var plot = run.GetCzePredictions();
-            plot.SaveInRunResultOnly(run, $"{FileIdentifiers.CzeFigure}_{run.Condition}", 1000,
+            if (plot == null)
+                return;
+            plot.SaveInRunResultOnly(run, $"{FileIdentifiers.CzeMobility}_{run.Condition}", 1000,
+                PlotlyBase.DefaultHeight);
+        }
+
+        public static void PlotCzeMigrationTime(this MetaMorpheusResult run)
+        {
+            var plot = run.GetCzeMigrationTime();
+            if (plot == null)
+                return;
+            plot.SaveInRunResultOnly(run, $"{FileIdentifiers.CzeMigrationTime}_{run.Condition}", 1000,
                 PlotlyBase.DefaultHeight);
         }
 
@@ -497,9 +510,12 @@ namespace Analyzer.Plotting.IndividualRunPlots
                 .Where(p => cellLine.GetSingleResultSelector().Contains(p.Condition))
                 .OfType<MetaMorpheusResult>()
                 .OrderBy(p => p.RetentionTimePredictionFile.First())
-                .SelectMany(p => p.RetentionTimePredictionFile.Where(m => m.CzePrediction != 0 && m.PeptideModSeq != ""))
+                .SelectMany(p => p.RetentionTimePredictionFile.Where(m => m.CzePrediction != 0))
                 .Select(p => (p.CzePrediction, p.RetentionTime, p.IsChimeric))
                 .ToList();
+
+            if (cze.Count < 2)
+                return null;
 
             var interceptSlope = Fit.Line(cze.Select(p => p.RetentionTime).ToArray(),
                 cze.Select(p => p.CzePrediction).ToArray());
@@ -552,28 +568,12 @@ namespace Analyzer.Plotting.IndividualRunPlots
         internal static GenericChart.GenericChart GetCzePredictions(this MetaMorpheusResult run)
         {
             var cze = run.RetentionTimePredictionFile
-                .Where(m => m.CzePrediction != 0 && m.PeptideModSeq != "")
-                .Select(p => (p.CzePrediction, p.RetentionTime, p.IsChimeric))
+                .Where(m => m.CzePrediction != 0 && m.CzeToMigrationTime != 0)
+                .Select(p => (p.CzePrediction, p.RetentionTime, p.IsChimeric, p.CzeToMigrationTime))
                 .ToList();
 
-            var interceptSlope = Fit.Line(cze.Select(p => p.RetentionTime).ToArray(),
-                cze.Select(p => p.CzePrediction).ToArray());
-            var chimeraR2 = GoodnessOfFit.CoefficientOfDetermination(
-                cze.Where(p => p.IsChimeric)
-                    .Select(p => p.RetentionTime * interceptSlope.B + interceptSlope.A),
-                cze.Where(p => p.IsChimeric)
-                    .Select(p => p.CzePrediction)).Round(4);
-            var nonChimericR2 = GoodnessOfFit.CoefficientOfDetermination(
-                cze.Where(p => !p.IsChimeric)
-                    .Select(p => p.RetentionTime * interceptSlope.B + interceptSlope.A),
-                cze.Where(p => !p.IsChimeric)
-                    .Select(p => p.CzePrediction)).Round(4);
-
-            (double RT, double Prediction)[] line =
-            [
-                (cze.Min(p => p.RetentionTime), interceptSlope.A + interceptSlope.B * cze.Min(p => p.RetentionTime)),
-                (cze.Max(p => p.RetentionTime), interceptSlope.A + interceptSlope.B * cze.Max(p => p.RetentionTime))
-            ];
+            if (cze.Count < 2)
+                return null;
 
             return Chart.Combine(new[]
                 {
@@ -581,22 +581,63 @@ namespace Analyzer.Plotting.IndividualRunPlots
                         cze.Where(p => !p.IsChimeric).Select(p => p.RetentionTime),
                         cze.Where(p => !p.IsChimeric).Select(p => p.CzePrediction),
                         StyleParam.Mode.Markers,
-                        $"No Chimeras - R^2={nonChimericR2}", MarkerColor: "No Chimeras".ConvertConditionToColor()),
+                        "Non-chimeric Identification", MarkerColor: "No Chimeras".ConvertConditionToColor()),
                     Chart2D.Chart.Scatter<double, double, string>(
                         cze.Where(p => p.IsChimeric).Select(p => p.RetentionTime),
                         cze.Where(p => p.IsChimeric).Select(p => p.CzePrediction),
                         StyleParam.Mode.Markers,
-                        $"Chimeras - R^2={chimeraR2}", MarkerColor: "Chimeras".ConvertConditionToColor()),
-                    Chart.Line<double, double, string>(line.Select(p => p.RT), line.Select(p => p.Prediction))
-                        .WithLegend(false)
+                        "Chimeric Identification", MarkerColor: "Chimeras".ConvertConditionToColor())
                 })
-                .WithTitle($"{run.DatasetName} {run.Condition} CZE Predicted Migration Time vs Retention Time (1% Peptides)")
-                .WithXAxisStyle(Title.init("Retention Time"))
-                .WithYAxisStyle(Title.init("CZE Prediction"))
+                .WithTitle("E. Coli Predicted Mobility vs Migration Time")
+                .WithXAxisStyle(Title.init("Migration Time", Font: Font.init(Size: PlotlyBase.AxisTitleFontSize + 4)))
+                .WithYAxisStyle(Title.init("Predicted Electrophoretic Mobility", Font: Font.init(Size: PlotlyBase.AxisTitleFontSize + 4)))
                 .WithLayout(Layout.init<string>(PaperBGColor: Color.fromKeyword(ColorKeyword.White),
                     PlotBGColor: Color.fromKeyword(ColorKeyword.White),
                     ShowLegend: true,
+                    Title: Title.init(Font: Font.init(Size: PlotlyBase.TitleSize + 4)),
+                    Font: Font.init(Size: 16),
                     Legend: Legend.init(X: 0.5, Y: -0.2, Orientation: StyleParam.Orientation.Horizontal, EntryWidth: 0,
+                        Font: Font.init(Size: 20),
+                        VerticalAlign: StyleParam.VerticalAlign.Bottom,
+                        XAnchor: StyleParam.XAnchorPosition.Center,
+                        YAnchor: StyleParam.YAnchorPosition.Top
+                    )))
+                .WithSize(1000, PlotlyBase.DefaultHeight);
+        }
+
+        internal static GenericChart.GenericChart GetCzeMigrationTime(this MetaMorpheusResult run)
+        {
+            var cze = run.RetentionTimePredictionFile
+                .Where(m => m.CzePrediction != 0 && m.CzeToMigrationTime != 0)
+                .Select(p => (p.CzePrediction, p.RetentionTime, p.IsChimeric, p.CzeToMigrationTime))
+                .ToList();
+
+            if (cze.Count < 2)
+                return null;
+
+            return Chart.Combine(new[]
+                {
+                    Chart2D.Chart.Scatter<double, double, string>(
+                        cze.Where(p => !p.IsChimeric).Select(p => p.RetentionTime),
+                        cze.Where(p => !p.IsChimeric).Select(p => p.CzeToMigrationTime),
+                        StyleParam.Mode.Markers,
+                        "Non-chimeric Identification", MarkerColor: "No Chimeras".ConvertConditionToColor()),
+                    Chart2D.Chart.Scatter<double, double, string>(
+                        cze.Where(p => p.IsChimeric).Select(p => p.RetentionTime),
+                        cze.Where(p => p.IsChimeric).Select(p => p.CzeToMigrationTime),
+                        StyleParam.Mode.Markers,
+                        "Chimeric Identification", MarkerColor: "Chimeras".ConvertConditionToColor())
+                })
+                .WithTitle("E. Coli Predicted vs Experimental Migration Time")
+                .WithXAxisStyle(Title.init("Experimental Migration Time", Font: Font.init(Size: PlotlyBase.AxisTitleFontSize + 4)))
+                .WithYAxisStyle(Title.init("Predicted Migration Time", Font: Font.init(Size: PlotlyBase.AxisTitleFontSize + 4)))
+                .WithLayout(Layout.init<string>(PaperBGColor: Color.fromKeyword(ColorKeyword.White),
+                    PlotBGColor: Color.fromKeyword(ColorKeyword.White),
+                    ShowLegend: true,
+                    Title: Title.init(Font: Font.init(Size: PlotlyBase.TitleSize + 4)),
+                    Font: Font.init(Size: 16),
+                    Legend: Legend.init(X: 0.5, Y: -0.2, Orientation: StyleParam.Orientation.Horizontal, EntryWidth: 0,
+                        Font: Font.init(Size: 20),
                         VerticalAlign: StyleParam.VerticalAlign.Bottom,
                         XAnchor: StyleParam.XAnchorPosition.Center,
                         YAnchor: StyleParam.YAnchorPosition.Top
@@ -624,7 +665,7 @@ namespace Analyzer.Plotting.IndividualRunPlots
                 return null;
 
             var cze = rt.RetentionTimePredictionFile.Results
-                .Where(p => p.CzePrediction != 0 && p.PeptideModSeq != "")
+                .Where(p => p.CzePrediction != 0)
                 .Select(p => (p.CzePrediction, p.RetentionTime, p.IsChimeric, p.DeltaCzeRT))
                 .ToList();
 
@@ -637,14 +678,17 @@ namespace Analyzer.Plotting.IndividualRunPlots
                 .OrderBy(p => p)
                 .ToList();
 
+            if (chimericSamples.Count == 0 && nonChimericSamples.Count == 0)
+                return null;
+
             return Chart.Combine(new[]
                 {
-                    GenericPlots.KernelDensityPlot(chimericSamples, "Chimeric", "Delta RT", "Probability", 0.3),
-                    GenericPlots.KernelDensityPlot(nonChimericSamples, "Non-Chimeric", "Delta RT", "Probability", 0.3)
+                    chimericSamples.Count > 0 ? GenericPlots.KernelDensityPlot(chimericSamples, "Chimeric", "Delta RT", "Probability", 0.3) : null,
+                    nonChimericSamples.Count > 0 ? GenericPlots.KernelDensityPlot(nonChimericSamples, "Non-Chimeric", "Delta RT", "Probability", 0.3) : null
                 })
-                .WithTitle($" {run.DatasetName} CZE Delta Kernel Density")
+                .WithTitle($" {run.DatasetName} CZE Experimental - Predicted Migration Time")
                 .WithSize(400, 400)
-                .WithXAxisStyle(Title.init("Delta CZE RT"))
+                .WithXAxisStyle(Title.init("Delta CZE Migration"))
                 .WithYAxisStyle(Title.init("Density"))
                 .WithLayout(PlotlyBase.DefaultLayoutWithLegend);
         }
@@ -656,6 +700,8 @@ namespace Analyzer.Plotting.IndividualRunPlots
                 return;
 
             var chart = singleRun.GetCzeDeltaPlotKernelPDF(kernel);
+            if (chart == null)
+                return;
             chart.SaveInRunResultOnly(singleRun, $"{FileIdentifiers.CzeDeltaKdeFigure}_{singleRun.Condition}", 600, 600);
         }
 

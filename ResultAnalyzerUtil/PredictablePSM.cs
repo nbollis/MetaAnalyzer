@@ -14,6 +14,7 @@ public class PredicablePsm : IRetentionPredictable
         Psm = psm;
         BaseSequence = psm.BaseSequence.Split('|')[0];
         FullSequence = psm.FullSequence.Split('|')[0];
+        _fullSequenceWithMassShifts = SetFullSequenceWithMassShifts(GlobalVariables.AllModsKnownDictionary);
     }
 
     public PsmFromTsv Psm { get; }

@@ -77,13 +77,11 @@ namespace Analyzer.FileTypes.Internal
         /// </summary>
         [Ignore] public double DeltaChronologerRT => _deltaChronologerRT ??= RetentionTime - ChronologerToRetentionTime;
 
-        [Ignore] public double CzeToRetentionTime => CzePrediction;
+        [Optional] public double CzeToMigrationTime { get; set; }
 
         [Ignore] private double? _deltaCzeRT;
 
-        [Ignore] public double DeltaCzeRT => _deltaCzeRT ??= RetentionTime - CzeToRetentionTime;
-
-
+        [Ignore] public double DeltaCzeRT => _deltaCzeRT ??= RetentionTime - CzeToMigrationTime;
 
         [Ignore] private double? _deltaSSRCalc;
         [Ignore] public double DeltaSSRCalc => _deltaSSRCalc ??= SSRCalcPrediction - RetentionTime;

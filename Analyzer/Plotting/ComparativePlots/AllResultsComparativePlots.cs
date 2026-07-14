@@ -527,6 +527,8 @@ namespace Analyzer.Plotting.ComparativePlots
                 .ToList();
 
             var cze = results.Select(p => (p.CzePrediction, p.RetentionTime, p.IsChimeric)).ToList();
+            if (cze.Count < 2)
+                return;
             var interceptSlope = Fit.Line(cze.Select(p => p.RetentionTime).ToArray(),
                 cze.Select(p => p.CzePrediction).ToArray());
             var chimeras = cze.Where(p => p.IsChimeric).ToList();
@@ -565,7 +567,7 @@ namespace Analyzer.Plotting.ComparativePlots
                 .WithLayout(PlotlyBase.DefaultLayoutWithLegend)
                 .WithSize(1000, 600);
 
-            string outpath = Path.Combine(allResults.GetChimeraPaperFigureDirectory(), $"AllResults_{FileIdentifiers.CzeFigure}_Aggregated");
+            string outpath = Path.Combine(allResults.GetChimeraPaperFigureDirectory(), $"AllResults_{FileIdentifiers.CzeMigrationTime}_Aggregated");
             chart.SavePNG(outpath, null, 1000, 600);
         }
 

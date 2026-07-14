@@ -606,7 +606,7 @@ namespace Analyzer.SearchType
 
             Log($"{DatasetName} {Condition}: Making Retention time predctions with chronologer", 2);
             using RetentionTimePredictor predictor = IsTopDown
-                ? RetentionTimePredictorFactory.Create(PredictorType.CZE) as RetentionTimePredictor
+                ? new CZERetentionTimePredictor(Omics.SequenceConversion.SequenceConversionHandlingMode.UsePrimarySequence, 1, 20000) as RetentionTimePredictor
                     ?? throw new InvalidOperationException("Unable to create CZE retention time predictor")
                 : new ChronologerRetentionTimePredictor();
 
@@ -672,7 +672,11 @@ namespace Analyzer.SearchType
                     {
                         SSRCalcPrediction = calc.ScoreSequence(new PeptideWithSetModifications(p.FullSequence.Split('|')[0], GlobalVariables.AllModsKnownDictionary)),
                         ChronologerPrediction = !IsTopDown && sequenceToPredictionDictionary.TryGetValue((p.BaseSequence, p.FullSequence), out var value) ? value : 0.0,
-                        CzePrediction = IsTopDown && sequenceToPredictionDictionary.TryGetValue((p.BaseSequence, p.FullSequence), out value) ? value : 0.0,
+                        CzeToMigrationTime = IsTopDown && sequenceToPredictionDictionary.TryGetValue((p.BaseSequence, p.FullSequence), out value) ? value : 0.0,
+                        CzePrediction = IsTopDown && predictor is CZERetentionTimePredictor czePredictor 
+                                && sequenceToPredictionDictionary.TryGetValue((p.BaseSequence, p.FullSequence), out value)
+                            ? czePredictor!.ExperimentalElectrophoreticMobility(value)
+                            : 0.0,
                         AdjustedRetentionTime = addAdjusted && fullSequenceToFileToRetentionTime.TryGetValue(p.FullSequence, out var fileToRtDict) && fileToRtDict.TryGetValue(p.Psm.FileNameWithoutExtension, out var adjustedRt) ? adjustedRt : 0
                     }));
             }
