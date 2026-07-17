@@ -1,4 +1,4 @@
-﻿using System.Collections;
+using System.Collections;
 using System.Diagnostics;
 using Analyzer.FileTypes.Internal;
 using Analyzer.Interfaces;
@@ -115,6 +115,46 @@ public class CellLineResults : IEnumerable<SingleRunResults>, IDisposable
         FigureDirectory = Path.Combine(DirectoryPath, "Figures");
         if (!Directory.Exists(FigureDirectory))
             Directory.CreateDirectory(FigureDirectory);
+    }
+
+    private string _chimericFragmentIonAnalysisPath => Path.Combine(DirectoryPath, $"{CellLine}_{FileIdentifiers.ChimericFragmentIonAnalysis}");
+    private ChimericFragmentIonAnalysisFile? _chimericFragmentIonAnalysisFile;
+    public ChimericFragmentIonAnalysisFile ChimericFragmentIonAnalysisFile =>
+        _chimericFragmentIonAnalysisFile ??= GetChimericFragmentIonAnalysisFile();
+
+    public ChimericFragmentIonAnalysisFile GetChimericFragmentIonAnalysisFile(bool excludeInternalFragments = true)
+    {
+        if (!Override && File.Exists(_chimericFragmentIonAnalysisPath))
+        {
+            var existing = new ChimericFragmentIonAnalysisFile(_chimericFragmentIonAnalysisPath);
+            existing.LoadResults();
+            return existing;
+        }
+
+        var records = new List<ChimericFragmentIonAnalysisRecord>();
+        foreach (var run in Results)
+        {
+            if (run is not MetaMorpheusResult mm)
+                continue;
+            if (mm.Condition.Contains("NoChimeras", StringComparison.OrdinalIgnoreCase))
+                continue;
+
+            var prevOverride = mm.Override;
+            mm.Override = Override;
+            try
+            {
+                var single = mm.CreateChimericFragmentIonAnalysisFile(excludeInternalFragments);
+                records.AddRange(single.Results);
+            }
+            finally
+            {
+                mm.Override = prevOverride;
+            }
+        }
+
+        var file = new ChimericFragmentIonAnalysisFile(_chimericFragmentIonAnalysisPath) { Results = records };
+        file.WriteResults(_chimericFragmentIonAnalysisPath);
+        return _chimericFragmentIonAnalysisFile = file;
     }
 
     private string _chimeraCountingPath => Path.Combine(DirectoryPath, $"{CellLine}_PSM_{FileIdentifiers.ChimeraCountingFile}");
