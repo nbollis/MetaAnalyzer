@@ -14,6 +14,7 @@ using Analyzer.Interfaces;
 using Plotting.Util;
 using ResultAnalyzerUtil;
 using Plotting;
+using MzLibUtil;
 
 namespace Analyzer.Plotting.IndividualRunPlots
 {
@@ -511,30 +512,15 @@ namespace Analyzer.Plotting.IndividualRunPlots
                 .OfType<MetaMorpheusResult>()
                 .OrderBy(p => p.RetentionTimePredictionFile.First())
                 .SelectMany(p => p.RetentionTimePredictionFile.Where(m => m.CzePrediction != 0))
-                .Select(p => (p.CzePrediction, p.RetentionTime, p.IsChimeric))
+                .Select(p => (p.CzePrediction, p.RetentionTime, p.IsChimeric, p.CzeToMigrationTime))
                 .ToList();
 
             if (cze.Count < 2)
                 return null;
 
-            var interceptSlope = Fit.Line(cze.Select(p => p.RetentionTime).ToArray(),
-                cze.Select(p => p.CzePrediction).ToArray());
-            var chimeraR2 = GoodnessOfFit.CoefficientOfDetermination(
-                cze.Where(p => p.IsChimeric)
-                    .Select(p => p.RetentionTime * interceptSlope.B + interceptSlope.A),
-                cze.Where(p => p.IsChimeric)
-                    .Select(p => p.CzePrediction)).Round(4);
-            var nonChimericR2 = GoodnessOfFit.CoefficientOfDetermination(
-                cze.Where(p => !p.IsChimeric)
-                    .Select(p => p.RetentionTime * interceptSlope.B + interceptSlope.A),
-                cze.Where(p => !p.IsChimeric)
-                    .Select(p => p.CzePrediction)).Round(4);
+            DoubleRange predictions = new(cze.Min(p => p.CzePrediction), cze.Max(p => p.CzePrediction));
+            DoubleRange retentionTime = new(cze.Min(p => p.RetentionTime), cze.Max(p => p.RetentionTime));
 
-            (double RT, double Prediction)[] line =
-            [
-                (cze.Min(p => p.RetentionTime), interceptSlope.A + interceptSlope.B * cze.Min(p => p.RetentionTime)),
-                (cze.Max(p => p.RetentionTime), interceptSlope.A + interceptSlope.B * cze.Max(p => p.RetentionTime))
-            ];
 
             return Chart.Combine(new[]
                 {
@@ -542,17 +528,15 @@ namespace Analyzer.Plotting.IndividualRunPlots
                         cze.Where(p => !p.IsChimeric).Select(p => p.RetentionTime),
                         cze.Where(p => !p.IsChimeric).Select(p => p.CzePrediction),
                         StyleParam.Mode.Markers,
-                        $"No Chimeras - R^2={nonChimericR2}", MarkerColor: "No Chimeras".ConvertConditionToColor()),
+                        $"Non-Chimeric Identifications", MarkerColor: "No Chimeras".ConvertConditionToColor()),
                     Chart2D.Chart.Scatter<double, double, string>(
                         cze.Where(p => p.IsChimeric).Select(p => p.RetentionTime),
-                        cze.Where(p => p.IsChimeric).Select(p => p.CzePrediction),
+                        cze.Where(p => p.IsChimeric).Select(p => p.CzeToMigrationTime),
                         StyleParam.Mode.Markers,
-                        $"Chimeras - R^2={chimeraR2}", MarkerColor: "Chimeras".ConvertConditionToColor()),
-                    Chart.Line<double, double, string>(line.Select(p => p.RT), line.Select(p => p.Prediction))
-                        .WithLegend(false)
+                        $"Chimeric Identifications", MarkerColor: "Chimeras".ConvertConditionToColor()),
                 })
                 .WithTitle($"{cellLine.CellLine} CZE Predicted Migration Time vs Retention Time (1% Peptides)")
-                .WithXAxisStyle(Title.init("Retention Time"))
+                .WithXAxisStyle(Title.init("Migration Time"))
                 .WithYAxisStyle(Title.init("CZE Prediction"))
                 .WithLayout(Layout.init<string>(PaperBGColor: Color.fromKeyword(ColorKeyword.White),
                     PlotBGColor: Color.fromKeyword(ColorKeyword.White),
@@ -575,22 +559,25 @@ namespace Analyzer.Plotting.IndividualRunPlots
             if (cze.Count < 2)
                 return null;
 
+            double maxRT = cze.Max(p => p.RetentionTime);
+            double maxCZE = cze.Max(p => p.CzePrediction);
+
             return Chart.Combine(new[]
                 {
                     Chart2D.Chart.Scatter<double, double, string>(
-                        cze.Where(p => !p.IsChimeric).Select(p => p.RetentionTime),
-                        cze.Where(p => !p.IsChimeric).Select(p => p.CzePrediction),
+                        cze.Where(p => !p.IsChimeric).Select(p => p.RetentionTime / maxRT),
+                        cze.Where(p => !p.IsChimeric).Select(p => p.CzePrediction / maxCZE),
                         StyleParam.Mode.Markers,
                         "Non-chimeric Identification", MarkerColor: "No Chimeras".ConvertConditionToColor()),
                     Chart2D.Chart.Scatter<double, double, string>(
-                        cze.Where(p => p.IsChimeric).Select(p => p.RetentionTime),
-                        cze.Where(p => p.IsChimeric).Select(p => p.CzePrediction),
+                        cze.Where(p => p.IsChimeric).Select(p => p.RetentionTime / maxRT),
+                        cze.Where(p => p.IsChimeric).Select(p => p.CzePrediction / maxCZE),
                         StyleParam.Mode.Markers,
                         "Chimeric Identification", MarkerColor: "Chimeras".ConvertConditionToColor())
                 })
                 .WithTitle("E. Coli Predicted Mobility vs Migration Time")
-                .WithXAxisStyle(Title.init("Migration Time", Font: Font.init(Size: PlotlyBase.AxisTitleFontSize + 4)))
-                .WithYAxisStyle(Title.init("Predicted Electrophoretic Mobility", Font: Font.init(Size: PlotlyBase.AxisTitleFontSize + 4)))
+                .WithXAxisStyle(Title.init("Migration Time", Font: Font.init(Size: PlotlyBase.AxisTitleFontSize + 2)))
+                .WithYAxisStyle(Title.init("Predicted Electrophoretic Mobility", Font: Font.init(Size: PlotlyBase.AxisTitleFontSize + 2)))
                 .WithLayout(Layout.init<string>(PaperBGColor: Color.fromKeyword(ColorKeyword.White),
                     PlotBGColor: Color.fromKeyword(ColorKeyword.White),
                     ShowLegend: true,
@@ -615,16 +602,19 @@ namespace Analyzer.Plotting.IndividualRunPlots
             if (cze.Count < 2)
                 return null;
 
+            double maxRT = cze.Max(p => p.RetentionTime);
+            double maxCZE = cze.Max(p => p.CzeToMigrationTime);
+
             return Chart.Combine(new[]
                 {
                     Chart2D.Chart.Scatter<double, double, string>(
-                        cze.Where(p => !p.IsChimeric).Select(p => p.RetentionTime),
-                        cze.Where(p => !p.IsChimeric).Select(p => p.CzeToMigrationTime),
+                        cze.Where(p => !p.IsChimeric).Select(p => p.RetentionTime / maxRT),
+                        cze.Where(p => !p.IsChimeric).Select(p => p.CzeToMigrationTime / maxCZE),
                         StyleParam.Mode.Markers,
                         "Non-chimeric Identification", MarkerColor: "No Chimeras".ConvertConditionToColor()),
                     Chart2D.Chart.Scatter<double, double, string>(
-                        cze.Where(p => p.IsChimeric).Select(p => p.RetentionTime),
-                        cze.Where(p => p.IsChimeric).Select(p => p.CzeToMigrationTime),
+                        cze.Where(p => p.IsChimeric).Select(p => p.RetentionTime / maxRT),
+                        cze.Where(p => p.IsChimeric).Select(p => p.CzeToMigrationTime / maxCZE),
                         StyleParam.Mode.Markers,
                         "Chimeric Identification", MarkerColor: "Chimeras".ConvertConditionToColor())
                 })

@@ -14,5 +14,6 @@
         InternalMetaMorpheusAnalysis = 11,
         ExternalChimeraPaperAnalysis = 12,
         SingleRunCzeRescore = 13,
+        ChimericFragmentIonAnalysis = 14,
     }
 }

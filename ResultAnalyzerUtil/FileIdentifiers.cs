@@ -23,6 +23,8 @@
         public const string IndividualFileComparisonMultipleFilters = "IndividualFileResultComparisonManyFilters.csv";
         public const string MaximumChimeraEstimate = "MaximumChimeraEstimate.csv";
         public const string ChimericSpectrumSummary = "ChimericSpectrumSummary.csv";
+        public const string ChimericFragmentIonAnalysis = "ChimericFragmentIonAnalysis.tsv";
+        public const string ChimericFragmentIonAnalysisViolin = "ChimericFragmentIonAnalysis_Violin";
         public const string MaximumChimeraEstimateCalibAveraged = "MaximumChimeraEstimateCalibAveragedHybrid.csv";
         public const string ProformaFile = "ProformaFile.tsv";
         public const string ProteinCountingFile = "ProteinCounting.tsv";

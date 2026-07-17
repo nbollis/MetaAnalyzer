@@ -203,6 +203,18 @@ namespace MyApp
                             allTasks.Add(new SingleRunCzeRescoreTask(parameters8));
                             break;
 
+                        case MyTask.ChimericFragmentIonAnalysis:
+                            var mmResult5 = new MetaMorpheusResult(CommandLineArguments.InputDirectory);
+                            var parameters11 = new SingleRunChimericFragmentIonAnalysisParameters(
+                                CommandLineArguments.InputDirectory,
+                                CommandLineArguments.OverrideFiles,
+                                CommandLineArguments.RunOnAll,
+                                mmResult5,
+                                CommandLineArguments.PlotType,
+                                CommandLineArguments.ExcludeInternalFragments);
+                            allTasks.Add(new SingleRunChimericFragmentIonAnalysisTask(parameters11));
+                            break;
+
                         case MyTask.RetentionTimeAlignment:
                             SingleRunResults result;
                             if (CommandLineArguments.InputDirectory.Contains("MetaM", StringComparison.InvariantCultureIgnoreCase))

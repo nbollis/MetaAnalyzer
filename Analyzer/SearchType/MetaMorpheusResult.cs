@@ -16,6 +16,7 @@ using Plotting.Util;
 using Proteomics;
 using Proteomics.ProteolyticDigestion;
 using Proteomics.RetentionTimePrediction;
+using Omics.Fragmentation;
 using Readers;
 using ResultAnalyzerUtil;
 using UsefulProteomicsDatabases;
@@ -591,6 +592,11 @@ namespace Analyzer.SearchType
         public RetentionTimePredictionFile RetentionTimePredictionFile => _retentionTimePredictionFile ??= CreateRetentionTimePredictionFile();
         
         private static ConcurrentDictionary<(string, string), double> _CachedRtPredictions { get; } = [];
+        private ChimericFragmentIonAnalysisFile? _chimericFragmentIonAnalysisFile;
+
+        public string GetChimericFragmentIonAnalysisPath(bool excludeInternalFragments) =>
+            Path.Combine(DirectoryPath,
+                $"{DatasetName}_MM_{(excludeInternalFragments ? "NoInternal_" : string.Empty)}{FileIdentifiers.ChimericFragmentIonAnalysis}");
 
         public RetentionTimePredictionFile CreateRetentionTimePredictionFile()
         {
@@ -687,6 +693,69 @@ namespace Analyzer.SearchType
             Log($"{DatasetName} {Condition}: Finished Retention time predctions with chronologer", 2);
             return retentionTimePredictionFile;
         }
+
+        public ChimericFragmentIonAnalysisFile CreateChimericFragmentIonAnalysisFile(bool excludeInternalFragments)
+        {
+            var outPath = GetChimericFragmentIonAnalysisPath(excludeInternalFragments);
+            if (File.Exists(outPath) && !Override)
+                return new ChimericFragmentIonAnalysisFile(outPath);
+
+            var records = new List<ChimericFragmentIonAnalysisRecord>();
+            foreach (var individualFileResult in IndividualFileResults)
+            {
+                var confidentTargets = individualFileResult.AllPsms
+                    .Where(p => p is { DecoyContamTarget: "T", PEP_QValue: <= 0.01 })
+                    .ToList();
+
+                foreach (var chimeraGroup in confidentTargets.GroupBy(p => p, CustomComparer<PsmFromTsv>.ChimeraComparer))
+                {
+                    var group = chimeraGroup.ToList();
+                    if (group.Count < 2)
+                        continue;
+
+                    var mzToPsmIndexes = new Dictionary<double, HashSet<int>>();
+                    var filteredIonLists = new List<List<MatchedFragmentIon>>(group.Count);
+                    for (int i = 0; i < group.Count; i++)
+                    {
+                        var filteredIons = group[i].MatchedIons
+                            .Where(ion => !excludeInternalFragments || !ion.NeutralTheoreticalProduct.IsInternalFragment)
+                            .ToList();
+                        filteredIonLists.Add(filteredIons);
+
+                        foreach (var key in filteredIons.Select(GetExperimentalPeakKey).Distinct())
+                        {
+                            if (!mzToPsmIndexes.TryGetValue(key, out var indexes))
+                            {
+                                indexes = [];
+                                mzToPsmIndexes[key] = indexes;
+                            }
+                            indexes.Add(i);
+                        }
+                    }
+
+                    for (int i = 0; i < group.Count; i++)
+                    {
+                        var uniqueCount = filteredIonLists[i]
+                            .Select(GetExperimentalPeakKey)
+                            .Distinct()
+                            .Count(key => mzToPsmIndexes[key].Count == 1);
+                        var totalCount = filteredIonLists[i]
+                            .Select(GetExperimentalPeakKey)
+                            .Distinct()
+                            .Count();
+
+                        records.Add(new ChimericFragmentIonAnalysisRecord(group[i], group.Count, i + 1,
+                            totalCount, uniqueCount, excludeInternalFragments));
+                    }
+                }
+            }
+
+            var file = new ChimericFragmentIonAnalysisFile(outPath) { Results = records };
+            file.WriteResults(outPath);
+            return _chimericFragmentIonAnalysisFile = file;
+        }
+
+        private static double GetExperimentalPeakKey(MatchedFragmentIon ion) => Math.Round(ion.Mz, 4);
 
         public void AppendChronologerPrediction()
         {

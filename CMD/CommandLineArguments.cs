@@ -54,6 +54,9 @@ namespace CMD
         [Option('p', HelpText = "The plot type", Required = false, Default = DistributionPlotTypes.ViolinPlot)]
         public DistributionPlotTypes PlotType { get; set; }
 
+        [Option('e', HelpText = "Exclude internal fragment ions", Required = false, Default = false)]
+        public bool ExcludeInternalFragments { get; set; }
+
 
         public void ValidateCommandLineSettings()
         {
