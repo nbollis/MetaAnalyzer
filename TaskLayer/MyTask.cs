@@ -15,5 +15,6 @@
         ExternalChimeraPaperAnalysis = 12,
         SingleRunCzeRescore = 13,
         ChimericFragmentIonAnalysis = 14,
+        ChimeraRevisionsAnalysis = 15,
     }
 }

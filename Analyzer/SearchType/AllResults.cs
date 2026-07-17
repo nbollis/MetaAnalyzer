@@ -1,4 +1,4 @@
-﻿using System.Collections;
+using System.Collections;
 using Analyzer.FileTypes.Internal;
 using ResultAnalyzerUtil;
 
@@ -195,6 +195,40 @@ namespace Analyzer.SearchType
         IEnumerator IEnumerable.GetEnumerator()
         {
             return GetEnumerator();
+        }
+
+        private string _chimericFragmentIonAnalysisPath => Path.Combine(DirectoryPath, $"All_{FileIdentifiers.ChimericFragmentIonAnalysis}");
+        private ChimericFragmentIonAnalysisFile? _chimericFragmentIonAnalysisFile;
+        public ChimericFragmentIonAnalysisFile ChimericFragmentIonAnalysisFile =>
+            _chimericFragmentIonAnalysisFile ??= GetChimericFragmentIonAnalysisFile();
+
+        public ChimericFragmentIonAnalysisFile GetChimericFragmentIonAnalysisFile(bool excludeInternalFragments = true)
+        {
+            if (!Override && File.Exists(_chimericFragmentIonAnalysisPath))
+            {
+                var existing = new ChimericFragmentIonAnalysisFile(_chimericFragmentIonAnalysisPath);
+                existing.LoadResults();
+                return existing;
+            }
+
+            var records = new List<ChimericFragmentIonAnalysisRecord>();
+            foreach (var cellLine in CellLineResults)
+            {
+                var prev = cellLine.Override;
+                cellLine.Override = Override;
+                try
+                {
+                    records.AddRange(cellLine.GetChimericFragmentIonAnalysisFile(excludeInternalFragments).Results);
+                }
+                finally
+                {
+                    cellLine.Override = prev;
+                }
+            }
+
+            var file = new ChimericFragmentIonAnalysisFile(_chimericFragmentIonAnalysisPath) { Results = records };
+            file.WriteResults(_chimericFragmentIonAnalysisPath);
+            return _chimericFragmentIonAnalysisFile = file;
         }
     }
 }

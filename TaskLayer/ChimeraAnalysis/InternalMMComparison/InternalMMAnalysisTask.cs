@@ -1,4 +1,4 @@
-﻿using Analyzer;
+using Analyzer;
 using Analyzer.FileTypes.Internal;
 using Analyzer.Plotting;
 using Analyzer.Plotting.IndividualRunPlots;
@@ -407,6 +407,22 @@ namespace TaskLayer.ChimeraAnalysis
 
             Log("Creating Protein Count Plots");
             ExternalComparisonTask.PlotProteinCountingCharts(countingRecords, isTopDown, BulkFigureDirectory);
+
+            Log("Running Chimeric Fragment-Ion Analysis");
+            foreach (var cellLineDictEntry in cellLineDict)
+            {
+                var cellLine = Path.GetFileNameWithoutExtension(cellLineDictEntry.Key);
+                if (cellLineDictEntry.Value.First().Condition.Contains(NonChimericDescriptor))
+                    continue;
+
+                var cellLineResults = new CellLineResults(cellLineDictEntry.Key,
+                    cellLineDictEntry.Value.Cast<SingleRunResults>().ToList());
+                cellLineResults.PlotCellLineChimericFragmentIonAnalysis(true);
+            }
+
+            var allResults = new AllResults(Parameters.OutputDirectory,
+                cellLineDict.Select(p => new CellLineResults(p.Key, p.Value.Cast<SingleRunResults>().ToList())).ToList());
+            allResults.PlotBulkChimericFragmentIonAnalysis(true);
 
             var resultsForInternalComparison = cellLineDict
                 .SelectMany(p => p.Value.ToList())

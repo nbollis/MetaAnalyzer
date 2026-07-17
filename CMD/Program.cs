@@ -1,4 +1,4 @@
-﻿using System.Diagnostics;
+using System.Diagnostics;
 using Analyzer.SearchType;
 using Calibrator;
 using CMD;
@@ -246,6 +246,14 @@ namespace MyApp
                                 CommandLineArguments.DatabasePath, CommandLineArguments.MetaMorpheusPath,
                                 false, false);
                             allTasks.Add(new ExternalComparisonTask(parameters10));
+                            break;
+
+                        case MyTask.ChimeraRevisionsAnalysis:
+                            var parameters12 = new BaseResultAnalyzerTaskParameters(
+                                CommandLineArguments.InputDirectory,
+                                CommandLineArguments.OverrideFiles,
+                                CommandLineArguments.RunOnAll);
+                            allTasks.Add(new RevisionsParsingTask(parameters12));
                             break;
 
                         default:
