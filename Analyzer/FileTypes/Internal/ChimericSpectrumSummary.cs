@@ -39,6 +39,7 @@ namespace Analyzer.FileTypes.Internal
         public bool IsUniqueForm { get; set; }
         public bool IsUniqueProtein { get; set; }
         public bool IsDuplicate { get; set; }
+        [Optional] public bool IsUniqueOrganism { get; set; }
 
         // Summary Information
 

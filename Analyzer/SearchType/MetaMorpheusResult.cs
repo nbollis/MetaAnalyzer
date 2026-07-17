@@ -1409,6 +1409,10 @@ namespace Analyzer.SearchType
                             {
                                 resultToWrite.IsUniqueForm = true;
                             }
+                            else if (parent.OrganismName != chimericPsm.OrganismName)
+                            {
+                                resultToWrite.IsUniqueOrganism = true;
+                            }
                             else
                             {
                                 resultToWrite.IsUniqueProtein = true;
