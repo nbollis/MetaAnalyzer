@@ -524,6 +524,8 @@ namespace Analyzer.SearchType
                             }
                             else if (parent.Accession == chimericPsm.Accession)
                                 record.UniqueForms++;
+                            else if (parent.OrganismName != chimericPsm.OrganismName)
+                                record.DifferentProteomeCount++;
                             else
                                 record.UniqueProteins++;
 

@@ -113,6 +113,7 @@ namespace Analyzer.FileTypes.Internal
                         UniqueForms = chimeraGroup.Count(p => p.IsUniqueForm),
                         UniqueProteins = chimeraGroup.Count(p => p.IsUniqueProtein),
                         DuplicateCount = chimeraGroup.Count(p => p.IsDuplicate),
+                        DifferentProteomeCount = chimeraGroup.Count(p => p.IsUniqueOrganism),
                         PsmCharges = chimeraGroup.Select(p => p.PrecursorCharge).ToArray(),
                         PsmMasses = chimeraGroup.Select(p => p.PrecursorMass).ToArray(),
                     };
@@ -134,6 +135,7 @@ namespace Analyzer.FileTypes.Internal
                         UniqueForms = chimeraGroup.Count(p => p.IsUniqueForm),
                         UniqueProteins = chimeraGroup.Count(p => p.IsUniqueProtein),
                         DuplicateCount = chimeraGroup.Count(p => p.IsDuplicate),
+                        DifferentProteomeCount = chimeraGroup.Count(p => p.IsUniqueOrganism),
                         PeptideCharges = chimeraGroup.Select(p => p.PrecursorCharge).ToArray(),
                         PeptideMasses = chimeraGroup.Select(p => p.PrecursorMass).ToArray(),
                     };

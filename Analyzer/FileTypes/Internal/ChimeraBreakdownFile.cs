@@ -35,6 +35,7 @@ namespace Analyzer.FileTypes.Internal
         [Optional] public int MissedMonoCount { get; set; }
         [Optional] public int ZeroSumShiftCount { get; set; }
         [Optional] public int EntrapmentCount { get; set; }
+        [Optional] public int DifferentProteomeCount { get; set; }
 
         [Optional]
         [TypeConverter(typeof(SemiColonDelimitedToDoubleArrayConverter.SemiColonDelimitedToIntegerArrayConverter ))]
