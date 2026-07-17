@@ -363,3 +363,4 @@ MigrationBackup/
 FodyWeavers.xsd
 /RadicalFragmentaiton/Properties/launchSettings.json
 /CMD/Properties/launchSettings.json
+/.omo/*
