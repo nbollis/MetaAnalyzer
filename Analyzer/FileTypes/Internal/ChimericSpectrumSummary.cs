@@ -40,6 +40,7 @@ namespace Analyzer.FileTypes.Internal
         public bool IsUniqueProtein { get; set; }
         public bool IsDuplicate { get; set; }
         [Optional] public bool IsUniqueOrganism { get; set; }
+        [Optional] public bool IsContaminant { get; set; }
 
         // Summary Information
 
@@ -113,6 +114,7 @@ namespace Analyzer.FileTypes.Internal
                         UniqueForms = chimeraGroup.Count(p => p.IsUniqueForm),
                         UniqueProteins = chimeraGroup.Count(p => p.IsUniqueProtein),
                         DuplicateCount = chimeraGroup.Count(p => p.IsDuplicate),
+                        ContaminantCount = chimeraGroup.Count(p => p.IsContaminant),
                         DifferentProteomeCount = chimeraGroup.Count(p => p.IsUniqueOrganism),
                         PsmCharges = chimeraGroup.Select(p => p.PrecursorCharge).ToArray(),
                         PsmMasses = chimeraGroup.Select(p => p.PrecursorMass).ToArray(),

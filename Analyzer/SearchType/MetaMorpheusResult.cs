@@ -1,6 +1,4 @@
-﻿using System.Collections.Concurrent;
-using System.Diagnostics;
-using System.Text.RegularExpressions;
+﻿using Analyzer.FileTypes.External;
 using Analyzer.FileTypes.Internal;
 using Analyzer.Interfaces;
 using Analyzer.Util;
@@ -12,13 +10,16 @@ using Easy.Common.Extensions;
 using MassSpectrometry;
 using MathNet.Numerics;
 using MzLibUtil;
+using Omics.Fragmentation;
 using Plotting.Util;
 using Proteomics;
 using Proteomics.ProteolyticDigestion;
 using Proteomics.RetentionTimePrediction;
-using Omics.Fragmentation;
 using Readers;
 using ResultAnalyzerUtil;
+using System.Collections.Concurrent;
+using System.Diagnostics;
+using System.Text.RegularExpressions;
 using UsefulProteomicsDatabases;
 using Ms1FeatureFile = Analyzer.FileTypes.External.Ms1FeatureFile;
 
@@ -524,6 +525,8 @@ namespace Analyzer.SearchType
                             }
                             else if (parent.Accession == chimericPsm.Accession)
                                 record.UniqueForms++;
+                            else if (chimericPsm.DecoyContamTarget.Contains("C"))
+                                record.ContaminantCount++;
                             else if (parent.OrganismName != chimericPsm.OrganismName)
                                 record.DifferentProteomeCount++;
                             else
@@ -1411,6 +1414,10 @@ namespace Analyzer.SearchType
                             {
                                 resultToWrite.IsUniqueForm = true;
                             }
+                            else if (chimericPsm.DecoyContamTarget.Contains("C"))
+                            {
+                                resultToWrite.IsContaminant = true;
+                            }
                             else if (parent.OrganismName != chimericPsm.OrganismName)
                             {
                                 resultToWrite.IsUniqueOrganism = true;
@@ -1490,6 +1497,14 @@ namespace Analyzer.SearchType
                             else if (parent.Accession == chimericPeptide.Accession)
                             {
                                 resultToWrite.IsUniqueForm = true;
+                            }
+                            else if (chimericPeptide.DecoyContamTarget.Contains("C"))
+                            {
+                                resultToWrite.IsContaminant = true;
+                            }
+                            else if (parent.OrganismName != chimericPeptide.OrganismName)
+                            {
+                                resultToWrite.IsUniqueOrganism = true;
                             }
                             else
                             {
