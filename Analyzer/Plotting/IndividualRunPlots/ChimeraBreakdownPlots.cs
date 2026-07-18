@@ -100,7 +100,7 @@ namespace Analyzer.Plotting.IndividualRunPlots
         public static GenericChart.GenericChart GetChimeraBreakDownStackedColumn(this List<ChimeraBreakdownRecord> results,
             ResultType type, bool isTopDown, out int width, string? extraTitle = null)
         {
-            (int IdsPerSpectra, double Parent, double UniqueProtein, double UniqueForms, double Decoys, double Duplicates, double Entrapment, double MonoErrorCount, double MassDuplicateCount)[] data 
+            (int IdsPerSpectra, double Parent, double UniqueProtein, double UniqueForms, double Decoys, double Duplicates, double Entrapment, double MonoErrorCount, double MassDuplicateCount, double DifferentProteome)[] data 
                 = results.Where(p => p.Type == type)
                 .GroupBy(p => p.IdsPerSpectra)
                 .OrderBy(p => p.Key)
@@ -114,7 +114,8 @@ namespace Analyzer.Plotting.IndividualRunPlots
                         (double)p.Sum(m => m.DuplicateCount),
                         (double)p.Sum(m => m.EntrapmentCount),
                         (double)p.Sum(m => m.MissedMonoCount),
-                        (double)p.Sum(m => m.ZeroSumShiftCount)))
+                        (double)p.Sum(m => m.ZeroSumShiftCount),
+                        (double)p.Sum(m => m.DifferentProteomeCount)))
                 .ToArray();
 
             var keys = data.Select(p => p.IdsPerSpectra).ToArray();
@@ -165,6 +166,12 @@ namespace Analyzer.Plotting.IndividualRunPlots
                     MarkerColor: "Monoisotopic Error".ConvertConditionToColor(),
                     MultiText: data.Select(p => p.MonoErrorCount.ToString()).ToArray())).ToArray();
 
+            if (data.Any(p => p.DifferentProteome > 0))
+                charts = charts.Append(Chart.StackedColumn<double, int, string>(data.Select(p => p.DifferentProteome), keys,
+                    "Different Proteome",
+                    MarkerColor: "Different Proteome".ConvertConditionToColor(),
+                    MultiText: data.Select(p => p.DifferentProteome.ToString()).ToArray())).ToArray();
+
             var chart = Chart.Combine(charts)
                 .WithLayout(PlotlyBase.DefaultLayoutWithLegendLargerText)
                 .WithTitle($"{title2} {title} Identifications per Spectra")
@@ -202,7 +209,7 @@ namespace Analyzer.Plotting.IndividualRunPlots
             bool isTopDown = false)
         {
 
-            (int IdsPerSpectra, double Parent, double UniqueProtein, double UniqueForms, double Decoys, double Duplicates, double Entrapment, double MonoErrorCount, double MassDuplicateCount)[] data = 
+            (int IdsPerSpectra, double Parent, double UniqueProtein, double UniqueForms, double Decoys, double Duplicates, double Entrapment, double MonoErrorCount, double MassDuplicateCount, double DifferentProteome)[] data = 
                 results.Where(p => p.Type == resultType)
                         .GroupBy(p => p.IdsPerSpectra)
                         .OrderBy(p => p.Key)
@@ -215,16 +222,17 @@ namespace Analyzer.Plotting.IndividualRunPlots
                                 (double)p.Sum(m => m.DuplicateCount),
                                 (double)p.Sum(m => m.EntrapmentCount),
                                 (double)p.Sum(m => m.MissedMonoCount),
-                                (double)p.Sum(m => m.ZeroSumShiftCount)))
+                                (double)p.Sum(m => m.ZeroSumShiftCount),
+                                (double)p.Sum(m => m.DifferentProteomeCount)))
                         .ToArray();
 
             // Step 2: Calculate the percentages and scale them
 
-            (int IdsPerSpectra, double Parent, double UniqueProtein, double UniqueForms, double Decoys, double Duplicates, double Entrapment, double MonoErrorCount, double MassDuplicateCount)[]
+            (int IdsPerSpectra, double Parent, double UniqueProtein, double UniqueForms, double Decoys, double Duplicates, double Entrapment, double MonoErrorCount, double MassDuplicateCount, double DifferentProteome)[]
                 scaledPercentData = data;
             scaledPercentData = data.Select(p =>
                 {
-                    double total = p.Parent + p.Decoys + p.UniqueProtein + p.UniqueForms + p.Duplicates + p.Entrapment + p.MonoErrorCount + p.MassDuplicateCount;
+                    double total = p.Parent + p.Decoys + p.UniqueProtein + p.UniqueForms + p.Duplicates + p.Entrapment + p.MonoErrorCount + p.MassDuplicateCount + p.DifferentProteome;
                     double parentPercent = InterperateVals(p.Parent,
                         total);
                     double decoysPercent = InterperateVals(p.Parent + p.Decoys,
@@ -248,6 +256,9 @@ namespace Analyzer.Plotting.IndividualRunPlots
                     double massDuplicatePercent = InterperateVals(p.Parent + p.Decoys + p.UniqueProtein + p.UniqueForms + p.Duplicates + p.Entrapment + p.MonoErrorCount + p.MassDuplicateCount, 
                         total, parentPercent + decoysPercent + uniqueProteinPercent + uniqueFormsPercent + duplicatesPercent + entrapmentPercent + monoErrorPercent);
 
+                    double differentProteomePercent = InterperateVals(p.Parent + p.Decoys + p.UniqueProtein + p.UniqueForms + p.Duplicates + p.Entrapment + p.MonoErrorCount + p.MassDuplicateCount + p.DifferentProteome, 
+                        total, parentPercent + decoysPercent + uniqueProteinPercent + uniqueFormsPercent + duplicatesPercent + entrapmentPercent + monoErrorPercent + massDuplicatePercent);
+
                     // Scale percentages so that each bar's height is based on its total value
                     return (p.IdsPerSpectra,
                         parentPercent.Round(0),
@@ -257,7 +268,8 @@ namespace Analyzer.Plotting.IndividualRunPlots
                         duplicatesPercent.Round(0),
                         entrapmentPercent.Round(0),
                         monoErrorPercent.Round(0),
-                        massDuplicatePercent.Round(0)                        
+                        massDuplicatePercent.Round(0),
+                        differentProteomePercent.Round(0)
                         );
                 }).ToArray();
 
@@ -297,6 +309,12 @@ namespace Analyzer.Plotting.IndividualRunPlots
                     "Monoisotopic Error",
                     MarkerColor: "Monoisotopic Error".ConvertConditionToColor(),
                     MultiText: data.Select(p => p.MonoErrorCount.ToString()).ToArray())).ToArray();
+
+            if (data.Any(p => p.DifferentProteome > 0))
+                charts = charts.Append(Chart.StackedColumn<double, int, string>(scaledPercentData.Select(p => p.DifferentProteome), keys,
+                    "Different Proteome",
+                    MarkerColor: "Different Proteome".ConvertConditionToColor(),
+                    MultiText: data.Select(p => p.DifferentProteome.ToString()).ToArray())).ToArray();
 
 
             string title = Labels.GetLabel(isTopDown, resultType);
@@ -341,7 +359,7 @@ namespace Analyzer.Plotting.IndividualRunPlots
         public static GenericChart.GenericChart GetChimeraBreakDownStackedArea(this List<ChimeraBreakdownRecord> results,
             ResultType type, bool isTopDown, out int width, bool asPercent = false, string? extraTitle = null)
         {
-            (int IdPerSpec, double Parent, double UniqueProtein, double UniqueForms, double Decoys, double Duplicates, double MassDuplicates)[] data = results.Where(p => p.Type == type)
+            (int IdPerSpec, double Parent, double UniqueProtein, double UniqueForms, double Decoys, double Duplicates, double MassDuplicates, double DifferentProteome)[] data = results.Where(p => p.Type == type)
                 .GroupBy(p => p.IdsPerSpectra)
                 .OrderBy(p => p.Key)
                 .Select(p =>
@@ -352,7 +370,8 @@ namespace Analyzer.Plotting.IndividualRunPlots
                         (double)p.Sum(m => m.UniqueForms),
                         (double)p.Sum(m => m.DecoyCount),
                         (double)p.Sum(m => m.DuplicateCount),
-                        (double)p.Sum(m => m.ZeroSumShiftCount))
+                        (double)p.Sum(m => m.ZeroSumShiftCount),
+                        (double)p.Sum(m => m.DifferentProteomeCount))
                 )
                 .ToArray();
             var keys = data.Select(p => p.IdPerSpec).ToArray();
@@ -372,6 +391,7 @@ namespace Analyzer.Plotting.IndividualRunPlots
                     data[i].Decoys = data[i].Decoys / total * 100;
                     data[i].Duplicates = data[i].Duplicates / total * 100;
                     data[i].MassDuplicates = data[i].MassDuplicates / total * 100;
+                    data[i].DifferentProteome = data[i].DifferentProteome / total * 100;
                 }
             }
 
@@ -393,6 +413,10 @@ namespace Analyzer.Plotting.IndividualRunPlots
             //if (data.Any(p => p.Duplicates > 0))
             //    charts = charts.Append(Chart.StackedArea<int, double, string>(keys, data.Select(p => p.Duplicates), Name: "Duplicates",
             //        MarkerColor: "Duplicates".ConvertConditionToColor(), MultiText: data.Select(p => p.Duplicates.ToString()).ToArray())).ToArray();
+
+            if (data.Any(p => p.DifferentProteome > 0))
+                charts = charts.Append(Chart.StackedArea<int, double, string>(keys, data.Select(p => p.DifferentProteome), Name: "Different Proteome",
+                    MarkerColor: "Different Proteome".ConvertConditionToColor(), MultiText: data.Select(p => p.DifferentProteome.ToString()).ToArray())).ToArray();
 
             var chart = Chart.Combine(charts)
                 .WithLayout(PlotlyBase.DefaultLayoutWithLegend)

@@ -107,6 +107,7 @@ public static class PlottingTranslators
         {"Unique Peptidoform", Color.fromKeyword(ColorKeyword.MediumVioletRed)},
         {"Unique Peptidoforms", Color.fromKeyword(ColorKeyword.MediumVioletRed)},
         {"Unique Protein", Color.fromKeyword(ColorKeyword.MediumAquamarine)},
+        {"Different Proteome", Color.fromKeyword(ColorKeyword.DarkGoldenRod)},
         {"Targets", Color.fromKeyword(ColorKeyword.LightAkyBlue)},
         {"Decoys", Color.fromKeyword(ColorKeyword.Gold)},
         {"Duplicates", Color.fromKeyword(ColorKeyword.RoyalBlue)},
