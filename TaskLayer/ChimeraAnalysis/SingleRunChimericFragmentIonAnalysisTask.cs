@@ -48,8 +48,8 @@ public class SingleRunChimericFragmentIonAnalysisTask : BaseResultAnalyzerTask
         var records = analysisFile.Results;
         var datasetLabel = $"{run.DatasetName} {run.Condition}";
 
-        ChimericFragmentIonAnalysisPlots.CreateViolinPlot(records, datasetLabel)
-            .SaveInRunResultOnly(run, $"{FileIdentifiers.ChimericFragmentIonAnalysisViolin}{suffix}", 1000, 600);
+        //ChimericFragmentIonAnalysisPlots.CreateViolinPlot(records, datasetLabel)
+        //    .SaveInRunResultOnly(run, $"{FileIdentifiers.ChimericFragmentIonAnalysisViolin}{suffix}", 1000, 600);
 
         ChimericFragmentIonAnalysisPlots.CreateHistogramPlot(records, datasetLabel)
             .SaveInRunResultOnly(run, $"ChimericFragmentIonAnalysis_Histogram{suffix}", 1000, 600);
@@ -66,8 +66,8 @@ public class SingleRunChimericFragmentIonAnalysisTask : BaseResultAnalyzerTask
         ChimericFragmentIonAnalysisPlots.CreateHeatmapTopN(records, datasetLabel)
             .SaveInRunResultOnly(run, $"ChimericFragmentIonAnalysis_HeatmapTop10{suffix}", 1000, 600);
 
-        ChimericFragmentIonAnalysisPlots.CreateCombinedGrid(records, datasetLabel)
-            .SaveInRunResultOnly(run, $"ChimericFragmentIonAnalysis_Grid{suffix}", 1400, 1000);
+        //ChimericFragmentIonAnalysisPlots.CreateCombinedGrid(records, datasetLabel)
+        //    .SaveInRunResultOnly(run, $"ChimericFragmentIonAnalysis_Grid{suffix}", 1400, 1000);
     }
 }
 
