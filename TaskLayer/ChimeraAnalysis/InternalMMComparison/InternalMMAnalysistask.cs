@@ -410,18 +410,18 @@ namespace TaskLayer.ChimeraAnalysis
             //ExternalComparisonTask.PlotProteinCountingCharts(countingRecords, isTopDown, BulkFigureDirectory);
 
             Log("Running Chimeric Fragment-Ion Analysis");
-            foreach (var cellLineDictEntry in cellLineDict)
+            foreach (var conditionEntry in cellLineDict)
             {
-                var cellLine = Path.GetFileNameWithoutExtension(cellLineDictEntry.Key);
-                if (cellLineDictEntry.Value.First().Condition.Contains(NonChimericDescriptor))
+                if (conditionEntry.Value.First().Condition.Contains(NonChimericDescriptor))
                     continue;
-
-                var cellLineDir = Path.GetDirectoryName(cellLineDictEntry.Value.First().DirectoryPath);
-                var cellLineResults = new CellLineResults(cellLineDir!,
-                    cellLineDictEntry.Value.Cast<SingleRunResults>().ToList());
-                cellLineResults.PlotCellLineChimericFragmentIonAnalysis(true);
-
-                Log($"Cell Line Plotting Output Dir: {cellLineResults.FigureDirectory}", 1);
+                foreach (var cellLineGroup in conditionEntry.Value
+                             .GroupBy(r => Path.GetDirectoryName(r.DirectoryPath)))
+                {
+                    var cellLineResults = new CellLineResults(cellLineGroup.Key!,
+                        cellLineGroup.Cast<SingleRunResults>().ToList());
+                    cellLineResults.PlotCellLineChimericFragmentIonAnalysis(true);
+                    Log($"Cell Line Plotting Output Dir: {cellLineResults.FigureDirectory}", 1);
+                }
             }
 
             var allResults = new AllResults(Parameters.OutputDirectory,
