@@ -70,13 +70,15 @@ public class ChimericFragmentIonAnalysisFile : ResultFile<ChimericFragmentIonAna
 
     public override void LoadResults()
     {
-        using var csv = new CsvReader(new StreamReader(FilePath), ChimericFragmentIonAnalysisRecord.CsvConfiguration);
+        using var stream = new FileStream(FilePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
+        using var csv = new CsvReader(new StreamReader(stream), ChimericFragmentIonAnalysisRecord.CsvConfiguration);
         Results = csv.GetRecords<ChimericFragmentIonAnalysisRecord>().ToList();
     }
 
     public override void WriteResults(string outputPath)
     {
-        using var csv = new CsvWriter(new StreamWriter(File.Create(outputPath)), ChimericFragmentIonAnalysisRecord.CsvConfiguration);
+        using var stream = new FileStream(outputPath, FileMode.Create, FileAccess.Write, FileShare.Read);
+        using var csv = new CsvWriter(new StreamWriter(stream), ChimericFragmentIonAnalysisRecord.CsvConfiguration);
         csv.WriteHeader<ChimericFragmentIonAnalysisRecord>();
         foreach (var result in Results)
         {

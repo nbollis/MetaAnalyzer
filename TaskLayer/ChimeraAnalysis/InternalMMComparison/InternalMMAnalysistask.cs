@@ -421,7 +421,10 @@ namespace TaskLayer.ChimeraAnalysis
             }
 
             var allResults = new AllResults(Parameters.OutputDirectory,
-                cellLineDict.Select(p => new CellLineResults(p.Key, p.Value.Cast<SingleRunResults>().ToList())).ToList());
+                cellLineDict
+                    .Where(p => !p.Value.First().Condition.Contains(NonChimericDescriptor))
+                    .Select(p => new CellLineResults(p.Key, p.Value.Cast<SingleRunResults>().ToList()))
+                    .ToList());
             allResults.PlotBulkChimericFragmentIonAnalysis(true);
 
             var resultsForInternalComparison = cellLineDict
