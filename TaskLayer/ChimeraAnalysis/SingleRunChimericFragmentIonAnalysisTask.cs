@@ -8,6 +8,7 @@ using Chart = Plotly.NET.CSharp.Chart;
 using Plotting.Util;
 using Readers;
 using ResultAnalyzerUtil;
+using Easy.Common.Extensions;
 
 namespace TaskLayer.ChimeraAnalysis;
 
@@ -48,54 +49,16 @@ public class SingleRunChimericFragmentIonAnalysisTask : BaseResultAnalyzerTask
         var records = analysisFile.Results;
         var datasetLabel = $"{run.DatasetName} {run.Condition}";
 
-        //ChimericFragmentIonAnalysisPlots.CreateViolinPlot(records, datasetLabel)
-        //    .SaveInRunResultOnly(run, $"{FileIdentifiers.ChimericFragmentIonAnalysisViolin}{suffix}", 1000, 600);
-
         ChimericFragmentIonAnalysisPlots.CreateHistogramPlot(records, datasetLabel)
             .SaveInRunResultOnly(run, $"ChimericFragmentIonAnalysis_Histogram{suffix}", 1000, 600);
 
-        ChimericFragmentIonAnalysisPlots.CreateUniqueFractionBoxPlot(records, datasetLabel)
+        ChimericFragmentIonAnalysisPlots.CreateUniqueFractionBoxPlot(records, datasetLabel, run.IsTopDown)
             .SaveInRunResultOnly(run, $"ChimericFragmentIonAnalysis_UniqueFractionByGroupSize{suffix}", 1000, 600);
-
-        ChimericFragmentIonAnalysisPlots.CreatePairedScatterPlot(records, datasetLabel)
-            .SaveInRunResultOnly(run, $"ChimericFragmentIonAnalysis_PairedScatter{suffix}", 1000, 600);
-
-        ChimericFragmentIonAnalysisPlots.CreateStackedBarTopN(records, datasetLabel)
-            .SaveInRunResultOnly(run, $"ChimericFragmentIonAnalysis_StackedBarTop10{suffix}", 1000, 600);
-
-        ChimericFragmentIonAnalysisPlots.CreateHeatmapTopN(records, datasetLabel)
-            .SaveInRunResultOnly(run, $"ChimericFragmentIonAnalysis_HeatmapTop10{suffix}", 1000, 600);
-
-        //ChimericFragmentIonAnalysisPlots.CreateCombinedGrid(records, datasetLabel)
-        //    .SaveInRunResultOnly(run, $"ChimericFragmentIonAnalysis_Grid{suffix}", 1400, 1000);
     }
 }
 
 public static class ChimericFragmentIonAnalysisPlots
 {
-    public static GenericChart.GenericChart CreateViolinPlot(List<ChimericFragmentIonAnalysisRecord> records, string titlePrefix)
-    {
-        var totalValues = records.Select(p => (double)p.TotalMatchedFragmentIons).ToArray();
-        var uniqueValues = records.Select(p => (double)p.UniqueMatchedFragmentIons).ToArray();
-        var totalLabels = Enumerable.Repeat("Total Matched Fragment Ions", records.Count).ToArray();
-        var uniqueLabels = Enumerable.Repeat("Unique Matched Fragment Ions", records.Count).ToArray();
-
-        return Chart.Combine(new[]
-            {
-                Chart.Violin<string, double, string>(totalLabels, totalValues, null,
-                    MarkerColor: "No Chimeras".ConvertConditionToColor(),
-                    MeanLine: MeanLine.init(true, "No Chimeras".ConvertConditionToColor()), ShowLegend: false),
-                Chart.Violin<string, double, string>(uniqueLabels, uniqueValues, null,
-                    MarkerColor: "Chimeras".ConvertConditionToColor(),
-                    MeanLine: MeanLine.init(true, "Chimeras".ConvertConditionToColor()), ShowLegend: false)
-            })
-            .WithTitle($"{titlePrefix} Fragment Ion Support for Chimeric Identifications",
-                TitleFont: Font.init(Size: PlotlyBase.TitleSize))
-            .WithYAxisStyle(Title.init("Matched Fragment Ion Count", Font: Font.init(Size: PlotlyBase.AxisTitleFontSize)))
-            .WithLayout(PlotlyBase.DefaultLayout)
-            .WithSize(1000, 600);
-    }
-
     public static GenericChart.GenericChart CreateHistogramPlot(List<ChimericFragmentIonAnalysisRecord> records, string titlePrefix)
     {
         var uniqueVals = records.Select(p => (double)p.UniqueMatchedFragmentIons).ToArray();
@@ -116,14 +79,14 @@ public static class ChimericFragmentIonAnalysisPlots
             .WithSize(1000, 600);
     }
 
-    public static GenericChart.GenericChart CreateUniqueFractionBoxPlot(List<ChimericFragmentIonAnalysisRecord> records, string titlePrefix)
+    public static GenericChart.GenericChart CreateUniqueFractionBoxPlot(List<ChimericFragmentIonAnalysisRecord> records, string titlePrefix, bool isTopDown)
     {
         var groups = records.GroupBy(r => r.ProteoformCountInSpectrum).OrderBy(g => g.Key).ToList();
         var labels = new List<string>();
         var values = new List<double>();
         foreach (var group in groups)
         {
-            labels.AddRange(Enumerable.Repeat($"{group.Key} proteoforms", group.Count()));
+            labels.AddRange(Enumerable.Repeat($"{group.Key} {Labels.GetLabel(isTopDown, ResultType.Peptide)}s", group.Count()));
             values.AddRange(group.Select(r => r.UniqueMatchedFragmentFraction));
         }
 
@@ -135,128 +98,10 @@ public static class ChimericFragmentIonAnalysisPlots
             })
             .WithTitle($"{titlePrefix} Unique Fraction by Chimera Group Size",
                 TitleFont: Font.init(Size: PlotlyBase.TitleSize))
-            .WithXAxisStyle(Title.init("Proteoforms per Spectrum", Font: Font.init(Size: PlotlyBase.AxisTitleFontSize)))
+            .WithXAxisStyle(Title.init($"{Labels.GetLabel(isTopDown, ResultType.Peptide)}s per Spectrum", Font: Font.init(Size: PlotlyBase.AxisTitleFontSize)))
             .WithYAxisStyle(Title.init("Unique Fraction", Font: Font.init(Size: PlotlyBase.AxisTitleFontSize)))
             .WithLayout(PlotlyBase.DefaultLayout)
             .WithSize(1000, 600);
-    }
-
-    public static GenericChart.GenericChart CreatePairedScatterPlot(List<ChimericFragmentIonAnalysisRecord> records, string titlePrefix)
-    {
-        var grouped = records.GroupBy(r => (r.FileNameWithoutExtension, r.ScanNumber))
-            .Where(g => g.Count() >= 2)
-            .Take(50)
-            .ToList();
-
-        var traces = new List<GenericChart.GenericChart>();
-        foreach (var group in grouped)
-        {
-            var ordered = group.OrderBy(r => r.ProteoformIndex).ToList();
-            traces.Add(Chart.Line<double, double, string>(
-                ordered.Select(r => (double)r.ProteoformIndex),
-                ordered.Select(r => (double)r.UniqueMatchedFragmentIons))
-                .WithLine(Line.init(Color: Color.fromString("gray"), Width: 0.5f))
-                .WithLegend(false));
-        }
-
-        var allPoints = grouped.SelectMany(g => g).ToList();
-        traces.Add(Chart.Scatter<double, double, string>(
-            allPoints.Select(r => (double)r.ProteoformIndex),
-            allPoints.Select(r => (double)r.UniqueMatchedFragmentIons),
-            StyleParam.Mode.Markers,
-            "Unique Ions per Proteoform",
-            MarkerColor: "Chimeras".ConvertConditionToColor()));
-
-        return Chart.Combine(traces)
-            .WithTitle($"{titlePrefix} Unique Ions per Proteoform within Chimeric Spectra (first 50)",
-                TitleFont: Font.init(Size: PlotlyBase.TitleSize))
-            .WithXAxisStyle(Title.init("Proteoform Rank in Spectrum", Font: Font.init(Size: PlotlyBase.AxisTitleFontSize)))
-            .WithYAxisStyle(Title.init("Unique Matched Fragment Ions", Font: Font.init(Size: PlotlyBase.AxisTitleFontSize)))
-            .WithLayout(PlotlyBase.DefaultLayoutWithLegend)
-            .WithSize(1000, 600);
-    }
-
-    public static GenericChart.GenericChart CreateStackedBarTopN(List<ChimericFragmentIonAnalysisRecord> records, string titlePrefix)
-    {
-        var topGroups = records.GroupBy(r => (r.FileNameWithoutExtension, r.ScanNumber))
-            .OrderByDescending(g => g.Sum(r => r.TotalMatchedFragmentIons))
-            .Take(10)
-            .ToList();
-
-        var xLabels = topGroups.Select((g, i) => $"#{i + 1}").ToArray();
-        var uniqueValues = new double[topGroups.Count];
-        var sharedValues = new double[topGroups.Count];
-        for (int i = 0; i < topGroups.Count; i++)
-        {
-            uniqueValues[i] = topGroups[i].Sum(r => r.UniqueMatchedFragmentIons);
-            sharedValues[i] = topGroups[i].Sum(r => r.SharedMatchedFragmentIons);
-        }
-
-        return Chart.Combine(new[]
-            {
-                Chart.Bar<double, string, string>(sharedValues, xLabels, Name: "Shared Fragment Ions",
-                    MarkerColor: "No Chimeras".ConvertConditionToColor()),
-                Chart.Bar<double, string, string>(uniqueValues, xLabels, Name: "Unique Fragment Ions",
-                    MarkerColor: "Chimeras".ConvertConditionToColor())
-            })
-            .WithTitle($"{titlePrefix} Top 10 Chimeric Spectra by Total Matched Ions",
-                TitleFont: Font.init(Size: PlotlyBase.TitleSize))
-            .WithXAxisStyle(Title.init("Spectrum Rank", Font: Font.init(Size: PlotlyBase.AxisTitleFontSize)))
-            .WithYAxisStyle(Title.init("Matched Fragment Ion Count", Font: Font.init(Size: PlotlyBase.AxisTitleFontSize)))
-            .WithLayout(PlotlyBase.DefaultLayoutWithLegend)
-            .WithSize(1000, 600);
-    }
-
-    public static GenericChart.GenericChart CreateHeatmapTopN(List<ChimericFragmentIonAnalysisRecord> records, string titlePrefix)
-    {
-        var topGroups = records.GroupBy(r => (r.FileNameWithoutExtension, r.ScanNumber))
-            .Where(g => g.Count() >= 2)
-            .OrderByDescending(g => g.Sum(r => r.UniqueMatchedFragmentIons))
-            .Take(20)
-            .ToList();
-
-        int maxCount = topGroups.Max(g => g.Count());
-        var yLabels = topGroups.Select((g, i) => $"#{i + 1}").ToArray();
-
-        var z = new double[topGroups.Count][];
-        for (int i = 0; i < topGroups.Count; i++)
-        {
-            var ordered = topGroups[i].OrderBy(r => r.ProteoformIndex).ToList();
-            z[i] = new double[maxCount];
-            for (int j = 0; j < maxCount; j++)
-                z[i][j] = j < ordered.Count ? ordered[j].UniqueMatchedFragmentFraction : double.NaN;
-        }
-
-        return Chart.Heatmap<double, double, string, string>(
-                z.Select(row => row.Select(v => v).ToArray()).ToArray(),
-                X: Enumerable.Range(1, maxCount).Select(i => (double)i).ToArray(),
-                Y: yLabels,
-                ShowLegend: false,
-                ColorScale: StyleParam.Colorscale.Viridis)
-            .WithTitle($"{titlePrefix} Unique Fraction per Proteoform (top 20 spectra)",
-                TitleFont: Font.init(Size: PlotlyBase.TitleSize))
-            .WithXAxisStyle(Title.init("Proteoform Rank", Font: Font.init(Size: PlotlyBase.AxisTitleFontSize)))
-            .WithYAxisStyle(Title.init("Spectrum", Font: Font.init(Size: PlotlyBase.AxisTitleFontSize)))
-            .WithLayout(PlotlyBase.DefaultLayout)
-            .WithSize(1000, 600);
-    }
-
-    public static GenericChart.GenericChart CreateCombinedGrid(List<ChimericFragmentIonAnalysisRecord> records, string titlePrefix)
-    {
-        return Chart.Grid(
-                new[]
-                {
-                    CreateViolinPlot(records, titlePrefix),
-                    CreateHistogramPlot(records, titlePrefix),
-                    CreateUniqueFractionBoxPlot(records, titlePrefix),
-                    CreatePairedScatterPlot(records, titlePrefix)
-                },
-                2, 2,
-                Pattern: StyleParam.LayoutGridPattern.Independent)
-            .WithTitle($"{titlePrefix} Chimeric Fragment-Ion Analysis — Overview",
-                TitleFont: Font.init(Size: PlotlyBase.TitleSize))
-            .WithLayout(PlotlyBase.DefaultLayout)
-            .WithSize(1400, 1000);
     }
 
     public static void PlotCellLineChimericFragmentIonAnalysis(this CellLineResults cellLine, bool excludeInternalFragments = true)
@@ -267,20 +112,10 @@ public static class ChimericFragmentIonAnalysisPlots
         var titlePrefix = cellLine.CellLine;
         var suffix = excludeInternalFragments ? "_NoInternal" : string.Empty;
 
-        //CreateViolinPlot(records, titlePrefix)
-        //    .SaveInCellLineOnly(cellLine, $"ChimericFragmentIonAnalysis_Violin{suffix}", 1000, 600);
         CreateHistogramPlot(records, titlePrefix)
             .SaveInCellLineOnly(cellLine, $"ChimericFragmentIonAnalysis_Histogram{suffix}", 1000, 600);
-        CreateUniqueFractionBoxPlot(records, titlePrefix)
+        CreateUniqueFractionBoxPlot(records, titlePrefix, cellLine.First().IsTopDown)
             .SaveInCellLineOnly(cellLine, $"ChimericFragmentIonAnalysis_UniqueFractionByGroupSize{suffix}", 1000, 600);
-        CreatePairedScatterPlot(records, titlePrefix)
-            .SaveInCellLineOnly(cellLine, $"ChimericFragmentIonAnalysis_PairedScatter{suffix}", 1000, 600);
-        CreateStackedBarTopN(records, titlePrefix)
-            .SaveInCellLineOnly(cellLine, $"ChimericFragmentIonAnalysis_StackedBarTop10{suffix}", 1000, 600);
-        CreateHeatmapTopN(records, titlePrefix)
-            .SaveInCellLineOnly(cellLine, $"ChimericFragmentIonAnalysis_HeatmapTop10{suffix}", 1000, 600);
-        //CreateCombinedGrid(records, titlePrefix)
-        //    .SaveInCellLineOnly(cellLine, $"ChimericFragmentIonAnalysis_Grid{suffix}", 1400, 1000);
     }
 
     public static void PlotBulkChimericFragmentIonAnalysis(this AllResults allResults, bool excludeInternalFragments = true)
@@ -291,19 +126,9 @@ public static class ChimericFragmentIonAnalysisPlots
         var titlePrefix = "All Cell Lines";
         var suffix = excludeInternalFragments ? "_NoInternal" : string.Empty;
 
-        //CreateViolinPlot(records, titlePrefix)
-        //    .SaveInAllResultsOnly(allResults, $"ChimericFragmentIonAnalysis_Violin{suffix}", 1000, 600);
         CreateHistogramPlot(records, titlePrefix)
             .SaveInAllResultsOnly(allResults, $"ChimericFragmentIonAnalysis_Histogram{suffix}", 1000, 600);
-        CreateUniqueFractionBoxPlot(records, titlePrefix)
+        CreateUniqueFractionBoxPlot(records, titlePrefix, allResults.First().First().IsTopDown)
             .SaveInAllResultsOnly(allResults, $"ChimericFragmentIonAnalysis_UniqueFractionByGroupSize{suffix}", 1000, 600);
-        CreatePairedScatterPlot(records, titlePrefix)
-            .SaveInAllResultsOnly(allResults, $"ChimericFragmentIonAnalysis_PairedScatter{suffix}", 1000, 600);
-        CreateStackedBarTopN(records, titlePrefix)
-            .SaveInAllResultsOnly(allResults, $"ChimericFragmentIonAnalysis_StackedBarTop10{suffix}", 1000, 600);
-        CreateHeatmapTopN(records, titlePrefix)
-            .SaveInAllResultsOnly(allResults, $"ChimericFragmentIonAnalysis_HeatmapTop10{suffix}", 1000, 600);
-        //CreateCombinedGrid(records, titlePrefix)
-        //    .SaveInAllResultsOnly(allResults, $"ChimericFragmentIonAnalysis_Grid{suffix}", 1400, 1000);
     }
 }

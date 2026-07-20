@@ -169,7 +169,7 @@ namespace TaskLayer.ChimeraAnalysis
             //        }
             //    });
 
-            Log($"Running Chimeric Spectrum Summaries", 0);
+            //Log($"Running Chimeric Spectrum Summaries", 0);
             //foreach (var cellLineDictEntry in cellLineDict)
             //{
             //    var cellLine = Path.GetFileNameWithoutExtension(cellLineDictEntry.Key);
@@ -337,76 +337,76 @@ namespace TaskLayer.ChimeraAnalysis
                 //    }
                 //}
 
-            Log("Creating Proforma Files", 1);
-            foreach (var cellLineDictEntry in cellLineDict)
-            {
-                var cellLine = Path.GetFileNameWithoutExtension(cellLineDictEntry.Key);
+            //Log("Creating Proforma Files", 1);
+            //foreach (var cellLineDictEntry in cellLineDict)
+            //{
+            //    var cellLine = Path.GetFileNameWithoutExtension(cellLineDictEntry.Key);
 
-                Log($"Processing Cell Line {cellLine}", 1);
-                foreach (var mmResult in cellLineDictEntry.Value)
-                {
-                    if (mmResult.Condition.Contains(NonChimericDescriptor))
-                        continue;
+            //    Log($"Processing Cell Line {cellLine}", 1);
+            //    foreach (var mmResult in cellLineDictEntry.Value)
+            //    {
+            //        if (mmResult.Condition.Contains(NonChimericDescriptor))
+            //            continue;
 
-                    mmResult.ToPsmProformaFile();
-                }
-            }
+            //        mmResult.ToPsmProformaFile();
+            //    }
+            //}
 
-            var proformaResultPath = Path.Combine(BulkFigureDirectory, "ProformaResults");
-            foreach (var condition in cellLineDict)
-            {
-                var proforomaFileName = Path.Combine(proformaResultPath, condition.Key + "_PSM_" + FileIdentifiers.ProformaFile);
-                if (File.Exists(proforomaFileName) && !Parameters.Override)
-                    continue;
+            //var proformaResultPath = Path.Combine(BulkFigureDirectory, "ProformaResults");
+            //foreach (var condition in cellLineDict)
+            //{
+            //    var proforomaFileName = Path.Combine(proformaResultPath, condition.Key + "_PSM_" + FileIdentifiers.ProformaFile);
+            //    if (File.Exists(proforomaFileName) && !Parameters.Override)
+            //        continue;
 
-                var records = new List<ProformaRecord>();
-                foreach (var result in condition.Value)
-                    records.AddRange(result.ToPsmProformaFile().Results);
-                var newFile = new ProformaFile(proforomaFileName)
-                {
-                    Results = records
-                };
+            //    var records = new List<ProformaRecord>();
+            //    foreach (var result in condition.Value)
+            //        records.AddRange(result.ToPsmProformaFile().Results);
+            //    var newFile = new ProformaFile(proforomaFileName)
+            //    {
+            //        Results = records
+            //    };
 
-                newFile.WriteResults(proforomaFileName);
-            }
+            //    newFile.WriteResults(proforomaFileName);
+            //}
 
-            Log("Creating Protein Counting Files", 1);
-            foreach (var cellLineDictEntry in cellLineDict)
-            {
-                var cellLine = Path.GetFileNameWithoutExtension(cellLineDictEntry.Key);
+            //Log("Creating Protein Counting Files", 1);
+            //foreach (var cellLineDictEntry in cellLineDict)
+            //{
+            //    var cellLine = Path.GetFileNameWithoutExtension(cellLineDictEntry.Key);
 
-                Log($"Processing Cell Line {cellLine}", 1);
-                foreach (var mmResult in cellLineDictEntry.Value)
-                {
-                    if (mmResult.Condition.Contains(NonChimericDescriptor))
-                        continue;
+            //    Log($"Processing Cell Line {cellLine}", 1);
+            //    foreach (var mmResult in cellLineDictEntry.Value)
+            //    {
+            //        if (mmResult.Condition.Contains(NonChimericDescriptor))
+            //            continue;
 
-                    mmResult.CountProteins();
-                }
-            }
+            //        mmResult.CountProteins();
+            //    }
+            //}
 
-            foreach (var condition in cellLineDict)
-            {
-                var proteinCountFileName = Path.Combine(proformaResultPath, condition.Key + "_PSM_" + FileIdentifiers.ProteinCountingFile);
+            //foreach (var condition in cellLineDict)
+            //{
+            //    var proteinCountFileName = Path.Combine(proformaResultPath, condition.Key + "_PSM_" + FileIdentifiers.ProteinCountingFile);
 
-                if (File.Exists(proteinCountFileName) && !Parameters.Override)
-                    continue;
+            //    if (File.Exists(proteinCountFileName) && !Parameters.Override)
+            //        continue;
 
-                var records = new List<ProteinCountingRecord>();
-                foreach (var result in condition.Value)
-                    records.AddRange(result.CountProteins().Results);
-                var newFile = new ProteinCountingFile(proteinCountFileName)
-                {
-                    Results = records
-                };
+            //    var records = new List<ProteinCountingRecord>();
+            //    foreach (var result in condition.Value)
+            //        records.AddRange(result.CountProteins().Results);
+            //    var newFile = new ProteinCountingFile(proteinCountFileName)
+            //    {
+            //        Results = records
+            //    };
 
-                newFile.WriteResults(proteinCountFileName);
-            }
+            //    newFile.WriteResults(proteinCountFileName);
+            //}
 
-            var countingRecords = cellLineDict.SelectMany(p => p.Value.SelectMany(m => m.CountProteins().Results)).ToList();
+            //var countingRecords = cellLineDict.SelectMany(p => p.Value.SelectMany(m => m.CountProteins().Results)).ToList();
 
-            Log("Creating Protein Count Plots");
-            ExternalComparisonTask.PlotProteinCountingCharts(countingRecords, isTopDown, BulkFigureDirectory);
+            //Log("Creating Protein Count Plots");
+            //ExternalComparisonTask.PlotProteinCountingCharts(countingRecords, isTopDown, BulkFigureDirectory);
 
             Log("Running Chimeric Fragment-Ion Analysis");
             foreach (var cellLineDictEntry in cellLineDict)
