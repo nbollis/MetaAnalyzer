@@ -291,8 +291,8 @@ public static class ChimericFragmentIonAnalysisPlots
         var titlePrefix = "All Cell Lines";
         var suffix = excludeInternalFragments ? "_NoInternal" : string.Empty;
 
-        CreateViolinPlot(records, titlePrefix)
-            .SaveInAllResultsOnly(allResults, $"ChimericFragmentIonAnalysis_Violin{suffix}", 1000, 600);
+        //CreateViolinPlot(records, titlePrefix)
+        //    .SaveInAllResultsOnly(allResults, $"ChimericFragmentIonAnalysis_Violin{suffix}", 1000, 600);
         CreateHistogramPlot(records, titlePrefix)
             .SaveInAllResultsOnly(allResults, $"ChimericFragmentIonAnalysis_Histogram{suffix}", 1000, 600);
         CreateUniqueFractionBoxPlot(records, titlePrefix)
@@ -303,7 +303,7 @@ public static class ChimericFragmentIonAnalysisPlots
             .SaveInAllResultsOnly(allResults, $"ChimericFragmentIonAnalysis_StackedBarTop10{suffix}", 1000, 600);
         CreateHeatmapTopN(records, titlePrefix)
             .SaveInAllResultsOnly(allResults, $"ChimericFragmentIonAnalysis_HeatmapTop10{suffix}", 1000, 600);
-        CreateCombinedGrid(records, titlePrefix)
-            .SaveInAllResultsOnly(allResults, $"ChimericFragmentIonAnalysis_Grid{suffix}", 1400, 1000);
+        //CreateCombinedGrid(records, titlePrefix)
+        //    .SaveInAllResultsOnly(allResults, $"ChimericFragmentIonAnalysis_Grid{suffix}", 1400, 1000);
     }
 }
