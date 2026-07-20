@@ -2,6 +2,7 @@ using Analyzer;
 using Analyzer.FileTypes.Internal;
 using Analyzer.Plotting;
 using Analyzer.Plotting.IndividualRunPlots;
+using Analyzer.Plotting.Util;
 using Analyzer.SearchType;
 using Analyzer.Util;
 using Calibrator;
@@ -415,34 +416,39 @@ namespace TaskLayer.ChimeraAnalysis
                 if (cellLineDictEntry.Value.First().Condition.Contains(NonChimericDescriptor))
                     continue;
 
-                var cellLineResults = new CellLineResults(cellLineDictEntry.Key,
+                var cellLineDir = Path.GetDirectoryName(cellLineDictEntry.Value.First().DirectoryPath);
+                var cellLineResults = new CellLineResults(cellLineDir!,
                     cellLineDictEntry.Value.Cast<SingleRunResults>().ToList());
                 cellLineResults.PlotCellLineChimericFragmentIonAnalysis(true);
+
+                Log($"Cell Line Plotting Output Dir: {cellLineResults.FigureDirectory}", 1);
             }
 
             var allResults = new AllResults(Parameters.OutputDirectory,
-                cellLineDict
-                    .Where(p => !p.Value.First().Condition.Contains(NonChimericDescriptor))
-                    .Select(p => new CellLineResults(p.Key, p.Value.Cast<SingleRunResults>().ToList()))
-                    .ToList());
+                cellLineDict.Select(p => new CellLineResults(
+                    Path.GetDirectoryName(p.Value.First().DirectoryPath)!,
+                    p.Value.Cast<SingleRunResults>().ToList())).ToList());
+
+
+            Log($"Bulk Plotting Output Dir: {allResults.GetChimeraPaperFigureDirectory()}", 1);
             allResults.PlotBulkChimericFragmentIonAnalysis(true);
 
-            var resultsForInternalComparison = cellLineDict
-                .SelectMany(p => p.Value.ToList())
-                .Where(p => !p.DirectoryPath.Contains($"{ChimericDescriptor}_{Version}_NonChimericLibrary"))
-                .ToList();
+            //var resultsForInternalComparison = cellLineDict
+            //    .SelectMany(p => p.Value.ToList())
+            //    .Where(p => !p.DirectoryPath.Contains($"{ChimericDescriptor}_{Version}_NonChimericLibrary"))
+            //    .ToList();
 
-            GetResultCountFile(resultsForInternalComparison);
-            Log($"Plotting Bulk Internal Comparison", 0);
-            PlotCellLineBarCharts(resultsForInternalComparison);
+            //GetResultCountFile(resultsForInternalComparison);
+            //Log($"Plotting Bulk Internal Comparison", 0);
+            //PlotCellLineBarCharts(resultsForInternalComparison);
 
-            resultsForInternalComparison = resultsForInternalComparison
-                .Where(p => p.Condition.Contains($"{ChimericDescriptor}_{Version}_ChimericLibrary"))
-                .ToList();
+            //resultsForInternalComparison = resultsForInternalComparison
+            //    .Where(p => p.Condition.Contains($"{ChimericDescriptor}_{Version}_ChimericLibrary"))
+            //    .ToList();
 
-            PlotChimeraBreakdownBarChart(resultsForInternalComparison);
-            PlotPossibleFeatures(resultsForInternalComparison);
-            PlotFractionalIntensityPlots(resultsForInternalComparison);
+            //PlotChimeraBreakdownBarChart(resultsForInternalComparison);
+            //PlotPossibleFeatures(resultsForInternalComparison);
+            //PlotFractionalIntensityPlots(resultsForInternalComparison);
         }
 
         #region MetaMorpheus search running
