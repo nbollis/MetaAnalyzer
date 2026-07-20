@@ -267,8 +267,8 @@ public static class ChimericFragmentIonAnalysisPlots
         var titlePrefix = cellLine.CellLine;
         var suffix = excludeInternalFragments ? "_NoInternal" : string.Empty;
 
-        CreateViolinPlot(records, titlePrefix)
-            .SaveInCellLineOnly(cellLine, $"ChimericFragmentIonAnalysis_Violin{suffix}", 1000, 600);
+        //CreateViolinPlot(records, titlePrefix)
+        //    .SaveInCellLineOnly(cellLine, $"ChimericFragmentIonAnalysis_Violin{suffix}", 1000, 600);
         CreateHistogramPlot(records, titlePrefix)
             .SaveInCellLineOnly(cellLine, $"ChimericFragmentIonAnalysis_Histogram{suffix}", 1000, 600);
         CreateUniqueFractionBoxPlot(records, titlePrefix)
@@ -279,8 +279,8 @@ public static class ChimericFragmentIonAnalysisPlots
             .SaveInCellLineOnly(cellLine, $"ChimericFragmentIonAnalysis_StackedBarTop10{suffix}", 1000, 600);
         CreateHeatmapTopN(records, titlePrefix)
             .SaveInCellLineOnly(cellLine, $"ChimericFragmentIonAnalysis_HeatmapTop10{suffix}", 1000, 600);
-        CreateCombinedGrid(records, titlePrefix)
-            .SaveInCellLineOnly(cellLine, $"ChimericFragmentIonAnalysis_Grid{suffix}", 1400, 1000);
+        //CreateCombinedGrid(records, titlePrefix)
+        //    .SaveInCellLineOnly(cellLine, $"ChimericFragmentIonAnalysis_Grid{suffix}", 1400, 1000);
     }
 
     public static void PlotBulkChimericFragmentIonAnalysis(this AllResults allResults, bool excludeInternalFragments = true)
