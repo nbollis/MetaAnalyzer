@@ -1,16 +1,17 @@
 using Analyzer.FileTypes.Internal;
 using Analyzer.Plotting.Util;
 using Analyzer.SearchType;
+using Easy.Common.Extensions;
 using Omics.Fragmentation;
 using Plotly.NET;
+using Plotly.NET.LayoutObjects;
 using Plotly.NET.TraceObjects;
-using Chart = Plotly.NET.CSharp.Chart;
+using Plotting;
 using Plotting.Util;
 using Readers;
 using ResultAnalyzerUtil;
-using Easy.Common.Extensions;
 using SharpLearning.Optimization.Transforms;
-using Plotly.NET.LayoutObjects;
+using Chart = Plotly.NET.CSharp.Chart;
 
 namespace TaskLayer.ChimeraAnalysis;
 
@@ -61,6 +62,60 @@ public class SingleRunChimericFragmentIonAnalysisTask : BaseResultAnalyzerTask
 
 public static class ChimericFragmentIonAnalysisPlots
 {
+    public static GenericChart.GenericChart CreateUniqueRatioDistribution(List<ChimericFragmentIonAnalysisRecord> records, string titlePrefix, DistributionPlotTypes plotType)
+    {
+        var data = records.Select(p => p.UniqueMatchedFragmentFraction).ToList();
+
+        string xTitle = "Percent Unique Fragment Ions";
+        string yTitle = "Count";
+        string title = yTitle;
+
+        List<GenericChart.GenericChart> toCombine = new();
+
+        foreach (var record in records 
+                     .GroupBy(p => p.Condition.ConvertConditionName())
+                     .OrderBy(p => p.Key))
+        {
+            var condition = record.Key;
+
+            int max = (int)(data.Max() + (data.Max() * 0.1));
+            switch (plotType)
+            {
+                case DistributionPlotTypes.ViolinPlot:
+                    toCombine.Add(GenericPlots.ViolinPlot(data, condition, xTitle, yTitle)
+                        .WithYAxisStyle<int, int, string>(MinMax: new Tuple<int, int>(0, max)));
+                    break;
+
+                case DistributionPlotTypes.Histogram:
+                    toCombine.Add(GenericPlots.Histogram(data, condition, xTitle, yTitle)
+                        .WithXAxisStyle<int, int, string>(MinMax: new Tuple<int, int>(0, max)));
+                    break;
+
+                case DistributionPlotTypes.BoxPlot:
+                    toCombine.Add(GenericPlots.BoxPlot(data, condition, xTitle, yTitle, false)
+                        .WithYAxisStyle<int, int, string>(MinMax: new Tuple<int, int>(min, max)));
+                    break;
+
+                case DistributionPlotTypes.KernelDensity:
+                    toCombine.Add(GenericPlots.KernelDensityPlot(data, condition, xTitle, yTitle, 0.5)
+                        .WithXAxisStyle<int, int, string>(MinMax: new Tuple<int, int>(0, max)));
+                    break;
+
+                default:
+                    throw new ArgumentOutOfRangeException(nameof(plotType), plotType, null);
+            }
+        }
+
+        var finalPlot = Chart.Combine(toCombine)
+            .WithTitle($"{title} (1% {Labels.GetLabel(isTopDown, ResultType.Psm)})")
+            .WithLayout(PlotlyBase.DefaultLayoutNoLegendLargererText);
+        return finalPlot;
+
+
+        return null;
+    }
+
+
     public static GenericChart.GenericChart CreateHistogramPlot(List<ChimericFragmentIonAnalysisRecord> records, string titlePrefix)
     {
         var uniqueVals = records.Select(p => (double)p.UniqueMatchedFragmentIons).ToArray();

@@ -1,13 +1,14 @@
-﻿using Analyzer.Plotting;
+﻿using Analyzer.FileTypes.Internal;
+using Analyzer.Plotting;
+using Analyzer.Plotting.IndividualRunPlots;
+using Analyzer.Plotting.Util;
+using Analyzer.SearchType;
 using ResultAnalyzerUtil;
 using ResultAnalyzerUtil.CommandLine;
 using System.Diagnostics;
-using Analyzer.Plotting.IndividualRunPlots;
-using Analyzer.Plotting.Util;
 using TaskLayer;
 using TaskLayer.ChimeraAnalysis;
-using Analyzer.SearchType;
-using Analyzer.FileTypes.Internal;
+using TaskLayer.CMD;
 
 namespace Test
 {
@@ -42,6 +43,25 @@ namespace Test
             }
 
             var cellLine = new CellLineResults(dirPath, mmResults.Cast<SingleRunResults>().ToList());
+
+            // Protein Counting: Aggregate
+            List<ProteinCountingRecord> allProteinCountingRecords = new List<ProteinCountingRecord>();
+            foreach (var mmResult in mmResults)
+            {
+                var proteinCounting = mmResult.CountProteins();
+                allProteinCountingRecords.AddRange(proteinCounting.Results);
+            }
+
+            var allOutPath = Path.Combine(dirPath, "ProteinCountingComparison_All.csv");
+            var allFile = new ProteinCountingFile { Results = allProteinCountingRecords };
+            allFile.WriteResults(allOutPath);
+
+            ExternalComparisonTask.PlotProteinCountingCharts(allProteinCountingRecords, false, cellLine.FigureDirectory);
+
+
+
+
+            List<CmdProcess> summaryTasks = new();
 
             // Generate the Individual Run Plots and analyses for each MetaMorpheusResult
             foreach (var mmResult in mmResults)
@@ -78,8 +98,13 @@ namespace Test
 
                 var parameters = new SingleRunAnalysisParameters(mmResult, false, false);
                 var summaryTask = new SingleRunChimericSpectrumSummaryTask(parameters);
-                summaryTask.Run().Wait();
+                summaryTasks.Add(new ResultAnalyzerTaskToCmdProcessAdaptor(summaryTask, "Chimeric Spectra Summary", 0.25, mmResult.DirectoryPath));
             }
+
+            var manager = new TaskManager(2);
+            var runningSummaries = manager.RunProcesses(summaryTasks);
+
+            runningSummaries.Wait();
 
             var allSummaryRecords = new List<ChimericSpectrumSummary>();
             foreach (var mmResult in mmResults)
@@ -104,21 +129,6 @@ namespace Test
                 .SaveInCellLineOnly(cellLine, $"ChimericSpectrumSummary_Psm_Intensity_BoxPlot", 1000, 600);
             SingleRunChimericSpectrumSummaryTask.GetIntensityPlot(allSummaryRecords, ResultType.Peptide, DistributionPlotTypes.BoxPlot, false, false)
                 .SaveInCellLineOnly(cellLine, $"ChimericSpectrumSummary_Peptide_Intensity_BoxPlot", 1000, 600);
-
-
-            // Protein Counting: Aggregate
-            List<ProteinCountingRecord> allProteinCountingRecords = new List<ProteinCountingRecord>();
-            foreach (var mmResult in mmResults)
-            {
-                var proteinCounting = mmResult.CountProteins();
-                allProteinCountingRecords.AddRange(proteinCounting.Results);
-            }
-
-            var allOutPath = Path.Combine(dirPath, "ProteinCountingComparison_All.csv");
-            var allFile = new ProteinCountingFile { Results = allProteinCountingRecords };
-            allFile.WriteResults(allOutPath);
-
-            ExternalComparisonTask.PlotProteinCountingCharts(allProteinCountingRecords, false, cellLine.FigureDirectory);
         }
 
 

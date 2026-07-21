@@ -68,6 +68,12 @@ namespace Plotting.Util
             PlotBGColor: Color.fromKeyword(ColorKeyword.White),
             ShowLegend: false);
 
+        public static Layout DefaultLayoutNoLegendLargererText => Layout.init<string>(
+            PaperBGColor: Color.fromKeyword(ColorKeyword.White),
+            PlotBGColor: Color.fromKeyword(ColorKeyword.White),
+            ShowLegend: false,
+            Font: Font.init(null, 24, null));
+
         public static Layout DefaultLayoutWithLegendTransparentBackground => Layout.init<string>(
             PaperBGColor: Color.fromARGB(0, 0, 0, 0),
             PlotBGColor: Color.fromARGB(0, 0, 0, 0),

@@ -750,7 +750,10 @@ namespace Analyzer.SearchType
                             .Count();
 
                         records.Add(new ChimericFragmentIonAnalysisRecord(group[i], group.Count, i + 1,
-                            totalCount, uniqueCount, excludeInternalFragments));
+                            totalCount, uniqueCount, excludeInternalFragments)
+                        {
+                            Condition = Condition,
+                        });
                     }
                 }
             }
@@ -1243,24 +1246,38 @@ namespace Analyzer.SearchType
 
 
                 default: // all bottom up
-                    massSpecFiles = Directory.GetFiles(Path.Combine(@"B:\RawSpectraFiles\Mann_11cell_lines", DatasetName, "106_CalibratedAveraged"), "*.mzML",
-                        SearchOption.AllDirectories).ToList();
-                    fullDeconDirectory = Path.Combine(@"B:\Users\Nic\Chimeras\Mann_11cell_analysis", DatasetName, "DeconResults",
-                        specificDir);
-                    deconFiles = Directory.GetFiles(fullDeconDirectory, "*ms1.feature", SearchOption.AllDirectories).ToList();
-
-                    if (massSpecFiles.Count is not 18 or 6)
-                        throw new ArgumentException("Not all mass spec files were found");
-
-                    if (deconFiles.Count is not 18 or 6)
+                    try
                     {
-                        Log("Warning: Not all decon files were found, proceeding without decon data", 1);
-                        hasDeconFiles = false;
-                    }
+                        massSpecFiles = Directory.GetFiles(
+                            Path.Combine(@"B:\RawSpectraFiles\Mann_11cell_lines", DatasetName, "106_CalibratedAveraged"),
+                            "*.mzML",
+                            SearchOption.AllDirectories).ToList();
+                        fullDeconDirectory = Path.Combine(@"B:\Users\Nic\Chimeras\Mann_11cell_analysis", DatasetName,
+                            "DeconResults",
+                            specificDir);
+                        deconFiles = Directory.GetFiles(fullDeconDirectory, "*ms1.feature", SearchOption.AllDirectories)
+                            .ToList();
 
-                    if (deconFiles.Count != massSpecFiles.Count && hasDeconFiles)
-                        Debugger.Break();
-                    break;
+                        if (massSpecFiles.Count is not 18 or 6)
+                            throw new ArgumentException("Not all mass spec files were found");
+
+                        if (deconFiles.Count is not 18 or 6)
+                        {
+                            Log("Warning: Not all decon files were found, proceeding without decon data", 1);
+                            hasDeconFiles = false;
+                        }
+
+                        if (deconFiles.Count != massSpecFiles.Count && hasDeconFiles)
+                            Debugger.Break();
+                        break;
+                    }
+                    catch
+                    {
+                        massSpecFiles = ProseFile.SpectraFilePaths.ToList();
+                        deconFiles = [];
+                        hasDeconFiles = false;
+                        break;
+                    }
             }
 
     
@@ -1321,16 +1338,7 @@ namespace Analyzer.SearchType
                                 feature.ChargeStateMin != feature.ChargeStateMax && feature.ChargeStateMax > 1)
                                 .ToList();
 
-                            Log($"Parsing Psms, Peptides, and Deconvoluted Features", 3);
-                            var psmDictionaryByScanNumber = mmResult.AllPsms
-                                .GroupBy(p => p, CustomComparer<PsmFromTsv>.ChimeraComparer)
-                                .ToDictionary(p => p.Key.Ms2ScanNumber, p => p.OrderByDescending(p => p.Score)
-                                    .ThenBy(p => Math.Abs(double.Parse(p.MassDiffDa.Split('|')[0].Trim()))).ToArray());
-                            var peptideDictionaryByScanNumber = mmResult.AllPeptides
-                                .GroupBy(p => p, CustomComparer<PsmFromTsv>.ChimeraComparer)
-                                .ToDictionary(p => p.Key.Ms2ScanNumber, p => p.OrderByDescending(p => p.Score)
-                                    .ThenBy(p => Math.Abs(double.Parse(p.MassDiffDa.Split('|')[0].Trim()))).ToArray());
-
+                            Log($"Deconvoluted Features", 3);
                             var deconParams = new ClassicDeconvolutionParameters(1, IsTopDown ? 60 : 30, 20, 3);
                             dataFile.Scans.Where(p => p.MsnOrder == 2)
                                 .Select(p => (p.OneBasedScanNumber, p.OneBasedPrecursorScanNumber))
@@ -1364,8 +1372,29 @@ namespace Analyzer.SearchType
                         hasDeconFiles = false;
                     }
                 }
+                else
+                {
 
-                Log($"Iterating through Scans", 3);
+                    Log($"Deconvoluted Features", 3);
+                    var deconParams = new ClassicDeconvolutionParameters(1, IsTopDown ? 60 : 30, 20, 3);
+                    dataFile.Scans.Where(p => p.MsnOrder == 2)
+                        .Select(p => (p.OneBasedScanNumber, p.OneBasedPrecursorScanNumber))
+                        .ForEach(scanInformation =>
+                        {
+                            var ms1Scan = dataFile.GetOneBasedScan(scanInformation.OneBasedPrecursorScanNumber!.Value);
+                            var ms2Scan = dataFile.GetOneBasedScan(scanInformation.OneBasedScanNumber);
+                            var envelopes = Deconvoluter.Deconvolute(ms1Scan, deconParams, ms2Scan.IsolationRange)
+                                .ToArray();
+                            var minXIndex = ms1Scan.MassSpectrum.GetClosestPeakIndex(ms2Scan.IsolationRange.Minimum);
+                            var maxXIndex = ms1Scan.MassSpectrum.GetClosestPeakIndex(ms2Scan.IsolationRange.Maximum);
+                            var sumOfIntensity = ms1Scan.MassSpectrum.YArray[minXIndex..maxXIndex].Sum();
+
+                            ms2ScanToMetaMorpheusDeconResultDictionary.Add(scanInformation.OneBasedScanNumber,
+                                (envelopes, sumOfIntensity));
+                        });
+                }
+
+                Log($"Parsing PSMs and Peptides", 3);
                 var psmDictionary = mmResult.AllPsms
                     .GroupBy(p => p, CustomComparer<PsmFromTsv>.ChimeraComparer)
                     .ToDictionary(p => p.Key.Ms2ScanNumber, p => p.OrderByDescending(p => p.Score)
@@ -1375,6 +1404,8 @@ namespace Analyzer.SearchType
                     .ToDictionary(p => p.Key.Ms2ScanNumber, p => p.OrderByDescending(p => p.Score)
                         .ThenBy(p => Math.Abs(double.Parse(p.MassDiffDa.Split('|')[0].Trim()))).ToArray());
 
+
+                Log($"Iterating through Scans", 3);
                 foreach (var scan in dataFile.Scans)
                 {
                     if (scan.MsnOrder is 1 or > 2)
@@ -1388,7 +1419,7 @@ namespace Analyzer.SearchType
                     {
                         PsmFromTsv? parent = null;
                         var ms1ScanInfo = ms2ScanToMetaMorpheusDeconResultDictionary[scan.OneBasedScanNumber];
-                        int possibleFeatureCount = ms2canToFlashDeconvResultDictionary[scan.OneBasedScanNumber];
+                        int possibleFeatureCount = ms2canToFlashDeconvResultDictionary.GetValueOrDefault(scan.OneBasedScanNumber, -1);
                         int idPerSpectrum = psms.Count(p => p is { DecoyContamTarget: "T", PEP_QValue: <= 0.01 });
                         bool isChimeric = idPerSpectrum > 1;
 
@@ -1556,7 +1587,7 @@ namespace Analyzer.SearchType
                         !psmDictionary.TryGetValue(scan.OneBasedScanNumber, out _))
                     {
                         var ms1ScanInfo = ms2ScanToMetaMorpheusDeconResultDictionary[scan.OneBasedScanNumber];
-                        int possibleFeatureCount = ms2canToFlashDeconvResultDictionary[scan.OneBasedScanNumber];
+                        int possibleFeatureCount = ms2canToFlashDeconvResultDictionary.GetValueOrDefault(scan.OneBasedScanNumber, -1);
 
 
 

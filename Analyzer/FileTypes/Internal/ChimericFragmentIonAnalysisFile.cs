@@ -24,6 +24,7 @@ public class ChimericFragmentIonAnalysisRecord
     public string FileNameWithoutExtension { get; set; }
     public double ScanNumber { get; set; }
     public double PrecursorScanNumber { get; set; }
+    public string Condition { get; set; }
     public int ProteoformCountInSpectrum { get; set; }
     public int ProteoformIndex { get; set; }
     public string BaseSequence { get; set; }

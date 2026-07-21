@@ -94,8 +94,7 @@ namespace Analyzer.Plotting
 
                     case DistributionPlotTypes.BoxPlot:
                         toCombine.Add(GenericPlots.BoxPlot(data, condition, xTitle, yTitle, false)
-                            .WithYAxisStyle<int, int, string>(MinMax: new Tuple<int, int>(min, max))
-                            .WithLegend(false));
+                            .WithYAxisStyle<int, int, string>(MinMax: new Tuple<int, int>(min, max)));
                         break;
 
                     case DistributionPlotTypes.KernelDensity:
@@ -110,7 +109,7 @@ namespace Analyzer.Plotting
 
             var finalPlot = Chart.Combine(toCombine)
                 .WithTitle($"{title} (1% {Labels.GetLabel(isTopDown, ResultType.Psm)})")
-                .WithLayout(PlotlyBase.DefaultLayoutWithLegendLargerText);
+                .WithLayout(PlotlyBase.DefaultLayoutNoLegendLargererText);
             return finalPlot;
         }
 
