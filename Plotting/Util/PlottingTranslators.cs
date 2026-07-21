@@ -1,4 +1,4 @@
-﻿using Plotly.NET;
+using Plotly.NET;
 
 namespace Plotting.Util;
 
@@ -475,6 +475,28 @@ public static class PlottingTranslators
         {"5 Iso", " 5 Iso"},
 
 
+        // Astral DIA Data: 
+        {"20240223_HeLa200ng_24min_2Th-1", "24 Minutes - 2Th - Rep 1" },
+        {"20240223_HeLa200ng_24min_2Th-2", "24 Minutes - 2Th - Rep 2"},
+        {"20240223_HeLa200ng_24min_2Th-3", "24 Minutes - 2Th - Rep 3"},
+        {"20240223_HeLa200ng_24min_3Th-1", "24 Minutes - 3Th - Rep 1"},
+        {"20240223_HeLa200ng_24min_3Th-2", "24 Minutes - 3Th - Rep 2"},
+        {"20240223_HeLa200ng_24min_3Th-3", "24 Minutes - 3Th - Rep 3"},
+        {"20240223_HeLa200ng_45min_2Th-1", "45 Minutes - 2Th - Rep 1"},
+        {"20240223_HeLa200ng_45min_2Th-2", "45 Minutes - 2Th - Rep 2"},
+        {"20240223_HeLa200ng_45min_2Th-3", "45 Minutes - 2Th - Rep 3"},
+        {"20240224_HeLa200ng_11min_3Th-1", "11 Minutes - 3Th - Rep 1"},
+        {"20240224_HeLa200ng_11min_3Th-2", "11 Minutes - 3Th - Rep 2"},
+        {"20240224_HeLa200ng_11min_3Th-3", "11 Minutes - 3Th - Rep 3"},
+        {"20240224_HeLa200ng_11min_4Th-1", "11 Minutes - 4Th - Rep 1"},
+        {"20240224_HeLa200ng_11min_4Th-2", "11 Minutes - 4Th - Rep 2"},
+        {"20240224_HeLa200ng_11min_4Th-3", "11 Minutes - 4Th - Rep 3"},
+        {"20240224_HeLa200ng_8min_4Th-1", " 8 Minutes - 4Th - Rep 1"},
+        {"20240224_HeLa200ng_8min_4Th-2", " 8 Minutes - 4Th - Rep 2"},
+        {"20240224_HeLa200ng_8min_4Th-3", " 8 Minutes - 4Th - Rep 3"},
+        {"20240224_HeLa200ng_8min_5Th-1", " 8 Minutes - 5Th - Rep 1"},
+        {"20240224_HeLa200ng_8min_5Th-2", " 8 Minutes - 5Th - Rep 2"},
+        {"20240224_HeLa200ng_8min_5Th-3", " 8 Minutes - 5Th - Rep 3"},
     };
 
     private static Dictionary<string, string> ConditionNameConversionDictionary = new()
@@ -680,7 +702,15 @@ public static class PlottingTranslators
                 return color;
         }
 
-        ConditionToColorDictionary.Add(condition, ColorQueue.Dequeue());
+        // Defensive Add: a prior call (in this AppDomain's lifetime) for the
+        // same key may have already populated the dict via the early-return
+        // paths above, or via the static initializer. The previous
+        // `Dictionary.Add(condition, ...)` would throw ArgumentException
+        // ("An item with the same key has already been added") and, because
+        // the failure can occur during a type-initializer chain, surface as
+        // a TypeInitializationException for any subsequent caller — silently
+        // breaking later plot code. TryAdd is a no-op when the key exists.
+        ConditionToColorDictionary.TryAdd(condition, ColorQueue.Dequeue());
         return ConditionToColorDictionary[condition];
     }
 

@@ -10,6 +10,7 @@ using Readers;
 using ResultAnalyzerUtil;
 using Easy.Common.Extensions;
 using SharpLearning.Optimization.Transforms;
+using Plotly.NET.LayoutObjects;
 
 namespace TaskLayer.ChimeraAnalysis;
 
@@ -74,8 +75,9 @@ public static class ChimericFragmentIonAnalysisPlots
             })
             .WithTitle($"{titlePrefix} Shared vs Unique Fragment Ion Distribution",
                 TitleFont: Font.init(Size: PlotlyBase.TitleSize))
+            //.WithXAxis(LinearAxis.init<string, string, int, string, string, string>(TickFont: Font.init(Size: PlotlyBase.AxisTitleFontSize - 2), TickAngle: 45, TickMode: StyleParam.TickMode.Linear))
             .WithXAxisStyle(Title.init("Matched Fragment Ion Count", Font: Font.init(Size: PlotlyBase.AxisTitleFontSize)))
-            .WithYAxisStyle(Title.init("Count", Font: Font.init(Size: PlotlyBase.AxisTitleFontSize)))
+            //.WithYAxis(LinearAxis.init<string, string, int, string, string, string>(TickFont: Font.init(Size: PlotlyBase.AxisTitleFontSize - 2), TickMode: StyleParam.TickMode.Linear))
             .WithLayout(PlotlyBase.DefaultLayoutWithLegend)
             .WithSize(1000, 600);
     }
@@ -99,7 +101,9 @@ public static class ChimericFragmentIonAnalysisPlots
             })
             .WithTitle($"{titlePrefix} Unique Fraction by Chimera Group Size",
                 TitleFont: Font.init(Size: PlotlyBase.TitleSize))
-            .WithXAxisStyle(Title.init($"{Labels.GetLabel(isTopDown, ResultType.Peptide)}s per Spectrum", Font: Font.init(Size: PlotlyBase.AxisTitleFontSize)))
+            //.WithXAxis(LinearAxis.init<string, string, int, string, string, string>(TickFont: Font.init(Size: PlotlyBase.AxisTitleFontSize - 2), TickAngle: 45))
+            .WithXAxisStyle(Title.init($"{Labels.GetLabel(isTopDown, ResultType.Peptide)}s per Spectrum", Font: Font.init(Size: PlotlyBase.AxisTitleFontSize)), MinMax: new(new(0, 14)))
+            //.WithYAxis(LinearAxis.init<string, string, int, string, string, string>(TickFont: Font.init(Size: PlotlyBase.AxisTitleFontSize - 2), TickMode: StyleParam.TickMode.Linear))
             .WithYAxisStyle(Title.init("Unique Fraction", Font: Font.init(Size: PlotlyBase.AxisTitleFontSize)))
             .WithLayout(PlotlyBase.DefaultLayout)
             .WithSize(1000, 600);

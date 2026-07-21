@@ -23,7 +23,7 @@ namespace Plotting.Util
             YAnchor: StyleParam.YAnchorPosition.Top,
             Font: Font.init(null, 16, null)
         ); 
-        public static Legend DefaultLegend20 => Legend.init(X: 0.5, Y: -0.1, Orientation: StyleParam.Orientation.Horizontal, EntryWidth: 0,
+        public static Legend DefaultLegend20 => Legend.init(X: 0.5, Y: -0.2, Orientation: StyleParam.Orientation.Horizontal, EntryWidth: 0,
             VerticalAlign: StyleParam.VerticalAlign.Bottom,
             XAnchor: StyleParam.XAnchorPosition.Center,
             YAnchor: StyleParam.YAnchorPosition.Top,
@@ -41,7 +41,7 @@ namespace Plotting.Util
             PaperBGColor: Color.fromKeyword(ColorKeyword.White),
             PlotBGColor: Color.fromKeyword(ColorKeyword.White),
             ShowLegend: true,
-            Legend: DefaultLegend,
+            Legend: DefaultLegend16,
             Font: Font.init(null, 12, null));
         public static Layout DefaultLayoutWithLegendLargeText => Layout.init<string>(
             PaperBGColor: Color.fromKeyword(ColorKeyword.White),
