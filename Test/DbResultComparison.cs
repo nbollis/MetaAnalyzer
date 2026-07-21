@@ -1,5 +1,13 @@
-﻿using ResultAnalyzerUtil.CommandLine;
+﻿using Analyzer.Plotting;
+using ResultAnalyzerUtil;
+using ResultAnalyzerUtil.CommandLine;
+using System.Diagnostics;
+using Analyzer.Plotting.IndividualRunPlots;
+using Analyzer.Plotting.Util;
 using TaskLayer;
+using TaskLayer.ChimeraAnalysis;
+using Analyzer.SearchType;
+using Analyzer.FileTypes.Internal;
 
 namespace Test
 {
@@ -11,7 +19,115 @@ namespace Test
         public static string OneDirPath = @"B:\RawSpectraFiles\JurkatTopDown\107_CalibratedAveraged_Rep2\Task1-AveragingTask\GptmdSearch_111";
 
         public static IEnumerable<string> GetAllRelevantDirectories() => Directory.GetDirectories(AllDirPath);
-            /*.Where(p => p.Contains("GptmdSearch")*/
+        /*.Where(p => p.Contains("GptmdSearch")*/
+
+
+        [Test]
+        public static void TESTNAME()
+        {
+            var dirPath = @"D:\Projects\Chimeras\Revisions\EvoSep_MSV000095360\IsolatedRuns";
+
+            var mmResults = new List<MetaMorpheusResult>
+            {
+                ////new MetaMorpheusResult(@"D:\Projects\Chimeras\Revisions\EvoSep_MSV000095360\FirstBigRun_JustSearch", "EvoSep", "JustSearch"),
+                //new MetaMorpheusResult(@"D:\Projects\Chimeras\Revisions\EvoSep_MSV000095360\FirstBigRun", "EvoSep", "FirstRun")
+            };
+
+            foreach (var dir in Directory.GetDirectories(dirPath))
+            {
+                if (dir.Contains("Figures"))
+                    continue;
+                var mmResult = new MetaMorpheusResult(dir);
+                mmResults.Add(mmResult);
+            }
+
+            var cellLine = new CellLineResults(dirPath, mmResults.Cast<SingleRunResults>().ToList());
+
+            // Generate the Individual Run Plots and analyses for each MetaMorpheusResult
+            foreach (var mmResult in mmResults)
+            {
+                var indFile = mmResult.GetIndividualFileComparison();
+                AnalyzerGenericPlots.IndividualFileResultBarChart([indFile], out int width, out int height, mmResult.DatasetName, mmResult.IsTopDown)
+                    .SaveInRunResultOnly(mmResult, $"IndividualFileComparison_{mmResult.DatasetName}_{mmResult.Condition}", width, height);
+
+
+                var bulkFile = mmResult.GetBulkResultCountComparisonFile();
+                AnalyzerGenericPlots.BulkResultBarChart(bulkFile.Results, mmResult.IsTopDown)
+                    .SaveInRunResultOnly(mmResult, $"BulkResultComparison_{mmResult.DatasetName}_{mmResult.Condition}_Psm", 1000, 600);
+                AnalyzerGenericPlots.BulkResultBarChart(bulkFile.Results, mmResult.IsTopDown, ResultType.Peptide)
+                    .SaveInRunResultOnly(mmResult, $"BulkResultComparison_{mmResult.DatasetName}_{mmResult.Condition}_Peptide", 1000, 600);
+
+
+                var psmCounting = mmResult.CountChimericPsms();
+                var peptideCounting = mmResult.CountChimericPeptides();
+                var proteinCounting = mmResult.CountProteins();
+                ExternalComparisonTask.PlotProteinCountingCharts(proteinCounting.Results, false, mmResult.FigureDirectory);
+
+                var sw = Stopwatch.StartNew();
+                _ = mmResult.GetChimeraBreakdownFile();
+                sw.Stop();
+
+                // if it takes less than one minute to get the breakdown, and we are not overriding, do not plot
+                if (sw.Elapsed.Minutes >= 1)
+                {
+                    mmResult.PlotChimeraBreakDownStackedColumn_Scaled(ResultType.Peptide);
+                    mmResult.PlotChimeraBreakDownStackedColumn_Scaled(ResultType.Psm);
+                    mmResult.PlotChimeraBreakDownStackedColumn(ResultType.Psm);
+                    mmResult.PlotChimeraBreakDownStackedColumn(ResultType.Peptide);
+                }
+
+                var parameters = new SingleRunAnalysisParameters(mmResult, false, false);
+                var summaryTask = new SingleRunChimericSpectrumSummaryTask(parameters);
+                summaryTask.Run().Wait();
+            }
+
+            var allSummaryRecords = new List<ChimericSpectrumSummary>();
+            foreach (var mmResult in mmResults)
+            {
+                var summaryFile = mmResult.GetChimericSpectrumSummaryFile();
+                allSummaryRecords.AddRange(summaryFile.Results);
+            }
+            SingleRunChimericSpectrumSummaryTask.GetIntensityPlot(allSummaryRecords, ResultType.Psm, DistributionPlotTypes.ViolinPlot, false, true)
+                .SaveInCellLineOnly(cellLine, $"ChimericSpectrumSummary_Psm_Intensity_Log_ViolinPlot", 1000, 600);
+            SingleRunChimericSpectrumSummaryTask.GetIntensityPlot(allSummaryRecords, ResultType.Peptide, DistributionPlotTypes.ViolinPlot, false, true)
+                .SaveInCellLineOnly(cellLine, $"ChimericSpectrumSummary_Peptide_Intensity_Log_ViolinPlot", 1000, 600);
+            SingleRunChimericSpectrumSummaryTask.GetIntensityPlot(allSummaryRecords, ResultType.Psm, DistributionPlotTypes.ViolinPlot, false, false)
+                .SaveInCellLineOnly(cellLine, $"ChimericSpectrumSummary_Psm_Intensity_ViolinPlot", 1000, 600);
+            SingleRunChimericSpectrumSummaryTask.GetIntensityPlot(allSummaryRecords, ResultType.Peptide, DistributionPlotTypes.ViolinPlot, false, false)
+                .SaveInCellLineOnly(cellLine, $"ChimericSpectrumSummary_Peptide_Intensity_ViolinPlot", 1000, 600);
+
+            SingleRunChimericSpectrumSummaryTask.GetIntensityPlot(allSummaryRecords, ResultType.Psm, DistributionPlotTypes.BoxPlot, false, true)
+                .SaveInCellLineOnly(cellLine, $"ChimericSpectrumSummary_Psm_Intensity_Log_BoxPlot", 1000, 600);
+            SingleRunChimericSpectrumSummaryTask.GetIntensityPlot(allSummaryRecords, ResultType.Peptide, DistributionPlotTypes.BoxPlot, false, true)
+                .SaveInCellLineOnly(cellLine, $"ChimericSpectrumSummary_Peptide_Intensity_Log_BoxPlot", 1000, 600);
+            SingleRunChimericSpectrumSummaryTask.GetIntensityPlot(allSummaryRecords, ResultType.Psm, DistributionPlotTypes.BoxPlot, false, false)
+                .SaveInCellLineOnly(cellLine, $"ChimericSpectrumSummary_Psm_Intensity_BoxPlot", 1000, 600);
+            SingleRunChimericSpectrumSummaryTask.GetIntensityPlot(allSummaryRecords, ResultType.Peptide, DistributionPlotTypes.BoxPlot, false, false)
+                .SaveInCellLineOnly(cellLine, $"ChimericSpectrumSummary_Peptide_Intensity_BoxPlot", 1000, 600);
+
+
+            // Protein Counting: Aggregate
+            List<ProteinCountingRecord> allProteinCountingRecords = new List<ProteinCountingRecord>();
+            foreach (var mmResult in mmResults)
+            {
+                var proteinCounting = mmResult.CountProteins();
+                allProteinCountingRecords.AddRange(proteinCounting.Results);
+            }
+
+            var allOutPath = Path.Combine(dirPath, "ProteinCountingComparison_All.csv");
+            var allFile = new ProteinCountingFile { Results = allProteinCountingRecords };
+            allFile.WriteResults(allOutPath);
+
+            ExternalComparisonTask.PlotProteinCountingCharts(allProteinCountingRecords, false, cellLine.FigureDirectory);
+        }
+
+
+
+
+
+
+
+
 
         [Test]
         public static void CompareDbResults()

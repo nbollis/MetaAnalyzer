@@ -179,6 +179,62 @@ public static class PlottingTranslators
         {"Peptidoform", Color.fromKeyword(ColorKeyword.Crimson)},
         {"Proteoform", Color.fromKeyword(ColorKeyword.CornflowerBlue)},
         {"Protein", Color.fromKeyword(ColorKeyword.Navy)},
+
+// HeLa Astral Isolation Window Study
+// Bright to dark using a viridis-like scale,
+// sorted by gradient time, then isolation window.
+
+// 8 Minutes - 4Th
+        {" 8 Minutes - 4Th - Rep 1", Color.fromHex("#FDE725")},
+        {" 8 Minutes - 4Th - Rep 2", Color.fromHex("#FDE725")},
+        {" 8 Minutes - 4Th - Rep 3", Color.fromHex("#FDE725")},
+        {"8_Minutes_4Th", Color.fromHex("#FDE725")},
+        {"8 Minutes - 4 Th", Color.fromHex("#FDE725")},
+        {" 8_Minutes_4Th", Color.fromHex("#FDE725")},
+        {" 8 Minutes - 4 Th", Color.fromHex("#FDE725")},
+
+// 8 Minutes - 5Th
+        {" 8 Minutes - 5Th - Rep 1", Color.fromHex("#B5DE2B")},
+        {" 8 Minutes - 5Th - Rep 2", Color.fromHex("#B5DE2B")},
+        {" 8 Minutes - 5Th - Rep 3", Color.fromHex("#B5DE2B")},
+        {"8_Minutes_5Th", Color.fromHex("#B5DE2B")},
+        {"8 Minutes - 5 Th", Color.fromHex("#B5DE2B")},
+
+// 11 Minutes - 3Th
+        {"11 Minutes - 3Th - Rep 1", Color.fromHex("#6DCD59")},
+        {"11 Minutes - 3Th - Rep 2", Color.fromHex("#6DCD59")},
+        {"11 Minutes - 3Th - Rep 3", Color.fromHex("#6DCD59")},
+        {"11_Minutes_3Th", Color.fromHex("#6DCD59")},
+        {"11 Minutes - 3 Th", Color.fromHex("#6DCD59")},
+
+// 11 Minutes - 4Th
+        {"11 Minutes - 4Th - Rep 1", Color.fromHex("#35B779")},
+        {"11 Minutes - 4Th - Rep 2", Color.fromHex("#35B779")},
+        {"11 Minutes - 4Th - Rep 3", Color.fromHex("#35B779")},
+        {"11_Minutes_4Th", Color.fromHex("#35B779")},
+        {"11 Minutes - 4 Th", Color.fromHex("#35B779")},
+
+// 24 Minutes - 2Th
+        {"24 Minutes - 2Th - Rep 1", Color.fromHex("#1F9E89")},
+        {"24 Minutes - 2Th - Rep 2", Color.fromHex("#1F9E89")},
+        {"24 Minutes - 2Th - Rep 3", Color.fromHex("#1F9E89")},
+        {"24_Minutes_2Th", Color.fromHex("#1F9E89")},
+        {"24 Minutes - 2 Th", Color.fromHex("#1F9E89")},
+
+
+// 24 Minutes - 3Th
+        {"24 Minutes - 3Th - Rep 1", Color.fromHex("#31688E")},
+        {"24 Minutes - 3Th - Rep 2", Color.fromHex("#31688E")},
+        {"24 Minutes - 3Th - Rep 3", Color.fromHex("#31688E")},
+        {"24_Minutes_3Th", Color.fromHex("#31688E")},
+        {"24 Minutes - 3 Th", Color.fromHex("#31688E")},
+
+// 45 Minutes - 2Th
+        {"45 Minutes - 2Th - Rep 1", Color.fromHex("#440154")},
+        {"45 Minutes - 2Th - Rep 2", Color.fromHex("#440154")},
+        {"45 Minutes - 2Th - Rep 3", Color.fromHex("#440154")},
+        {"45_Minutes_2Th", Color.fromHex("#440154")},
+        {"45 Minutes - 2 Th", Color.fromHex("#440154")},
     };
 
     private static Dictionary<string, string> FileNameConversionDictionary = new()
@@ -629,6 +685,17 @@ public static class PlottingTranslators
         //B:\RawSpectraFiles\LiangliangSun_DifferentSeparations\2D_RPLC-CZE\114_GPTMDSearch\Figures
         // E. Coli Top-Down analysis
         { "LiangliangSun_DifferentSeparations","E. Coli"},
+
+
+        // Hela Astral
+
+        {"8_Minutes_4Th", " 8 Minutes - 4 Th"},
+        {"8_Minutes_5Th", " 8 Minutes - 5 Th"},
+        {"11_Minutes_3Th", "11 Minutes - 3 Th"},
+        {"11_Minutes_4Th", "11 Minutes - 4 Th"},
+        {"24_Minutes_2Th", "24 Minutes - 2 Th"},
+        {"24_Minutes_3Th", "24 Minutes - 3 Th"},
+        {"45_Minutes_2Th", "45 Minutes - 2 Th"},
     };
 
     public static PlotlyColorQueue ColorQueue { get; }

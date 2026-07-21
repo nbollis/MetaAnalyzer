@@ -1,12 +1,14 @@
-﻿using System.Diagnostics;
-using Analyzer.SearchType;
-using Analyzer.FileTypes.Internal;
+﻿using Analyzer.FileTypes.Internal;
 using Analyzer.Plotting.Util;
-using Chart = Plotly.NET.CSharp.Chart;
+using Analyzer.SearchType;
 using Plotly.NET;
+using Plotly.NET.CSharp;
 using Plotting;
 using Plotting.Util;
 using ResultAnalyzerUtil;
+using System.Diagnostics;
+using static Analyzer.Plotting.ProteinCountPlots;
+using Chart = Plotly.NET.CSharp.Chart;
 
 namespace TaskLayer.ChimeraAnalysis
 {
@@ -63,25 +65,94 @@ namespace TaskLayer.ChimeraAnalysis
 
             bool isTopDown = mm.IsTopDown;
 
-            // Features per MS2 Isolation Window Histograms
-            Log("Creating Feature Count Plots");
-            GeneratePossibleFeaturePlots(ResultType.Psm, summary.Results, isTopDown);
-            GeneratePossibleFeaturePlots(ResultType.Peptide, summary.Results, isTopDown);
+            GetIntensityPlot(summary.Results, ResultType.Psm, DistributionPlotTypes.ViolinPlot, isTopDown, true)
+                .SaveInRunResultOnly(RunResult, $"SpectrumSummary_PrecursorIntensity_PSM_Violin", 800, 600);
+            GetIntensityPlot(summary.Results, ResultType.Psm, DistributionPlotTypes.Histogram, isTopDown, true)
+                .SaveInRunResultOnly(RunResult, $"SpectrumSummary_PrecursorIntensity_PSM_Histogram", 800, 600);
+            GetIntensityPlot(summary.Results, ResultType.Peptide, DistributionPlotTypes.ViolinPlot, isTopDown, true)
+                .SaveInRunResultOnly(RunResult, $"SpectrumSummary_PrecursorIntensity_Peptide_Violin", 800, 600);
+            GetIntensityPlot(summary.Results, ResultType.Peptide, DistributionPlotTypes.Histogram, isTopDown, true)
+                .SaveInRunResultOnly(RunResult, $"SpectrumSummary_PrecursorIntensity_Peptide_Histogram", 800, 600);
 
-            // Fractional Intensity Histograms
-            Log("Creating Precursor Fractional Intensity Plots");
-            GenerateFractionalIntensityPlots(ResultType.Psm, summary.Results, true, true, isTopDown);
-            GenerateFractionalIntensityPlots(ResultType.Psm, summary.Results, true, false, isTopDown);
-            GenerateFractionalIntensityPlots(ResultType.Peptide, summary.Results, true, true, isTopDown);
-            GenerateFractionalIntensityPlots(ResultType.Peptide, summary.Results, true, false, isTopDown);
+            //// Features per MS2 Isolation Window Histograms
+            //Log("Creating Feature Count Plots");
+            //GeneratePossibleFeaturePlots(ResultType.Psm, summary.Results, isTopDown);
+            //GeneratePossibleFeaturePlots(ResultType.Peptide, summary.Results, isTopDown);
 
-            Log("Creating Fragment Fractional Intensity Plots");
-            GenerateFractionalIntensityPlots(ResultType.Psm, summary.Results, false, false, isTopDown);
-            GenerateFractionalIntensityPlots(ResultType.Psm, summary.Results, false, true, isTopDown);
-            GenerateFractionalIntensityPlots(ResultType.Peptide, summary.Results, false, false, isTopDown);
-            GenerateFractionalIntensityPlots(ResultType.Peptide, summary.Results, false, true, isTopDown);
+            //// Fractional Intensity Histograms
+            //Log("Creating Precursor Fractional Intensity Plots");
+            //GenerateFractionalIntensityPlots(ResultType.Psm, summary.Results, true, true, isTopDown);
+            //GenerateFractionalIntensityPlots(ResultType.Psm, summary.Results, true, false, isTopDown);
+            //GenerateFractionalIntensityPlots(ResultType.Peptide, summary.Results, true, true, isTopDown);
+            //GenerateFractionalIntensityPlots(ResultType.Peptide, summary.Results, true, false, isTopDown);
+
+            //Log("Creating Fragment Fractional Intensity Plots");
+            //GenerateFractionalIntensityPlots(ResultType.Psm, summary.Results, false, false, isTopDown);
+            //GenerateFractionalIntensityPlots(ResultType.Psm, summary.Results, false, true, isTopDown);
+            //GenerateFractionalIntensityPlots(ResultType.Peptide, summary.Results, false, false, isTopDown);
+            //GenerateFractionalIntensityPlots(ResultType.Peptide, summary.Results, false, true, isTopDown);
             
             mm.Dispose();
+        }
+
+        public static GenericChart.GenericChart GetIntensityPlot(List<ChimericSpectrumSummary> records, ResultType resultType, DistributionPlotTypes plotType, bool isTopDown, bool logY = false)
+        {
+            string xTitle = "" /*"Condition"*/;
+            string yTitle = "Precursor Intensity";
+            string title = yTitle;
+            if (logY)
+                yTitle = $"Log10 {yTitle}";
+
+            List<GenericChart.GenericChart> toCombine = new();
+
+            foreach (var record in records
+                        .Where(p => p.Type == resultType.ToString() && p.PrecursorAbsoluteIntensity > 0)
+                         .GroupBy(p => (p.Condition.ConvertConditionName(), p.IsChimeric))
+                         .OrderBy(p => p.Key))
+            {
+                var condition = record.Key.Item1 + (record.Key.Item2 ? " - Chimeric" : " - Non-Chimeric");
+                var data = record.Select(p => p.PrecursorAbsoluteIntensity).ToList();
+
+                int max = (int)(data.Max() + (data.Max() * 0.1));
+                int min = -10;
+                if (logY)
+                {
+                    max = (int)(Math.Log10(data.Max()) + (Math.Log10(data.Max()) * 0.1));
+                    min = 0;
+                    data = data.Select(Math.Log10).ToList();
+                }
+                switch (plotType)
+                {
+                    case DistributionPlotTypes.ViolinPlot:
+                        toCombine.Add(GenericPlots.ViolinPlot(data, condition, xTitle, yTitle)
+                            .WithYAxisStyle<int, int, string>(MinMax: new Tuple<int, int>(min, max)));
+                        break;
+
+                    case DistributionPlotTypes.Histogram:
+                        toCombine.Add(GenericPlots.Histogram(data, condition, xTitle, yTitle)
+                            .WithXAxisStyle<int, int, string>(MinMax: new Tuple<int, int>(0, max)));
+                        break;
+
+                    case DistributionPlotTypes.BoxPlot:
+                        toCombine.Add(GenericPlots.BoxPlot(data, condition, xTitle, yTitle, false)
+                            .WithYAxisStyle<int, int, string>(MinMax: new Tuple<int, int>(min, max))
+                            .WithLegend(false));
+                        break;
+
+                    case DistributionPlotTypes.KernelDensity:
+                        toCombine.Add(GenericPlots.KernelDensityPlot(data, condition, xTitle, yTitle, 0.5)
+                            .WithXAxisStyle<int, int, string>(MinMax: new Tuple<int, int>(0, max)));
+                        break;
+
+                    default:
+                        throw new ArgumentOutOfRangeException(nameof(plotType), plotType, null);
+                }
+            }
+
+            var finalPlot = Chart.Combine(toCombine)
+                .WithTitle($"{title} (1% {Labels.GetLabel(isTopDown, resultType)})")
+                .WithLayout(PlotlyBase.DefaultLayoutWithLegendLargerText);
+            return finalPlot;
         }
 
         internal void GeneratePossibleFeaturePlots(ResultType resultType,

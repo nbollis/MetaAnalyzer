@@ -1158,6 +1158,8 @@ namespace Analyzer.SearchType
             // TODO: just set the directories in the switch
             string specificDir = IsTopDown ? "TopFD" : "FlashDeconv";
             string fullDeconDirectory;
+            bool hasDeconFiles = true;
+            
             // chimeras is for the use provided precursor set
             switch (DatasetName)
             {
@@ -1173,7 +1175,10 @@ namespace Analyzer.SearchType
                     if (massSpecFiles.Count != 43)
                         throw new ArgumentException("Not all mass spec files were found");
                     if (deconFiles.Count != 43)
-                        throw new ArgumentException("Not all decon files were found");
+                    {
+                        Log("Warning: Not all decon files were found, proceeding without decon data", 1);
+                        hasDeconFiles = false;
+                    }
                     break;
 
                 case "Jurkat" when IsTopDown:
@@ -1188,7 +1193,10 @@ namespace Analyzer.SearchType
                     if (massSpecFiles.Count != 10 && massSpecFiles.Count != 20)
                         throw new ArgumentException("Not all mass spec files were found");
                     if (deconFiles.Count != 10 && deconFiles.Count != 20)
-                        throw new ArgumentException("Not all decon files were found");
+                    {
+                        Log("Warning: Not all decon files were found, proceeding without decon data", 1);
+                        hasDeconFiles = false;
+                    }
                     break;
 
                 // for mann 11 cell lines fdr run, we need to get the files from the chimeras directory
@@ -1224,6 +1232,11 @@ namespace Analyzer.SearchType
                         }
                     }
 
+                    if (deconFiles.Count == 0)
+                    {
+                        Log("Warning: No decon files were found, proceeding without decon data", 1);
+                        hasDeconFiles = false;
+                    }
                     break;
 
                 case "Yeast":
@@ -1240,21 +1253,23 @@ namespace Analyzer.SearchType
                         throw new ArgumentException("Not all mass spec files were found");
 
                     if (deconFiles.Count is not 18 or 6)
-                        throw new ArgumentException("Not all decon files were found");
+                    {
+                        Log("Warning: Not all decon files were found, proceeding without decon data", 1);
+                        hasDeconFiles = false;
+                    }
 
-                    if (deconFiles.Count != massSpecFiles.Count)
+                    if (deconFiles.Count != massSpecFiles.Count && hasDeconFiles)
                         Debugger.Break();
                     break;
             }
 
     
-            if (massSpecFiles.Count != deconFiles.Count)
-                throw new ArgumentException("Decon and Mass Spec File count discrepancy");
+            if (massSpecFiles.Count == 0)
+                throw new ArgumentException("No mass spec files were found");
 
             var chimericSpectra = new List<ChimericSpectrumSummary>();
             foreach (var individualFile in massSpecFiles)
             {
-                // TODO: Stop the file from being loaded in until after it is checked that we need it
                 MetaMorpheusIndividualFileResult? mmResult = IndividualFileResults.FirstOrDefault(p =>
                     p.FileName.Contains(Path.GetFileNameWithoutExtension(individualFile).Replace("-calib", "")
                         .Replace("-averaged", ""))) ?? null;
@@ -1267,76 +1282,99 @@ namespace Analyzer.SearchType
                 Log($"Starting {Path.GetFileNameWithoutExtension(individualFile).ConvertFileName()}", 2);
                 Log($"Loading in Files", 3);
 
-                // Setup
                 MsDataFile dataFile = MsDataFileReader.GetDataFile(individualFile).LoadAllStaticData(); 
                 string fileName = Path.GetFileNameWithoutExtension(dataFile.FilePath).ConvertFileName();
                 
-
-                var deconFilePath = deconFiles.FirstOrDefault(p => p.Contains(
-                    Path.GetFileNameWithoutExtension(individualFile)
-                        .Replace("-calib", "")
-                        .Replace("-averaged", "")
-                        .Replace("_101229143203", "")
-                        .Replace("_101230100451", "")
-                        .Replace("20100609_Velos1_TaGe_SA_293_1", "20100609_Velos1_TaGe_SA_Hek293_01")
-                        .Replace("20100609_Velos1_TaGe_SA_293_2", "20100609_Velos1_TaGe_SA_Hek293_02")
-                        .Replace("20100609_Velos1_TaGe_SA_293_3", "20100609_Velos1_TaGe_SA_Hek293_03")
-                        .Replace("20100609_Velos1_TaGe_SA_293_4", "20100609_Velos1_TaGe_SA_Hek293_04")
-                        .Replace("20100609_Velos1_TaGe_SA_293_5", "20100609_Velos1_TaGe_SA_Hek293_05")
-                        .Replace("20100609_Velos1_TaGe_SA_293_6", "20100609_Velos1_TaGe_SA_Hek293_06")
-                ));
-                Ms1FeatureFile deconFile = new Ms1FeatureFile(deconFilePath);
-                deconFile.ForEach(p =>
-                {
-                    p.RetentionTimeBegin  /= 60.0;
-                    p.RetentionTimeEnd /= 60.0;
-                    p.RetentionTimeApex /= 60;
-                });
-
-                var deconResults = deconFile.Where(feature =>
-                    feature.ChargeStateMin != feature.ChargeStateMax && feature.ChargeStateMax > 1)
-                    .ToList();
-
-                Log($"Parsing Psms, Peptides, and Deconvoluted Features", 3);
-                var psmDictionaryByScanNumber = mmResult.AllPsms
-                    .GroupBy(p => p, CustomComparer<PsmFromTsv>.ChimeraComparer)
-                    .ToDictionary(p => p.Key.Ms2ScanNumber, p => p.OrderByDescending(p => p.Score)
-                        .ThenBy(p => Math.Abs(double.Parse(p.MassDiffDa.Split('|')[0].Trim()))).ToArray());
-                var peptideDictionaryByScanNumber = mmResult.AllPeptides
-                    .GroupBy(p => p, CustomComparer<PsmFromTsv>.ChimeraComparer)
-                    .ToDictionary(p => p.Key.Ms2ScanNumber, p => p.OrderByDescending(p => p.Score)
-                        .ThenBy(p => Math.Abs(double.Parse(p.MassDiffDa.Split('|')[0].Trim()))).ToArray());
-
                 Dictionary<int, (IsotopicEnvelope[] envelopes, double sumOfIntensity)> ms2ScanToMetaMorpheusDeconResultDictionary = new();
                 Dictionary<int, int> ms2canToFlashDeconvResultDictionary = new();
-                var deconParams = new ClassicDeconvolutionParameters(1, IsTopDown ? 60 : 30, 20, 3);
-                dataFile.Scans.Where(p => p.MsnOrder == 2)
-                    .Select(p => (p.OneBasedScanNumber, p.OneBasedPrecursorScanNumber))
-                    .ForEach(scanInformation =>
+                List<Analyzer.FileTypes.External.Ms1Feature> deconResults = new();
+
+                if (hasDeconFiles)
+                {
+                    try
                     {
-                        var ms1Scan = dataFile.GetOneBasedScan(scanInformation.OneBasedPrecursorScanNumber!.Value);
-                        var ms2Scan = dataFile.GetOneBasedScan(scanInformation.OneBasedScanNumber);
-                        var envelopes = Deconvoluter.Deconvolute(ms1Scan, deconParams, ms2Scan.IsolationRange)
-                            .ToArray();
-                        var minXIndex = ms1Scan.MassSpectrum.GetClosestPeakIndex(ms2Scan.IsolationRange.Minimum);
-                        var maxXIndex = ms1Scan.MassSpectrum.GetClosestPeakIndex(ms2Scan.IsolationRange.Maximum);
-                        var sumOfIntensity = ms1Scan.MassSpectrum.YArray[minXIndex..maxXIndex].Sum();
+                        var deconFilePath = deconFiles.FirstOrDefault(p => p.Contains(
+                            Path.GetFileNameWithoutExtension(individualFile)
+                                .Replace("-calib", "")
+                                .Replace("-averaged", "")
+                                .Replace("_101229143203", "")
+                                .Replace("_101230100451", "")
+                                .Replace("20100609_Velos1_TaGe_SA_293_1", "20100609_Velos1_TaGe_SA_Hek293_01")
+                                .Replace("20100609_Velos1_TaGe_SA_293_2", "20100609_Velos1_TaGe_SA_Hek293_02")
+                                .Replace("20100609_Velos1_TaGe_SA_293_3", "20100609_Velos1_TaGe_SA_Hek293_03")
+                                .Replace("20100609_Velos1_TaGe_SA_293_4", "20100609_Velos1_TaGe_SA_Hek293_04")
+                                .Replace("20100609_Velos1_TaGe_SA_293_5", "20100609_Velos1_TaGe_SA_Hek293_05")
+                                .Replace("20100609_Velos1_TaGe_SA_293_6", "20100609_Velos1_TaGe_SA_Hek293_06")
+                        ));
+                        
+                        if (deconFilePath is not null)
+                        {
+                            Ms1FeatureFile deconFile = new Ms1FeatureFile(deconFilePath);
+                            deconFile.ForEach(p =>
+                            {
+                                p.RetentionTimeBegin /= 60.0;
+                                p.RetentionTimeEnd /= 60.0;
+                                p.RetentionTimeApex /= 60;
+                            });
 
-                        ms2ScanToMetaMorpheusDeconResultDictionary.Add(scanInformation.OneBasedScanNumber,
-                            (envelopes, sumOfIntensity));
+                            deconResults = deconFile.Where(feature =>
+                                feature.ChargeStateMin != feature.ChargeStateMax && feature.ChargeStateMax > 1)
+                                .ToList();
 
-                        int possibleFeatureCount = 0;
-                        foreach (var rtMatchingFeature in deconResults
-                                     .Where(feature => feature.RetentionTimeBegin <= ms1Scan.RetentionTime && feature.RetentionTimeEnd >= ms1Scan.RetentionTime))
-                            for (int i = rtMatchingFeature.ChargeStateMin; i < rtMatchingFeature.ChargeStateMax; i++)
-                                if (ms2Scan.IsolationRange!.Contains(rtMatchingFeature.Mass.ToMz(i)))
-                                    possibleFeatureCount++;
+                            Log($"Parsing Psms, Peptides, and Deconvoluted Features", 3);
+                            var psmDictionaryByScanNumber = mmResult.AllPsms
+                                .GroupBy(p => p, CustomComparer<PsmFromTsv>.ChimeraComparer)
+                                .ToDictionary(p => p.Key.Ms2ScanNumber, p => p.OrderByDescending(p => p.Score)
+                                    .ThenBy(p => Math.Abs(double.Parse(p.MassDiffDa.Split('|')[0].Trim()))).ToArray());
+                            var peptideDictionaryByScanNumber = mmResult.AllPeptides
+                                .GroupBy(p => p, CustomComparer<PsmFromTsv>.ChimeraComparer)
+                                .ToDictionary(p => p.Key.Ms2ScanNumber, p => p.OrderByDescending(p => p.Score)
+                                    .ThenBy(p => Math.Abs(double.Parse(p.MassDiffDa.Split('|')[0].Trim()))).ToArray());
 
-                        ms2canToFlashDeconvResultDictionary.Add(scanInformation.OneBasedScanNumber, possibleFeatureCount);
-                    });
+                            var deconParams = new ClassicDeconvolutionParameters(1, IsTopDown ? 60 : 30, 20, 3);
+                            dataFile.Scans.Where(p => p.MsnOrder == 2)
+                                .Select(p => (p.OneBasedScanNumber, p.OneBasedPrecursorScanNumber))
+                                .ForEach(scanInformation =>
+                                {
+                                    var ms1Scan = dataFile.GetOneBasedScan(scanInformation.OneBasedPrecursorScanNumber!.Value);
+                                    var ms2Scan = dataFile.GetOneBasedScan(scanInformation.OneBasedScanNumber);
+                                    var envelopes = Deconvoluter.Deconvolute(ms1Scan, deconParams, ms2Scan.IsolationRange)
+                                        .ToArray();
+                                    var minXIndex = ms1Scan.MassSpectrum.GetClosestPeakIndex(ms2Scan.IsolationRange.Minimum);
+                                    var maxXIndex = ms1Scan.MassSpectrum.GetClosestPeakIndex(ms2Scan.IsolationRange.Maximum);
+                                    var sumOfIntensity = ms1Scan.MassSpectrum.YArray[minXIndex..maxXIndex].Sum();
 
+                                    ms2ScanToMetaMorpheusDeconResultDictionary.Add(scanInformation.OneBasedScanNumber,
+                                        (envelopes, sumOfIntensity));
+
+                                    int possibleFeatureCount = 0;
+                                    foreach (var rtMatchingFeature in deconResults
+                                                 .Where(feature => feature.RetentionTimeBegin <= ms1Scan.RetentionTime && feature.RetentionTimeEnd >= ms1Scan.RetentionTime))
+                                        for (int i = rtMatchingFeature.ChargeStateMin; i < rtMatchingFeature.ChargeStateMax; i++)
+                                            if (ms2Scan.IsolationRange!.Contains(rtMatchingFeature.Mass.ToMz(i)))
+                                                possibleFeatureCount++;
+
+                                    ms2canToFlashDeconvResultDictionary.Add(scanInformation.OneBasedScanNumber, possibleFeatureCount);
+                                });
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        Log($"Error loading decon file: {ex.Message}", 1);
+                        hasDeconFiles = false;
+                    }
+                }
 
                 Log($"Iterating through Scans", 3);
+                var psmDictionary = mmResult.AllPsms
+                    .GroupBy(p => p, CustomComparer<PsmFromTsv>.ChimeraComparer)
+                    .ToDictionary(p => p.Key.Ms2ScanNumber, p => p.OrderByDescending(p => p.Score)
+                        .ThenBy(p => Math.Abs(double.Parse(p.MassDiffDa.Split('|')[0].Trim()))).ToArray());
+                var peptideDictionary = mmResult.AllPeptides
+                    .GroupBy(p => p, CustomComparer<PsmFromTsv>.ChimeraComparer)
+                    .ToDictionary(p => p.Key.Ms2ScanNumber, p => p.OrderByDescending(p => p.Score)
+                        .ThenBy(p => Math.Abs(double.Parse(p.MassDiffDa.Split('|')[0].Trim()))).ToArray());
+
                 foreach (var scan in dataFile.Scans)
                 {
                     if (scan.MsnOrder is 1 or > 2)
@@ -1346,7 +1384,7 @@ namespace Analyzer.SearchType
                     if (isolationRange is null)
                         continue;
                     // if we have chimericPsm identifications for this ms2 scan
-                    if (psmDictionaryByScanNumber.TryGetValue(scan.OneBasedScanNumber, out PsmFromTsv[] psms))
+                    if (psmDictionary.TryGetValue(scan.OneBasedScanNumber, out PsmFromTsv[] psms))
                     {
                         PsmFromTsv? parent = null;
                         var ms1ScanInfo = ms2ScanToMetaMorpheusDeconResultDictionary[scan.OneBasedScanNumber];
@@ -1431,7 +1469,7 @@ namespace Analyzer.SearchType
                     }
 
                     // repeat for peptides/proteoforms
-                    if (peptideDictionaryByScanNumber.TryGetValue(scan.OneBasedScanNumber, out PsmFromTsv[] peptides))
+                    if (peptideDictionary.TryGetValue(scan.OneBasedScanNumber, out PsmFromTsv[] peptides))
                     {
                         PsmFromTsv? parent = null;
                         var ms1ScanInfo = ms2ScanToMetaMorpheusDeconResultDictionary[scan.OneBasedScanNumber];
@@ -1514,8 +1552,8 @@ namespace Analyzer.SearchType
                         }
                     }
 
-                    if (!peptideDictionaryByScanNumber.TryGetValue(scan.OneBasedScanNumber, out _) &&
-                        !psmDictionaryByScanNumber.TryGetValue(scan.OneBasedScanNumber, out _))
+                    if (!peptideDictionary.TryGetValue(scan.OneBasedScanNumber, out _) &&
+                        !psmDictionary.TryGetValue(scan.OneBasedScanNumber, out _))
                     {
                         var ms1ScanInfo = ms2ScanToMetaMorpheusDeconResultDictionary[scan.OneBasedScanNumber];
                         int possibleFeatureCount = ms2canToFlashDeconvResultDictionary[scan.OneBasedScanNumber];

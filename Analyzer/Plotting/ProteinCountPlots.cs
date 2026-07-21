@@ -54,25 +54,37 @@ namespace Analyzer.Plotting
         }
 
         public static GenericChart.GenericChart GetProteinCountPlot(this List<ProteinCountingRecord> records,
-            ProteinCountPlotTypes resultType, DistributionPlotTypes plotType, bool isTopDown)
+            ProteinCountPlotTypes resultType, DistributionPlotTypes plotType, bool isTopDown, bool logY = false)
         {
             string xTitle = "" /*"Condition"*/;
             string yTitle = resultType.GetAxisLabel(isTopDown);
+            string title = yTitle;
+            if (logY)
+                yTitle = $"Log10 {yTitle}";
+
             List<GenericChart.GenericChart> toCombine = new();
 
             foreach (var record in records
                          .Where(p => p is { UniqueFullSequences: > 1, UniqueBaseSequences: > 1 })
-                         .GroupBy(p => p.Condition.ConvertConditionName()))
+                         .GroupBy(p => p.Condition.ConvertConditionName())
+                         .OrderBy(p => p.Key))
             {
                 var condition = record.Key;
                 var data = record.GetValues(resultType).ToList();
 
                 int max = (int)(data.Max() + (data.Max() * 0.1));
+                int min = -10;
+                if (logY)
+                {
+                    max = (int)(Math.Log10(data.Max()) + (Math.Log10(data.Max()) * 0.1));
+                    min = 0;
+                    data = data.Select(Math.Log10).ToList();
+                }
                 switch (plotType)
                 {
                     case DistributionPlotTypes.ViolinPlot:
                         toCombine.Add(GenericPlots.ViolinPlot(data, condition, xTitle, yTitle)
-                            .WithYAxisStyle<int, int, string>(MinMax: new Tuple<int, int>(-10, max)));
+                            .WithYAxisStyle<int, int, string>(MinMax: new Tuple<int, int>(min, max)));
                         break;
 
                     case DistributionPlotTypes.Histogram:
@@ -82,12 +94,12 @@ namespace Analyzer.Plotting
 
                     case DistributionPlotTypes.BoxPlot:
                         toCombine.Add(GenericPlots.BoxPlot(data, condition, xTitle, yTitle, false)
-                            .WithYAxisStyle<int, int, string>(MinMax: new Tuple<int, int>(-10, max))
+                            .WithYAxisStyle<int, int, string>(MinMax: new Tuple<int, int>(min, max))
                             .WithLegend(false));
                         break;
 
                     case DistributionPlotTypes.KernelDensity:
-                        toCombine.Add(GenericPlots.KernelDensityPlot(data, condition, xTitle, yTitle, 0.1)
+                        toCombine.Add(GenericPlots.KernelDensityPlot(data, condition, xTitle, yTitle, 0.5)
                             .WithXAxisStyle<int, int, string>(MinMax: new Tuple<int, int>(0, max)));
                         break;
 
@@ -97,9 +109,10 @@ namespace Analyzer.Plotting
             }
 
             var finalPlot = Chart.Combine(toCombine)
-                .WithTitle($"{yTitle} (1% {Labels.GetLabel(isTopDown, ResultType.Psm)})")
+                .WithTitle($"{title} (1% {Labels.GetLabel(isTopDown, ResultType.Psm)})")
                 .WithLayout(PlotlyBase.DefaultLayoutWithLegendLargerText);
             return finalPlot;
         }
+
     }
 }

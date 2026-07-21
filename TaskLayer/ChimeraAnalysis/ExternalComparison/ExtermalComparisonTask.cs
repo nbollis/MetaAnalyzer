@@ -663,20 +663,24 @@ namespace TaskLayer.ChimeraAnalysis
 
             var plotTasks = new[]
             {
-                (PlotType: "SequenceCoverage", Width: 1200, Height: 1200, IsViolin: false, IsBox: false),
-                (PlotType: "BaseSequenceCount", Width: 1200, Height: 1200, IsViolin: false, IsBox: false),
-                (PlotType: "FullSequenceCount", Width: 1200, Height: 1200, IsViolin: false, IsBox: false),
-                (PlotType: "SequenceCoverageViolin", Width: 700, Height: 700, IsViolin: true, IsBox: false),
-                (PlotType: "BaseSequenceCountViolin", Width: 700, Height: 700, IsViolin: true, IsBox: false),
-                (PlotType: "FullSequenceCountViolin", Width: 700, Height: 700, IsViolin: true, IsBox: false),
-                (PlotType: "SequenceCoverageBox", Width: 700, Height: 700, IsViolin: false, IsBox: true),
-                (PlotType: "BaseSequenceCountBox", Width: 700, Height: 700, IsViolin: false, IsBox: true),
-                (PlotType: "FullSequenceCountBox", Width: 700, Height: 700, IsViolin: false, IsBox: true)
+                //(PlotType: "SequenceCoverage", Width: 1200, Height: 1200, IsViolin: false, IsBox: false),
+                //(PlotType: "BaseSequenceCount", Width: 1200, Height: 1200, IsViolin: false, IsBox: false),
+                //(PlotType: "FullSequenceCount", Width: 1200, Height: 1200, IsViolin: false, IsBox: false),
+                (PlotType: "SequenceCoverageViolin", Width: 700, Height: 700, IsViolin: true, IsBox: false, LogY: false),
+                (PlotType: "BaseSequenceCountViolin", Width: 700, Height: 700, IsViolin: true, IsBox: false, LogY: true),
+                (PlotType: "FullSequenceCountViolin", Width: 700, Height: 700, IsViolin: true, IsBox: false, LogY: true),
+                (PlotType: "BaseSequenceCountViolin", Width: 700, Height: 700, IsViolin: true, IsBox: false, LogY: false),
+                (PlotType: "FullSequenceCountViolin", Width: 700, Height: 700, IsViolin: true, IsBox: false, LogY: false),
+                (PlotType: "SequenceCoverageBox", Width: 700, Height: 700, IsViolin: false, IsBox: true, LogY: false),
+                (PlotType: "BaseSequenceCountBox", Width: 700, Height: 700, IsViolin: false, IsBox: true, LogY: true),
+                (PlotType: "FullSequenceCountBox", Width: 700, Height: 700, IsViolin: false, IsBox: true, LogY: true),
+                (PlotType: "BaseSequenceCountBox", Width: 700, Height: 700, IsViolin: false, IsBox: true, LogY: false),
+                (PlotType: "FullSequenceCountBox", Width: 700, Height: 700, IsViolin: false, IsBox: true, LogY: false)
             };
 
             Parallel.ForEach(plotTasks, plotTask =>
             {
-                var outPath = Path.Combine(directory, $"{Version}_ProteinCounting_{plotTask.PlotType}");
+                var outPath = Path.Combine(directory, $"{Version}_ProteinCounting{(plotTask.LogY ? "_Log" : "")}_{plotTask.PlotType}");
                 try
                 {
                     var countPlotType = plotTask.PlotType switch
@@ -690,18 +694,19 @@ namespace TaskLayer.ChimeraAnalysis
                     GenericChart.GenericChart plot;
                     if (plotTask.IsViolin)
                     {
-                        plot = records.GetProteinCountPlot(countPlotType, DistributionPlotTypes.ViolinPlot, isTopDown);
+                        plot = records.GetProteinCountPlot(countPlotType, DistributionPlotTypes.ViolinPlot, isTopDown, plotTask.LogY);
                     }
                     else if (plotTask.IsBox)
                     {
-                        plot = records.GetProteinCountPlot(countPlotType, DistributionPlotTypes.BoxPlot, isTopDown);
+                        plot = records.GetProteinCountPlot(countPlotType, DistributionPlotTypes.BoxPlot, isTopDown, plotTask.LogY);
                     }
                     else
                     {
+                        return;
                         plot = records.GetProteinCountPlotsGrid(countPlotType, isTopDown);
                     }
 
-                    InternalMetaMorpheusAnalysisTask.TryAllTheExports(plot, outPath, plotTask.Width, plotTask.Height, isTopDown, ResultType.Psm);
+                    InternalMetaMorpheusAnalysisTask.TryAllTheExports(plot, outPath, plotTask.Width, plotTask.Height, isTopDown, ResultType.Psm, directory);
                 }
                 catch (Exception e)
                 {

@@ -1300,29 +1300,30 @@ namespace TaskLayer.ChimeraAnalysis
 
         #endregion
 
-        public static void TryAllTheExports(GenericChart.GenericChart chart, string outName, int width, int height, bool isTopDown, ResultType resultType)
+        public static void TryAllTheExports(GenericChart.GenericChart chart, string outName, int width, int height, bool isTopDown, ResultType resultType, string? outDir = null)
         {
+            outDir ??= BulkFigureDirectory;
             try
             {
-                chart.SavePNG(Path.Combine(BulkFigureDirectory, outName), null, width, height);
+                chart.SavePNG(Path.Combine(outDir, outName), null, width, height);
             }
             catch
             {
                 try
                 {
-                    chart.SaveJPG(Path.Combine(BulkFigureDirectory, outName), null, width, height);
+                    chart.SaveJPG(Path.Combine(outDir, outName), null, width, height);
                 }
                 catch
                 {
                     try
                     {
-                        chart.SaveSVG(Path.Combine(BulkFigureDirectory, outName), null, width, height);
+                        chart.SaveSVG(Path.Combine(outDir, outName), null, width, height);
                     }
                     catch
                     {
                         try
                         {
-                            Plotly.NET.CSharp.GenericChartExtensions.SaveHtml(chart, Path.Combine(BulkFigureDirectory, outName), false);
+                            Plotly.NET.CSharp.GenericChartExtensions.SaveHtml(chart, Path.Combine(outDir, outName), false);
                         }
                         catch (Exception e)
                         {
