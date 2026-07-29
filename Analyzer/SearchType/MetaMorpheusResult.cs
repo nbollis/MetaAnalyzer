@@ -1504,7 +1504,7 @@ namespace Analyzer.SearchType
                     {
                         PsmFromTsv? parent = null;
                         var ms1ScanInfo = ms2ScanToMetaMorpheusDeconResultDictionary[scan.OneBasedScanNumber];
-                        int possibleFeatureCount = ms2canToFlashDeconvResultDictionary[scan.OneBasedScanNumber];
+                        int possibleFeatureCount = ms2canToFlashDeconvResultDictionary.GetValueOrDefault(scan.OneBasedScanNumber, -1);
                         int idPerSpectrum = peptides.Count(p => p is { DecoyContamTarget: "T", PEP_QValue: <= 0.01 });
                         bool isChimeric = idPerSpectrum > 1;
                         foreach (var chimericPeptide in peptides.OrderBy(p => Math.Abs(p.PrecursorMz - scan.IsolationMz.Value)))

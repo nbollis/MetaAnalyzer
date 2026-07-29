@@ -4,13 +4,16 @@ using Analyzer.SearchType;
 using Easy.Common.Extensions;
 using Omics.Fragmentation;
 using Plotly.NET;
+using Plotly.NET.CSharp;
 using Plotly.NET.LayoutObjects;
 using Plotly.NET.TraceObjects;
 using Plotting;
 using Plotting.Util;
 using Readers;
 using ResultAnalyzerUtil;
+using ResultAnalyzerUtil.CommandLine;
 using SharpLearning.Optimization.Transforms;
+using static Plotly.NET.StyleParam.Range;
 using Chart = Plotly.NET.CSharp.Chart;
 
 namespace TaskLayer.ChimeraAnalysis;
@@ -52,23 +55,28 @@ public class SingleRunChimericFragmentIonAnalysisTask : BaseResultAnalyzerTask
         var records = analysisFile.Results;
         var datasetLabel = $"{run.DatasetName} {run.Condition}";
 
-        ChimericFragmentIonAnalysisPlots.CreateHistogramPlot(records, datasetLabel)
+        CreateHistogramPlot(records, datasetLabel)
             .SaveInRunResultOnly(run, $"ChimericFragmentIonAnalysis_Histogram{suffix}", 1000, 600);
 
-        ChimericFragmentIonAnalysisPlots.CreateUniqueFractionBoxPlot(records, datasetLabel, run.IsTopDown)
+        CreateUniqueFractionBoxPlot(records, datasetLabel, run.IsTopDown)
             .SaveInRunResultOnly(run, $"ChimericFragmentIonAnalysis_UniqueFractionByGroupSize{suffix}", 1000, 600);
-    }
-}
 
-public static class ChimericFragmentIonAnalysisPlots
-{
-    public static GenericChart.GenericChart CreateUniqueRatioDistribution(List<ChimericFragmentIonAnalysisRecord> records, string titlePrefix, DistributionPlotTypes plotType)
+        CreateUniqueRatioDistribution(records, datasetLabel, DistributionPlotTypes.Histogram, run.IsTopDown)
+            .SaveInRunResultOnly(run, $"ChimericFragmentIonAnalysis_UniqueRatioDistribution_Histogram{suffix}", 1000, 600);
+        CreateUniqueRatioDistribution(records, datasetLabel, DistributionPlotTypes.ViolinPlot, run.IsTopDown)
+            .SaveInRunResultOnly(run, $"ChimericFragmentIonAnalysis_UniqueRatioDistribution_Violin{suffix}", 1000, 600);
+        CreateUniqueRatioDistribution(records, datasetLabel, DistributionPlotTypes.BoxPlot, run.IsTopDown)
+            .SaveInRunResultOnly(run, $"ChimericFragmentIonAnalysis_UniqueRatioDistribution_Box{suffix}", 1000, 600);
+        //CreateUniqueRatioDistribution(records, datasetLabel, DistributionPlotTypes.KernelDensity, run.IsTopDown)
+        //    .SaveInRunResultOnly(run, $"ChimericFragmentIonAnalysis_UniqueRatioDistribution_KDE{suffix}", 1000, 600);
+    }
+
+    public static GenericChart.GenericChart CreateUniqueRatioDistribution(List<ChimericFragmentIonAnalysisRecord> records, string titlePrefix, DistributionPlotTypes plotType, bool isTopDown)
     {
-        var data = records.Select(p => p.UniqueMatchedFragmentFraction).ToList();
+
 
         string xTitle = "Percent Unique Fragment Ions";
         string yTitle = "Count";
-        string title = yTitle;
 
         List<GenericChart.GenericChart> toCombine = new();
 
@@ -76,19 +84,22 @@ public static class ChimericFragmentIonAnalysisPlots
                      .GroupBy(p => p.Condition.ConvertConditionName())
                      .OrderBy(p => p.Key))
         {
+            var data = record.Select(p => p.UniqueMatchedFragmentFraction)
+                .Where(p => p > 0).ToList();
             var condition = record.Key;
+            int max = 1;
+            int min = 0;
 
-            int max = (int)(data.Max() + (data.Max() * 0.1));
             switch (plotType)
             {
                 case DistributionPlotTypes.ViolinPlot:
                     toCombine.Add(GenericPlots.ViolinPlot(data, condition, xTitle, yTitle)
-                        .WithYAxisStyle<int, int, string>(MinMax: new Tuple<int, int>(0, max)));
+                        .WithYAxisStyle<int, int, string>(MinMax: new Tuple<int, int>(min, max)));
                     break;
 
                 case DistributionPlotTypes.Histogram:
-                    toCombine.Add(GenericPlots.Histogram(data, condition, xTitle, yTitle)
-                        .WithXAxisStyle<int, int, string>(MinMax: new Tuple<int, int>(0, max)));
+                    toCombine.Add(GenericPlots.Histogram(data, condition, xTitle, yTitle, minMax: (min, max))
+                        .WithXAxisStyle<int, int, string>(MinMax: new Tuple<int, int>(min, max)));
                     break;
 
                 case DistributionPlotTypes.BoxPlot:
@@ -97,8 +108,9 @@ public static class ChimericFragmentIonAnalysisPlots
                     break;
 
                 case DistributionPlotTypes.KernelDensity:
-                    toCombine.Add(GenericPlots.KernelDensityPlot(data, condition, xTitle, yTitle, 0.5)
-                        .WithXAxisStyle<int, int, string>(MinMax: new Tuple<int, int>(0, max)));
+                    yTitle = "Density";
+                    toCombine.Add(GenericPlots.KernelDensityPlot(data, condition, xTitle, yTitle, 0.1)
+                        .WithXAxisStyle<int, int, string>(MinMax: new Tuple<int, int>(min, max)));
                     break;
 
                 default:
@@ -107,12 +119,9 @@ public static class ChimericFragmentIonAnalysisPlots
         }
 
         var finalPlot = Chart.Combine(toCombine)
-            .WithTitle($"{title} (1% {Labels.GetLabel(isTopDown, ResultType.Psm)})")
+            .WithTitle($"Unique Fragment Ion Ratio (1% {Labels.GetLabel(isTopDown, ResultType.Psm)})")
             .WithLayout(PlotlyBase.DefaultLayoutNoLegendLargererText);
         return finalPlot;
-
-
-        return null;
     }
 
 
@@ -144,7 +153,7 @@ public static class ChimericFragmentIonAnalysisPlots
         var values = new List<double>();
         foreach (var group in groups)
         {
-            labels.AddRange(Enumerable.Repeat($"{group.Key} {Labels.GetLabel(isTopDown, ResultType.Peptide)}s", group.Count()));
+            labels.AddRange(Enumerable.Repeat($"{group.Key} {Labels.GetLabel(isTopDown, ResultType.Peptide)}", group.Count()));
             values.AddRange(group.Select(r => r.UniqueMatchedFragmentFraction));
         }
 
@@ -157,28 +166,74 @@ public static class ChimericFragmentIonAnalysisPlots
             .WithTitle($"{titlePrefix} Unique Fraction by Chimera Group Size",
                 TitleFont: Font.init(Size: PlotlyBase.TitleSize))
             //.WithXAxis(LinearAxis.init<string, string, int, string, string, string>(TickFont: Font.init(Size: PlotlyBase.AxisTitleFontSize - 2), TickAngle: 45))
-            .WithXAxisStyle(Title.init($"{Labels.GetLabel(isTopDown, ResultType.Peptide)}s per Spectrum", Font: Font.init(Size: PlotlyBase.AxisTitleFontSize)), MinMax: new(new(0, 14)))
+            .WithXAxisStyle(Title.init($"{Labels.GetLabel(isTopDown, ResultType.Peptide)} per Spectrum", Font: Font.init(Size: PlotlyBase.AxisTitleFontSize)), MinMax: new(new(0, 14)))
             //.WithYAxis(LinearAxis.init<string, string, int, string, string, string>(TickFont: Font.init(Size: PlotlyBase.AxisTitleFontSize - 2), TickMode: StyleParam.TickMode.Linear))
             .WithYAxisStyle(Title.init("Unique Fraction", Font: Font.init(Size: PlotlyBase.AxisTitleFontSize)))
             .WithLayout(PlotlyBase.DefaultLayout)
             .WithSize(1000, 600);
     }
 
-    public static void PlotCellLineChimericFragmentIonAnalysis(this CellLineResults cellLine, bool excludeInternalFragments = true)
+    public static void PlotCellLineChimericFragmentIonAnalysis(CellLineResults cellLine, bool excludeInternalFragments = true)
     {
         var records = cellLine.GetChimericFragmentIonAnalysisFile(excludeInternalFragments).Results;
         if (records.Count == 0)
             return;
+        bool isTopDown = cellLine.First().IsTopDown;
         var titlePrefix = cellLine.CellLine;
         var suffix = excludeInternalFragments ? "_NoInternal" : string.Empty;
 
-        CreateHistogramPlot(records, titlePrefix)
-            .SaveInCellLineOnly(cellLine, $"ChimericFragmentIonAnalysis_Histogram{suffix}", 1000, 600);
-        CreateUniqueFractionBoxPlot(records, titlePrefix, cellLine.First().IsTopDown)
-            .SaveInCellLineOnly(cellLine, $"ChimericFragmentIonAnalysis_UniqueFractionByGroupSize{suffix}", 1000, 600);
+        try
+        {
+            CreateHistogramPlot(records, titlePrefix)
+                .SaveInCellLineOnly(cellLine, $"ChimericFragmentIonAnalysis_Histogram{suffix}", 1000, 600);
+        }
+        catch (Exception ex)
+        {
+            Warn($"Failed to create and save Histogram plot for cell line '{cellLine.CellLine}': {ex.Message}");
+        }
+
+        try
+        {
+            CreateUniqueFractionBoxPlot(records, titlePrefix, isTopDown)
+                .SaveInCellLineOnly(cellLine, $"ChimericFragmentIonAnalysis_UniqueFractionByGroupSize{suffix}", 1000, 600);
+        }
+        catch (Exception ex)
+        {
+            Warn($"Failed to create and save UniqueFractionBoxPlot for cell line '{cellLine.CellLine}': {ex.Message}");
+        }
+
+        try
+        {
+            CreateUniqueRatioDistribution(records, cellLine.DatasetName, DistributionPlotTypes.Histogram, isTopDown)
+                .SaveInCellLineOnly(cellLine, $"ChimericFragmentIonAnalysis_UniqueRatioDistribution_Histogram{suffix}", 1000, 600);
+        }
+        catch (Exception ex)
+        {
+            Warn($"Failed to create and save UniqueRatioDistribution Histogram plot for cell line '{cellLine.CellLine}': {ex.Message}");
+        }
+
+        //try
+        //{
+        //    CreateUniqueRatioDistribution(records, cellLine.DatasetName, DistributionPlotTypes.ViolinPlot, isTopDown)
+        //        .SaveInCellLineOnly(cellLine, $"ChimericFragmentIonAnalysis_UniqueRatioDistribution_Violin{suffix}", 1000, 600);
+        //}
+        //catch (Exception ex)
+        //{
+        //    Warn($"Failed to create and save UniqueRatioDistribution Violin plot for cell line '{cellLine.CellLine}': {ex.Message}");
+        //}
+
+        //try
+        //{
+        //    CreateUniqueRatioDistribution(records, cellLine.DatasetName, DistributionPlotTypes.KernelDensity, isTopDown)
+        //        .SaveInCellLineOnly(cellLine, $"ChimericFragmentIonAnalysis_UniqueRatioDistribution_KDE{suffix}", 1000, 600);
+        //}
+        //catch (Exception ex)
+        //{
+        //    Warn($"Failed to create and save UniqueRatioDistribution KDE plot for cell line '{cellLine.CellLine}': {ex.Message}");
+        //}
     }
 
-    public static void PlotBulkChimericFragmentIonAnalysis(this AllResults allResults, bool excludeInternalFragments = true)
+    public static void PlotBulkChimericFragmentIonAnalysis(AllResults allResults, bool excludeInternalFragments = true)
     {
         var records = allResults.GetChimericFragmentIonAnalysisFile(excludeInternalFragments).Results;
         if (records.Count == 0)
@@ -186,9 +241,55 @@ public static class ChimericFragmentIonAnalysisPlots
         var titlePrefix = "All Cell Lines";
         var suffix = excludeInternalFragments ? "_NoInternal" : string.Empty;
 
-        CreateHistogramPlot(records, titlePrefix)
-            .SaveInAllResultsOnly(allResults, $"ChimericFragmentIonAnalysis_Histogram{suffix}", 1000, 600);
-        CreateUniqueFractionBoxPlot(records, titlePrefix, allResults.First().First().IsTopDown)
-            .SaveInAllResultsOnly(allResults, $"ChimericFragmentIonAnalysis_UniqueFractionByGroupSize{suffix}", 1000, 600);
+        try
+        {
+            CreateHistogramPlot(records, titlePrefix)
+                .SaveInAllResultsOnly(allResults, $"ChimericFragmentIonAnalysis_Histogram{suffix}", 1000, 600);
+        }
+        catch (Exception ex)
+        {
+            Warn($"Failed to create and save Histogram plot for bulk analysis: {ex.Message}");
+        }
+
+        try
+        {
+            CreateUniqueFractionBoxPlot(records, titlePrefix, allResults.First().First().IsTopDown)
+                .SaveInAllResultsOnly(allResults, $"ChimericFragmentIonAnalysis_UniqueFractionByGroupSize{suffix}", 1000, 600);
+        }
+        catch (Exception ex)
+        {
+            Warn($"Failed to create and save UniqueFractionBoxPlot for bulk analysis: {ex.Message}");
+        }
+
+        try
+        {
+            CreateUniqueRatioDistribution(records, "All Cell Lines", DistributionPlotTypes.Histogram, allResults.First().First().IsTopDown)
+                .SaveInAllResultsOnly(allResults, $"ChimericFragmentIonAnalysis_UniqueRatioDistribution_Histogram{suffix}", 1000, 600);
+        }
+        catch (Exception ex)
+        {
+            Warn($"Failed to create and save UniqueRatioDistribution Histogram plot for bulk analysis: {ex.Message}");
+        }
+
+
+        //try
+        //{
+        //    CreateUniqueRatioDistribution(records, "All Cell Lines", DistributionPlotTypes.ViolinPlot, allResults.First().First().IsTopDown)
+        //        .SaveInAllResultsOnly(allResults, $"ChimericFragmentIonAnalysis_UniqueRatioDistribution_Violin{suffix}", 1000, 600);
+        //}
+        //catch (Exception ex)
+        //{
+        //    Warn($"Failed to create and save UniqueRatioDistribution Violin plot for bulk analysis: {ex.Message}");
+        //}
+
+        //try
+        //{
+        //    CreateUniqueRatioDistribution(records, "All Cell Lines", DistributionPlotTypes.KernelDensity, allResults.First().First().IsTopDown)
+        //        .SaveInAllResultsOnly(allResults, $"ChimericFragmentIonAnalysis_UniqueRatioDistribution_KDE{suffix}", 1000, 600);
+        //}
+        //catch (Exception ex)
+        //{
+        //    Warn($"Failed to create and save UniqueRatioDistribution KDE plot for bulk analysis: {ex.Message}");
+        //}
     }
 }

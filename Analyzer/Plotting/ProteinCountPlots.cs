@@ -65,7 +65,7 @@ namespace Analyzer.Plotting
             List<GenericChart.GenericChart> toCombine = new();
 
             foreach (var record in records
-                         .Where(p => p is { UniqueFullSequences: > 1, UniqueBaseSequences: > 1 })
+                         //.Where(p => p is { UniqueFullSequences: > 1, UniqueBaseSequences: > 1 })
                          .GroupBy(p => p.Condition.ConvertConditionName())
                          .OrderBy(p => p.Key))
             {
@@ -98,7 +98,7 @@ namespace Analyzer.Plotting
                         break;
 
                     case DistributionPlotTypes.KernelDensity:
-                        toCombine.Add(GenericPlots.KernelDensityPlot(data, condition, xTitle, yTitle, 0.5)
+                        toCombine.Add(GenericPlots.KernelDensityPlot(data, condition, xTitle, yTitle, 0.25)
                             .WithXAxisStyle<int, int, string>(MinMax: new Tuple<int, int>(0, max)));
                         break;
 

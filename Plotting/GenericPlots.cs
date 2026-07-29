@@ -34,7 +34,6 @@ namespace Plotting
             var chart =
                 Chart.Line<double, double, string>(data.Select(p => p.Item1), data.Select(p => p.Item2), Name: title,
                         LineColor: color)
-                    .WithSize(400, 400)
                     .WithTitle(title, TitleFont: Font.init(Size: PlotlyBase.TitleSize))
                     .WithXAxisStyle(Title.init(xTitle, Font: Font.init(Size: PlotlyBase.AxisTitleFontSize))/*, new FSharpOption<Tuple<IConvertible, IConvertible>>(new Tuple<IConvertible, IConvertible>(-15, 15))*/)
                     .WithYAxisStyle(Title.init(yTitle, Font: Font.init(Size: PlotlyBase.AxisTitleFontSize)))
@@ -47,7 +46,6 @@ namespace Plotting
         {
             var chart = Chart.Histogram<double, double, string>(values,  Name: title, MarkerColor: title.ConvertConditionToColor(),
                                    HistNorm: normalize ? StyleParam.HistNorm.Percent : StyleParam.HistNorm.None)
-                .WithSize(400, 400)
                 .WithTitle(title)
                 .WithYAxisStyle(Title.init(yTitle, Font: Font.init(Size: PlotlyBase.AxisTitleFontSize)));
             if (minMax is not null)
@@ -66,8 +64,7 @@ namespace Plotting
                     label, MarkerColor: label.ConvertConditionToColor(), 
                         MeanLine: MeanLine.init(true, label.ConvertConditionToColor()), ShowLegend: false)
                 .WithYAxisStyle(Title.init(yTitle, Font: Font.init(Size: PlotlyBase.AxisTitleFontSize)))
-                .WithXAxisStyle(Title.init(xTitle, Font: Font.init(Size: PlotlyBase.AxisTitleFontSize)))
-                .WithSize(1000, 600);
+                .WithXAxisStyle(Title.init(xTitle, Font: Font.init(Size: PlotlyBase.AxisTitleFontSize)));
             return violin;
         }
 
@@ -78,7 +75,6 @@ namespace Plotting
                     Y: values, Name: title, MarkerColor: title.ConvertConditionToColor(), Jitter: 0.1,
                                    BoxPoints: showOutliers ? StyleParam.BoxPoints.Outliers : StyleParam.BoxPoints.False
                                   /* Orientation: StyleParam.Orientation.Vertical*/)
-                .WithSize(400, 400)
                 .WithTitle(title, TitleFont: Font.init(Size: PlotlyBase.TitleSize))
                 .WithXAxisStyle(Title.init(xTitle, Font: Font.init(Size: PlotlyBase.AxisTitleFontSize)))
                 .WithYAxisStyle(Title.init(yTitle, Font: Font.init(Size: PlotlyBase.AxisTitleFontSize)));

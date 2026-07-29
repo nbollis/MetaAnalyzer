@@ -66,13 +66,13 @@ namespace TaskLayer.ChimeraAnalysis
             bool isTopDown = mm.IsTopDown;
 
             GetIntensityPlot(summary.Results, ResultType.Psm, DistributionPlotTypes.ViolinPlot, isTopDown, true)
-                .SaveInRunResultOnly(RunResult, $"SpectrumSummary_PrecursorIntensity_PSM_Violin", 800, 600);
+                .SaveInRunResultOnly(RunResult, $"SpectrumSummary_PrecursorIntensity_PSM_Violin", 800, 1200);
             GetIntensityPlot(summary.Results, ResultType.Psm, DistributionPlotTypes.Histogram, isTopDown, true)
-                .SaveInRunResultOnly(RunResult, $"SpectrumSummary_PrecursorIntensity_PSM_Histogram", 800, 600);
+                .SaveInRunResultOnly(RunResult, $"SpectrumSummary_PrecursorIntensity_PSM_Histogram", 800, 1200);
             GetIntensityPlot(summary.Results, ResultType.Peptide, DistributionPlotTypes.ViolinPlot, isTopDown, true)
-                .SaveInRunResultOnly(RunResult, $"SpectrumSummary_PrecursorIntensity_Peptide_Violin", 800, 600);
+                .SaveInRunResultOnly(RunResult, $"SpectrumSummary_PrecursorIntensity_Peptide_Violin", 800, 1200);
             GetIntensityPlot(summary.Results, ResultType.Peptide, DistributionPlotTypes.Histogram, isTopDown, true)
-                .SaveInRunResultOnly(RunResult, $"SpectrumSummary_PrecursorIntensity_Peptide_Histogram", 800, 600);
+                .SaveInRunResultOnly(RunResult, $"SpectrumSummary_PrecursorIntensity_Peptide_Histogram", 800, 1200);
 
             //// Features per MS2 Isolation Window Histograms
             //Log("Creating Feature Count Plots");
@@ -118,7 +118,7 @@ namespace TaskLayer.ChimeraAnalysis
                 if (logY)
                 {
                     max = (int)(Math.Log10(data.Max()) + (Math.Log10(data.Max()) * 0.1));
-                    min = 0;
+                    min = (int)Math.Min(Math.Log10(data.Min()) - (Math.Log10(data.Min()) * 0.1), 0.0);
                     data = data.Select(Math.Log10).ToList();
                 }
                 switch (plotType)
@@ -130,7 +130,7 @@ namespace TaskLayer.ChimeraAnalysis
 
                     case DistributionPlotTypes.Histogram:
                         toCombine.Add(GenericPlots.Histogram(data, condition, xTitle, yTitle)
-                            .WithXAxisStyle<int, int, string>(MinMax: new Tuple<int, int>(0, max)));
+                            .WithXAxisStyle<int, int, string>(MinMax: new Tuple<int, int>(min, max)));
                         break;
 
                     case DistributionPlotTypes.BoxPlot:
@@ -141,7 +141,7 @@ namespace TaskLayer.ChimeraAnalysis
 
                     case DistributionPlotTypes.KernelDensity:
                         toCombine.Add(GenericPlots.KernelDensityPlot(data, condition, xTitle, yTitle, 0.5)
-                            .WithXAxisStyle<int, int, string>(MinMax: new Tuple<int, int>(0, max)));
+                            .WithXAxisStyle<int, int, string>(MinMax: new Tuple<int, int>(min, max)));
                         break;
 
                     default:
@@ -151,7 +151,8 @@ namespace TaskLayer.ChimeraAnalysis
 
             var finalPlot = Chart.Combine(toCombine)
                 .WithTitle($"{title} (1% {Labels.GetLabel(isTopDown, resultType)})")
-                .WithLayout(PlotlyBase.DefaultLayoutWithLegendLargerText);
+                .WithLayout(PlotlyBase.DefaultLayoutWithLegendLargerText)
+                .WithSize(600, 600);
             return finalPlot;
         }
 

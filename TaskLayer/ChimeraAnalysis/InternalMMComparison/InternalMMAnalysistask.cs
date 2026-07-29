@@ -419,7 +419,7 @@ namespace TaskLayer.ChimeraAnalysis
                 {
                     var cellLineResults = new CellLineResults(cellLineGroup.Key!,
                         cellLineGroup.Cast<SingleRunResults>().ToList());
-                    cellLineResults.PlotCellLineChimericFragmentIonAnalysis(true);
+                    SingleRunChimericFragmentIonAnalysisTask.PlotCellLineChimericFragmentIonAnalysis(cellLineResults, true);
                     Log($"Cell Line Plotting Output Dir: {cellLineResults.FigureDirectory}", 1);
                 }
             }
@@ -431,7 +431,7 @@ namespace TaskLayer.ChimeraAnalysis
 
 
             Log($"Bulk Plotting Output Dir: {allResults.GetChimeraPaperFigureDirectory()}", 1);
-            allResults.PlotBulkChimericFragmentIonAnalysis(true);
+            SingleRunChimericFragmentIonAnalysisTask.PlotBulkChimericFragmentIonAnalysis(allResults, true);
 
             //var resultsForInternalComparison = cellLineDict
             //    .SelectMany(p => p.Value.ToList())

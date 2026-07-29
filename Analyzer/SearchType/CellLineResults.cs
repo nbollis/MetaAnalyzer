@@ -17,6 +17,51 @@ namespace Analyzer.SearchType;
 
 public class CellLineResults : IEnumerable<SingleRunResults>, IDisposable
 {
+    #region Result File Properties
+
+    private string _maximumChimeraEstimateFilePath =>
+        Path.Combine(DirectoryPath, $"{CellLine}_{FileIdentifiers.MaximumChimeraEstimate}");
+    private string _maximumChimeraEstimateCalibAveragedFilePath =>
+        Path.Combine(DirectoryPath, $"{CellLine}_{FileIdentifiers.MaximumChimeraEstimateCalibAveraged}");
+    private string _chimericFragmentIonAnalysisPath => Path.Combine(DirectoryPath, $"{CellLine}_{FileIdentifiers.ChimericFragmentIonAnalysis}");
+    private string _chimeraCountingPath => Path.Combine(DirectoryPath, $"{CellLine}_PSM_{FileIdentifiers.ChimeraCountingFile}");
+    private string _chimeraPeptidePath => Path.Combine(DirectoryPath, $"{CellLine}_Peptide_{FileIdentifiers.ChimeraCountingFile}");
+    private string _chimeraBreakdownFilePath => Path.Combine(DirectoryPath, $"{CellLine}_{FileIdentifiers.ChimeraBreakdownComparison}");
+    private string _bulkResultCountComparisonPath => Path.Combine(DirectoryPath, $"{CellLine}_{FileIdentifiers.BottomUpResultComparison}");
+    private string _individualFilePath => Path.Combine(DirectoryPath, $"{CellLine}_{FileIdentifiers.IndividualFileComparison}");
+    private string _baseSeqIndividualFilePath => Path.Combine(DirectoryPath, $"{CellLine}_BaseSeq_{FileIdentifiers.IndividualFileComparison}");
+    private string _bultResultCountingDifferentFilteringFilePath => Path.Combine(DirectoryPath, $"{CellLine}_{FileIdentifiers.BulkResultComparisonMultipleFilters}");
+    private string _individualFileResultCountingDifferentFilteringFilePath => Path.Combine(DirectoryPath, $"{CellLine}_{FileIdentifiers.IndividualFileComparisonMultipleFilters}");
+    private string _psmProformaFilePath =>
+        Path.Combine(DirectoryPath, $"{CellLine}_{FileIdentifiers.ProformaFile}");
+
+    private MaximumChimeraEstimationFile? _maximumChimeraEstimationCalibAveragedFile;
+    private MaximumChimeraEstimationFile? _maximumChimeraEstimationFile;
+    private ChimericFragmentIonAnalysisFile? _chimericFragmentIonAnalysisFile;
+    private ChimeraCountingFile? _chimeraCountingFile;
+    private ChimeraCountingFile? _chimeraPeptideFile;
+    private ChimeraBreakdownFile? _chimeraBreakdownFile;
+    private BulkResultCountComparisonFile? _bulkResultCountComparisonFile;
+    private BulkResultCountComparisonFile? _individualFileComparison;
+    private BulkResultCountComparisonFile? _baseSeqIndividualFileComparison;
+    private BulkResultCountComparisonMultipleFilteringTypesFile? _bulkResultCountComparisonMultipleFilteringTypesFile;
+    private BulkResultCountComparisonMultipleFilteringTypesFile? _individualFileResultCountingMultipleFilteringTypesFile;
+    public BulkResultCountComparisonMultipleFilteringTypesFile IndividualFileResultCountingMultipleFilteringTypesFile =>
+        _individualFileResultCountingMultipleFilteringTypesFile ??= GetIndividualFileResultCountingMultipleFilteringTypesFile();
+
+    public BulkResultCountComparisonMultipleFilteringTypesFile BulkResultCountComparisonMultipleFilteringTypesFile =>
+        _bulkResultCountComparisonMultipleFilteringTypesFile ??= GetBulkResultCountComparisonMultipleFilteringTypesFile();
+    public BulkResultCountComparisonFile BaseSeqIndividualFileComparisonFile => _baseSeqIndividualFileComparison ??= IndividualFileComparisonBaseSeq();
+    public BulkResultCountComparisonFile IndividualFileComparisonFile => _individualFileComparison ??= GetIndividualFileComparison();
+    public BulkResultCountComparisonFile BulkResultCountComparisonFile => _bulkResultCountComparisonFile ??= GetBulkResultCountComparisonFile();
+    public ChimeraBreakdownFile ChimeraBreakdownFile => _chimeraBreakdownFile ??= GetChimeraBreakdownFile();
+    public ChimeraCountingFile ChimeraPeptideFile => _chimeraPeptideFile ??= CountChimericPeptides();
+    public ChimeraCountingFile ChimeraCountingFile => _chimeraCountingFile ??= CountChimericPsms();
+    public MaximumChimeraEstimationFile? MaximumChimeraEstimationCalibAveragedFile => _maximumChimeraEstimationCalibAveragedFile ??= GetMaximumChimeraEstimationFile(false);
+    public MaximumChimeraEstimationFile? MaximumChimeraEstimationFile => _maximumChimeraEstimationFile ??= GetMaximumChimeraEstimationFile();
+
+    #endregion
+
     public string DirectoryPath { get; set; }
     public bool Override { get; set; } = false;
     public string SearchResultsDirectoryPath { get; set; }
@@ -117,11 +162,6 @@ public class CellLineResults : IEnumerable<SingleRunResults>, IDisposable
             Directory.CreateDirectory(FigureDirectory);
     }
 
-    private string _chimericFragmentIonAnalysisPath => Path.Combine(DirectoryPath, $"{CellLine}_{FileIdentifiers.ChimericFragmentIonAnalysis}");
-    private ChimericFragmentIonAnalysisFile? _chimericFragmentIonAnalysisFile;
-    public ChimericFragmentIonAnalysisFile ChimericFragmentIonAnalysisFile =>
-        _chimericFragmentIonAnalysisFile ??= GetChimericFragmentIonAnalysisFile();
-
     public ChimericFragmentIonAnalysisFile GetChimericFragmentIonAnalysisFile(bool excludeInternalFragments = true)
     {
         if (!Override && File.Exists(_chimericFragmentIonAnalysisPath))
@@ -156,11 +196,6 @@ public class CellLineResults : IEnumerable<SingleRunResults>, IDisposable
         file.WriteResults(_chimericFragmentIonAnalysisPath);
         return _chimericFragmentIonAnalysisFile = file;
     }
-
-    private string _chimeraCountingPath => Path.Combine(DirectoryPath, $"{CellLine}_PSM_{FileIdentifiers.ChimeraCountingFile}");
-    private ChimeraCountingFile? _chimeraCountingFile;
-    public ChimeraCountingFile ChimeraCountingFile => _chimeraCountingFile ??= CountChimericPsms();
-
     public ChimeraCountingFile CountChimericPsms()
     {
         if (!Override && File.Exists(_chimeraCountingPath))
@@ -180,10 +215,6 @@ public class CellLineResults : IEnumerable<SingleRunResults>, IDisposable
         chimeraCountingFile.WriteResults(_chimeraCountingPath);
         return chimeraCountingFile;
     }
-
-    private string _chimeraPeptidePath => Path.Combine(DirectoryPath, $"{CellLine}_Peptide_{FileIdentifiers.ChimeraCountingFile}");
-    private ChimeraCountingFile? _chimeraPeptideFile;
-    public ChimeraCountingFile ChimeraPeptideFile => _chimeraPeptideFile ??= CountChimericPeptides();
     public ChimeraCountingFile CountChimericPeptides()
     {
         if (!Override && File.Exists(_chimeraPeptidePath))
@@ -204,11 +235,6 @@ public class CellLineResults : IEnumerable<SingleRunResults>, IDisposable
         chimeraPeptideFile.WriteResults(_chimeraPeptidePath);
         return chimeraPeptideFile;
     }
-
-    private string _chimeraBreakdownFilePath => Path.Combine(DirectoryPath, $"{CellLine}_{FileIdentifiers.ChimeraBreakdownComparison}");
-    private ChimeraBreakdownFile? _chimeraBreakdownFile;
-    public ChimeraBreakdownFile ChimeraBreakdownFile => _chimeraBreakdownFile ??= GetChimeraBreakdownFile();
-
     public ChimeraBreakdownFile GetChimeraBreakdownFile()
     {
         if (!Override && File.Exists(_chimeraBreakdownFilePath))
@@ -236,10 +262,6 @@ public class CellLineResults : IEnumerable<SingleRunResults>, IDisposable
         chimeraBreakdownFile.WriteResults(_chimeraBreakdownFilePath);
         return chimeraBreakdownFile;
     }
-
-    private string _bulkResultCountComparisonPath => Path.Combine(DirectoryPath, $"{CellLine}_{FileIdentifiers.BottomUpResultComparison}");
-    private BulkResultCountComparisonFile? _bulkResultCountComparisonFile;
-    public BulkResultCountComparisonFile BulkResultCountComparisonFile => _bulkResultCountComparisonFile ??= GetBulkResultCountComparisonFile();
     public BulkResultCountComparisonFile GetBulkResultCountComparisonFile()
     {
         if (!Override && File.Exists(_bulkResultCountComparisonPath))
@@ -259,10 +281,6 @@ public class CellLineResults : IEnumerable<SingleRunResults>, IDisposable
         bulkResultCountComparisonFile.WriteResults(_bulkResultCountComparisonPath);
         return bulkResultCountComparisonFile;
     }
-
-    private string _individualFilePath => Path.Combine(DirectoryPath, $"{CellLine}_{FileIdentifiers.IndividualFileComparison}");
-    private BulkResultCountComparisonFile? _individualFileComparison;
-    public BulkResultCountComparisonFile IndividualFileComparisonFile => _individualFileComparison ??= GetIndividualFileComparison();
     public BulkResultCountComparisonFile GetIndividualFileComparison()
     {
         if (!Override && File.Exists(_individualFilePath))
@@ -282,11 +300,6 @@ public class CellLineResults : IEnumerable<SingleRunResults>, IDisposable
         individualFileComparison.WriteResults(_individualFilePath);
         return individualFileComparison;
     }
-
-    private string _baseSeqIndividualFilePath => Path.Combine(DirectoryPath, $"{CellLine}_BaseSeq_{FileIdentifiers.IndividualFileComparison}");
-    private BulkResultCountComparisonFile? _baseSeqIndividualFileComparison;
-    public BulkResultCountComparisonFile BaseSeqIndividualFileComparisonFile => _baseSeqIndividualFileComparison ??= IndividualFileComparisonBaseSeq();
-
     public BulkResultCountComparisonFile IndividualFileComparisonBaseSeq()
     {
         if (!Override && File.Exists(_baseSeqIndividualFilePath))
@@ -307,13 +320,6 @@ public class CellLineResults : IEnumerable<SingleRunResults>, IDisposable
         individualFileComparison.WriteResults(_baseSeqIndividualFilePath);
         return individualFileComparison;
     }
-
-    private string _bultResultCountingDifferentFilteringFilePath => Path.Combine(DirectoryPath, $"{CellLine}_{FileIdentifiers.BulkResultComparisonMultipleFilters}");
-    private BulkResultCountComparisonMultipleFilteringTypesFile? _bulkResultCountComparisonMultipleFilteringTypesFile;
-
-    public BulkResultCountComparisonMultipleFilteringTypesFile BulkResultCountComparisonMultipleFilteringTypesFile =>
-        _bulkResultCountComparisonMultipleFilteringTypesFile ??= GetBulkResultCountComparisonMultipleFilteringTypesFile();
-
     public BulkResultCountComparisonMultipleFilteringTypesFile GetBulkResultCountComparisonMultipleFilteringTypesFile()
     {
         if (!Override && File.Exists(_bultResultCountingDifferentFilteringFilePath))
@@ -334,13 +340,6 @@ public class CellLineResults : IEnumerable<SingleRunResults>, IDisposable
         bulkResultCountComparisonFile.WriteResults(_bultResultCountingDifferentFilteringFilePath);
         return bulkResultCountComparisonFile;
     }
-
-
-    private string _individualFileResultCountingDifferentFilteringFilePath => Path.Combine(DirectoryPath, $"{CellLine}_{FileIdentifiers.IndividualFileComparisonMultipleFilters}");
-    private BulkResultCountComparisonMultipleFilteringTypesFile? _individualFileResultCountingMultipleFilteringTypesFile;
-    public BulkResultCountComparisonMultipleFilteringTypesFile IndividualFileResultCountingMultipleFilteringTypesFile =>
-        _individualFileResultCountingMultipleFilteringTypesFile ??= GetIndividualFileResultCountingMultipleFilteringTypesFile();
-
     public BulkResultCountComparisonMultipleFilteringTypesFile GetIndividualFileResultCountingMultipleFilteringTypesFile()
     {
         if (!Override && File.Exists(_individualFileResultCountingDifferentFilteringFilePath))
@@ -363,20 +362,6 @@ public class CellLineResults : IEnumerable<SingleRunResults>, IDisposable
         bulkResultCountComparisonFile.WriteResults(_individualFileResultCountingDifferentFilteringFilePath);
         return bulkResultCountComparisonFile;
     }
-
-
-
-
-    private string _maximumChimeraEstimateFilePath =>
-        Path.Combine(DirectoryPath, $"{CellLine}_{FileIdentifiers.MaximumChimeraEstimate}");
-    private MaximumChimeraEstimationFile? _maximumChimeraEstimationFile;
-    public MaximumChimeraEstimationFile? MaximumChimeraEstimationFile => _maximumChimeraEstimationFile ??= GetMaximumChimeraEstimationFile();
-
-    private string _maximumChimeraEstimateCalibAveragedFilePath =>
-        Path.Combine(DirectoryPath, $"{CellLine}_{FileIdentifiers.MaximumChimeraEstimateCalibAveraged}");
-    private MaximumChimeraEstimationFile? _maximumChimeraEstimationCalibAveragedFile;
-    public MaximumChimeraEstimationFile? MaximumChimeraEstimationCalibAveragedFile => _maximumChimeraEstimationCalibAveragedFile ??= GetMaximumChimeraEstimationFile(false);
-
     public MaximumChimeraEstimationFile? GetMaximumChimeraEstimationFile(bool useRawFiles = true)
     {
         if (!Override)
@@ -577,9 +562,60 @@ public class CellLineResults : IEnumerable<SingleRunResults>, IDisposable
         var maxChimeraEstimationFile = new MaximumChimeraEstimationFile(outPath) { Results = results };
         maxChimeraEstimationFile.WriteResults(outPath);
         return maxChimeraEstimationFile;
+    }    
+    public ProformaFile GetPsmProformaFile()
+    {
+        if (!Override && File.Exists(_psmProformaFilePath))
+            return new ProformaFile(_psmProformaFilePath);
+
+        List<ProformaRecord> results = new ();
+        string[]? selector;
+        try
+        {
+            selector = this.GetSingleResultSelector();
+        }
+        catch
+        {
+            selector = null;
+        }
+        foreach (var singleRunResult in Results.Where(p => p is MetaMorpheusResult))
+        {
+            var result = (MetaMorpheusResult)singleRunResult;
+            if (selector is not null && !selector.Contains(result.Condition))
+                continue;
+            results.AddRange(result.ToPsmProformaFile().Results);
+        }
+
+        var proFormaFile = new ProformaFile(_psmProformaFilePath) { Results = results };
+        proFormaFile.WriteResults(_psmProformaFilePath);
+        return proFormaFile;
     }
-
-
+    public ProteinCountingFile GetProteinCountingFile()
+    {
+        var proteinCountingFilePath = Path.Combine(DirectoryPath, $"{CellLine}_{FileIdentifiers.ProteinCountingFile}");
+        if (!Override && File.Exists(proteinCountingFilePath))
+            return new ProteinCountingFile(proteinCountingFilePath);
+        List<ProteinCountingRecord> results = new();
+        string[]? selector;
+        try
+        {
+            selector = this.GetSingleResultSelector();
+        }
+        catch
+        {
+            selector = null;
+        }
+        foreach (var singleRunResult in Results.Where(p => p is MetaMorpheusResult))
+        {
+            var result = (MetaMorpheusResult)singleRunResult;
+            if (selector is not null && !selector.Contains(result.Condition))
+                continue;
+            results.AddRange(result.CountProteins().Results);
+        }
+        var proteinCountingFile = new ProteinCountingFile(proteinCountingFilePath) { Results = results };
+        proteinCountingFile.WriteResults(proteinCountingFilePath);
+        return proteinCountingFile;
+    }
 
     public void Dispose()
     {

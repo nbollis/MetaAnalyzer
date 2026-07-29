@@ -2,6 +2,8 @@
 using Analyzer.Util;
 using Plotly.NET;
 using Plotly.NET.ImageExport;
+using Plotting.Util;
+using ResultAnalyzerUtil;
 
 namespace Analyzer.Plotting.Util
 {
@@ -13,7 +15,8 @@ namespace Analyzer.Plotting.Util
             string exportName, int? width = null, int? height = null)
         {
             var cellLineDirectory = cellLine.FigureDirectory;
-            chart.SavePNG(Path.Combine(cellLineDirectory, exportName), null, width, height);
+            var outPath = Path.Combine(cellLineDirectory, exportName);
+            TryAllTheExports(chart, outPath, width, height);
         }
 
         public static void SaveInCellLineOnly(this GenericChart.GenericChart chart, SingleRunResults runResult,
@@ -21,21 +24,24 @@ namespace Analyzer.Plotting.Util
         {
             var cellLineDirectory = Path.Combine(Path.GetDirectoryName(Path.GetDirectoryName(runResult.DirectoryPath)),
                 "Figures");
-            chart.SavePNG(Path.Combine(cellLineDirectory, exportName), null, width, height);
+            var outPath = Path.Combine(cellLineDirectory, exportName);
+            TryAllTheExports(chart, outPath, width, height);
         }
 
         public static void SaveInRunResultOnly(this GenericChart.GenericChart chart, SingleRunResults runResult,
             string exportName, int? width = null, int? height = null)
         {
             var runResultDirectory = runResult.FigureDirectory;
-            chart.SavePNG(Path.Combine(runResultDirectory, exportName), null, width, height);
+            var outPath = Path.Combine(runResultDirectory, exportName);
+            TryAllTheExports(chart, outPath, width, height);
         }
 
         public static void SaveInAllResultsOnly(this GenericChart.GenericChart chart, AllResults allResults,
             string exportName, int? width = null, int? height = null)
         {
             var allResultsDirectory = allResults.GetChimeraPaperFigureDirectory();
-            chart.SavePNG(Path.Combine(allResultsDirectory, exportName), null, width, height);
+            var outPath = Path.Combine(allResultsDirectory, exportName);
+            TryAllTheExports(chart, outPath, width, height);
         }
 
         public static void SaveInAllResultsOnly(this GenericChart.GenericChart chart, CellLineResults cellLine,
@@ -43,7 +49,41 @@ namespace Analyzer.Plotting.Util
         {
             var allResultsDirectory = Path.GetDirectoryName(cellLine.DirectoryPath).GetDirectories()
                 .First(p => p.Contains("Figures"));
-            chart.SavePNG(Path.Combine(allResultsDirectory, exportName), null, width, height);
+            var outPath = Path.Combine(allResultsDirectory, exportName);
+            TryAllTheExports(chart, outPath, width, height);
+        }
+
+        public static void TryAllTheExports(GenericChart.GenericChart chart, string outPath, int? width, int? height)
+        {
+            try
+            {
+                chart.SavePNG(outPath, null, width, height);
+            }
+            catch
+            {
+                try
+                {
+                    chart.SaveJPG(outPath, null, width, height);
+                }
+                catch
+                {
+                    try
+                    {
+                        chart.SaveSVG(outPath, null, width, height);
+                    }
+                    catch
+                    {
+                        try
+                        {
+                            Plotly.NET.CSharp.GenericChartExtensions.SaveHtml(chart, outPath, false);
+                        }
+                        catch (Exception e)
+                        {
+                            Console.WriteLine($"Idk man, we tried them all to {outPath}: {e}");
+                        }
+                    }
+                }
+            }
         }
 
         #endregion
