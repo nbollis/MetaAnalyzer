@@ -19,9 +19,9 @@ namespace Analyzer.Plotting.AggregatePlots
 
             string outpath = Path.Combine(cellLine.GetChimeraPaperFigureDirectory(), $"{FileIdentifiers.SpectralAngleFigure}_{cellLine.CellLine}");
             var chart = cellLine.GetCellLineSpectralSimilarity();
-            chart.SavePNG(outpath);
+            PlotlyBase.ExportFigure(chart, outpath, PlotlyBase.DefaultWideExportWidth, PlotlyBase.DefaultExportHeight);
             outpath = Path.Combine(cellLine.FigureDirectory, $"{FileIdentifiers.SpectralAngleFigure}_{cellLine.CellLine}");
-            cellLine.GetCellLineSpectralSimilarity().SavePNG(outpath);
+            PlotlyBase.ExportFigure(cellLine.GetCellLineSpectralSimilarity(), outpath, PlotlyBase.DefaultWideExportWidth, PlotlyBase.DefaultExportHeight);
         }
 
         internal static GenericChart.GenericChart GetCellLineSpectralSimilarity(this CellLineResults cellLine)
@@ -90,16 +90,16 @@ namespace Analyzer.Plotting.AggregatePlots
             var psmChart =
                 results.GetChimeraBreakDownStackedColumn_TargetDecoy(ResultType.Psm, cellLine.First().IsTopDown, absolute, out int width);
             string psmOutPath = Path.Combine(cellLine.GetChimeraPaperFigureDirectory(), smOutName);
-            psmChart.SavePNG(psmOutPath, null, width, PlotlyBase.DefaultHeight);
+            PlotlyBase.ExportFigure(psmChart, psmOutPath, width, PlotlyBase.DefaultHeight);
             psmOutPath = Path.Combine(cellLine.FigureDirectory, smOutName);
-            psmChart.SavePNG(psmOutPath, null, width, PlotlyBase.DefaultHeight);
+            PlotlyBase.ExportFigure(psmChart, psmOutPath, width, PlotlyBase.DefaultHeight);
 
             var peptideChart =
                 results.GetChimeraBreakDownStackedColumn_TargetDecoy(ResultType.Peptide, cellLine.First().IsTopDown, absolute, out width);
             string peptideOutPath = Path.Combine(cellLine.GetChimeraPaperFigureDirectory(), pepOutName);
-            peptideChart.SavePNG(peptideOutPath, null, width, PlotlyBase.DefaultHeight);
+            PlotlyBase.ExportFigure(peptideChart, peptideOutPath, width, PlotlyBase.DefaultHeight);
             peptideOutPath = Path.Combine(cellLine.FigureDirectory, pepOutName);
-            peptideChart.SavePNG(peptideOutPath, null, width, PlotlyBase.DefaultHeight);
+            PlotlyBase.ExportFigure(peptideChart, peptideOutPath, width, PlotlyBase.DefaultHeight);
         }
 
         #endregion
@@ -136,30 +136,30 @@ namespace Analyzer.Plotting.AggregatePlots
 
             var psmChart = results.GetChimeraBreakDownStackedColumn(ResultType.Psm, cellLine.First().IsTopDown, out int width);
             string psmOutPath = Path.Combine(cellLine.FigureDirectory, smOutName);
-            psmChart.SavePNG(psmOutPath, null, width, PlotlyBase.DefaultHeight);
+            PlotlyBase.ExportFigure(psmChart, psmOutPath, width, PlotlyBase.DefaultHeight);
 
             var stackedAreaPsmChart = results.GetChimeraBreakDownStackedArea(ResultType.Psm, cellLine.First().IsTopDown, out width);
             string stackedAreaPsmOutPath = Path.Combine(cellLine.FigureDirectory, smAreaOutName);
-            stackedAreaPsmChart.SavePNG(stackedAreaPsmOutPath, null, width, PlotlyBase.DefaultHeight);
+            PlotlyBase.ExportFigure(stackedAreaPsmChart, stackedAreaPsmOutPath, width, PlotlyBase.DefaultHeight);
 
             var statckedAreaPsmChartRelative = results.GetChimeraBreakDownStackedArea(ResultType.Psm, cellLine.First().IsTopDown, out width, true);
             string stackedAreaPsmRelativeOutPath = Path.Combine(cellLine.FigureDirectory, smAreaRelativeName);
-            statckedAreaPsmChartRelative.SavePNG(stackedAreaPsmRelativeOutPath, null, width, PlotlyBase.DefaultHeight);
+            PlotlyBase.ExportFigure(statckedAreaPsmChartRelative, stackedAreaPsmRelativeOutPath, width, PlotlyBase.DefaultHeight);
 
             if (results.All(p => p.Type == ResultType.Psm))
                 goto IndividualResults;
 
             var peptideChart = results.GetChimeraBreakDownStackedColumn(ResultType.Peptide, cellLine.First().IsTopDown, out width);
             string peptideOutPath = Path.Combine(cellLine.FigureDirectory, pepOutName);
-            peptideChart.SavePNG(peptideOutPath, null, width, PlotlyBase.DefaultHeight);
+            PlotlyBase.ExportFigure(peptideChart, peptideOutPath, width, PlotlyBase.DefaultHeight);
 
             var stackedAreaPeptideChart = results.GetChimeraBreakDownStackedArea(ResultType.Peptide, cellLine.First().IsTopDown, out width);
             string stackedAreaPeptideOutPath = Path.Combine(cellLine.FigureDirectory, pepAreaOutName);
-            stackedAreaPeptideChart.SavePNG(stackedAreaPeptideOutPath, null, width, PlotlyBase.DefaultHeight);
+            PlotlyBase.ExportFigure(stackedAreaPeptideChart, stackedAreaPeptideOutPath, width, PlotlyBase.DefaultHeight);
 
             var stackedAreaPeptideChartRelative = results.GetChimeraBreakDownStackedArea(ResultType.Peptide, cellLine.First().IsTopDown, out width, true);
             string stackedAreaPeptideRelativeOutPath = Path.Combine(cellLine.FigureDirectory, pepAreaRelativeName);
-            stackedAreaPeptideChartRelative.SavePNG(stackedAreaPeptideRelativeOutPath, null, width, PlotlyBase.DefaultHeight);
+            PlotlyBase.ExportFigure(stackedAreaPeptideChartRelative, stackedAreaPeptideRelativeOutPath, width, PlotlyBase.DefaultHeight);
 
 
         IndividualResults:
@@ -172,17 +172,17 @@ namespace Analyzer.Plotting.AggregatePlots
 
                 psmChart = results.GetChimeraBreakDownStackedColumn(ResultType.Psm, cellLine.First().IsTopDown, out width, file.Condition);
                 psmOutPath = Path.Combine(file.FigureDirectory, smOutName);
-                psmChart.SavePNG(psmOutPath, null, width, PlotlyBase.DefaultHeight);
+                PlotlyBase.ExportFigure(psmChart, psmOutPath, width, PlotlyBase.DefaultHeight);
 
 
                 stackedAreaPsmChart = results.GetChimeraBreakDownStackedArea(ResultType.Psm, cellLine.First().IsTopDown, out width, false, file.Condition);
                 stackedAreaPsmOutPath = Path.Combine(file.FigureDirectory, smAreaOutName);
-                stackedAreaPsmChart.SavePNG(stackedAreaPsmOutPath, null, width, PlotlyBase.DefaultHeight);
+                PlotlyBase.ExportFigure(stackedAreaPsmChart, stackedAreaPsmOutPath, width, PlotlyBase.DefaultHeight);
 
 
                 statckedAreaPsmChartRelative = results.GetChimeraBreakDownStackedArea(ResultType.Psm, cellLine.First().IsTopDown, out width, true, file.Condition);
                 stackedAreaPsmRelativeOutPath = Path.Combine(file.FigureDirectory, smAreaRelativeName);
-                statckedAreaPsmChartRelative.SavePNG(stackedAreaPsmRelativeOutPath, null, width, PlotlyBase.DefaultHeight);
+                PlotlyBase.ExportFigure(statckedAreaPsmChartRelative, stackedAreaPsmRelativeOutPath, width, PlotlyBase.DefaultHeight);
 
 
                 if (results.All(p => p.Type == ResultType.Psm))
@@ -190,15 +190,15 @@ namespace Analyzer.Plotting.AggregatePlots
 
                 peptideChart = results.GetChimeraBreakDownStackedColumn(ResultType.Peptide, cellLine.First().IsTopDown, out width, file.Condition);
                 peptideOutPath = Path.Combine(file.FigureDirectory, pepOutName);
-                peptideChart.SavePNG(peptideOutPath, null, width, PlotlyBase.DefaultHeight);
+                PlotlyBase.ExportFigure(peptideChart, peptideOutPath, width, PlotlyBase.DefaultHeight);
 
                 stackedAreaPeptideChart = results.GetChimeraBreakDownStackedArea(ResultType.Peptide, cellLine.First().IsTopDown, out width, false, file.Condition);
                 stackedAreaPeptideOutPath = Path.Combine(file.FigureDirectory, pepAreaOutName);
-                stackedAreaPeptideChart.SavePNG(stackedAreaPeptideOutPath, null, width, PlotlyBase.DefaultHeight);
+                PlotlyBase.ExportFigure(stackedAreaPeptideChart, stackedAreaPeptideOutPath, width, PlotlyBase.DefaultHeight);
 
                 stackedAreaPeptideChartRelative = results.GetChimeraBreakDownStackedArea(ResultType.Peptide, cellLine.First().IsTopDown, out width, true, file.Condition);
                 stackedAreaPeptideRelativeOutPath = Path.Combine(file.FigureDirectory, pepAreaRelativeName);
-                stackedAreaPeptideChartRelative.SavePNG(stackedAreaPeptideRelativeOutPath, null, width, PlotlyBase.DefaultHeight);
+                PlotlyBase.ExportFigure(stackedAreaPeptideChartRelative, stackedAreaPeptideRelativeOutPath, width, PlotlyBase.DefaultHeight);
             }
         }
     }

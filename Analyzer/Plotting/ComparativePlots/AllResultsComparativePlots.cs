@@ -40,7 +40,7 @@ namespace Analyzer.Plotting.ComparativePlots
 
             if (!filterByCondition)
                 height *= 2;
-            chart.SavePNG(outpath, null, width, (int)(height * allResults.Count() / heightScaler));
+            PlotlyBase.ExportFigure(chart, outpath, width, (int)(height * allResults.Count() / heightScaler));
         }
 
         public static void PlotInternalMMComparison(this AllResults allResults)
@@ -133,7 +133,7 @@ namespace Analyzer.Plotting.ComparativePlots
                 .WithLayout(PlotlyBase.DefaultLayoutWithLegendLargerText);
             string psmOutpath = Path.Combine(allResults.GetChimeraPaperFigureDirectory(),
                 $"InternalMetaMorpheusComparison_{smLabel}");
-            psmChart.SavePNG(psmOutpath, null, 800, 800);
+            PlotlyBase.ExportFigure(psmChart, psmOutpath, PlotlyBase.DefaultSquareExportSize, PlotlyBase.DefaultSquareExportSize);
 
             var peptideChart = Chart.Combine(new[]
             {
@@ -152,7 +152,7 @@ namespace Analyzer.Plotting.ComparativePlots
                 .WithLayout(PlotlyBase.DefaultLayoutWithLegendLargerText);
             string peptideOutpath = Path.Combine(allResults.GetChimeraPaperFigureDirectory(),
                 $"InternalMetaMorpheusComparison_{allResults.First().First().ResultType}s");
-            peptideChart.SavePNG(peptideOutpath, null, 800, 800);
+            PlotlyBase.ExportFigure(peptideChart, peptideOutpath, PlotlyBase.DefaultSquareExportSize, PlotlyBase.DefaultSquareExportSize);
 
             var proteinChart = Chart.Combine(new[]
             {
@@ -173,7 +173,7 @@ namespace Analyzer.Plotting.ComparativePlots
                 .WithLayout(PlotlyBase.DefaultLayoutWithLegendLargerText);
             string proteinOutpath = Path.Combine(allResults.GetChimeraPaperFigureDirectory(),
                 "InternalMetaMorpheusComparison_Proteins");
-            proteinChart.SavePNG(proteinOutpath, null, 800, 800);
+            PlotlyBase.ExportFigure(proteinChart, proteinOutpath, PlotlyBase.DefaultSquareExportSize, PlotlyBase.DefaultSquareExportSize);
         }
 
         public static void PlotBulkResultComparisons(this AllResults allResults, string? outputDirectory = null, bool filterByCondition = true)
@@ -195,9 +195,9 @@ namespace Analyzer.Plotting.ComparativePlots
             var peptidePath = Path.Combine(outputDirectory, $"BulkResultComparison_{Labels.GetLabel(isTopDown, ResultType.Peptide)}");
             var proteinPath = Path.Combine(outputDirectory, $"BulkResultComparison_{Labels.GetLabel(isTopDown, ResultType.Protein)}");
 
-            psmChart.SavePNG(psmPath);
-            peptideChart.SavePNG(peptidePath);
-            proteinChart.SavePNG(proteinPath);
+            PlotlyBase.ExportFigure(psmChart, psmPath, PlotlyBase.DefaultWideExportWidth, PlotlyBase.DefaultExportHeight);
+            PlotlyBase.ExportFigure(peptideChart, peptidePath, PlotlyBase.DefaultWideExportWidth, PlotlyBase.DefaultExportHeight);
+            PlotlyBase.ExportFigure(proteinChart, proteinPath, PlotlyBase.DefaultWideExportWidth, PlotlyBase.DefaultExportHeight);
         }
 
 
@@ -219,17 +219,17 @@ namespace Analyzer.Plotting.ComparativePlots
             var psmChart = results.GetChimeraBreakDownStackedColumn(ResultType.Psm, isTopDown, out int width);
             var psmOutPath = Path.Combine(allResults.GetChimeraPaperFigureDirectory(),
                 $"AllResults_{FileIdentifiers.ChimeraBreakdownComparisonFigure}{smLabel}s");
-            psmChart.SavePNG(psmOutPath, null, width, PlotlyBase.DefaultHeight);
+            PlotlyBase.ExportFigure(psmChart, psmOutPath, width, PlotlyBase.DefaultHeight);
 
             var stackedAreaPsmChart = results.GetChimeraBreakDownStackedArea(ResultType.Psm, isTopDown, out width);
             var stackedAreaPsmOutPath = Path.Combine(allResults.GetChimeraPaperFigureDirectory(),
                            $"AllResults_{FileIdentifiers.ChimeraBreakdownComparisonStackedAreaFigure}{smLabel}s_StackedArea");
-            stackedAreaPsmChart.SavePNG(stackedAreaPsmOutPath, null, width, PlotlyBase.DefaultHeight);
+            PlotlyBase.ExportFigure(stackedAreaPsmChart, stackedAreaPsmOutPath, width, PlotlyBase.DefaultHeight);
 
             var stackedAreaPercentPsmChart = results.GetChimeraBreakDownStackedArea(ResultType.Psm, isTopDown, out width, true);
             var stackedAreaPercentPsmOutPath = Path.Combine(allResults.GetChimeraPaperFigureDirectory(),
                            $"AllResults_{FileIdentifiers.ChimeraBreakdownComparisonStackedAreaPercentFigure}{smLabel}s_StackedArea_Percent");
-            stackedAreaPercentPsmChart.SavePNG(stackedAreaPercentPsmOutPath, null, width, PlotlyBase.DefaultHeight);
+            PlotlyBase.ExportFigure(stackedAreaPercentPsmChart, stackedAreaPercentPsmOutPath, width, PlotlyBase.DefaultHeight);
 
             if (results.All(p => p.Type == ResultType.Psm))
                 return;
@@ -237,17 +237,17 @@ namespace Analyzer.Plotting.ComparativePlots
             var peptideChart = results.GetChimeraBreakDownStackedColumn(ResultType.Peptide, isTopDown, out width);
             var peptideOutPath = Path.Combine(allResults.GetChimeraPaperFigureDirectory(),
                 $"AllResults_{FileIdentifiers.ChimeraBreakdownComparisonFigure}{pepLabel}s");
-            peptideChart.SavePNG(peptideOutPath, null, width, PlotlyBase.DefaultHeight);
+            PlotlyBase.ExportFigure(peptideChart, peptideOutPath, width, PlotlyBase.DefaultHeight);
 
             var stackedAreaPeptideChart = results.GetChimeraBreakDownStackedArea(ResultType.Peptide, isTopDown, out width);
             var stackedAreaPeptideOutPath = Path.Combine(allResults.GetChimeraPaperFigureDirectory(),
                 $"AllResults_{FileIdentifiers.ChimeraBreakdownComparisonStackedAreaFigure}{pepLabel}s_StackedArea");
-            stackedAreaPeptideChart.SavePNG(stackedAreaPeptideOutPath, null, width, PlotlyBase.DefaultHeight);
+            PlotlyBase.ExportFigure(stackedAreaPeptideChart, stackedAreaPeptideOutPath, width, PlotlyBase.DefaultHeight);
 
             var stackedAreaPercentPeptideChart = results.GetChimeraBreakDownStackedArea(ResultType.Peptide, isTopDown, out width, true);
             var stackedAreaPercentPeptideOutPath = Path.Combine(allResults.GetChimeraPaperFigureDirectory(),
                                                  $"AllResults_{FileIdentifiers.ChimeraBreakdownComparisonStackedAreaPercentFigure}{pepLabel}s_StackedArea_Percent");
-            stackedAreaPercentPeptideChart.SavePNG(stackedAreaPercentPeptideOutPath, null, width, PlotlyBase.DefaultHeight);
+            PlotlyBase.ExportFigure(stackedAreaPercentPeptideChart, stackedAreaPercentPeptideOutPath, width, PlotlyBase.DefaultHeight);
         }
 
         /// <summary>
@@ -268,13 +268,13 @@ namespace Analyzer.Plotting.ComparativePlots
                 results.GetChimeraBreakDownStackedColumn_TargetDecoy(ResultType.Psm, isTopDown, false, out int width);
             var psmOutPath = Path.Combine(allResults.GetChimeraPaperFigureDirectory(),
                 $"AllResults_{FileIdentifiers.ChimeraBreakdownTargetDecoy}_{smLabel}");
-            psmChart.SavePNG(psmOutPath, null, width, PlotlyBase.DefaultHeight);
+            PlotlyBase.ExportFigure(psmChart, psmOutPath, width, PlotlyBase.DefaultHeight);
 
             var peptideChart =
                 results.GetChimeraBreakDownStackedColumn_TargetDecoy(ResultType.Peptide, isTopDown, false, out width);
             var peptideOutPath = Path.Combine(allResults.GetChimeraPaperFigureDirectory(),
                 $"AllResults_{FileIdentifiers.ChimeraBreakdownTargetDecoy}_{pepLabel}");
-            peptideChart.SavePNG(peptideOutPath, null, width, PlotlyBase.DefaultHeight);
+            PlotlyBase.ExportFigure(peptideChart, peptideOutPath, width, PlotlyBase.DefaultHeight);
         }
 
         #region Spectral Similarity
@@ -289,7 +289,7 @@ namespace Analyzer.Plotting.ComparativePlots
                 .WithSize(1000, 800)
                 .WithLayout(PlotlyBase.DefaultLayout);
             string outpath = Path.Combine(allResults.GetChimeraPaperFigureDirectory(), $"AllResults_{FileIdentifiers.SpectralAngleFigure}_Stacked");
-            chart.SavePNG(outpath, null, 1000, 800);
+            PlotlyBase.ExportFigure(chart, outpath, PlotlyBase.DefaultWideExportWidth, PlotlyBase.DefaultExportHeight);
         }
 
         public static void PlotAggregatedSpectralSimilarity(this AllResults allResults)
@@ -310,7 +310,7 @@ namespace Analyzer.Plotting.ComparativePlots
                 .WithSize(1000, 600);
             string outpath = Path.Combine(allResults.GetChimeraPaperFigureDirectory(),
                 $"AllResults_{FileIdentifiers.SpectralAngleFigure}_Aggregated");
-            violin.SavePNG(outpath);
+            PlotlyBase.ExportFigure(violin, outpath, PlotlyBase.DefaultWideExportWidth, PlotlyBase.DefaultExportHeight);
         }
 
         #endregion
@@ -352,7 +352,7 @@ namespace Analyzer.Plotting.ComparativePlots
 
 
             string outpath = Path.Combine(allResults.GetChimeraPaperFigureDirectory(), $"AllResults_{FileIdentifiers.ChronologerFigure}_Aggregated");
-            chronologerPlot.SavePNG(outpath, ExportEngine.PuppeteerSharp, 1000, 600);
+            PlotlyBase.ExportFigure(chronologerPlot, outpath, 1000, 600);
 
             var ssrCalcPlot = Chart.Combine(new[]
                 {
@@ -371,7 +371,7 @@ namespace Analyzer.Plotting.ComparativePlots
                 .WithLayout(PlotlyBase.DefaultLayoutWithLegend)
                 .WithSize(1000, 600);
             outpath = Path.Combine(allResults.GetChimeraPaperFigureDirectory(), $"AllResults_{FileIdentifiers.SSRCalcFigure}_Aggregated");
-            ssrCalcPlot.SavePNG(outpath, null, 1000, 600);
+            PlotlyBase.ExportFigure(ssrCalcPlot, outpath, 1000, 600);
         }
 
         // too big to export
@@ -388,7 +388,7 @@ namespace Analyzer.Plotting.ComparativePlots
                 .WithYAxisStyle(Title.init("Chronologer Prediction"))
                 .WithLayout(PlotlyBase.DefaultLayoutWithLegend);
             string outpath = Path.Combine(allResults.GetChimeraPaperFigureDirectory(), $"AllResults_{FileIdentifiers.ChronologerFigure}_Stacked");
-            chronologer.SavePNG(outpath, ExportEngine.PuppeteerSharp, 1000, 400 * results.Count());
+            PlotlyBase.ExportFigure(chronologer, outpath, 1000, 400 * results.Count());
 
             var ssrCalc = Chart.Grid(results.Select(p => p.SSRCalc3),
                     results.Count(), 1, Pattern: StyleParam.LayoutGridPattern.Independent, YGap: 0.2)
@@ -398,7 +398,7 @@ namespace Analyzer.Plotting.ComparativePlots
                 .WithYAxisStyle(Title.init("SSRCalc3 Prediction"))
                 .WithLayout(PlotlyBase.DefaultLayoutWithLegend);
             outpath = Path.Combine(allResults.GetChimeraPaperFigureDirectory(), $"AllResults_{FileIdentifiers.SSRCalcFigure}_Stacked");
-            ssrCalc.SavePNG(outpath, null, 1000, 400 * results.Count());
+            PlotlyBase.ExportFigure(ssrCalc, outpath, 1000, 400 * results.Count());
         }
 
 
@@ -469,7 +469,7 @@ namespace Analyzer.Plotting.ComparativePlots
             var outpath = Path.Combine(allResults.GetChimeraPaperFigureDirectory(), $"AllResults_{FileIdentifiers.ChronologerFigureACN}");
             try
             {
-                chronologerPlot.SavePNG(outpath, null, 1000, 400);
+                PlotlyBase.ExportFigure(chronologerPlot, outpath, 1000, 400);
             }
             catch (TimeoutException)
             {
@@ -500,7 +500,7 @@ namespace Analyzer.Plotting.ComparativePlots
                 .WithLayout(PlotlyBase.DefaultLayoutWithLegend)
                 .WithSize(1000, 600);
             string outpath = Path.Combine(allResults.GetChimeraPaperFigureDirectory(), $"AllResults_{FileIdentifiers.ChronologerDeltaKdeFigure}_KernelDensity_RT");
-            chart.SavePNG(outpath, null, 1000, 600);
+            PlotlyBase.ExportFigure(chart, outpath, 1000, 600);
         }
 
         public static void PlotGridChronologerDeltaPlotKernalPDF(this AllResults allResults)
@@ -516,7 +516,7 @@ namespace Analyzer.Plotting.ComparativePlots
                 .WithLayout(PlotlyBase.DefaultLayout)
                 .WithLegend(false);
             string outpath = Path.Combine(allResults.GetChimeraPaperFigureDirectory(), $"AllResults_{FileIdentifiers.ChronologerDeltaKdeFigure}_Grid_RT");
-            chart.SavePNG(outpath, null, 1000, 1000);
+            PlotlyBase.ExportFigure(chart, outpath, PlotlyBase.DefaultSquareExportSize, PlotlyBase.DefaultSquareExportSize);
         }
 
         public static void PlotBulkCzePredictions(this AllResults allResults)
@@ -568,7 +568,7 @@ namespace Analyzer.Plotting.ComparativePlots
                 .WithSize(1000, 600);
 
             string outpath = Path.Combine(allResults.GetChimeraPaperFigureDirectory(), $"AllResults_{FileIdentifiers.CzeMigrationTime}_Aggregated");
-            chart.SavePNG(outpath, null, 1000, 600);
+            PlotlyBase.ExportFigure(chart, outpath, 1000, 600);
         }
 
         public static void PlotGridCzeDeltaKernelPDF(this AllResults allResults)
@@ -583,7 +583,7 @@ namespace Analyzer.Plotting.ComparativePlots
                 .WithLayout(PlotlyBase.DefaultLayout)
                 .WithLegend(false);
             string outpath = Path.Combine(allResults.GetChimeraPaperFigureDirectory(), $"AllResults_{FileIdentifiers.CzeDeltaKdeFigure}_Grid_RT");
-            chart.SavePNG(outpath, null, 1000, 1000);
+            PlotlyBase.ExportFigure(chart, outpath, PlotlyBase.DefaultSquareExportSize, PlotlyBase.DefaultSquareExportSize);
         }
 
 

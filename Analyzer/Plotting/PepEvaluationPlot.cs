@@ -3,6 +3,7 @@ using Chart = Plotly.NET.CSharp.Chart;
 using Plotly.NET;
 using Plotly.NET.ImageExport;
 using GenericChartExtensions = Plotly.NET.GenericChartExtensions;
+using Plotting.Util;
 
 namespace Analyzer.Plotting
 {
@@ -67,7 +68,7 @@ namespace Analyzer.Plotting
         {
             try
             {
-                PepChart.SavePNG(path, null, exportWidth, exportHeight);
+                PlotlyBase.ExportFigure(PepChart, path, exportWidth, exportHeight);
             }
             catch (Exception e)
             {

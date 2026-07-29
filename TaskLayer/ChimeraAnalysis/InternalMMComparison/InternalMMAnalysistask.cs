@@ -886,7 +886,7 @@ namespace TaskLayer.ChimeraAnalysis
                 .WithLayout(PlotlyBase.DefaultLayoutWithLegendLargererText);
             //var psmPlot = GenericPlots.BulkResultBarChart(resultsToPlot, isTopDown, ResultType.Psm);
             var psmOutName = Path.Combine(BulkFigureDirectory, $"{Version}_InternalComparison_Psm");
-            psmPlot.SaveJPG(psmOutName, null, 1000, 800);
+            ExportLocators.TryAllTheExports(psmPlot, psmOutName, 1600, 1200);
 
             var peptidePlot = Chart.Combine(peptideCharts)
                 .WithTitle($"1% FDR {Labels.GetLabel(isTopDown, ResultType.Peptide)}", Plotly.NET.Font.init(Size: PlotlyBase.TitleSize))
@@ -895,7 +895,7 @@ namespace TaskLayer.ChimeraAnalysis
                 .WithLayout(PlotlyBase.DefaultLayoutWithLegendLargererText);
             //var peptidePlot = GenericPlots.BulkResultBarChart(resultsToPlot, isTopDown, ResultType.Peptide);
             var peptideOutName = Path.Combine(BulkFigureDirectory, $"{Version}_InternalComparison_Peptide");
-            peptidePlot.SaveJPG(peptideOutName, null, 1000, 800);
+            ExportLocators.TryAllTheExports(peptidePlot, peptideOutName, 1600, 1200);
 
             var proteinPlot = Chart.Combine(proteinCharts)
                 .WithTitle($"1% FDR {Labels.GetLabel(isTopDown, ResultType.Protein)}", Plotly.NET.Font.init(Size: PlotlyBase.TitleSize))
@@ -904,7 +904,7 @@ namespace TaskLayer.ChimeraAnalysis
                 .WithLayout(PlotlyBase.DefaultLayoutWithLegendLargererText);
             //var proteinPlot = GenericPlots.BulkResultBarChart(resultsToPlot, isTopDown, ResultType.Protein);
             var proteinOutName = Path.Combine(BulkFigureDirectory, $"{Version}_InternalComparison_Protein");
-            proteinPlot.SaveJPG(proteinOutName, null, 1000, 800);
+            ExportLocators.TryAllTheExports(proteinPlot, proteinOutName, 1600, 1200);
         }
 
         public static void PlotChimeraBreakdownBarChart(List<MetaMorpheusResult> results)
@@ -969,7 +969,7 @@ namespace TaskLayer.ChimeraAnalysis
                 .WithTitle($"1% {Labels.GetLabel(isTopDown, resultType)} Features Per Isolation Window", Plotly.NET.Font.init(Size: PlotlyBase.TitleSize))
                 .WithLayout(PlotlyBase.DefaultLayoutWithLegendLargerText);
             var outname = $"{Version}_SpectrumSummary_FeatureCount_{Labels.GetLabel(isTopDown, resultType)}_Histogram";
-            hist.SaveJPG(Path.Combine(BulkFigureDirectory, outname), null, 800, 600);
+            ExportLocators.TryAllTheExports(hist, Path.Combine(BulkFigureDirectory, outname), 1400, 1000);
 
 
 
@@ -990,7 +990,7 @@ namespace TaskLayer.ChimeraAnalysis
                 .WithTitle($"1% {Labels.GetLabel(isTopDown, resultType)} Features Per Isolation Window", Plotly.NET.Font.init(Size: PlotlyBase.TitleSize))
                 .WithLayout(PlotlyBase.DefaultLayoutWithLegendLargerText);
             outname = $"{Version}_SpectrumSummary_FeatureCount_{Labels.GetLabel(isTopDown, resultType)}_Histogram";
-            hist.SaveJPG(Path.Combine(BulkFigureDirectory, outname), null, 800, 600);
+            ExportLocators.TryAllTheExports(hist, Path.Combine(BulkFigureDirectory, outname), 1400, 1000);
         }
 
         public static void PlotFractionalIntensityPlots(List<MetaMorpheusResult> results)
@@ -1224,7 +1224,7 @@ namespace TaskLayer.ChimeraAnalysis
                 //outName =
                 //    $"FdrAnalysis_{Labels.GetLabel(isTopDown, ResultType.Peptide)}_{FileIdentifiers.SpectralAngleFigure}_KernelDensity";
                 //outPath = Path.Combine(figDir, outName);
-                //peptidePlot.SaveJPG(outPath, null, 1000, 800);
+                //PlotlyBase.ExportFigure(peptidePlot, outPath, 1000, 800);
 
                 peptidePlot = Chart.Combine(new[]
                     {
@@ -1280,7 +1280,7 @@ namespace TaskLayer.ChimeraAnalysis
                 //outName =
                 //    $"FdrAnalysis_{Labels.GetLabel(isTopDown, ResultType.Psm)}_{FileIdentifiers.SpectralAngleFigure}_KernelDensity";
                 //outPath = Path.Combine(figDir, outName);
-                //psmPlot.SaveJPG(outPath, null, 1000, 800);
+                //PlotlyBase.ExportFigure(psmPlot, outPath, 1000, 800);
 
                 psmPlot = Chart.Combine(new[]
                     {
@@ -1305,32 +1305,11 @@ namespace TaskLayer.ChimeraAnalysis
             outDir ??= BulkFigureDirectory;
             try
             {
-                chart.SavePNG(Path.Combine(outDir, outName), null, width, height);
+                ExportLocators.TryAllTheExports(chart, Path.Combine(outDir, outName), width, height);
             }
-            catch
+            catch (Exception e)
             {
-                try
-                {
-                    chart.SaveJPG(Path.Combine(outDir, outName), null, width, height);
-                }
-                catch
-                {
-                    try
-                    {
-                        chart.SaveSVG(Path.Combine(outDir, outName), null, width, height);
-                    }
-                    catch
-                    {
-                        try
-                        {
-                            Plotly.NET.CSharp.GenericChartExtensions.SaveHtml(chart, Path.Combine(outDir, outName), false);
-                        }
-                        catch (Exception e)
-                        {
-                            Console.WriteLine($"Idk man, we tried them all {Labels.GetLabel(isTopDown, resultType)}: {e}");
-                        }
-                    }
-                }
+                Console.WriteLine($"Idk man, we tried them all {Labels.GetLabel(isTopDown, resultType)}: {e}");
             }
         }
     }

@@ -55,35 +55,7 @@ namespace Analyzer.Plotting.Util
 
         public static void TryAllTheExports(GenericChart.GenericChart chart, string outPath, int? width, int? height)
         {
-            try
-            {
-                chart.SavePNG(outPath, null, width, height);
-            }
-            catch
-            {
-                try
-                {
-                    chart.SaveJPG(outPath, null, width, height);
-                }
-                catch
-                {
-                    try
-                    {
-                        chart.SaveSVG(outPath, null, width, height);
-                    }
-                    catch
-                    {
-                        try
-                        {
-                            Plotly.NET.CSharp.GenericChartExtensions.SaveHtml(chart, outPath, false);
-                        }
-                        catch (Exception e)
-                        {
-                            Console.WriteLine($"Idk man, we tried them all to {outPath}: {e}");
-                        }
-                    }
-                }
-            }
+            PlotlyBase.ExportFigure(chart, outPath, width, height);
         }
 
         #endregion
@@ -94,7 +66,7 @@ namespace Analyzer.Plotting.Util
             string exportName, int? width = null, int? height = null)
         {
             var mann11Directory = cellLine.GetChimeraPaperFigureDirectory();
-            chart.SavePNG(Path.Combine(mann11Directory, exportName), null, width, height);
+            TryAllTheExports(chart, Path.Combine(mann11Directory, exportName), width, height);
         }
 
         public static void SaveInCellLineAndMann11Directories(this GenericChart.GenericChart chart, CellLineResults cellLine, string exportName,

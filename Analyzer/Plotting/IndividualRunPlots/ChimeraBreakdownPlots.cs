@@ -57,7 +57,7 @@ namespace Analyzer.Plotting.IndividualRunPlots
                 .WithSize(1000, 1000)
                 .WithTitle($"{selectedCondition} PSMs Target Decoy: QValue Filtered {qValueFiltered.Count} | PEP QValue Filtered {pepQValueFiltered.Count}");
             string psmChartOutPath = Path.Combine(outputDir, $"PSMs_Target_Decoy_{selectedCondition}");
-            psmChart.SavePNG(psmChartOutPath, null, 1000, 1000);
+            PlotlyBase.ExportFigure(psmChart, psmChartOutPath, PlotlyBase.DefaultSquareExportSize, PlotlyBase.DefaultSquareExportSize);
 
             var proteoformChart = Chart.Grid(new List<GenericChart.GenericChart>()
             {
@@ -79,7 +79,7 @@ namespace Analyzer.Plotting.IndividualRunPlots
             .WithSize(1000, 1000)
             .WithTitle($"{selectedCondition} Proteoforms Target Decoy: QValue Filtered {qValueFilteredProteoforms.Count} | PEP QValue Filtered {pepQValueFilteredProteoforms.Count}");
             string proteoformChartOutPath = Path.Combine(outputDir, $"Proteoforms_Target_Decoy_{selectedCondition}");
-            proteoformChart.SavePNG(proteoformChartOutPath, null, 1000, 1000);
+            PlotlyBase.ExportFigure(proteoformChart, proteoformChartOutPath, PlotlyBase.DefaultSquareExportSize, PlotlyBase.DefaultSquareExportSize);
         }
 
         public static void PlotChimeraBreakDownStackedColumn(this IChimeraBreakdownCompatible result, ResultType resultType)

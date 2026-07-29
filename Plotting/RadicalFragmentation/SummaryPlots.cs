@@ -79,7 +79,7 @@ namespace Plotting.RadicalFragmentation
                     Directory.CreateDirectory(outDir);
                 var chart = summaryRecords.GetCumulativeFragmentsNeededChart(type, ambigLevel, tolerance, missedMono, outlinedMarkers);
                 var outPath = Path.Combine(outDir, $"{GetLabel(type, missedMono, tolerance)}_{GetAmbigLabel(ambigLevel)}_CumulativeFragmentsNeeded");
-                chart.SavePNG(outPath, null, width, height);
+                PlotlyBase.ExportFigure(chart, outPath, width, height);
             }
             catch (Exception ex)
             {
@@ -98,7 +98,7 @@ namespace Plotting.RadicalFragmentation
                     Directory.CreateDirectory(outDir);
                 var chart = summaryRecords.MinFragmentsNeededHist(type, out int maxVal, ambigLevel, tolerance, missedMono);
                 var outPath = Path.Combine(outDir, $"{GetLabel(type, missedMono, tolerance)}_{GetAmbigLabel(ambigLevel)}_MinFragmentsNeededHist");
-                chart.SavePNG(outPath, null, width, height);
+                PlotlyBase.ExportFigure(chart, outPath, width, height);
             }
             catch (Exception ex)
             {
@@ -117,7 +117,7 @@ namespace Plotting.RadicalFragmentation
                     Directory.CreateDirectory(outDir);
                 var chart = summaryRecords.GetHybridFragmentNeededChart(type, ambigLevel, tolerance, missedMono);
                 var outPath = Path.Combine(outDir, $"{GetLabel(type, missedMono, tolerance)}_{GetAmbigLabel(ambigLevel)}_HybridFragmentNeeded");
-                chart.SavePNG(outPath, null, width, height);
+                PlotlyBase.ExportFigure(chart, outPath, width, height);
             }
             catch (Exception ex)
             {
@@ -136,7 +136,7 @@ namespace Plotting.RadicalFragmentation
                     Directory.CreateDirectory(outDir);
                 var chart = summaryRecords.GetUniqueFragmentHist(type);
                 var outPath = Path.Combine(outDir, $"{type}_UniqueFragmentsHistogram");
-                chart.SavePNG(outPath, null, width, height);
+                PlotlyBase.ExportFigure(chart, outPath, width, height);
             }
             catch (Exception ex)
             {
@@ -155,7 +155,7 @@ namespace Plotting.RadicalFragmentation
                     Directory.CreateDirectory(outDir);
                 var chart = summaryRecords.GetPrecursorCompetitionHistogram(type, ambigLevel, tolerance, missedMono);
                 var outPath = Path.Combine(outDir, $"All_{GetAmbigLabel(ambigLevel)}_PrecursorCompetition");
-                chart.SavePNG(outPath, null, width, height);
+                PlotlyBase.ExportFigure(chart, outPath, width, height);
             }
             catch (Exception ex)
             {
@@ -174,7 +174,7 @@ namespace Plotting.RadicalFragmentation
                     Directory.CreateDirectory(outDir);
                 var chart = summaryRecords.GetMissedMonoCumulativeChart(type, ambigLevel, tolerance);
                 var outPath = Path.Combine(outDir, $"{GetLabel(type, 0, tolerance)}_{GetAmbigLabel(ambigLevel)}_MissedMonoCumulative");
-                chart.SavePNG(outPath, null, width, height);
+                PlotlyBase.ExportFigure(chart, outPath, width, height);
             }
             catch (Exception ex)
             {
@@ -195,7 +195,7 @@ namespace Plotting.RadicalFragmentation
 
                 string variableLabel = doLog ? "" : "Absolute";
                 var outPath = Path.Combine(outDir, $"{GetLabel(type, 0, tolerance)}_{GetAmbigLabel(ambigLevel)}_MinFragmentsNeededByMissedMono_{variableLabel}Hist");
-                chart.SavePNG(outPath, null, width, height);
+                PlotlyBase.ExportFigure(chart, outPath, width, height);
             }
             catch (Exception ex)
             {
@@ -214,7 +214,7 @@ namespace Plotting.RadicalFragmentation
                     Directory.CreateDirectory(outDir);
                 var chart = summaryRecords.GetPrecursorCompetitionHistogram(type, ambigLevel, tolerance, -1);
                 var outPath = Path.Combine(outDir, $"All_{GetAmbigLabel(ambigLevel)}_PrecursorCompetition_MissedMono");
-                chart.SavePNG(outPath, null, width, height);
+                PlotlyBase.ExportFigure(chart, outPath, width, height);
             }
             catch (Exception ex)
             {
@@ -233,7 +233,7 @@ namespace Plotting.RadicalFragmentation
                     Directory.CreateDirectory(outDir);
                 var chart = summaryRecords.GetToleranceCumulativeChart(type, ambigLevel, missedMono);
                 var outPath = Path.Combine(outDir, $"{GetLabel(type, 0, 10)}_{GetAmbigLabel(ambigLevel)}_ToleranceCumulative");
-                chart.SavePNG(outPath, null, width, height);
+                PlotlyBase.ExportFigure(chart, outPath, width, height);
             }
             catch (Exception ex)
             {
@@ -253,7 +253,7 @@ namespace Plotting.RadicalFragmentation
                 var chart = summaryRecords.GetToleranceFragmentsNeededHist(type, ambigLevel, missedMono, doLog);
                 string variableLabel = doLog ? "" : "Absolute";
                 var outPath = Path.Combine(outDir, $"{GetLabel(type, 0, 10)}_{GetAmbigLabel(ambigLevel)}_MinFragmentsNeededByTolerance_{variableLabel}Hist");
-                chart.SavePNG(outPath, null, width, height);
+                PlotlyBase.ExportFigure(chart, outPath, width, height);
             }
             catch (Exception ex)
             {
@@ -272,7 +272,7 @@ namespace Plotting.RadicalFragmentation
                     Directory.CreateDirectory(outDir);
                 var chart = summaryRecords.GetPrecursorCompetitionHistogram(type, ambigLevel, -1, missedMono);
                 var outPath = Path.Combine(outDir, $"All_{GetAmbigLabel(ambigLevel)}_PrecursorCompetition_Tolerance");
-                chart.SavePNG(outPath, null, width, height);
+                PlotlyBase.ExportFigure(chart, outPath, width, height);
             }
             catch (Exception ex)
             {

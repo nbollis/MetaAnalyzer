@@ -243,7 +243,7 @@ namespace Test.ChimeraPaper
             //InternalMetaMorpheusAnalysisTask.PlotFractionalIntensityPlots(mmResults);
             var plot = cellLine.SelectMany(p => p.ToPsmProformaFile().Results).ToList().GetModificationDistribution(true, false, false);
             var outPath = Path.Combine(cellLine.FigureDirectory, "ModificationDistribution_Psm.png");
-            plot.SavePNG(outPath, null, 1200, 800);
+            PlotlyBase.ExportFigure(plot, outPath, 1200, 800);
 
         }
 
@@ -499,28 +499,28 @@ namespace Test.ChimeraPaper
 
             var plot = file.Results.GetChimeraBreakdownStackedColumn_Scaled(ResultType.Psm, true);
             var outPath = Path.Combine(dirpath, "Figures", "ChimeraBreakdown_Psms_Scaled");
-            plot.SavePNG(outPath, null, 1200, 1200);
+            PlotlyBase.ExportFigure(plot, outPath, 1200, 1200);
 
             plot = file.Results.GetChimeraBreakDownStackedArea(ResultType.Psm, true, out int width);
             outPath = Path.Combine(dirpath, "Figures", "ChimeraBreakdown_Psms_Area");
-            plot.SavePNG(outPath, null, 1200, 1200);
+            PlotlyBase.ExportFigure(plot, outPath, 1200, 1200);
 
             plot = file.Results.GetChimeraBreakDownStackedColumn(ResultType.Psm, true, out width);
             outPath = Path.Combine(dirpath, "Figures", "ChimeraBreakdown_Psms");
-            plot.SavePNG(outPath, null, 1200, 1200);
+            PlotlyBase.ExportFigure(plot, outPath, 1200, 1200);
 
 
             plot = file.Results.GetChimeraBreakdownStackedColumn_Scaled(ResultType.Peptide, true);
             outPath = Path.Combine(dirpath, "Figures", "ChimeraBreakdown_Peptides_Scaled");
-            plot.SavePNG(outPath, null, 1200, 1200);
+            PlotlyBase.ExportFigure(plot, outPath, 1200, 1200);
 
             plot = file.Results.GetChimeraBreakDownStackedArea(ResultType.Peptide, true, out width);
             outPath = Path.Combine(dirpath, "Figures", "ChimeraBreakdown_Peptides_Area");
-            plot.SavePNG(outPath, null, 1200, 1200);
+            PlotlyBase.ExportFigure(plot, outPath, 1200, 1200);
 
             plot = file.Results.GetChimeraBreakDownStackedColumn(ResultType.Peptide, true, out width);
             outPath = Path.Combine(dirpath, "Figures", "ChimeraBreakdown_Peptides");
-            plot.SavePNG(outPath, null, 1200, 1200);
+            PlotlyBase.ExportFigure(plot, outPath, 1200, 1200);
         }
 
         [Test]

@@ -1,5 +1,6 @@
 ﻿using Plotly.NET.LayoutObjects;
 using Plotly.NET;
+using Plotly.NET.ImageExport;
 
 namespace Plotting.Util
 {
@@ -8,9 +9,44 @@ namespace Plotting.Util
         public static readonly int TitleSize = 32;
         public static readonly int AxisTitleFontSize = 28;
 
+        public static readonly int DefaultExportWidth = 1600;
+        public static readonly int DefaultExportHeight = 1200;
+        public static readonly int DefaultSquareExportSize = 1400;
+        public static readonly int DefaultWideExportWidth = 1800;
+        public static readonly int DefaultWideExportHeight = 1200;
+
         public static int DefaultHeight = 600;
         public static Layout DefaultLayout =>
             Layout.init<string>(PaperBGColor: Color.fromKeyword(ColorKeyword.White), PlotBGColor: Color.fromKeyword(ColorKeyword.White));
+
+        public static void ExportFigure(GenericChart.GenericChart chart, string outPath, int? width = null, int? height = null)
+        {
+            int exportWidth = width ?? DefaultExportWidth;
+            int exportHeight = height ?? DefaultExportHeight;
+
+            try
+            {
+                chart.SavePNG(outPath, ExportEngine.PuppeteerSharp, exportWidth, exportHeight);
+            }
+            catch
+            {
+                try
+                {
+                    chart.SaveSVG(outPath, ExportEngine.PuppeteerSharp, exportWidth, exportHeight);
+                }
+                catch
+                {
+                    try
+                    {
+                        chart.SaveJPG(outPath, ExportEngine.PuppeteerSharp, exportWidth, exportHeight);
+                    }
+                    catch
+                    {
+                        Plotly.NET.CSharp.GenericChartExtensions.SaveHtml(chart, outPath, false);
+                    }
+                }
+            }
+        }
 
         public static Legend DefaultLegend => Legend.init(X: 0.5, Y: -0.1, Orientation: StyleParam.Orientation.Horizontal, EntryWidth: 0,
             VerticalAlign: StyleParam.VerticalAlign.Bottom,

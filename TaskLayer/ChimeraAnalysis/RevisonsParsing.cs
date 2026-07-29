@@ -369,7 +369,7 @@ public class RevisionsParsingTask : BaseResultAnalyzerTask
             .WithLayout(PlotlyBase.DefaultLayout);
 
         var overviewGridPath = Path.Combine(outputDir, "MixedSpeciesRevisions_Chimera_OverviewGrid_PSM");
-        overviewGrid.SavePNG(overviewGridPath, null, 2000, 1400);
+        PlotlyBase.ExportFigure(overviewGrid, overviewGridPath, 2000, 1400);
         Log($"Overview grid saved: {overviewGridPath}");
 
         // ── 10b. Emit the 15-row machine-readable panel-layout TSV ────────
@@ -468,7 +468,7 @@ public class RevisionsParsingTask : BaseResultAnalyzerTask
         var chart = ChimeraBreakdownPlots.GetChimeraBreakDownStackedColumn(
             records, ResultType.Psm, isTopDown: false, out int width, extraTitle: title);
 
-        chart.WithTitle(title).SavePNG(filePathNoExt, null, width, PlotlyBase.DefaultHeight);
+        PlotlyBase.ExportFigure(chart.WithTitle(title), filePathNoExt, width, PlotlyBase.DefaultHeight);
     }
 
     /// <summary>
@@ -503,7 +503,7 @@ public class RevisionsParsingTask : BaseResultAnalyzerTask
             .WithLayout(PlotlyBase.DefaultLayoutWithLegend)
             .WithSize(width, PlotlyBase.DefaultHeight);
 
-        chart.SavePNG(filePathNoExt, null, width, PlotlyBase.DefaultHeight);
+        PlotlyBase.ExportFigure(chart, filePathNoExt, width, PlotlyBase.DefaultHeight);
         Log($"{resultType} count chart saved: {filePathNoExt}");
     }
 

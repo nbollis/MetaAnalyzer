@@ -26,7 +26,7 @@ namespace Plotting.GradientDevelopment
                 var path = Path.Combine(outDir,
                             $"{FileIdentifiers.GradientFigure}_{run.DataFileName}_{run.Gradient.Name}");
 
-                plot.SavePNG(path, null, 1200, 700);
+                PlotlyBase.ExportFigure(plot, path, PlotlyBase.DefaultWideExportWidth, 700);
             }
         }
 

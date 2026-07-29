@@ -89,7 +89,7 @@ public class DatabaseMassPlots
             .WithLayout(PlotlyBase.DefaultLayoutWithLegend)
             .WithSize(1000, 600);
         var peptidePlotPath = Path.Combine(OutputDirectory, "MassHistogram_Peptides");
-        histCombinedPeptides.SavePNG(peptidePlotPath, null, 1000, 600);
+        PlotlyBase.ExportFigure(histCombinedPeptides, peptidePlotPath, 1000, 600);
 
         var histCombinedProteins = Chart.Combine(new[]
                 { proteoformPlot, proteinPlot })
@@ -100,7 +100,7 @@ public class DatabaseMassPlots
             .WithLayout(PlotlyBase.DefaultLayoutWithLegend)
             .WithSize(1000, 600);
         var proteinPlotPath = Path.Combine(OutputDirectory, "MassHistogram_Proteins");
-        histCombinedProteins.SavePNG(proteinPlotPath, null, 1000, 600);
+        PlotlyBase.ExportFigure(histCombinedProteins, proteinPlotPath, 1000, 600);
 
 
         peptidePlot = GenericPlots.Histogram(peptideMasses, "Peptide", "Neutral Mass (Da)", "Count");
@@ -118,7 +118,7 @@ public class DatabaseMassPlots
             .WithLayout(PlotlyBase.DefaultLayoutWithLegend)
             .WithSize(1000, 600);
         var logPeptidePlotPath = Path.Combine(OutputDirectory, "MassLogHistogram_Peptides");
-        histCombinedPeptides.SavePNG(logPeptidePlotPath, null, 1000, 600);
+        PlotlyBase.ExportFigure(histCombinedPeptides, logPeptidePlotPath, 1000, 600);
 
         histCombinedProteins = Chart.Combine(new[]
                 { proteoformPlot, proteinPlot })
@@ -130,7 +130,7 @@ public class DatabaseMassPlots
             .WithLayout(PlotlyBase.DefaultLayoutWithLegend)
             .WithSize(1000, 600);
         var logProteinPlotPath = Path.Combine(OutputDirectory, "MassLogHistogram_Proteins");
-        histCombinedProteins.SavePNG(logProteinPlotPath, null, 1000, 600);
+        PlotlyBase.ExportFigure(histCombinedProteins, logProteinPlotPath, 1000, 600);
 
 
         peptidePlot = GenericPlots.Histogram(peptideMasses.Select(p => Math.Log(p, 10)).ToList(), "Peptide", "Neutral Mass (Da)", "Count");
@@ -146,7 +146,7 @@ public class DatabaseMassPlots
             .WithLayout(PlotlyBase.DefaultLayoutWithLegend)
             .WithSize(1000, 600);
         var logNeutralPeptidePlotPath = Path.Combine(OutputDirectory, "LogMassHistogram_Peptides");
-        histCombinedPeptides.SavePNG(logNeutralPeptidePlotPath, null, 1000, 600);
+        PlotlyBase.ExportFigure(histCombinedPeptides, logNeutralPeptidePlotPath, 1000, 600);
 
         histCombinedProteins = Chart.Combine(new[]
                 { proteoformPlot, proteinPlot })
@@ -157,7 +157,7 @@ public class DatabaseMassPlots
             .WithLayout(PlotlyBase.DefaultLayoutWithLegend)
             .WithSize(1000, 600);
         var logNeutralProteinPlotPath = Path.Combine(OutputDirectory, "LogMassHistogram_Proteins");
-        histCombinedProteins.SavePNG(logNeutralProteinPlotPath, null, 1000, 600);
+        PlotlyBase.ExportFigure(histCombinedProteins, logNeutralProteinPlotPath, 1000, 600);
 
 
         histCombinedPeptides = Chart.Combine(new[]
@@ -169,7 +169,7 @@ public class DatabaseMassPlots
             .WithLayout(PlotlyBase.DefaultLayoutWithLegend)
             .WithSize(1000, 600);
         logNeutralPeptidePlotPath = Path.Combine(OutputDirectory, "LogMassLogHistogram_Peptides");
-        histCombinedPeptides.SavePNG(logNeutralPeptidePlotPath, null, 1000, 600);
+        PlotlyBase.ExportFigure(histCombinedPeptides, logNeutralPeptidePlotPath, 1000, 600);
 
         histCombinedProteins = Chart.Combine(new[]
                 { proteoformPlot, proteinPlot })
@@ -181,7 +181,7 @@ public class DatabaseMassPlots
             .WithLayout(PlotlyBase.DefaultLayoutWithLegend)
             .WithSize(1000, 600);
         logNeutralProteinPlotPath = Path.Combine(OutputDirectory, "LogMassLogHistogram_Proteins");
-        histCombinedProteins.SavePNG(logNeutralProteinPlotPath, null, 1000, 600);
+        PlotlyBase.ExportFigure(histCombinedProteins, logNeutralProteinPlotPath, 1000, 600);
 
         return histCombinedProteins;
     }

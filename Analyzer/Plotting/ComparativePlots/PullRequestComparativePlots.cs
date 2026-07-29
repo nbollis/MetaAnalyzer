@@ -216,14 +216,14 @@ namespace Analyzer.Plotting.ComparativePlots
                 .WithLegend(false)
                 .WithYAxisStyle(Title.init("PSM Count", Side: StyleParam.Side.Left))
                 .WithXAxisStyle(Title.init("Task Ran", Side: StyleParam.Side.Bottom));
-            psmAbsoluteChart.SavePNG(tempPsmPath, null, width, height);
+            PlotlyBase.ExportFigure(psmAbsoluteChart, tempPsmPath, width, height);
 
             var proteoformAbsoluteChart = Chart.Combine(proteoformAbsoluteCharts)
                 .WithLayout(PlotlyBase.DefaultLayoutWithLegend)
                 .WithLegend(true)
                 .WithYAxisStyle(Title.init("Proteoform Count", Side: StyleParam.Side.Left))
                 .WithXAxisStyle(Title.init("Task Ran", Side: StyleParam.Side.Bottom));
-            proteoformAbsoluteChart.SavePNG(tempProteoformPath, null, width, height+300);
+            PlotlyBase.ExportFigure(proteoformAbsoluteChart, tempProteoformPath, width, height + 300);
 
             var psmRelativeChart = Chart.Combine(psmRelativeCharts)
                 .WithLayout(PlotlyBase.DefaultLayout)
@@ -231,7 +231,7 @@ namespace Analyzer.Plotting.ComparativePlots
                 .WithYAxisStyle(Title.init("PSM Target Decoy Ratio", Side: StyleParam.Side.Left))
                 .WithXAxisStyle(Title.init("Task Ran", Side: StyleParam.Side.Bottom))
                 .WithXAxis(LinearAxis.init<string, string, string, string, string, string>(false));
-            psmRelativeChart.SavePNG(tempRelpsmpath, null, width, height);
+            PlotlyBase.ExportFigure(psmRelativeChart, tempRelpsmpath, width, height);
 
             var proteoformRelativeChart = Chart.Combine(proteoformRelativeCharts)
                 .WithLayout(PlotlyBase.DefaultLayout)
@@ -239,7 +239,7 @@ namespace Analyzer.Plotting.ComparativePlots
                 .WithYAxisStyle(Title.init("Proteoform Target Decoy Ratio", Side: StyleParam.Side.Left))
                 .WithXAxisStyle(Title.init("Task Ran", Side: StyleParam.Side.Bottom))
                 .WithXAxis(LinearAxis.init<string, string, string, string, string, string>(false));
-            proteoformRelativeChart.SavePNG(tempRelProteoformPath, null, width, height);
+            PlotlyBase.ExportFigure(proteoformRelativeChart, tempRelProteoformPath, width, height);
 
             tempPsmPath += ".png";
             tempProteoformPath += ".png";

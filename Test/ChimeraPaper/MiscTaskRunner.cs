@@ -417,15 +417,15 @@ namespace Test.ChimeraPaper
 
             var barChart = indFile.GetFileDelimitedPlotsForIsolationWidthStudy(ResultType.Psm, isTopDown, $"{titleLeader}");
             var outpath = Path.Combine(figureDir, $"{outName}_Psm");
-            barChart.SavePNG(outpath, null, widthSq + 1 / 3 * widthSq, heightSq);
+            PlotlyBase.ExportFigure(barChart, outpath, widthSq + 1 / 3 * widthSq, heightSq);
 
             var pepBarChart = indFile.GetFileDelimitedPlotsForIsolationWidthStudy(ResultType.Peptide, isTopDown, $"{titleLeader}");
             var pepOutpath = Path.Combine(figureDir, $"{outName}_Peptide");
-            pepBarChart.SavePNG(pepOutpath, null, widthSq + 1 / 3 * widthSq, heightSq);
+            PlotlyBase.ExportFigure(pepBarChart, pepOutpath, widthSq + 1 / 3 * widthSq, heightSq);
 
             var protBarChart = indFile.GetFileDelimitedPlotsForIsolationWidthStudy(ResultType.Protein, isTopDown, $"{titleLeader}");
             var protOutpath = Path.Combine(figureDir, $"{outName}_Protein");
-            protBarChart.SavePNG(protOutpath, null, widthSq + 1 / 3 * widthSq, heightSq);
+            PlotlyBase.ExportFigure(protBarChart, protOutpath, widthSq + 1 / 3 * widthSq, heightSq);
 
             //var breakdown = mm.GetChimeraBreakdownFile();
 
@@ -437,12 +437,12 @@ namespace Test.ChimeraPaper
             //        var plot = fileGroupedBreakdown.ToList().GetChimeraBreakdownStackedColumn_Scaled(ResultType.Psm)
             //            .WithSize(600, 600);
             //        var outPath = Path.Combine(mm.FigureDirectory, $"ChimeraBreakdown_PSM_{fileGroupedBreakdown.Key}.png");
-            //        plot.SavePNG(outPath, null, widthSq, heightSq);
+            //        PlotlyBase.ExportFigure(plot, outPath, widthSq, heightSq);
 
             //        var plot2 = fileGroupedBreakdown.ToList().GetChimeraBreakdownStackedColumn_Scaled(ResultType.Peptide)
             //            .WithSize(600, 600);
             //        var outPath2 = Path.Combine(mm.FigureDirectory, $"ChimeraBreakdown_Peptide_{fileGroupedBreakdown.Key}.png");
-            //        plot2.SavePNG(outPath2, null, widthSq, heightSq);
+            //        PlotlyBase.ExportFigure(plot2, outPath2, widthSq, heightSq);
             //    }
 
             //    // Target Decoy
@@ -451,22 +451,22 @@ namespace Test.ChimeraPaper
             //        var psmTD = fileGroupedBreakdown.ToList()
             //            .GetChimeraBreakDownStackedColumn_TargetDecoy(ResultType.Psm, false, true, out int width);
             //        var psmTDPath = Path.Combine(mm.FigureDirectory, $"ChimeraBreakdown_TD_Absolute_PSM_{fileGroupedBreakdown.Key}.png");
-            //        psmTD.SavePNG(psmTDPath, null, widthSq, heightSq);
+            //        PlotlyBase.ExportFigure(psmTD, psmTDPath, widthSq, heightSq);
 
             //        var pepTD = fileGroupedBreakdown.ToList()
             //            .GetChimeraBreakDownStackedColumn_TargetDecoy(ResultType.Peptide, false, true, out width);
             //        var pepTDPath = Path.Combine(mm.FigureDirectory, $"ChimeraBreakdown_TD_Absolute_Peptide_{fileGroupedBreakdown.Key}.png");
-            //        pepTD.SavePNG(pepTDPath, null, widthSq, heightSq);
+            //        PlotlyBase.ExportFigure(pepTD, pepTDPath, widthSq, heightSq);
 
             //        var psmTDNorm = fileGroupedBreakdown.ToList()
             //            .GetChimeraBreakDownStackedColumn_TargetDecoy(ResultType.Psm, true, false, out width);
             //        var psmTDNormPath = Path.Combine(mm.FigureDirectory, $"ChimeraBreakdown_TD_Normalized_PSM_{fileGroupedBreakdown.Key}.png");
-            //        psmTDNorm.SavePNG(psmTDNormPath, null, widthSq, heightSq);
+            //        PlotlyBase.ExportFigure(psmTDNorm, psmTDNormPath, widthSq, heightSq);
 
             //        var pepTDNorm = fileGroupedBreakdown.ToList()
             //            .GetChimeraBreakDownStackedColumn_TargetDecoy(ResultType.Peptide, true, false, out width);
             //        var pepTDNormPath = Path.Combine(mm.FigureDirectory, $"ChimeraBreakdown_TD_Normalized_Peptide_{fileGroupedBreakdown.Key}.png");
-            //        pepTDNorm.SavePNG(pepTDNormPath, null, widthSq, heightSq);
+            //        PlotlyBase.ExportFigure(pepTDNorm, pepTDNormPath, widthSq, heightSq);
             //    }
 
             //    // Mass and Charge
@@ -475,16 +475,16 @@ namespace Test.ChimeraPaper
             //        var psmMassCharge = fileGroupedBreakdown.ToList()
             //            .GetChimeraBreakdownByMassAndCharge(ResultType.Psm, false);
             //        var psmMassPath = Path.Combine(mm.FigureDirectory, $"ChimeraBreakdown_MassBreakdown_PSM_{fileGroupedBreakdown.Key}.png");
-            //        psmMassCharge.Mass.SavePNG(psmMassPath, null, widthSq, heightSq);
+            //        PlotlyBase.ExportFigure(psmMassCharge.Mass, psmMassPath, widthSq, heightSq);
             //        var psmChargePath = Path.Combine(mm.FigureDirectory, $"ChimeraBreakdown_ChargeBreakdown_PSM_{fileGroupedBreakdown.Key}.png");
-            //        psmMassCharge.Charge.SavePNG(psmChargePath, null, widthSq, heightSq);
+            //        PlotlyBase.ExportFigure(psmMassCharge.Charge, psmChargePath, widthSq, heightSq);
 
             //        var pepMassCharge = fileGroupedBreakdown.ToList()
             //            .GetChimeraBreakdownByMassAndCharge(ResultType.Peptide, false);
             //        var pepMassPath = Path.Combine(mm.FigureDirectory, $"ChimeraBreakdown_MassBreakdown_Peptide_{fileGroupedBreakdown.Key}.png");
-            //        pepMassCharge.Mass.SavePNG(pepMassPath, null, widthSq, heightSq);
+            //        PlotlyBase.ExportFigure(pepMassCharge.Mass, pepMassPath, widthSq, heightSq);
             //        var pepChargePath = Path.Combine(mm.FigureDirectory, $"ChimeraBreakdown_ChargeBreakdown_Peptide_{fileGroupedBreakdown.Key}.png");
-            //        pepMassCharge.Charge.SavePNG(pepChargePath, null, widthSq, heightSq);
+            //        PlotlyBase.ExportFigure(pepMassCharge.Charge, pepChargePath, widthSq, heightSq);
             //    }
             //}
         }
@@ -526,13 +526,13 @@ namespace Test.ChimeraPaper
             var peptidePeps = mmResult.AllPeptides.Select(p => p.PEP).ToList();
             var peptideHist = GenericPlots.Histogram(peptidePeps, $"{version} {label} Peptide Histogram", "PEP", "Count");
             string outName = $"Histogram_{version}_{label}_Peptides";
-            peptideHist.SaveJPG(Path.Combine(outDir, outName), null, 600, 400);
+            PlotlyBase.ExportFigure(peptideHist, Path.Combine(outDir, outName), 600, 400);
 
 
             var psmPeps = mmResult.AllPsms.Select(p => p.PEP).ToList();
             var psmHist = GenericPlots.Histogram(psmPeps, $"{version} {label} Psm Histogram", "PEP", "Count");
             outName = $"Histogram_{version}_{label}_Psms";
-            psmHist.SaveJPG(Path.Combine(outDir, outName), null, 600, 400);
+            PlotlyBase.ExportFigure(psmHist, Path.Combine(outDir, outName), 600, 400);
 
 
             var peptideKde = Chart.Combine(new[]
@@ -543,7 +543,7 @@ namespace Test.ChimeraPaper
                     .Select(p => p.PEP).ToList(), "Decoys", "PEP", "Density"),
             }).WithTitle($"{version} {label} Peptides");
             outName = $"KDE_{version}_{label}_Peptides";
-            peptideKde.SaveJPG(Path.Combine(outDir, outName), null, 600, 400);
+            PlotlyBase.ExportFigure(peptideKde, Path.Combine(outDir, outName), 600, 400);
 
             var psmKde = Chart.Combine(new[]
             {
@@ -553,7 +553,7 @@ namespace Test.ChimeraPaper
                     .Select(p => p.PEP).ToList(), "Decoys", "PEP", "Density"),
             }).WithTitle($"{version} {label} Psms");
             outName = $"KDE_{version}_{label}_Psms";
-            psmKde.SaveJPG(Path.Combine(outDir, outName), null, 600, 400);
+            PlotlyBase.ExportFigure(psmKde, Path.Combine(outDir, outName), 600, 400);
 
         }
 

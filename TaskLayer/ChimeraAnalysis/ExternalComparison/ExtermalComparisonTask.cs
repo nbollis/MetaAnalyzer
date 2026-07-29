@@ -203,7 +203,7 @@ namespace TaskLayer.ChimeraAnalysis
             //var allProfomaResults = proformaGroups.SelectMany(p => p.Value.SelectMany(m => m.ToPsmProformaFile().Results)).ToList();
             //var modPlot = allProfomaResults.GetModificationDistribution(isTopDown, false);
             //string modPlotPath = Path.Combine(BulkFigureDirectory, $"{Version}_ModificationDistribution_");
-            //modPlot.SaveJPG(modPlotPath, null, 1600, 800);
+            //PlotlyBase.ExportFigure(modPlot, modPlotPath, 1600, 800);
 
             Log("Creating Protein Counting Files", 1);
             foreach (var cellLineDictEntry in cellLineDict)
@@ -735,15 +735,15 @@ namespace TaskLayer.ChimeraAnalysis
 
             var psmPlot = GetIndividualSummedBarChar(toPlot, ResultType.Psm, isTopDown);
             var outPath = Path.Combine(BulkFigureDirectory, $"{Version}_ResultsByCellLine_Averaged_PSM");
-            psmPlot.SavePNG(outPath, null, 1200, 800);
+            PlotlyBase.ExportFigure(psmPlot, outPath, 1800, 1200);
 
             var peptidePlot = GetIndividualSummedBarChar(toPlot, ResultType.Peptide, isTopDown);
             outPath = Path.Combine(BulkFigureDirectory, $"{Version}_ResultsByCellLine_Averaged_Peptide");
-            peptidePlot.SavePNG(outPath, null, 1200, 800);
+            PlotlyBase.ExportFigure(peptidePlot, outPath, 1800, 1200);
 
             var proteinPlot = GetIndividualSummedBarChar(toPlot, ResultType.Protein, isTopDown);
             outPath = Path.Combine(BulkFigureDirectory, $"{Version}_ResultsByCellLine_Averaged_Protein");
-            proteinPlot.SavePNG(outPath, null, 1200, 800);
+            PlotlyBase.ExportFigure(proteinPlot, outPath, 1800, 1200);
         }
 
         static GenericChart.GenericChart GetIndividualSummedBarChar(List<BulkResultCountComparison> records, ResultType resultType, bool isTopDown)
@@ -803,15 +803,15 @@ namespace TaskLayer.ChimeraAnalysis
 
             var psmPlot = GetBulkBarChar(records, ResultType.Psm, isTopDown);
             var outPath = Path.Combine(BulkFigureDirectory, $"{Version}_Bulk_ResultsByCellLine_PSM");
-            psmPlot.SavePNG(outPath, null, 800, 600);
+            PlotlyBase.ExportFigure(psmPlot, outPath, 1400, 1000);
 
             var peptidePlot = GetBulkBarChar(records, ResultType.Peptide, isTopDown);
             outPath = Path.Combine(BulkFigureDirectory, $"{Version}_Bulk_ResultsByCellLine_Peptide");
-            peptidePlot.SavePNG(outPath, null, 800, 600);
+            PlotlyBase.ExportFigure(peptidePlot, outPath, 1400, 1000);
 
             var proteinPlot = GetBulkBarChar(records, ResultType.Protein, isTopDown);
             outPath = Path.Combine(BulkFigureDirectory, $"{Version}_Bulk_ResultsByCellLine_Protein");
-            proteinPlot.SavePNG(outPath, null, 800, 600);
+            PlotlyBase.ExportFigure(proteinPlot, outPath, 1400, 1000);
         }
 
         static GenericChart.GenericChart GetBulkBarChar(List<BulkResultCountComparison> records, ResultType resultType, bool isTopDown)

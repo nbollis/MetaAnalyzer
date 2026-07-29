@@ -27,7 +27,7 @@ namespace Plotting.RadicalFragmentation
                 Directory.CreateDirectory(explorer.FigureDirectory);
 
             var outpath = Path.Combine(explorer.FigureDirectory, outName);
-            chart.SavePNG(outpath, null, width, height);
+            PlotlyBase.ExportFigure(chart, outpath, width, height);
         }
 
         #endregion
