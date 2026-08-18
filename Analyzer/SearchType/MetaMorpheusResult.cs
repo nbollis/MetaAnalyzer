@@ -50,15 +50,25 @@ namespace Analyzer.SearchType
         public MetaMorpheusResult(string directoryPath, string? datasetName = null, string? condition = null) 
             : base(directoryPath, datasetName, condition)
         {
-            PsmPath = Directory.GetFiles(directoryPath, "*PSMs.psmtsv", SearchOption.AllDirectories).First();
+            var psmFiles = Directory.GetFiles(directoryPath, "*PSMs.psmtsv", SearchOption.AllDirectories);
+            if (psmFiles.Length == 0)
+                throw new FileNotFoundException($"No PSM files (*PSMs.psmtsv) found in directory: {directoryPath}");
+            PsmPath = psmFiles.First();
+
             PeptidePath = Directory.GetFiles(directoryPath, "*Peptides.psmtsv", SearchOption.AllDirectories).FirstOrDefault();
             if (PeptidePath is null)
             {
                 IsTopDown = true;
-                PeptidePath = Directory.GetFiles(directoryPath, "*Proteoforms.psmtsv", SearchOption.AllDirectories).First();
-                PeptidePath = Directory.GetFiles(directoryPath, "*Proteoforms.psmtsv", SearchOption.AllDirectories).First();
+                var proteoformFiles = Directory.GetFiles(directoryPath, "*Proteoforms.psmtsv", SearchOption.AllDirectories);
+                if (proteoformFiles.Length == 0)
+                    throw new FileNotFoundException($"No Peptide or Proteoform files (*Peptides.psmtsv or *Proteoforms.psmtsv) found in directory: {directoryPath}");
+                PeptidePath = proteoformFiles.First();
             }
-            ProteinPath = Directory.GetFiles(directoryPath, "*ProteinGroups.tsv", SearchOption.AllDirectories).First();
+
+            var proteinFiles = Directory.GetFiles(directoryPath, "*ProteinGroups.tsv", SearchOption.AllDirectories);
+            if (proteinFiles.Length == 0)
+                throw new FileNotFoundException($"No Protein files (*ProteinGroups.tsv) found in directory: {directoryPath}");
+            ProteinPath = proteinFiles.First();
 
             var searchDir =
                 Directory.GetDirectories(directoryPath, "*SearchTask", SearchOption.AllDirectories).FirstOrDefault() ??
@@ -525,10 +535,10 @@ namespace Analyzer.SearchType
                             }
                             else if (parent.Accession == chimericPsm.Accession)
                                 record.UniqueForms++;
-                            else if (chimericPsm.DecoyContamTarget.Contains("C"))
-                                record.ContaminantCount++;
-                            else if (parent.OrganismName != chimericPsm.OrganismName)
-                                record.DifferentProteomeCount++;
+                            //else if (chimericPsm.DecoyContamTarget.Contains("C"))
+                            //    record.ContaminantCount++;
+                            //else if (parent.OrganismName != chimericPsm.OrganismName)
+                            //    record.DifferentProteomeCount++;
                             else
                                 record.UniqueProteins++;
 
@@ -1483,14 +1493,14 @@ namespace Analyzer.SearchType
                             {
                                 resultToWrite.IsUniqueForm = true;
                             }
-                            else if (chimericPsm.DecoyContamTarget.Contains("C"))
-                            {
-                                resultToWrite.IsContaminant = true;
-                            }
-                            else if (parent.OrganismName != chimericPsm.OrganismName)
-                            {
-                                resultToWrite.IsUniqueOrganism = true;
-                            }
+                            //else if (chimericPsm.DecoyContamTarget.Contains("C"))
+                            //{
+                            //    resultToWrite.IsContaminant = true;
+                            //}
+                            //else if (parent.OrganismName != chimericPsm.OrganismName)
+                            //{
+                            //    resultToWrite.IsUniqueOrganism = true;
+                            //}
                             else
                             {
                                 resultToWrite.IsUniqueProtein = true;
@@ -1567,14 +1577,14 @@ namespace Analyzer.SearchType
                             {
                                 resultToWrite.IsUniqueForm = true;
                             }
-                            else if (chimericPeptide.DecoyContamTarget.Contains("C"))
-                            {
-                                resultToWrite.IsContaminant = true;
-                            }
-                            else if (parent.OrganismName != chimericPeptide.OrganismName)
-                            {
-                                resultToWrite.IsUniqueOrganism = true;
-                            }
+                            //else if (chimericPeptide.DecoyContamTarget.Contains("C"))
+                            //{
+                            //    resultToWrite.IsContaminant = true;
+                            //}
+                            //else if (parent.OrganismName != chimericPeptide.OrganismName)
+                            //{
+                            //    resultToWrite.IsUniqueOrganism = true;
+                            //}
                             else
                             {
                                 resultToWrite.IsUniqueProtein = true;
@@ -1876,7 +1886,10 @@ namespace Analyzer.SearchType
 
             var individualFileDirectory = Path.GetDirectoryName(psmPath);
             var searchResultsDirectory = Directory.GetParent(individualFileDirectory).FullName;
-            ResultsTextPath = Directory.GetFiles(searchResultsDirectory).First(p => p.EndsWith("results.txt"));
+            var resultsTextFile = Directory.GetFiles(searchResultsDirectory).FirstOrDefault(p => p.EndsWith("results.txt"));
+            if (resultsTextFile == null)
+                throw new FileNotFoundException($"No results.txt file found in directory: {searchResultsDirectory}");
+            ResultsTextPath = resultsTextFile;
         }
 
         public void Dispose()

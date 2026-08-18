@@ -21,8 +21,8 @@ namespace Plotting.Util
 
         public static void ExportFigure(GenericChart.GenericChart chart, string outPath, int? width = null, int? height = null)
         {
-            int exportWidth = width ?? DefaultExportWidth;
-            int exportHeight = height ?? DefaultExportHeight;
+            int exportWidth = width * 2 ?? DefaultExportWidth;
+            int exportHeight = height * 2 ?? DefaultExportHeight;
 
             try
             {

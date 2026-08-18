@@ -3,6 +3,7 @@ using Analyzer.Plotting;
 using Analyzer.Plotting.IndividualRunPlots;
 using Analyzer.Plotting.Util;
 using Analyzer.SearchType;
+using Plotting.Util;
 using ResultAnalyzerUtil;
 using ResultAnalyzerUtil.CommandLine;
 using System.Diagnostics;
@@ -61,18 +62,15 @@ namespace Test
                 var proteinCounting = mmResult.CountProteins();
                 ExternalComparisonTask.PlotProteinCountingCharts(proteinCounting.Results, false, mmResult.FigureDirectory);
 
-                var sw = Stopwatch.StartNew();
+                mmResult.Override = true;
                 _ = mmResult.GetChimeraBreakdownFile();
-                sw.Stop();
+                mmResult.Override = false;
 
-                // if it takes less than one minute to get the breakdown, and we are not overriding, do not plot
-                if (sw.Elapsed.Minutes >= 1)
-                {
-                    mmResult.PlotChimeraBreakDownStackedColumn_Scaled(ResultType.Peptide);
-                    mmResult.PlotChimeraBreakDownStackedColumn_Scaled(ResultType.Psm);
-                    mmResult.PlotChimeraBreakDownStackedColumn(ResultType.Psm);
-                    mmResult.PlotChimeraBreakDownStackedColumn(ResultType.Peptide);
-                }
+                mmResult.PlotChimeraBreakDownStackedColumn_Scaled(ResultType.Peptide);
+                mmResult.PlotChimeraBreakDownStackedColumn_Scaled(ResultType.Psm);
+                mmResult.PlotChimeraBreakDownStackedColumn(ResultType.Psm);
+                mmResult.PlotChimeraBreakDownStackedColumn(ResultType.Peptide);
+
 
                 // Chimeric Spectra Summary: Build Tasks
                 var parameters = new SingleRunAnalysisParameters(mmResult, false, false);

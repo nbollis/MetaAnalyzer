@@ -23,7 +23,6 @@ public class CellLineResults : IEnumerable<SingleRunResults>, IDisposable
         Path.Combine(DirectoryPath, $"{CellLine}_{FileIdentifiers.MaximumChimeraEstimate}");
     private string _maximumChimeraEstimateCalibAveragedFilePath =>
         Path.Combine(DirectoryPath, $"{CellLine}_{FileIdentifiers.MaximumChimeraEstimateCalibAveraged}");
-    private string _chimericFragmentIonAnalysisPath => Path.Combine(DirectoryPath, $"{CellLine}_{FileIdentifiers.ChimericFragmentIonAnalysis}");
     private string _chimeraCountingPath => Path.Combine(DirectoryPath, $"{CellLine}_PSM_{FileIdentifiers.ChimeraCountingFile}");
     private string _chimeraPeptidePath => Path.Combine(DirectoryPath, $"{CellLine}_Peptide_{FileIdentifiers.ChimeraCountingFile}");
     private string _chimeraBreakdownFilePath => Path.Combine(DirectoryPath, $"{CellLine}_{FileIdentifiers.ChimeraBreakdownComparison}");
@@ -161,12 +160,16 @@ public class CellLineResults : IEnumerable<SingleRunResults>, IDisposable
         if (!Directory.Exists(FigureDirectory))
             Directory.CreateDirectory(FigureDirectory);
     }
+    public string GetChimericFragmentIonAnalysisPath(bool excludeInternalFragments) =>
+        Path.Combine(DirectoryPath,
+            $"{DatasetName}_MM_{(excludeInternalFragments ? "NoInternal_" : string.Empty)}{FileIdentifiers.ChimericFragmentIonAnalysis}");
 
     public ChimericFragmentIonAnalysisFile GetChimericFragmentIonAnalysisFile(bool excludeInternalFragments = true)
     {
-        if (!Override && File.Exists(_chimericFragmentIonAnalysisPath))
+        var path = GetChimericFragmentIonAnalysisPath(excludeInternalFragments);
+        if (!Override && File.Exists(path))
         {
-            var existing = new ChimericFragmentIonAnalysisFile(_chimericFragmentIonAnalysisPath);
+            var existing = new ChimericFragmentIonAnalysisFile(path);
             existing.LoadResults();
             return existing;
         }
@@ -192,8 +195,8 @@ public class CellLineResults : IEnumerable<SingleRunResults>, IDisposable
             }
         }
 
-        var file = new ChimericFragmentIonAnalysisFile(_chimericFragmentIonAnalysisPath) { Results = records };
-        file.WriteResults(_chimericFragmentIonAnalysisPath);
+        var file = new ChimericFragmentIonAnalysisFile(path) { Results = records };
+        file.WriteResults(path);
         return _chimericFragmentIonAnalysisFile = file;
     }
     public ChimeraCountingFile CountChimericPsms()

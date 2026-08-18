@@ -116,7 +116,7 @@ namespace TaskLayer.ChimeraAnalysis
             // Parse Results Together
             Dictionary<string, List<MetaMorpheusResult>> cellLineDict = new();
             foreach (var cellLineDirectory in Directory.GetDirectories(Parameters.OutputDirectory)
-                         .Where(p => !p.Contains("Generate") && !p.Contains("Figure")))
+                         .Where(p => !p.Contains("Generate") && !p.Contains("Figure") && !p.Contains("Notebook")))
             {
                 // Filter here if needed. 
 
@@ -419,7 +419,7 @@ namespace TaskLayer.ChimeraAnalysis
                 {
                     var cellLineResults = new CellLineResults(cellLineGroup.Key!,
                         cellLineGroup.Cast<SingleRunResults>().ToList());
-                    SingleRunChimericFragmentIonAnalysisTask.PlotCellLineChimericFragmentIonAnalysis(cellLineResults, true);
+                    SingleRunChimericFragmentIonAnalysisTask.PlotCellLineChimericFragmentIonAnalysis(cellLineResults, false);
                     Log($"Cell Line Plotting Output Dir: {cellLineResults.FigureDirectory}", 1);
                 }
             }
@@ -431,7 +431,7 @@ namespace TaskLayer.ChimeraAnalysis
 
 
             Log($"Bulk Plotting Output Dir: {allResults.GetChimeraPaperFigureDirectory()}", 1);
-            SingleRunChimericFragmentIonAnalysisTask.PlotBulkChimericFragmentIonAnalysis(allResults, true);
+            SingleRunChimericFragmentIonAnalysisTask.PlotBulkChimericFragmentIonAnalysis(allResults, false);
 
             //var resultsForInternalComparison = cellLineDict
             //    .SelectMany(p => p.Value.ToList())
